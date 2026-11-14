@@ -2,6 +2,8 @@
 
 This release adds 23 crop-specific daily temperature rules for 16 crops. It changes nothing else: the crops, profiles, stage lengths, Kc and regions are identical to `fao56-vegetables-2026-11-15`. A profile that gains rules gets a new profile version and the release-4 review record. All earlier releases are still served unchanged, confirmed by a byte-for-byte JSON comparison against the committed versions.
 
+**Spec 1.1 update (2026-11-15).** After main merged the spec 1.1 contract (#26), every release record dropped its empty `coverage` field to pass the strict schema. All other data in every release is unchanged, and catalogue and rule versions are kept.
+
 The research behind this release is in the local report "Temperature rules for remaining crops" (git-ignored `reports/`). Six research tracks covered the crops that had no rule, using peer-reviewed papers and reviews only.
 
 ## Decisions (card owner, 2026-11-15)

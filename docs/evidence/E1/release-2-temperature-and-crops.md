@@ -2,6 +2,8 @@
 
 This release adds daily temperature rules for maize, common bean and wheat, and 16 more crops from FAO-56. The earlier release `fao56-2026-11-14` is still served unchanged for frozen-job retries. A byte-for-byte JSON comparison against the committed version confirmed this. The research behind the choices is in the local report "Crop temperature limits and parameters" (git-ignored `reports/`), produced from peer-reviewed and FAO sources only.
 
+**Spec 1.1 update (2026-11-15).** After main merged the spec 1.1 contract (#26), every release record dropped its empty `coverage` field to pass the strict schema. All other data in every release is unchanged, and catalogue and rule versions are kept.
+
 ## 1. Temperature rules
 
 The rule format is: daily air temperature above the threshold during the FAO-56 mid-season stage. A day counts as exposure. E2 computes the fraction of mid-season days above the threshold. A flagged day is a warning, not a ranking input (spec 1.1).

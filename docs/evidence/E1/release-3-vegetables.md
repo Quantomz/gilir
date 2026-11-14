@@ -2,6 +2,8 @@
 
 This release adds 23 annual vegetables and annual fruiting crops (41 profiles) to the 19 field crops of `fao56-temperature-2026-11-14`. The total is now 42 crops and 86 profiles. All earlier releases are still served unchanged; a JSON comparison against the committed versions confirmed they are byte-for-byte identical. The 45 earlier profiles are carried into this release unchanged (tested).
 
+**Spec 1.1 update (2026-11-15).** After main merged the spec 1.1 contract (#26), every release record dropped its empty `coverage` field to pass the strict schema. All other data in every release is unchanged, and catalogue and rule versions are kept.
+
 The supporting research is in the local report "Vegetable and annual fruit parameters" (git-ignored `reports/`). It used FAO-56 and peer-reviewed sources only.
 
 **Scope.** The spec excludes perennial crops, so "fruits" means annual fruiting crops: tomato, pepper, eggplant, melons, watermelon, squash and pumpkin. Fruit trees, vines, asparagus, artichoke and strawberry (listed by FAO-56 among perennial vegetables) are out of scope.
