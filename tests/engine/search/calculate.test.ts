@@ -141,7 +141,7 @@ describe("composition and result states", () => {
     expect(result.details.explanation).toContain("unplanted_days");
   });
 
-  it("assesses a baseline and identical witness once outside additional budgets", () => {
+  it("assesses the baseline witness once outside additional budgets", () => {
     const assess = vi.fn((input: MetricInput) => assessment(input.calendar));
     const result = calculate(historyRun(), registry([profile()]), options(assess));
     expect(result.details.baseline).toMatchObject({ kind: "assessed", recommendation: "kept" });
@@ -149,7 +149,7 @@ describe("composition and result states", () => {
     expect(result.details.search.scoredCandidates).toBe(0);
   });
 
-  it("does not reassess unavailable baseline identity as a generated witness", () => {
+  it("withholds a plan when the eligible baseline seed lacks required evidence", () => {
     const assess = vi.fn((): ClimateAssessment => ({ kind: "insufficient_data", missing, metrics: [], seasonMetrics: [], warnings: [], unassessedChecks: [] }));
     const result = calculate(historyRun(), registry([profile()]), options(assess));
     expect(result.state).toBe("insufficient_data");

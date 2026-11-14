@@ -45,7 +45,7 @@ function comparison(input: ExplanationInput): BaselineComparison {
         : { kind: "unavailable" as const, reason: "One or both comparison values are unavailable." },
     }];
   });
-  return { ...baseline, recommendation: baseline.eligible && same ? "kept" : "changed", changes, deltas };
+  return { ...baseline, recommendation: baseline.eligible && selected.calendar.origin === "baseline" && same ? "kept" : "changed", changes, deltas };
 }
 
 function calendarOccurrence(item: CalendarOccurrence): CalendarOccurrence {
