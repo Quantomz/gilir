@@ -1,108 +1,356 @@
 "use client";
-// The Terrace frame shared by every F1 screen and by the shell's Results screen.
-// Landmarks: <header class="topbar"> (banner), then <main id="main"> holding the title, the page and the dock.
-// The dock sits INSIDE <main> as role="region" "Next step" (known issue 21). The skip link lives in src/app/layout.tsx
-// and targets #main. The fixture lab wraps Onboarding in its own <main> (src/app/dev/fixtures/fixture-lab.tsx:13), so
-// the lab, and only the lab, shows a nested main (tradeoff in rationale.md).
-// Classes are the prototype's, ported into src/features/onboarding/terrace.css (@layer components).
-import { Component } from "react";
-import type { ReactElement, ReactNode } from "react";
+// The Terrace frame around every F1 screen and around F3's Results: the top bar, then <main id="main"> with the title,
+// the page and the dock. The dock is inside <main> as the region "Next step", so landmark navigation and the skip link
+// (in src/app/layout.tsx) reach the page's main action. The fixture lab wraps Onboarding in its own <main>, so the lab,
+// and only the lab, shows a nested main.
+// No frame piece moves focus on first paint. After that, the controller focuses #main-title on a page change.
+import { Component, useEffect, useEffectEvent, useId, useRef, useState, useSyncExternalStore } from "react";
+import type { KeyboardEvent, ReactElement, ReactNode, RefObject } from "react";
+import { createPortal } from "react-dom";
 import type { Notices, Step } from "../model/flow";
+import { policy } from "../model/policy";
+import { appName, notices as noticeWords, sheets, shell, stepCount, stepNames, titles } from "../model/words";
+import { applyReading, canSpeak, readReading, speak, stopSpeaking, textSizes } from "../services/reading";
+import type { ReadingPrefs, TextSize } from "../services/reading";
+import { Icon, Mark } from "./icons";
 
-/**
- * Public (re-exported by index.tsx). The frame page.tsx wraps F3's Results in: the top bar with the brand, Text size and
- * Listen, then <main id="main" tabIndex={-1} class="page">. No Back: Results offers Change inputs itself.
- * `focusOnMount` moves focus to #main when the plan replaces the inputs, so focus never drops to <body>
- * (graft from candidate 2).
- */
+/** Public. The frame page.tsx wraps F3's Results in. No Back: Results offers Change inputs itself. */
 export function AppFrame(props: { readonly children: ReactNode; readonly focusOnMount?: boolean }): ReactElement {
-  throw new Error("not implemented");
+  const main = useRef<HTMLElement>(null);
+  const { focusOnMount = false } = props;
+  useEffect(() => {
+    if (focusOnMount) main.current?.focus();
+  }, [focusOnMount]);
+  return (
+    <div className="view">
+      <TopBar onBack={null} />
+      <main id="main" ref={main} className="page step-main" tabIndex={-1}>
+        {props.children}
+      </main>
+    </div>
+  );
 }
 
-/** One input page: top bar (Back unless page 1, else the brand), step head, title, the page, the dock. */
+const columnClass = { column: "col", timeline: "col ly-page", wide: "wide" } as const;
+
+/** One input page: the top bar (Back, or the brand on page 1), the step head, the title, the page, then the dock. */
 export function StepFrame(props: {
   readonly step: Step;
   readonly title: string;
   readonly lead?: string;
   readonly onBack: (() => void) | null;
   readonly dock: ReactNode;
-  readonly wide?: boolean;
+  /** "wide" for the crop cards, "timeline" for page 4. */
+  readonly width?: keyof typeof columnClass;
   readonly children: ReactNode;
 }): ReactElement {
-  throw new Error("not implemented");
-  // TODO markup:
-  //  <div class="view">
-  //    <TopBar onBack={onBack} />
-  //    <main id="main" class="page step-main" tabIndex={-1}>
-  //      <div class={wide ? "wide stack" : "col stack"}>
-  //        <StepHead step={step} />
-  //        <div class="stack-xs"><Title>{title}</Title>{lead && <p class="lead" data-say>{lead}</p>}</div>
-  //        {children}
-  //      </div>
-  //      <div class="dock" role="region" aria-label="Next step"><div class="dock-in">{dock}</div></div>
-  //    </main>
-  //  </div>
+  const dock = useRef<HTMLDivElement>(null);
+  useEdge(dock, "--bar-bottom");
+  const width = props.width ?? "column";
+  return (
+    <div className="view">
+      <TopBar onBack={props.onBack} />
+      <main id="main" className="page step-main docked" tabIndex={-1}>
+        <div className={`${columnClass[width]} stack`}>
+          <StepHead step={props.step} />
+          <div className="stack-xs">
+            <Title>{props.title}</Title>
+            {props.lead ? <p className="lead" data-say="">{props.lead}</p> : null}
+          </div>
+          {props.children}
+        </div>
+        <div ref={dock} className={width === "wide" ? "dock dock-wide" : "dock"} role="region" aria-label={shell.dock}>
+          <div className="dock-in">{props.dock}</div>
+        </div>
+      </main>
+    </div>
+  );
 }
 
-/** The frame of the screens that are not input pages: Opening, Making, Failed. Same top bar, same main. */
+/** The screens that are not input pages: Opening, Making, Failed. The same top bar and main, with a centred column. */
 export function PlainFrame(props: { readonly onBack: (() => void) | null; readonly children: ReactNode }): ReactElement {
-  throw new Error("not implemented");
+  return (
+    <div className="view">
+      <TopBar onBack={props.onBack} />
+      <main id="main" className="page sys" tabIndex={-1}>
+        <div className="col stack">{props.children}</div>
+      </main>
+    </div>
+  );
 }
 
-/** Back (round button with the word, 48px), or the brand mark and "Gilir" on page 1. Then the tools. */
 export function TopBar(props: { readonly onBack: (() => void) | null }): ReactElement {
-  throw new Error("not implemented");
+  const bar = useRef<HTMLElement>(null);
+  useEdge(bar, "--bar-top");
+  return (
+    <header ref={bar} className="topbar">
+      <div className="topbar-in">
+        {props.onBack ? (
+          <button className="back" type="button" onClick={props.onBack}>
+            <span className="back-c"><Icon name="back" /></span>
+            <span>{shell.back}</span>
+          </button>
+        ) : (
+          <span className="brand">
+            <Mark />
+            <span className="word">{appName}</span>
+          </span>
+        )}
+        <Tools />
+      </div>
+    </header>
+  );
 }
 
 /**
- * "Text size" (opens TextSheet, aria-haspopup="dialog") and "Listen"/"Stop" (aria-pressed), each at least 48px, each an
- * icon with a visible word. Self-contained: it owns the TextSheet's open state, so AppFrame (outside Onboarding's
- * controller) has the same tools. Listen is not rendered when services/reading.ts canSpeak() is false. It reads every
- * [data-say] in #main and stops when the screen changes. Shown at every width (known issue 5).
+ * Text size and Listen, each an icon with its word. Tools owns the Text size sheet, so AppFrame, outside Onboarding's
+ * controller, has the same tools. Listen reads every [data-say] in #main and stops when the screen changes.
  */
 export function Tools(): ReactElement {
-  throw new Error("not implemented");
+  // The server render cannot know about speech, so Listen appears just after hydration instead of mismatching it.
+  const speech = useSyncExternalStore(noSubscription, canSpeak, () => false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  const run = useRef(0);
+  useEffect(() => () => {
+    if (run.current === 0) return;
+    run.current += 1;
+    stopSpeaking();
+  }, []);
+
+  function listen(): void {
+    run.current += 1;
+    if (speaking) {
+      stopSpeaking();
+      setSpeaking(false);
+      return;
+    }
+    const mine = run.current;
+    setSpeaking(true);
+    speak(textsToSay(), () => {
+      if (run.current === mine) setSpeaking(false);
+    });
+  }
+
+  return (
+    <div className="tools">
+      <button className="tool tool-text" type="button" aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
+        <Icon name="textsize" />
+        <span>{shell.textSize}</span>
+      </button>
+      {speech ? (
+        <button className="tool" type="button" aria-pressed={speaking} onClick={listen}>
+          <Icon name={speaking ? "stop" : "speaker"} />
+          <span>{speaking ? shell.stop : shell.listen}</span>
+        </button>
+      ) : null}
+      {sheetOpen ? <TextSheet onClose={() => setSheetOpen(false)} /> : null}
+    </div>
+  );
 }
 
-/** "Step N of 4 · {name}" (read), then the four-segment bar and labels (aria-hidden; labels from 720px). */
+function textsToSay(): string[] {
+  const main = document.getElementById("main");
+  if (!main) return [];
+  const said = Array.from(main.querySelectorAll("[data-say]"), plainText).filter(Boolean);
+  if (said.length) return said;
+  const title = main.querySelector("h1");
+  return title ? [plainText(title)] : [];
+}
+
+function plainText(element: Element): string {
+  return (element.textContent ?? "").replace(/\s+/g, " ").trim();
+}
+
+function noSubscription(): () => void {
+  return () => undefined;
+}
+
+const sizeSample: Readonly<Record<TextSize, string>> = { normal: "1.4rem", large: "1.8rem", largest: "2.2rem" };
+
+/** Changes apply at once and are remembered on this device. */
+function TextSheet(props: { readonly onClose: () => void }): ReactElement {
+  const [prefs, setPrefs] = useState<ReadingPrefs>(readReading);
+  function choose(next: ReadingPrefs): void {
+    applyReading(next);
+    setPrefs(next);
+  }
+  return (
+    <Sheet title={sheets.textTitle} returnTo={null} onClose={props.onClose}>
+      <fieldset className="stack-s">
+        <legend className="sr">{sheets.textTitle}</legend>
+        <div className="sizes">
+          {textSizes.map(size => (
+            <label className="size-opt" key={size}>
+              <input type="radio" name="text-size" checked={prefs.textSize === size} onChange={() => choose({ ...prefs, textSize: size })} />
+              <span>
+                <b aria-hidden="true" style={{ fontSize: sizeSample[size] }}>{sheets.sizeLetters}</b>
+                {sheets.sizes[size]}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <p className="muted">{sheets.sizeSample}</p>
+      <label className="switch">
+        <span>
+          <b>{sheets.contrast}</b>
+          <br />
+          <span className="muted">{sheets.contrastHint}</span>
+        </span>
+        <input type="checkbox" role="switch" checked={prefs.highContrast} onChange={event => choose({ ...prefs, highContrast: event.target.checked })} />
+      </label>
+      <button className="btn btn-primary btn-block" type="button" data-autofocus="" onClick={props.onClose}>
+        {sheets.done}
+      </button>
+    </Sheet>
+  );
+}
+
+const steps: readonly Step[] = [1, 2, 3, 4];
+
+/** "Step N of 4 · {name}" is read. The four segments and their labels repeat it for the eye only. */
 export function StepHead(props: { readonly step: Step }): ReactElement {
-  throw new Error("not implemented");
+  const mark = (n: Step) => ({ "data-on": n < props.step ? "" : undefined, "data-now": n === props.step ? "" : undefined });
+  return (
+    <div className="stephead">
+      <p className="stepcount">
+        {stepCount(props.step)}
+        <span className="stepname">{stepNames[props.step]}</span>
+      </p>
+      <div className="stepbar" aria-hidden="true">
+        {steps.map(n => <span key={n} {...mark(n)} />)}
+      </div>
+      <div className="steplabels" aria-hidden="true">
+        {steps.map(n => <span key={n} {...mark(n)}>{stepNames[n]}</span>)}
+      </div>
+    </div>
+  );
 }
 
-/** <h1 id="main-title" class="screen-title" tabIndex={-1} data-say>. Focused on every screen change after the first. */
+/** The screen's one h1. The controller focuses it on every screen change after the first paint. */
 export function Title(props: { readonly children: ReactNode }): ReactElement {
-  throw new Error("not implemented");
+  return (
+    <h1 id="main-title" className="screen-title" tabIndex={-1} data-say="">
+      {props.children}
+    </h1>
+  );
 }
 
 /** The one polite live region of the flow, always mounted: drag results, toasts, Making's step sentence. */
 export function StatusLine(props: { readonly said: string }): ReactElement {
-  throw new Error("not implemented");
-  // TODO: <p class="sr" role="status" aria-live="polite">{said}</p>
-}
-
-/** Toast under the top bar: 7 s, or 15 s with Undo; the timer pauses on hover and focus (known issue 16). */
-export function ToastBar(props: { readonly text: string; readonly onUndo: (() => void) | null; readonly onDone: () => void }): ReactElement {
-  throw new Error("not implemented");
+  return (
+    <p className="sr" role="status" aria-live="polite">
+      {props.said}
+    </p>
+  );
 }
 
 /**
- * The quiet bars above the top bar, role="status", each with "Got it": storage not saving (spec.md:423), kept newer
- * answers (Change inputs), and offline (online/offline events). They never block input.
+ * A note under the top bar. It stays 7 s, or 15 s when it offers Undo, and the time stops while the pointer is on it
+ * or focus is in it. The words reach screen readers through StatusLine, so this box is not a live region.
+ */
+export function ToastBar(props: { readonly text: string; readonly onUndo: (() => void) | null; readonly onDone: () => void }): ReactElement {
+  const box = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const done = useEffectEvent(() => props.onDone());
+  const undoable = props.onUndo !== null;
+  useEffect(() => {
+    if (hovered || focused) return;
+    const timer = setTimeout(done, undoable ? policy.toast.undoMs : policy.toast.plainMs);
+    return () => clearTimeout(timer);
+  }, [hovered, focused, undoable, props.text]);
+  useEdge(box, "--bar-toast");
+  return (
+    <div
+      ref={box}
+      className="toast"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onFocus={() => setFocused(true)}
+      onBlur={event => {
+        if (!(event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget))) setFocused(false);
+      }}
+    >
+      <span>{props.text}</span>
+      {props.onUndo ? <button type="button" onClick={props.onUndo}>{shell.undo}</button> : null}
+    </div>
+  );
+}
+
+/**
+ * The quiet lines above the top bar. Storage not saving and kept newer answers each have Got it. The offline line
+ * follows the browser's online and offline events and goes away by itself. None of them blocks input.
  */
 export function StatusBars(props: { readonly notices: Notices; readonly onDismiss: (notice: keyof Notices) => void }): ReactElement {
-  throw new Error("not implemented");
+  const offline = useSyncExternalStore(subscribeToConnection, () => !navigator.onLine, () => false);
+  function gotIt(notice: keyof Notices): void {
+    props.onDismiss(notice);
+    (document.getElementById("main-title") ?? document.getElementById("main"))?.focus();
+  }
+  return (
+    <>
+      {offline ? (
+        <div className="offline-bar" role="status">
+          <Icon name="wifioff" />
+          {noticeWords.offline}
+        </div>
+      ) : null}
+      {props.notices.storageFailing ? <NoticeBar text={noticeWords.notSaving} onGotIt={() => gotIt("storageFailing")} /> : null}
+      {props.notices.keptNewer ? <NoticeBar text={noticeWords.keptNewer} onGotIt={() => gotIt("keptNewer")} /> : null}
+    </>
+  );
 }
 
-/** "Opening Gilir…" with skeleton cards, role="status", while storage answers. Also the server-rendered HTML of "/". */
+function NoticeBar(props: { readonly text: string; readonly onGotIt: () => void }): ReactElement {
+  return (
+    <div className="notice-bar" role="status">
+      <div className="notice-in">
+        <Icon name="info" />
+        <p>{props.text}</p>
+        <button className="btn btn-small" type="button" onClick={props.onGotIt}>
+          {noticeWords.gotIt}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function subscribeToConnection(onChange: () => void): () => void {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+/** Shown while storage answers. It is also the prerendered HTML of "/", so it reads nothing from the browser. */
 export function Opening(): ReactElement {
-  throw new Error("not implemented");
+  return (
+    <PlainFrame onBack={null}>
+      <div className="stack-s opening" role="status">
+        <Title>{titles.opening}</Title>
+        <p className="row muted">
+          <span className="spinner" aria-hidden="true" />
+          <span data-say="">{titles.openingLead}</span>
+        </p>
+        <div className="stack-s" aria-hidden="true">
+          <div className="skel skel-l" />
+          <div className="skel skel-s" />
+          <div className="skel skel-s" />
+        </div>
+      </div>
+    </PlainFrame>
+  );
 }
 
 /**
- * A modal sheet: role="dialog", aria-modal, aria-labelledby its title; bottom sheet on phones, centred from 720px.
- * Focus goes to [data-autofocus] or the first control; Tab wraps; Escape and the scrim close it; on close focus returns
- * to `returnTo` (a DOM id from domIdOf, so a sheet opened from a handle returns to that handle, known issue 20) or to
- * the control that opened it. Not <dialog>.showModal (missing in jsdom, gotcha 31).
+ * A modal sheet: a bottom sheet on phones, centred from 720px. Focus goes to [data-autofocus] or the first control,
+ * Tab stays inside, and Escape or the scrim closes it. On close, focus goes to the element whose id is `returnTo`
+ * (read when the sheet opens), else back to the control that opened it.
+ * It is portalled to <body> because the top bar and the dock blur their backdrop, which would trap a fixed child.
  */
 export function Sheet(props: {
   readonly title: string;
@@ -110,16 +358,116 @@ export function Sheet(props: {
   readonly onClose: () => void;
   readonly children: ReactNode;
 }): ReactElement {
-  throw new Error("not implemented");
+  const sheet = useRef<HTMLElement>(null);
+  const titleId = useId();
+  const { returnTo } = props;
+  useEffect(() => {
+    const opener = document.activeElement;
+    const first = sheet.current?.querySelector<HTMLElement>("[data-autofocus]") ?? focusablesIn(sheet.current)[0];
+    first?.focus();
+    return () => {
+      const back = returnTo === null ? null : document.getElementById(returnTo);
+      const target = back ?? (opener instanceof HTMLElement && opener.isConnected ? opener : null);
+      target?.focus();
+    };
+    // returnTo is fixed when the sheet opens.
+  }, []);
+
+  function onKeyDown(event: KeyboardEvent<HTMLElement>): void {
+    if (event.key === "Escape") {
+      event.stopPropagation();
+      props.onClose();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const items = focusablesIn(sheet.current);
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  const content = (
+    <>
+      <div className="scrim" onClick={props.onClose} />
+      <section ref={sheet} className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={onKeyDown}>
+        <div className="sheet-head">
+          <h2 id={titleId} className="sheet-title">{props.title}</h2>
+          <button className="btn btn-small btn-close" type="button" onClick={props.onClose}>
+            <Icon name="close" />
+            {sheets.close}
+          </button>
+        </div>
+        {props.children}
+      </section>
+    </>
+  );
+  return createPortal(content, document.body);
 }
 
-/** Error boundary around the flow (prototype `Broken`). "Open Gilir again" reloads; saved answers are not cleared. */
+function focusablesIn(root: HTMLElement | null): HTMLElement[] {
+  if (!root) return [];
+  return Array.from(
+    root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+  );
+}
+
+/** Around the whole flow. A screen that fails to draw says so plainly; reopening keeps the saved answers. */
 export class Broken extends Component<{ readonly children: ReactNode }, { readonly failed: boolean }> {
   override state = { failed: false };
+
   static getDerivedStateFromError(): { failed: boolean } {
     return { failed: true };
   }
-  override render(): ReactNode {
-    throw new Error("not implemented");
+
+  override componentDidUpdate(_props: unknown, previous: { readonly failed: boolean }): void {
+    if (this.state.failed && !previous.failed) document.getElementById("main-title")?.focus();
   }
+
+  override render(): ReactNode {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <div className="view">
+        <main id="main" className="page sys" tabIndex={-1}>
+          <div className="col stack">
+            <span className="sys-ic warn"><Icon name="alert" /></span>
+            <Title>{shell.broken.title}</Title>
+            <p className="lead" data-say="">{shell.broken.body}</p>
+            <button className="btn btn-primary btn-block" type="button" onClick={() => window.location.reload()}>
+              <Icon name="refresh" />
+              {shell.broken.action}
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+}
+
+/** Keeps the scroll padding in globals.css equal to the bars that stick over the page, so focus never hides under them. */
+function useEdge(ref: RefObject<HTMLElement | null>, edge: "--bar-top" | "--bar-bottom" | "--bar-toast"): void {
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const style = document.documentElement.style;
+    const measure = () => {
+      const box = element.getBoundingClientRect();
+      style.setProperty(edge, `${Math.round(edge === "--bar-toast" ? box.bottom : box.height)}px`);
+    };
+    measure();
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
+    observer?.observe(element);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+      style.removeProperty(edge);
+    };
+  }, [ref, edge]);
 }

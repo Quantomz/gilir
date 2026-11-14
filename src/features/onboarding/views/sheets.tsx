@@ -1,6 +1,7 @@
 "use client";
-// Page 4 sheets and the Text size sheet. Each holds its own unparsed text until it is valid, then calls c.edit once,
-// so the draft never holds a half date or a blank name and the saved history is always whole.
+// Page 4 sheets. The Text size sheet belongs to the top bar, in views/frame.tsx.
+// Each holds its own unparsed text until it is valid, then calls c.edit once, so the draft never holds a half date or
+// a blank name and the saved history is always whole.
 import type { ReactElement } from "react";
 import type { Controller } from "../controller";
 import type { Span } from "../model/timeline";
@@ -41,15 +42,5 @@ export function GapSheet(props: { readonly c: Controller; readonly gap: Span }):
 
 /** "Empty: {range}": "You said the field was empty then…", "Mark as not sure" (autofocus). The range ends on the last empty day. */
 export function EmptySheet(props: { readonly c: Controller; readonly entryId: string }): ReactElement {
-  throw new Error("not implemented");
-}
-
-/**
- * "Text size": radio group Normal / Large / Largest with an "Aa" sample and the sentence that shows the size;
- * a role="switch" checkbox "High contrast" / "Black text on white, thicker edges"; "Done" (autofocus).
- * Applies at once through services/reading.ts applyReading. No "More settings" link: F1 has no Settings page
- * (open decision in rationale.md).
- */
-export function TextSheet(props: { readonly onClose: () => void }): ReactElement {
   throw new Error("not implemented");
 }

@@ -1,10 +1,9 @@
 // Reading preferences (Text size, High contrast) and read aloud (Listen).
-// They are not answers, so they are not in LocalState. They live in F1's own localStorage key, and every access is in
-// try/catch: private windows and blocked storage throw, and the page must render correctly with none of it.
-// The root rule is `html { font-size: calc(125% * var(--scale)) }` (globals.css), so 1rem is 20px at Normal, 23.6px at
-// Large and 27.2px at Largest, and every rem-sized utility grows with it. Media queries ignore the root size, so Large
-// and Largest also set `.big-text` on <html> for layout switches (prototype-port.md 7.3).
-// Nothing here touches the DOM at module load, so head.ts can import the script string on the server.
+// They are not answers, so they stay out of LocalState, in F1's own localStorage key. Private windows and blocked
+// storage throw, so every access is guarded and the page works without it.
+// The head script copies the stored choice onto <html> before first paint. From then on <html> is the truth:
+// readReading reads it back, and applyReading writes both.
+// Nothing here touches the DOM at module load, so head.ts can hand the script string to the server layout.
 
 export type TextSize = "normal" | "large" | "largest";
 
@@ -14,37 +13,72 @@ export interface ReadingPrefs {
 }
 
 export const readingKey = "gilir.reading";
+export const textSizes: readonly TextSize[] = ["normal", "large", "largest"];
 export const textScale: Readonly<Record<TextSize, number>> = { normal: 1, large: 1.18, largest: 1.36 };
+/** Media queries ignore the root font size, so Large and Largest also need a class for their layout switches. */
 export const bigTextClass = "big-text";
 export const contrastAttribute = "data-contrast";
-export const defaultReading: ReadingPrefs = { textSize: "normal", highContrast: false };
 
+/** The preferences in effect on this page. */
 export function readReading(): ReadingPrefs {
-  throw new Error("not implemented");
+  const root = document.documentElement;
+  const scale = Number(root.style.getPropertyValue("--scale"));
+  return {
+    textSize: textSizes.find(size => textScale[size] === scale) ?? "normal",
+    highContrast: root.getAttribute(contrastAttribute) === "high",
+  };
 }
 
-/** Apply to <html> (--scale, .big-text, data-contrast) and remember it. Called by the Text size sheet. */
+/** Apply to <html> and remember the choice. The page changes even when storage refuses the write. */
 export function applyReading(prefs: ReadingPrefs): void {
-  throw new Error("not implemented");
+  const root = document.documentElement;
+  root.style.setProperty("--scale", String(textScale[prefs.textSize]));
+  root.classList.toggle(bigTextClass, prefs.textSize !== "normal");
+  if (prefs.highContrast) root.setAttribute(contrastAttribute, "high");
+  else root.removeAttribute(contrastAttribute);
+  try {
+    localStorage.setItem(readingKey, JSON.stringify(prefs));
+  } catch {
+    // Not remembered on this device. The page still shows the choice.
+  }
 }
 
 /**
- * Inline script for <head> in src/app/layout.tsx. It runs before first paint, so a Largest-text farmer never sees the
- * page jump. Built from the constants above (graft from candidates 2 and 3), so it cannot drift from applyReading.
- * <html> carries suppressHydrationWarning because the server render has none of these attributes.
+ * Runs in <head> before first paint, so a farmer who chose Largest never sees the page jump. It is built from the
+ * constants above so it cannot drift from applyReading. <html> carries suppressHydrationWarning because the server
+ * render has none of these attributes.
  */
 export const readingHeadScript = `(function(){try{var p=JSON.parse(localStorage.getItem(${JSON.stringify(readingKey)})||"{}")||{};var s=${JSON.stringify(textScale)}[p.textSize]||1;var r=document.documentElement;r.style.setProperty("--scale",String(s));if(s>1)r.classList.add(${JSON.stringify(bigTextClass)});if(p.highContrast===true)r.setAttribute(${JSON.stringify(contrastAttribute)},"high")}catch(e){}})();`;
 
-/** Read aloud exists only where the browser has speech synthesis (jsdom and some phones do not). Listen is hidden then. */
+/** Speech exists only where the browser has it (not in every phone browser), so Listen is shown only then. */
 export function canSpeak(): boolean {
-  throw new Error("not implemented");
+  return typeof window !== "undefined" && "speechSynthesis" in window && typeof window.SpeechSynthesisUtterance === "function";
 }
 
-/** Speak the texts in order. `onEnd` runs when speech finishes or is stopped. */
+/** Speak the texts as sentences, in order. `onEnd` runs once speech finishes, fails or is stopped. */
 export function speak(texts: readonly string[], onEnd: () => void): void {
-  throw new Error("not implemented");
+  if (!canSpeak()) {
+    onEnd();
+    return;
+  }
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  const utterance = new window.SpeechSynthesisUtterance(texts.map(sentence).join(" "));
+  utterance.lang = "en";
+  utterance.rate = 0.9;
+  let ended = false;
+  utterance.onend = utterance.onerror = () => {
+    if (ended) return;
+    ended = true;
+    onEnd();
+  };
+  synth.speak(utterance);
 }
 
 export function stopSpeaking(): void {
-  throw new Error("not implemented");
+  if (canSpeak()) window.speechSynthesis.cancel();
+}
+
+function sentence(text: string): string {
+  return /[.!?…:]$/.test(text) ? text : `${text}.`;
 }

@@ -1,20 +1,18 @@
-// Stays a server component: it owns metadata, viewport, fonts and the pre-paint reading-preferences script.
-// Never imported by Vitest (next/font needs the Next compiler, repo-baseline.md gotcha 37).
 import type { Metadata, Viewport } from "next";
 import { Atkinson_Hyperlegible_Next, Instrument_Sans } from "next/font/google";
 import type { ReactNode } from "react";
-import { readingHeadScript } from "@/features/onboarding/head";
+import { readingHeadScript, skipLink } from "@/features/onboarding/head";
 import "./globals.css";
 
-// Self-hosted at build time (a probe build self-hosted 4 woff2 files, 136 KB; repo-baseline.md gotcha 32).
-// The browser never calls Google. A failed fetch fails `npm run build` (gotcha 34): open decision in rationale.md.
-// Variable names differ from the prototype's --f-body/--f-display, which globals.css composes with fallbacks (gotcha 36).
+// next/font downloads the files at build time and serves them from this app, so a phone never calls Google.
+// The variable names differ from the --f-body and --f-display stacks in globals.css, which add the fallbacks.
 const body = Atkinson_Hyperlegible_Next({
   subsets: ["latin", "latin-ext"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "700"],
   variable: "--font-atkinson",
   display: "swap",
-  adjustFontFallback: false, // Next has no metrics for this family (gotcha 33)
+  // Next has no fallback metrics for this family and would warn on every build.
+  adjustFontFallback: false,
 });
 const display = Instrument_Sans({
   subsets: ["latin", "latin-ext"],
@@ -28,7 +26,7 @@ export const metadata: Metadata = {
   description: "One crop rotation plan for one year, from your field, your crops and the rain.",
 };
 
-// No maximumScale: farmers may pinch-zoom. Theme colours are the Mist and night backgrounds.
+// No maximumScale: farmers may pinch to zoom.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -45,7 +43,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: readingHeadScript }} />
       </head>
       <body>
-        <a className="skip" href="#main">Skip to the main content</a>
+        <a className="skip" href="#main">{skipLink}</a>
         <div className="app-root">{children}</div>
       </body>
     </html>
