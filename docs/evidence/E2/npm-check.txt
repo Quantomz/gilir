@@ -1,0 +1,12 @@
+$ npm run check
+> gilir@0.1.0 check
+> npm run typecheck && npm run test && npm run check:boundaries
+> gilir@0.1.0 typecheck
+> next typegen && tsc --noEmit
+> gilir@0.1.0 test
+> vitest run
+ Test Files  22 passed | 5 skipped (27)
+      Tests  242 passed | 29 skipped (271)
+> gilir@0.1.0 check:boundaries
+> node scripts/check-boundaries.mjs
+Module boundaries passed.

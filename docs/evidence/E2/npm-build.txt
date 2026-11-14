@@ -1,0 +1,16 @@
+$ npm run build
+  Generating static pages using 7 workers (1/4) 
+  Generating static pages using 7 workers (2/4) 
+  Generating static pages using 7 workers (3/4) 
+✓ Generating static pages using 7 workers (4/4) in 173ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/catalogue
+├ ƒ /api/plans
+├ ƒ /api/plans/[jobId]
+└ ○ /dev/fixtures
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
