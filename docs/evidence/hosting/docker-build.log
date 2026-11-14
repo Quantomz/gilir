@@ -1,0 +1,103 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.11kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 183B done
+#3 DONE 0.0s
+
+#4 [build 1/6] FROM docker.io/library/node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54
+#4 resolve docker.io/library/node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 8.24kB done
+#5 DONE 0.0s
+
+#6 [build 2/6] WORKDIR /app
+#6 CACHED
+
+#7 [build 3/6] COPY package.json package-lock.json ./
+#7 CACHED
+
+#8 [build 4/6] RUN npm ci --include=dev
+#8 CACHED
+
+#9 [build 5/6] COPY . .
+#9 DONE 0.0s
+
+#10 [build 6/6] RUN mkdir -p public && npm run build
+#10 0.266
+#10 0.266 > gilir@0.1.0 build
+#10 0.266 > next build --webpack
+#10 0.266
+#10 0.478 ▲ Next.js 16.4.6 (webpack)
+#10 0.500 ✓ Running next.config.ts took 21ms
+#10 0.509
+#10 0.520   Creating an optimized production build ...
+#10 4.472 ✓ Compiled successfully in 3.0s
+#10 4.473   Running TypeScript ...
+#10 5.802   Finished TypeScript in 1329ms ...
+#10 5.804   Collecting page data using 8 workers ...
+#10 6.303   Generating static pages using 8 workers (0/4) ...
+#10 6.505   Generating static pages using 8 workers (1/4)
+#10 6.505   Generating static pages using 8 workers (2/4)
+#10 6.505   Generating static pages using 8 workers (3/4)
+#10 6.505 ✓ Generating static pages using 8 workers (4/4) in 202ms
+#10 6.553   Finalizing page optimization ...
+#10 6.553   Collecting build traces ...
+#10 9.910
+#10 9.911 Route (app)
+#10 9.911 ┌ ○ /
+#10 9.911 ├ ○ /_not-found
+#10 9.911 ├ ƒ /api/catalogue
+#10 9.911 ├ ƒ /api/plans
+#10 9.911 ├ ƒ /api/plans/[jobId]
+#10 9.911 └ ○ /dev/fixtures
+#10 9.911
+#10 9.911
+#10 9.911 ○  (Static)   prerendered as static content
+#10 9.911 ƒ  (Dynamic)  server-rendered on demand
+#10 9.911
+#10 DONE 10.0s
+
+#11 [runtime  3/10] COPY --from=build --chown=node:node /app/package.json /app/package-lock.json /app/tsconfig.json /app/next.config.ts ./
+#11 CACHED
+
+#12 [runtime  4/10] COPY --from=build --chown=node:node /app/node_modules ./node_modules
+#12 CACHED
+
+#13 [runtime  5/10] COPY --from=build --chown=node:node /app/.next ./.next
+#13 DONE 0.1s
+
+#14 [runtime  6/10] COPY --from=build --chown=node:node /app/public ./public
+#14 DONE 0.0s
+
+#15 [runtime  7/10] COPY --from=build --chown=node:node /app/src ./src
+#15 DONE 0.0s
+
+#16 [runtime  8/10] COPY --from=build --chown=node:node /app/scripts ./scripts
+#16 DONE 0.0s
+
+#17 [runtime  9/10] COPY --from=build --chown=node:node /app/migrations ./migrations
+#17 DONE 0.0s
+
+#18 [runtime 10/10] COPY --from=build --chown=node:node /app/deploy/start.sh ./deploy/start.sh
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 1.0s done
+#19 exporting manifest sha256:54b9a48f23a330baf26b0ba1b280c05168aaf3f76c8e3b3f73d0c5d19db7d515 done
+#19 exporting config sha256:bbe43c1d7d3973b7a323d9c310cfcc109fb655eac064bf8ac508f9eb66ff7ad4 done
+#19 exporting attestation manifest sha256:a32b4af83667b5281d07dd6bed4f781c1c720034232e19138eff57e1d7ab3a89 done
+#19 exporting manifest list sha256:e4be61c234f1ee386c19c44e5aceec67ca4f21cbb4a45f49ea805ab5948e5fb3 done
+#19 naming to docker.io/library/gilir-hosting:smoke done
+#19 unpacking to docker.io/library/gilir-hosting:smoke
+#19 unpacking to docker.io/library/gilir-hosting:smoke 0.2s done
+#19 DONE 1.2s

@@ -1,0 +1,8 @@
+decision	reason	evidence	result
+Use one Dockerfile for web, worker, migrations, and cleanup	Runtime TypeScript requires tsx and source files	package.json; scripts/worker.ts; Docker smoke	All process modes run from the same installed source
+Retain dev dependencies in runtime	TypeScript loader lives in devDependencies	package.json; worker readiness smoke	Avoid unsupported runtime pruning
+Use direct Node exec commands	Worker must receive SIGTERM	deploy/start.sh; idle_worker_sigterm	Idle worker exits with code 0
+Keep services separate and worker sleeping disabled	Background jobs need persistent processing	docs/operations.md; Railway Serverless docs	Web alone receives a public domain
+Use current dashboard settings instead of legacy service JSON	New Railway services cannot opt into Config as Code	Railway live docs checked 2026-11-14	No deprecated config or new SDK dependency
+Target Nefalos only	Latest owner instruction names Nefalos	Parent coordination message	No personal workspace selected or mutated
+Use disposable local database only	Remote setup belongs to the parent	gilir_hosting DB; smoke guard	No remote service or migration changed

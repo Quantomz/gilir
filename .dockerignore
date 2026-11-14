@@ -1,0 +1,16 @@
+.git
+.github
+.agents
+.claude
+.audit
+.railway
+.env*
+node_modules
+.next
+coverage
+test-results
+playwright-report
+*.tsbuildinfo
+docs
+tests
+*.log
