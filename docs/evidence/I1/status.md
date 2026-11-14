@@ -6,4 +6,6 @@ The isolated real PostgreSQL and HTTP checks pass with controlled scientific cal
 
 [The live preflight](live-preflight.json) records fresh actual NASA retrievals and the production blockers. The strict live test was executed separately and failed because the report is `BLOCKED`. A successful default test run skips that opt-in live test and does not close issue #11.
 
+The acceptance-runner reliability fixes at `fcbd81de8aeea6d756d368c2de37b72fd8b780a1` pass [91 tests with real database suites enabled](reliability-check.log), the [focused 11-test suite](reliability-focused.log), and the [production build](reliability-build.log). Split stdout records, signal exits, stalled child exits, and never-returning controlled calculation threads have direct regressions. Deadlines terminate owned work and permit schema cleanup. The [fresh preflight](reliability-live-preflight.json) exercised the moved real diagnostic child and remains `BLOCKED` by the same catalogue and engine limitations. [Final cleanup](reliability-cleanup.log) observed no I1 schemas or owned runtime children. Earlier failed and blocked evidence remains preserved.
+
 Independent review and merge remain with the root owner. CI and deployment are separate evidence layers. This worktree did not deploy, change board status, create a PR, or merge.

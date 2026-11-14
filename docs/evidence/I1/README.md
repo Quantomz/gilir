@@ -4,6 +4,28 @@ I1 remains **BLOCKED**. The production catalogue is empty, and the actual calcul
 
 The tested code commit is `58d33f4bc3a1630498acd2731a2e4d639943869c`. Its assembled component baseline is `1caf3590cd88460b1087cc5cf57019367ff28997`. These are local worktree results. They do not establish deployment behavior. The coordinator subsequently merged main and enabled the real adapter suite in GitHub CI. CI uses the disposable `gilir_i1` database and keeps the live provider gate explicitly opt-in. Final review and CI results are recorded on the PR.
 
+## Acceptance-runner reliability fixes
+
+The reliability code commit is `fcbd81de8aeea6d756d368c2de37b72fd8b780a1`, based on reviewed head `a8d9b3b03511ab1c5df163c722499c0f0d1628e1`. The following results cover this code. This evidence update changes documentation and logs only. It does not replace the earlier execution records below.
+
+The [baseline reproduction](reliability-repro.log) records a real stdout pipe split across two writes. The unmodified runner threw `SyntaxError` before the complete JSON event arrived. A second child emitted its event and remained alive while its exit promise stayed pending. Manual `SIGKILL` was required for the baseline cleanup.
+
+The process handle now parses newline-complete stdout records, keeps earlier events available, and checks both exit codes and signals. Its `exit()` deadline defaults to 20 seconds. Event and exit deadlines kill the owned child and await its closure before rejecting. Graceful shutdown escalates to `SIGKILL` after five seconds, with a five-second bound on confirming termination. The production engine diagnostic runs in an owned child with a 240-second event deadline. That child reads the same real PostgreSQL climate cache, input, and production registry, then uses the actual calculation-thread executor. The acceptance process no longer directly awaits an uncancellable calculation thread. All external unbounded child-exit waits were removed.
+
+| Check | Observed result | Evidence scope |
+| --- | --- | --- |
+| `npx vitest run tests/integration/runtime` | [11 passed, 1 skipped](reliability-focused.log) | Existing real adapters plus five process-reliability regressions. Only the explicit live test is skipped. |
+| `npm run check` with all three database variables set | [91 passed, 1 skipped](reliability-check.log) | Node 24, real PostgreSQL, typecheck, tests, and module boundaries. |
+| `npm run build` | [Passed](reliability-build.log) | Node 24 production build. |
+| Fresh `live.ts --preflight` | [BLOCKED](reliability-live-preflight.json) | Actual NASA, production HTTP API, isolated PostgreSQL, production worker, and the moved real engine diagnostic. [Raw stdout](reliability-live-preflight.log) retains migration output before the JSON report. |
+| Final cleanup | [No I1 schemas or runtime children remain](reliability-cleanup.log) | Direct `pg_namespace` query and `pgrep` for the owned runtime entrypoints. |
+
+The new regressions deliver a valid JSON event in separate stdout writes, retrieve an earlier complete event afterward, and reject a child killed by a signal. A controlled child that emits `tick` but never exits misses a 100-millisecond exit deadline and is killed. Another controlled child runs a never-returning `calculate()` through the production `executeInThread` executor. Its 100-millisecond diagnostic deadline kills the process that owns the calculation thread. These tests verify the child's PID is no longer alive. The database-enabled diagnostic regression also observes the random test schema removed after `finally` cleanup. None depends on the unfinished production engine returning its current error.
+
+The fresh preflight returned three real provider snapshots with 9,497 days each. The production catalogue remains `v1-empty`, HTTP submission remains invalid, and the moved calculation diagnostic returns `service_error` with `not_implemented`. Child-log privacy passes. The strict opt-in live test was not repeated during this reliability fix. Its earlier failed execution remains archived in [strict-live.log](strict-live.log). Issue #11 remains open and requires source-backed live-plan and restart evidence after E1, E2, and E3 are implemented.
+
+This fix used `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md` and its Bug fix workflow within I1's files. Model the Domain kept lifecycle ownership in one process handle. Fix Root Causes moved the stalled calculation into a process the runner can terminate. Test Behavior, Not Implementation selected real-pipe and process-liveness assertions. Laziness Protocol kept production B3 and shared contracts unchanged. Prove It Works required full checks, a fresh real diagnostic, and direct cleanup observations. The throughput checkpoint used one writer for runtime code and evidence, ran the focused suite before full checks, and left integration and fresh independent review to the root. The deslop selfcheck found no added comments, suppressions, or type casts. Fresh independent no-comments review and exact-final-head review remain with the root. The configured reviewers are GPT-only.
+
 ## Recorded results
 
 | Check | Observed result | Evidence scope |
