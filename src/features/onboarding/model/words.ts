@@ -1,19 +1,20 @@
-// Every farmer-facing word in F1, in one file. Ported from the prototype (threefield-web src/app.js, read by function
-// name) with "Threefield" replaced by "Gilir", the known-issue fixes applied, and no priority, pest or weed words
-// (AGENTS.md:47). Tables keyed by a contract union are `Record<Union, ...>`, so a new contract code fails the build
-// here instead of showing an empty string (design-red-flags "hand-synced list").
-// Apostrophes are typographic, as the prototype shows them. Tests match these exact strings (open decision in rationale.md).
+// Every farmer-facing word in F1, in one file, ported from the prototype by function name with the brand changed to
+// Gilir and the reviewers' word fixes applied. Tables keyed by a contract union are `Record<Union, ...>`, so a new
+// contract code fails the build here instead of showing an empty string.
+// Apostrophes and quotation marks are typographic, as the prototype shows them, and tests match these exact strings.
 import { inputLimits } from "@/contracts";
-import type { Catalogue, ServiceFailure, WaterAnswer } from "@/contracts";
+import type { Catalogue, IsoDate, ServiceFailure, WaterAnswer } from "@/contracts";
 import type { PageIssue } from "./check";
-import type { DatesProblem, EditNote } from "./draft";
+import { addDays, formatDay } from "./dates";
+import type { DatesProblem, Draft, EditNote } from "./draft";
 import type { Progress, Step } from "./flow";
-import type { Entry } from "./timeline";
+import type { CropEntry, Entry } from "./timeline";
 
 export const appName = "Gilir";
 
 export const stepNames: Record<Step, string> = { 1: "Your farm", 2: "Crops", 3: "Water", 4: "Your rotation" };
-export const stepCount = (step: Step) => `Step ${step} of 4 · ${stepNames[step]}`;
+/** Read before the step's name, which has its own span: "Step 2 of 4 · Crops". */
+export const stepCount = (step: Step) => `Step ${step} of 4 · `;
 
 export const titles = {
   opening: "Opening Gilir…",
@@ -50,9 +51,16 @@ export const crops = {
   emptyBody: "This version has no crops in its list, so a plan can’t be made yet. Please check again later. Your other answers are kept.",
   notListed: (label: string) => `${label} is not on the current crop list.`,
   removeNotListed: (label: string) => `Remove ${label}`,
+  filterLabel: "Find a crop",
+  filterHint: "Type part of a crop’s name to make the list shorter.",
+  filterClear: "Show all crops",
+  filterCount: (shown: number, total: number) => `${shown} of ${total} crops shown`,
+  filterNone: (text: string) => `No crop on the list matches “${text.trim()}”.`,
+  filterHidden: (n: number) =>
+    n === 1 ? "1 crop you picked is not shown. Show all crops to see it." : `${n} crops you picked are not shown. Show all crops to see them.`,
 } as const;
 
-/** Spec labels (spec.md:44), with typographic apostrophes as the prototype shows them. */
+/** The spec's water labels, with typographic apostrophes as the prototype shows them. */
 export const waterLabels: Record<WaterAnswer, { readonly label: string; readonly detail: string }> = {
   rain_only: { label: "Rain only", detail: "No pump, canal or well." },
   rain_plus_backup: { label: "Rain + water when it’s dry", detail: "A pump, canal or well for dry spells." },
@@ -104,7 +112,7 @@ export const rotation = {
   fixOnPage: (page: Step, words: string) => `Fix on page ${page}: ${lowerFirst(words)}`,
   fixHere: (words: string) => `On this page: ${lowerFirst(words)}`,
   dockIssues: (n: number) => `${n === 1 ? "One answer needs" : `${n} answers need`} fixing first. See the list at the top.`,
-  dockFailure: (title: string) => `${title}. See the note at the top.`,
+  dockFailure: "Your answers weren’t sent. See the note at the top.",
   tapAgain: "When you’re ready, tap Make my plan again.",
 } as const;
 
@@ -126,7 +134,8 @@ export const sheets = {
   planted: "Planted",
   harvested: "Harvested",
   harvestedHint: "The last day the crop was in the field.",
-  /** Prototype words. The spec names the control "Dates are approximate" (spec.md:46): open decision in rationale.md. */
+  plantedMissing: "Choose the planting date.",
+  harvestedMissing: "Choose the harvest date.",
   approximate: "These dates are approximate",
   approximateHint: "Leave this on unless you know the exact days.",
   length: (days: number) => `${dayWord(days)} in the field.`,
@@ -139,13 +148,14 @@ export const sheets = {
   emptyBody: "You said the field was empty then. If you are not sure, mark it as not sure again.",
   textTitle: "Text size",
   sizes: { normal: "Normal", large: "Large", largest: "Largest" },
+  sizeLetters: "Aa",
   sizeSample: "Words, buttons and spaces all grow together. This sentence shows the size you picked.",
   contrast: "High contrast",
   contrastHint: "Black text on white, thicker edges",
   done: "Done",
 } as const;
 
-/** Known issue 8: "Comparing orders", never "every order". */
+/** The search tries some orders and dates within budgets, so it never claims "every order". */
 const makingSteps: Record<Progress, string> = {
   queued: "Waiting for a free place in line",
   fetching: "Getting NASA weather records for your area",
@@ -156,9 +166,9 @@ export const making = {
   lead: (place: string | null) => `This usually takes less than a minute.${place ? ` ${place}.` : ""}`,
   steps: makingSteps,
   status: { done: "Done", now: "Working on it", wait: "Waiting" },
-  /** The one sentence the polite status line says (known issue 19: never the whole list). */
+  /** The one sentence the polite status line says, never the whole list. */
   announce: (progress: Progress) => `Step ${progressIndex(progress) + 1} of 3: ${makingSteps[progress]}.`,
-  /** Graft from candidates 2 and 3: retryable read failures never end the wait. */
+  /** Retryable read failures never end the wait, so Making says it keeps trying. */
   reaching: "We can’t reach the planning service right now. We keep trying.",
   cancel: "Cancel",
   noPlan: "No plan was made.",
@@ -168,7 +178,7 @@ export const making = {
   earlierPlan: (made: string) => `Open my earlier plan, made ${made}`,
 } as const;
 
-/** Failure words by contract code. No helpline code is shown (known issue 10): Gilir has no helpline yet. */
+/** Failure words by contract code. No helpline code is shown, because Gilir has no helpline yet. */
 export const failureWords: Record<ServiceFailure["code"], { readonly title: string; readonly body: string }> = {
   retrieval_failed: { title: "We couldn’t get the weather records", body: "NASA’s weather service didn’t answer this time. Your answers are kept, so you can try again." },
   processing_failed: { title: "Something went wrong while making your plan", body: "It wasn’t anything you did, and your answers are kept." },
@@ -181,7 +191,7 @@ export const failureWords: Record<ServiceFailure["code"], { readonly title: stri
 };
 
 export const notices = {
-  /** "kept", not "saved": storage may not be saving (honest while F4 is a stub). */
+  /** "kept", not "saved", because storage may not be saving. */
   notSaving: "This browser isn’t saving your answers. They stay while this page is open.",
   keptNewer: "We kept the answers you changed after that plan was made.",
   offline: "You’re offline. Your answers stay on this page.",
@@ -190,11 +200,14 @@ export const notices = {
 
 export const shell = {
   skip: "Skip to the main content",
+  dock: "Next step",
   back: "Back",
   textSize: "Text size",
   listen: "Listen",
   stop: "Stop",
   undo: "Undo",
+  /** What the status line says for a toast, because the toast box itself is not a live region. */
+  toastSaid: (text: string, undoable: boolean) => (undoable ? `${text}. You can undo this.` : text),
   broken: { title: "Something went wrong on our side", body: "This screen couldn’t open. It wasn’t anything you did.", action: "Open Gilir again" },
 } as const;
 
@@ -202,55 +215,154 @@ export const shell = {
 export interface CropNames {
   crop(id: string | null): string;
   entry(entry: Entry): string;
+  /** The entry with this id in the answers namesFrom was given, so an issue can name its bar. */
+  entryById(id: string | null): Entry | null;
 }
 
-export function namesFrom(catalogue: Catalogue | null): CropNames {
-  throw new Error("not implemented");
+export function namesFrom(catalogue: Catalogue | null, draft: Draft = {}): CropNames {
+  const labels = new Map<string, string>(catalogue?.entries.map(entry => [entry.id, entry.label]));
+  const entries = draft.history?.kind === "recorded" ? draft.history.entries : [];
+  const crop = (id: string | null) => {
+    if (id === null) return "A crop";
+    const readable = id.replace(/[-_:]+/g, " ");
+    return labels.get(id) ?? readable.charAt(0).toLocaleUpperCase() + readable.slice(1);
+  };
+  return {
+    crop,
+    entry: entry => (entry.kind === "fallow" ? "The empty time" : entry.crop.kind === "catalogue" ? crop(entry.crop.cropPurposeId) : entry.crop.label),
+    entryById: id => entries.find(entry => entry.id === id) ?? null,
+  };
 }
 
 /** Farmer words for an issue. Exhaustive over IssueKind (the `never` default fails the build on a new kind). */
 export function issueWords(issue: PageIssue, names: CropNames): string {
-  throw new Error("not implemented");
-  // TODO (switch on issue.kind):
-  //  field_missing   "Mark your field on page 1."
-  //  field_shape     "The field outline has a problem. Mark the field again."
-  //  crops_missing   "Pick at least one crop."
-  //  crops_duplicate "Each crop can be picked only once."
-  //  crop_not_listed `${names.crop(issue.cropId)} is not on the current crop list. Remove it, then pick again.`
-  //  water_missing   "Choose where your water comes from."
-  //  date_missing    "Choose the date your field is ready."
-  //  history_missing "Add last year’s crops, or tap “My field was empty all year” or “I don’t remember”."
-  //  history_window  "Last year’s 12 months must end on the day your field is ready. Choose the date again."
-  //  entry_outside   inverted ? `${name} ends before it starts. Change its dates.` : `${name} is outside the 12 months shown. Change its dates or remove it.`
-  //  entry_overlap   `${name} overlaps another entry. One crop at a time: change the dates.`
-  //  entry_id        "Two entries have the same name. Remove one and add it again."
-  //  entry_name      sheets.nameMissing
-  //  too_large       failureWords.payload_too_large.body
-  //  unreadable      "Your answers couldn’t be read. Tap Make my plan again."
-  //  other           "Check the answers on page {page}." (never the contract's developer message)
-  //  default         const unreachable: never = issue.kind
+  const entry = names.entryById(issue.entryId);
+  const name = entry === null ? "An entry" : names.entry(entry);
+  switch (issue.kind) {
+    case "field_missing": return "Mark your field on the map.";
+    case "field_shape": return "The field outline has a problem. Mark the field again.";
+    case "crops_missing": return "Choose at least one crop.";
+    case "crops_duplicate": return "Each crop can be picked only once.";
+    case "crop_not_listed": return `${names.crop(issue.cropId)} is not on the current crop list. Remove it, then pick again.`;
+    case "water_missing": return "Choose where your water comes from.";
+    case "date_missing": return "Choose the date your field is ready.";
+    case "history_missing": return "Add last year’s crops, or tap “My field was empty all year” or “I don’t remember”.";
+    case "history_window": return "Last year’s 12 months must end on the day your field is ready. Choose the date again.";
+    case "entry_outside":
+      return entry !== null && endsBeforeStart(entry)
+        ? `${name} ends before it starts. Change its dates.`
+        : `${name} is outside the 12 months shown. Change its dates or remove it.`;
+    case "entry_overlap": return `${name} overlaps another entry. One crop at a time: change the dates.`;
+    case "entry_id": return "Two entries have the same name. Remove one and add it again.";
+    case "entry_name": return sheets.nameMissing;
+    case "too_large": return failureWords.payload_too_large.body;
+    case "unreadable": return "Your answers couldn’t be read. Tap Make my plan again.";
+    case "other": return issue.page === null ? "Check your answers, then tap Make my plan again." : `Check the answers on page ${issue.page}.`;
+    default: {
+      const unreachable: never = issue.kind;
+      return unreachable;
+    }
+  }
 }
 
-/** What the controller toasts or announces for an edit. Null when nothing is said. */
+/**
+ * What the controller says after an edit, or null for nothing. `polite`: only the polite status line says it (a
+ * screen reader hears it, nothing pops up). Otherwise it is a toast. `undo`: the toast offers Undo.
+ * `names` must come from the answers after the edit, so a new bar can be named.
+ */
 export function noteWords(note: EditNote, names: CropNames): { readonly text: string; readonly undo: boolean; readonly polite: boolean } | null {
-  throw new Error("not implemented");
-  // TODO: cropRemoved "{crop} removed" + Undo; entryRemoved "{crop} removed" + Undo; markedEmpty "Marked as empty: {range}" + Undo;
-  //       markedUnsure "Marked as not sure again: {range}" + Undo; setAside "Last year’s entries are set aside" | "Marked as empty all year" + Undo;
-  //       yearFull "The 12 months are full. Change the dates of a crop first."; cropLimit crops.limit;
-  //       entryLimit `You can add up to ${inputLimits.historyEntries} entries. Remove one first.`;
-  //       listedInstead "{label} is on our list, so it was added from the list."; entryAdded "{crop} added. {bar text}." (announce only);
-  //       stepped with stop: "{crop} stays inside the 12 months shown." | "{crop} needs at least one day in the field." |
-  //       "{crop} can’t overlap the empty time." | "{crop} can’t overlap {other}. One crop at a time." (announce only)
+  const toast = (text: string, undo = false) => ({ text, undo, polite: false });
+  const said = (text: string) => ({ text, undo: false, polite: true });
+  switch (note.kind) {
+    case "none":
+    case "needDate":
+    case "datesRefused":
+      return null;
+    case "cropLimit": return toast(crops.limit);
+    case "cropRemoved": return toast(crops.removed(names.crop(note.id)), true);
+    case "entryRemoved": return toast(`${names.entry(note.entry)} removed`, true);
+    case "markedEmpty": return toast(`Marked as empty: ${entryRangeWords(note.entry)}`, true);
+    case "markedUnsure": return toast(`Marked as not sure again: ${entryRangeWords(note.entry)}`, true);
+    case "setAside": return toast(note.choice === "skipped" ? "Last year’s entries are set aside" : "Marked as empty all year", true);
+    case "yearFull": return toast("The 12 months are full. Change the dates of a crop first.");
+    case "entryLimit": return toast(`You can add up to ${inputLimits.historyEntries} entries. Remove one first.`);
+    case "listedInstead": return toast(`${names.crop(note.id)} is on our list, so it was added from the list.`);
+    case "entryAdded": {
+      const entry = names.entryById(note.entryId);
+      return entry === null ? null : said(`${names.entry(entry)} added. ${entryWords(entry)}.`);
+    }
+    case "datesSaved": {
+      const entry = names.entryById(note.entryId);
+      return entry === null ? null : said(`${names.entry(entry)}: ${entryWords(entry)}.`);
+    }
+    case "stepped": {
+      const entry = names.entryById(note.entryId);
+      return note.stop === null || entry === null ? null : said(stopWords(note.stop, entry, names));
+    }
+  }
+}
+
+/** Why a bar stopped moving, for the polite status line. */
+export function stopWords(stop: NonNullable<Extract<EditNote, { kind: "stepped" }>["stop"]>, entry: Entry, names: CropNames): string {
+  const name = names.entry(entry);
+  if (stop.kind === "edge") return `${name} stays inside the 12 months shown.`;
+  if (stop.kind === "short") return `${name} needs at least one day in the field.`;
+  return stop.with.kind === "fallow"
+    ? `${name} can’t overlap the empty time.`
+    : `${name} can’t overlap ${names.entry(stop.with).toLocaleLowerCase()}. One crop at a time.`;
 }
 
 export function datesProblemWords(problem: DatesProblem, names: CropNames): string {
-  throw new Error("not implemented");
-  // TODO: order "The harvest date must be on or after the planting date."; window "Choose dates from {first} to {last}.";
-  //       overlap "This overlaps {the empty time | your {crop}} ({range}). One crop at a time: choose other dates."; name sheets.nameMissing
+  switch (problem.kind) {
+    case "order": return "The harvest date must be on or after the planting date.";
+    case "window": return `Choose dates from ${rangeWords(problem.first, problem.last)}.`;
+    case "overlap": {
+      const other = problem.with.kind === "fallow" ? "the empty time" : `your ${names.entry(problem.with).toLocaleLowerCase()}`;
+      return `This overlaps ${other} (${entryRangeWords(problem.with)}). One crop at a time: choose other dates.`;
+    }
+    case "name": return sheets.nameMissing;
+    case "nameLong": return sheets.nameLong;
+  }
+}
+
+/** A calendar date as the farmer's phone writes it, with a short month. */
+export function dateWords(date: IsoDate): string {
+  return formatDay(date, "short");
+}
+
+export function rangeWords(first: IsoDate, last: IsoDate): string {
+  return `${dateWords(first)} to ${dateWords(last)}`;
+}
+
+/** The days an entry covers, last day included: a crop's harvest day, or the day before a fallow's exclusive end. */
+export function entryRangeWords(entry: Entry): string {
+  return entry.kind === "crop" ? rangeWords(entry.planted, entry.harvested) : rangeWords(entry.start, addDays(entry.endExclusive, -1));
+}
+
+/** "Planted about 1 Jul 2025, harvested 4 Jul 2025" for a crop; the range for an empty time. */
+export function entryWords(entry: Entry): string {
+  return entry.kind === "crop" ? barWords(entry) : entryRangeWords(entry);
+}
+
+export function barWords(entry: CropEntry): string {
+  return rotation.bar(
+    rotation.about(dateWords(entry.planted), entry.plantedPrecision === "approximate"),
+    rotation.about(dateWords(entry.harvested), entry.harvestedPrecision === "approximate"),
+  );
+}
+
+/** "rice", "rice and maize", "rice, maize and beans". */
+export function listWords(items: readonly string[]): string {
+  if (items.length < 2) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
 export function dayWord(n: number): string {
   return n + (n === 1 ? " day" : " days");
+}
+
+function endsBeforeStart(entry: Entry): boolean {
+  return entry.kind === "crop" ? entry.harvested < entry.planted : entry.endExclusive <= entry.start;
 }
 
 function lowerFirst(text: string): string {

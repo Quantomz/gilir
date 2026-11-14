@@ -1,24 +1,24 @@
 // Following one plan request until it ends. No React. Plain timers, so fake timers test it.
 //
 // The two clients F1 meets fail differently, and both are handled here and nowhere else:
-//  - The HTTP client's read() REJECTS on every non-200 with PlannerServiceError(failure) (src/client/planner.ts:58-62).
-//    An expired job (404, not_found, retryable false) arrives as a rejection. A malformed 200 throws a plain ZodError
-//    with no failure. A network error rejects with temporarily_unavailable, retryable true (planner.ts:22, :36).
-//  - The fixture client RESOLVES { state: "failed", failure: not_found } for an unknown job
-//    (src/fixtures/client.ts:15-19) and returns one fixed state forever after submit (client.ts:20).
+//  - The HTTP client's read() REJECTS on every non-200 with a PlannerServiceError carrying a ServiceFailure. An
+//    expired job (404, not_found, retryable false) arrives as a rejection. A malformed 200 throws a plain ZodError with
+//    no failure. A network error rejects with temporarily_unavailable, retryable true.
+//  - The fixture client RESOLVES { state: "failed", failure: not_found } for an unknown job, and returns one fixed
+//    state forever after submit.
 //
-// Rules (graft from candidate 3 on rules 3 to 5):
-//  1. Read at once, then every policy.poll.everyMs while queued, fetching or calculating. Report each state.
+// Rules:
+//  1. Read at once, then every policy.poll.everyMs while queued, fetching or calculating. Report each new state.
 //  2. completed -> completed(snapshot). failed -> failed(failure). Then stop: no read after a terminal state.
-//  3. A rejection whose failure has retryable === false ends the wait as failed(failure) (known issue 22).
+//  3. A rejection whose failure has retryable === false ends the wait as failed(failure).
 //  4. A retryable rejection, or a read slower than policy.timeoutMs.read, backs off along pollDelay and never ends
 //     the wait on its own. After policy.poll.unreachableAfter in a row, report reachable(false). The farmer can Cancel.
 //  5. A rejection with no ServiceFailure ends the wait after policy.poll.unknownStrikes in a row, as `unreadable`.
 //  6. stop() is idempotent. After stop() no callback runs, even for a read already in flight. Never more than one read
-//     in flight. No timer is left running after a terminal event or stop (the prototype's abort timers leaked).
-//  7. The capability never appears in a log, a URL or the DOM (spec.md:421, AGENTS.md:65).
+//     in flight. No timer is left running after a terminal event or stop.
+//  7. The capability never appears in a log, a URL or the DOM.
 import { serviceFailureSchema } from "@/contracts";
-import type { CompletedSnapshot, JobCapability, PlannerClient, ServiceFailure } from "@/contracts";
+import type { CompletedSnapshot, JobCapability, JobState, PlannerClient, ServiceFailure } from "@/contracts";
 import { policy } from "../model/policy";
 import type { PollTiming } from "../model/policy";
 import type { Progress } from "../model/flow";
@@ -41,15 +41,88 @@ export function watchJob(
   onEvent: (event: JobEvent) => void,
   timing: PollTiming = policy.poll,
 ): () => void {
-  throw new Error("not implemented");
-  // TODO: tick() = withTimeout(client.read(capability), policy.timeoutMs.read) -> resolved state or classifyReadError;
-  //       schedule the next tick with pollDelay; first tick with setTimeout(0) so cleanup can cancel it before it starts.
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let cancelRead: (() => void) | null = null;
+  let reported: Progress | null = null;
+  let reachable = true;
+  let failuresInARow = 0;
+  let retryableInARow = 0;
+  let unknownInARow = 0;
+
+  const stop = () => {
+    stopped = true;
+    if (timer !== null) clearTimeout(timer);
+    cancelRead?.();
+    timer = null;
+    cancelRead = null;
+  };
+  const end = (event: JobEvent) => {
+    onEvent(event);
+    stop();
+  };
+  const later = (ms: number) => {
+    timer = setTimeout(tick, ms);
+  };
+  const setReachable = (now: boolean) => {
+    if (now === reachable) return;
+    reachable = now;
+    onEvent({ kind: "reachable", reachable: now });
+  };
+
+  const read = (state: JobState) => {
+    failuresInARow = 0;
+    retryableInARow = 0;
+    unknownInARow = 0;
+    setReachable(true);
+    if (state.state === "completed") return end({ kind: "completed", snapshot: state.snapshot });
+    if (state.state === "failed") return end({ kind: "failed", failure: state.failure });
+    if (state.state !== reported) {
+      reported = state.state;
+      onEvent({ kind: "progress", progress: state.state });
+    }
+    later(pollDelay({ failuresInARow: 0, last: null }, timing));
+  };
+
+  const fail = (error: unknown) => {
+    const failure = classifyReadError(error);
+    if (failure.kind === "terminal") return end({ kind: "failed", failure: failure.failure });
+    failuresInARow += 1;
+    if (failure.kind === "unknown") {
+      unknownInARow += 1;
+      if (unknownInARow >= timing.unknownStrikes) return end({ kind: "failed", failure: unreadable });
+    } else {
+      retryableInARow += 1;
+      if (retryableInARow >= timing.unreachableAfter) setReachable(false);
+    }
+    later(pollDelay({ failuresInARow, last: failure }, timing));
+  };
+
+  function tick() {
+    timer = null;
+    const race = raceTimeout(Promise.resolve().then(() => client.read(capability)), policy.timeoutMs.read);
+    cancelRead = race.cancel;
+    race.promise.then(
+      state => {
+        cancelRead = null;
+        if (!stopped) read(state);
+      },
+      error => {
+        cancelRead = null;
+        if (!stopped) fail(error);
+      },
+    );
+  }
+
+  // The first read waits one macrotask, so a Strict Mode cleanup can stop it before any request is made.
+  later(0);
+  return stop;
 }
 
 /** The ServiceFailure a thrown value carries, parsed with the contract schema. Null for anything else (a ZodError). */
 export function failureOf(error: unknown): ServiceFailure | null {
-  const candidate = typeof error === "object" && error !== null && "failure" in error ? error.failure : null;
-  const parsed = serviceFailureSchema.safeParse(candidate);
+  const carried = typeof error === "object" && error !== null && "failure" in error ? error.failure : null;
+  const parsed = serviceFailureSchema.safeParse(carried);
   return parsed.success ? parsed.data : null;
 }
 
@@ -71,9 +144,33 @@ export function pollDelay(
   return timing.backoffMs[index] ?? timing.everyMs;
 }
 
-/** Settle with `promise`, or reject with `unreachable` after `ms`. Clears its own timer either way. */
+/** Settle with `promise`, or reject with an error carrying `unreachable` after `ms`. Clears its own timer either way. */
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  throw new Error("not implemented");
+  return raceTimeout(promise, ms).promise;
+}
+
+/** Thrown when a call never answered: it carries `unreachable`, so classifyReadError calls it retryable. */
+export class NoAnswerError extends Error {
+  readonly failure = unreachable;
+  constructor() {
+    super(unreachable.message);
+    this.name = "NoAnswerError";
+  }
+}
+
+function raceTimeout<T>(promise: Promise<T>, ms: number): { readonly promise: Promise<T>; readonly cancel: () => void } {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const cancel = () => {
+    if (timer !== null) clearTimeout(timer);
+    timer = null;
+  };
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      timer = null;
+      reject(new NoAnswerError());
+    }, ms);
+  });
+  return { promise: Promise.race([promise, timeout]).finally(cancel), cancel };
 }
 
 /** A read or submit that never answered, or a client that threw with no failure. */
