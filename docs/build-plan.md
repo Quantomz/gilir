@@ -16,15 +16,21 @@ The user explicitly owns backend setup. Quantomz's frontend assignment follows t
 
 The board has exactly four columns: `Quantomz | Frontend`, `kyusuku | Backend and NASA data`, `yslee1106 | Crop data and calculations`, and `Done`. Integration cards stay in the relevant owner column. Overflow uses the help-wanted label inside its home lane, not another column. When someone claims a helper card, update its assignee and move it to that person's column. Move to Done only under the completion rule below.
 
+Every card has a numeric `Estimate (hours)` field visible in the board view. Values are person-hours, matching OneTab. Assigned core and integration cards total 10 hours per person. Unassigned X cards are optional additional work and are excluded from those totals.
+
 ## Start together
 
 1. Install or locate pstack and confirm host tools before the build clock starts.
 2. Check out the published baseline, install with `npm ci`, and run `npm run check` and `npm run build`.
 3. Read the assigned card. Use its named fixture and command. No card asks another person to design its input shape.
-4. Start each card on a separate branch from main. Keep files within its ownership list.
+4. Start each card on a separate branch from `chore/parallel-build-baseline` until PR #17 merges, then use `main`. Target PRs at `main`; their shared starter commits are accounted for when #17 merges. Keep files within its ownership list.
 5. Open small PRs as cards finish. A teammate or independent agent reviews the exact change. Keep the final two hours for real integration.
 
 At hour 2, every lane runs its first component with its fixture. At hour 4, each lane has a reviewable change and records missing external evidence. At hour 6, merge completed pieces and run the first real form-to-result path. At hour 8, stop optional additions and run I1, I2, and I3. Fix failed core checks during the last two hours.
+
+## Starter availability
+
+[PR #17](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/17) publishes the common starter. Local checks, twelve tests, and the production build passed. GitHub Actions did not start because GitHub reported an account billing lock. Quantomz must resolve the repository owner billing issue and rerun the checks before normal CI-based merge. This is not an authentication failure. Coding and local verification can start from the published branch now.
 
 ## Keep the ten-hour scope honest
 

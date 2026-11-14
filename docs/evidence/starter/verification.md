@@ -14,3 +14,9 @@ Checked on 14 November 2026. This evidence concerns the shared development start
 The independent reviewers used configured GPT-family models. No cross-family review was available or claimed.
 
 Live PostgreSQL, NASA history ingestion, scientific calculations, the farmer UI, globe interaction, local persistence, and PDF export remain the assigned implementation and integration cards. Their acceptance has not been run by the starter preparation.
+
+## Published checks
+
+GitHub Actions [run 43588582362](https://github.com/Quantomz/nefalos_nasa_hackathon/actions/runs/43588582362) did not execute its job. The check annotation reports that the account is locked due to a billing issue. This is an external CI blocker, not a passing remote check. PR #17 remains open.
+
+The final card-format pass compared OneTab issues #1 and #16 and its project fields. All 16 Gilir cards have numeric hour estimates. The board displays that field. Each brief states an observable outcome, its starting fixture or port, exact owned files, work, acceptance, and verification. Integration briefs distinguish immediate test preparation from live completion.
