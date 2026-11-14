@@ -3,10 +3,11 @@ import {
   defaultEngineSettings, parsePlanResult, rankingDecimalPlacesSchema,
 } from "@/contracts";
 import type {
-  CalendarSearchInput, ClimateCohort, ExplanationInput, RankingDecision, RankingInput, RankingResult, RegistryLookup,
+  CalendarSearchInput, ClimateCohort, EvidenceValue, ExplanationInput, MetricInput, RankingDecision, RankingInput, RankingResult,
+  RegistryLookup, SearchCoverage,
 } from "@/contracts";
 import { resultFixtures } from "@/fixtures/results";
-import { climateCohortFixture } from "@/fixtures/science";
+import { climateCohortFixture, climateSnapshotFixture, frozenRunFixture, metricInputFixture } from "@/fixtures/science";
 
 describe("E3 shared engine ports", () => {
   it.each([0, 6, 12])("accepts ranking precision %s", precision => {
@@ -47,6 +48,25 @@ describe("E3 shared engine ports", () => {
     }
   });
 
+  it.each([resultFixtures.insufficient_data, resultFixtures.service_error])("round-trips interrupted ranking for $state", result => {
+    const search = {
+      ...result.details.search,
+      structural: "witness", ranking: "interrupted",
+      structuralExpandedStates: 7, gridExpandedStates: 3, scoredCandidates: 2,
+    } satisfies SearchCoverage;
+    const interrupted = { ...result, details: { ...result.details, search } };
+    const parsed = parsePlanResult(JSON.parse(JSON.stringify(interrupted)));
+    expect(parsed.state).toBe(result.state);
+    expect(parsed.details.search).toEqual(search);
+    expect(parsed.details.warnings).not.toContainEqual(expect.objectContaining({ code: "search_limit" }));
+  });
+
+  it("shares the synthetic cohort elevation evidence with the metric input", () => {
+    expect(climateCohortFixture.elevationM).toBe(climateSnapshotFixture.elevationM);
+    expect(metricInputFixture.elevationM).toBe(climateCohortFixture.elevationM);
+    expect(metricInputFixture.latitudeDeg).toBe(frozenRunFixture.input.field.lookup[1]);
+  });
+
   it("preserves unavailable annual applicability evidence in the synthetic cohort", () => {
     expect(climateCohortFixture.applicabilityClimate).toEqual({
       meanAnnualTemperatureC: { kind: "unavailable", reason: "Synthetic replay has no complete annual temperature evidence." },
@@ -58,6 +78,9 @@ describe("E3 shared engine ports", () => {
     expectTypeOf<Pick<RankingInput, "rankingDecimalPlaces">>().toEqualTypeOf<{ readonly rankingDecimalPlaces: number }>();
     expectTypeOf<CalendarSearchInput["initialPredecessor"]>().toEqualTypeOf<RegistryLookup["cropPurposeIds"][number] | null>();
     expectTypeOf<ClimateCohort["applicabilityClimate"]>().toEqualTypeOf<RegistryLookup["climate"]>();
+    expectTypeOf<Pick<ClimateCohort, "elevationM">>().toEqualTypeOf<{ readonly elevationM: EvidenceValue<number> }>();
+    expectTypeOf<ClimateCohort["elevationM"]>().toEqualTypeOf<MetricInput["elevationM"]>();
+    expectTypeOf<SearchCoverage["ranking"]>().toEqualTypeOf<"not_started" | "grid_complete" | "limit_reached" | "interrupted">();
     expectTypeOf<ExplanationInput["decision"]>().toEqualTypeOf<RankingDecision | null>();
     expectTypeOf<Extract<RankingResult, { kind: "selected" }>["decision"]>().toEqualTypeOf<RankingDecision>();
     expectTypeOf<Exclude<RankingDecision, { kind: "only_candidate" }>["comparedCalendarKey"]>().toEqualTypeOf<string>();

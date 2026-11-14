@@ -57,7 +57,7 @@ export async function runLiveAcceptance(preflight = false) {
       const diagnostic = await diagnosticProcess.event("engine_diagnostic", 240000);
       assert.deepEqual(await diagnosticProcess.exit(), { code: 0, signal: null });
       checks.productionEngineDiagnostic = { state: diagnostic.state, ...(diagnostic.state === "service_error" ? { error: diagnostic.error } : {}), evidence: "Direct diagnostic only. This was not a production-accepted HTTP job." };
-      if (diagnostic.state === "service_error") blockers.push({ owner: "E2/E3 / yslee1106", reason: "The actual calculation thread returns service_error. A service_error is rejected by the strict I1 acceptance runner." });
+      if (diagnostic.state === "service_error") blockers.push({ owner: "E2 / yslee1106; E3 / kyusuku", reason: "The actual calculation thread returns service_error. A service_error is rejected by the strict I1 acceptance runner." });
       checks.liveRestartAcceptance = "NOT RUN. A production-accepted request and implemented scientific outcome are required.";
       if (!blockers.length) blockers.push({ owner: "I1 / kyusuku", reason: "Preflight does not execute the strict restart acceptance. Run without --preflight." });
     } else {
