@@ -1,0 +1,506 @@
+{
+  "evidence": "Real NASA POWER responses for public illustrative native cells. No crop or ET0 assessment.",
+  "kind": "ready",
+  "planningStart": "2027-04-01",
+  "cutoff": "2026-11-14",
+  "period": {
+    "start": "2000-03-31",
+    "endExclusive": "2026-04-02",
+    "horizonDays": 366,
+    "seasons": [
+      {
+        "start": "2001-04-01",
+        "endExclusive": "2002-04-02"
+      },
+      {
+        "start": "2002-04-01",
+        "endExclusive": "2003-04-02"
+      },
+      {
+        "start": "2003-04-01",
+        "endExclusive": "2004-04-01"
+      },
+      {
+        "start": "2004-04-01",
+        "endExclusive": "2005-04-02"
+      },
+      {
+        "start": "2005-04-01",
+        "endExclusive": "2006-04-02"
+      },
+      {
+        "start": "2006-04-01",
+        "endExclusive": "2007-04-02"
+      },
+      {
+        "start": "2007-04-01",
+        "endExclusive": "2008-04-01"
+      },
+      {
+        "start": "2008-04-01",
+        "endExclusive": "2009-04-02"
+      },
+      {
+        "start": "2009-04-01",
+        "endExclusive": "2010-04-02"
+      },
+      {
+        "start": "2010-04-01",
+        "endExclusive": "2011-04-02"
+      },
+      {
+        "start": "2011-04-01",
+        "endExclusive": "2012-04-01"
+      },
+      {
+        "start": "2012-04-01",
+        "endExclusive": "2013-04-02"
+      },
+      {
+        "start": "2013-04-01",
+        "endExclusive": "2014-04-02"
+      },
+      {
+        "start": "2014-04-01",
+        "endExclusive": "2015-04-02"
+      },
+      {
+        "start": "2015-04-01",
+        "endExclusive": "2016-04-01"
+      },
+      {
+        "start": "2016-04-01",
+        "endExclusive": "2017-04-02"
+      },
+      {
+        "start": "2017-04-01",
+        "endExclusive": "2018-04-02"
+      },
+      {
+        "start": "2018-04-01",
+        "endExclusive": "2019-04-02"
+      },
+      {
+        "start": "2019-04-01",
+        "endExclusive": "2020-04-01"
+      },
+      {
+        "start": "2020-04-01",
+        "endExclusive": "2021-04-02"
+      },
+      {
+        "start": "2021-04-01",
+        "endExclusive": "2022-04-02"
+      },
+      {
+        "start": "2022-04-01",
+        "endExclusive": "2023-04-02"
+      },
+      {
+        "start": "2023-04-01",
+        "endExclusive": "2024-04-01"
+      },
+      {
+        "start": "2024-04-01",
+        "endExclusive": "2025-04-02"
+      },
+      {
+        "start": "2025-04-01",
+        "endExclusive": "2026-04-02"
+      }
+    ],
+    "lookbackDays": 366,
+    "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+  },
+  "sources": [
+    {
+      "productId": "POWER_METEOROLOGY",
+      "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=-116.25&latitude=43.5&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "retrievedAt": "2026-11-14T18:29:14.854Z",
+      "contentHash": "446c8b0aeb032e0901f9da4cf3999c2daa7cb2b01a067fd6f0311151f39d677e",
+      "file": "power_meteorology.json.gz"
+    },
+    {
+      "productId": "POWER_SOLAR",
+      "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=-116.5&latitude=43.5&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "retrievedAt": "2026-11-14T18:29:16.295Z",
+      "contentHash": "e8882724b18245334a973b9974e275f8d17ac25e5ebf0252690bf5be9da351cb",
+      "file": "power_solar.json.gz"
+    },
+    {
+      "productId": "POWER_IMERG",
+      "url": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=-116.15&latitude=43.65&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "retrievedAt": "2026-11-14T18:29:18.540Z",
+      "contentHash": "c72320538275d4ff378c85c99d82e01383eb75f9e8ef75d654e0e77b84013088",
+      "file": "power_imerg.json.gz"
+    }
+  ],
+  "products": [
+    {
+      "provider": "NASA POWER",
+      "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+      "stream": {
+        "kind": "unavailable",
+        "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+      },
+      "version": {
+        "kind": "unavailable",
+        "reason": "POWER reports its API version but omits the underlying source release version."
+      },
+      "cellId": "POWER_METEOROLOGY:lat267:lon102",
+      "gridDegrees": [
+        0.5,
+        0.625
+      ],
+      "fields": [
+        {
+          "field": "meanC",
+          "providerField": "T2M",
+          "originalUnit": "C",
+          "canonicalUnit": "degC",
+          "conversionVersion": "power-units-v1"
+        },
+        {
+          "field": "minC",
+          "providerField": "T2M_MIN",
+          "originalUnit": "C",
+          "canonicalUnit": "degC",
+          "conversionVersion": "power-units-v1"
+        },
+        {
+          "field": "maxC",
+          "providerField": "T2M_MAX",
+          "originalUnit": "C",
+          "canonicalUnit": "degC",
+          "conversionVersion": "power-units-v1"
+        },
+        {
+          "field": "humidityPct",
+          "providerField": "RH2M",
+          "originalUnit": "%",
+          "canonicalUnit": "%",
+          "conversionVersion": "power-units-v1"
+        },
+        {
+          "field": "wind2mMs",
+          "providerField": "WS2M",
+          "originalUnit": "m/s",
+          "canonicalUnit": "m/s",
+          "conversionVersion": "power-units-v1"
+        },
+        {
+          "field": "pressureKpa",
+          "providerField": "PS",
+          "originalUnit": "kPa",
+          "canonicalUnit": "kPa",
+          "conversionVersion": "power-units-v1"
+        }
+      ],
+      "timeStandard": "UTC",
+      "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=-116.25&latitude=43.5&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "missingDatesByField": [
+        {
+          "field": "meanC",
+          "count": 0,
+          "first": null,
+          "last": null
+        },
+        {
+          "field": "minC",
+          "count": 0,
+          "first": null,
+          "last": null
+        },
+        {
+          "field": "maxC",
+          "count": 0,
+          "first": null,
+          "last": null
+        },
+        {
+          "field": "humidityPct",
+          "count": 0,
+          "first": null,
+          "last": null
+        },
+        {
+          "field": "wind2mMs",
+          "count": 0,
+          "first": null,
+          "last": null
+        },
+        {
+          "field": "pressureKpa",
+          "count": 0,
+          "first": null,
+          "last": null
+        }
+      ]
+    },
+    {
+      "provider": "NASA POWER",
+      "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+      "stream": {
+        "kind": "unavailable",
+        "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+      },
+      "version": {
+        "kind": "unavailable",
+        "reason": "POWER reports its API version but omits the underlying source release version."
+      },
+      "cellId": "POWER_SOLAR:lat133:lon63",
+      "gridDegrees": [
+        1,
+        1
+      ],
+      "fields": [
+        {
+          "field": "solarMjM2Day",
+          "providerField": "ALLSKY_SFC_SW_DWN",
+          "originalUnit": "MJ/m^2/day",
+          "canonicalUnit": "MJ/m²/day",
+          "conversionVersion": "power-units-v1"
+        }
+      ],
+      "timeStandard": "UTC",
+      "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=-116.5&latitude=43.5&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "missingDatesByField": [
+        {
+          "field": "solarMjM2Day",
+          "count": 0,
+          "first": null,
+          "last": null
+        }
+      ]
+    },
+    {
+      "provider": "NASA POWER",
+      "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+      "stream": {
+        "kind": "unavailable",
+        "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+      },
+      "version": {
+        "kind": "unavailable",
+        "reason": "POWER reports its API version but omits the underlying source release version."
+      },
+      "cellId": "POWER_IMERG:lat1336:lon638",
+      "gridDegrees": [
+        0.1,
+        0.1
+      ],
+      "fields": [
+        {
+          "field": "rainMm",
+          "providerField": "IMERG_PRECTOT",
+          "originalUnit": "mm/day",
+          "canonicalUnit": "mm/day",
+          "conversionVersion": "power-units-v1"
+        }
+      ],
+      "timeStandard": "UTC",
+      "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=-116.15&latitude=43.65&start=20000331&end=20260401&format=JSON&time-standard=UTC",
+      "missingDatesByField": [
+        {
+          "field": "rainMm",
+          "count": 0,
+          "first": null,
+          "last": null
+        }
+      ]
+    }
+  ],
+  "completeDailyWeatherSeasonPotential": 25,
+  "seasonPotentialLimit": "Only required daily field completeness is counted. E2 must apply its common cohort, activated lookback, rules, and ET0 method. Lookback longer than 366 days is not supplied.",
+  "seasons": [
+    {
+      "start": "2001-04-01",
+      "endExclusive": "2002-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2002-04-01",
+      "endExclusive": "2003-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2003-04-01",
+      "endExclusive": "2004-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2004-04-01",
+      "endExclusive": "2005-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2005-04-01",
+      "endExclusive": "2006-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2006-04-01",
+      "endExclusive": "2007-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2007-04-01",
+      "endExclusive": "2008-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2008-04-01",
+      "endExclusive": "2009-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2009-04-01",
+      "endExclusive": "2010-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2010-04-01",
+      "endExclusive": "2011-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2011-04-01",
+      "endExclusive": "2012-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2012-04-01",
+      "endExclusive": "2013-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2013-04-01",
+      "endExclusive": "2014-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2014-04-01",
+      "endExclusive": "2015-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2015-04-01",
+      "endExclusive": "2016-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2016-04-01",
+      "endExclusive": "2017-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2017-04-01",
+      "endExclusive": "2018-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2018-04-01",
+      "endExclusive": "2019-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2019-04-01",
+      "endExclusive": "2020-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2020-04-01",
+      "endExclusive": "2021-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2021-04-01",
+      "endExclusive": "2022-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2022-04-01",
+      "endExclusive": "2023-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2023-04-01",
+      "endExclusive": "2024-04-01",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2024-04-01",
+      "endExclusive": "2025-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    },
+    {
+      "start": "2025-04-01",
+      "endExclusive": "2026-04-02",
+      "days": 366,
+      "completeDays": 366,
+      "completeDailyWeather": true
+    }
+  ],
+  "snapshotContentHashes": [
+    {
+      "id": "power-6a16f55eb1fb3611646bf0f74fc41bd5c68050182f9f06372869aa662f37f4f3",
+      "contentHash": "446c8b0aeb032e0901f9da4cf3999c2daa7cb2b01a067fd6f0311151f39d677e"
+    },
+    {
+      "id": "power-8963035372cd655188a0905d07e222b1931b5fb62cd72f3fce50620b12f528d6",
+      "contentHash": "e8882724b18245334a973b9974e275f8d17ac25e5ebf0252690bf5be9da351cb"
+    },
+    {
+      "id": "power-1b647b0d8c7ef3281e56c456275c8c03a1df8ce38985e7bc8c80f2d42e5a5092",
+      "contentHash": "c72320538275d4ff378c85c99d82e01383eb75f9e8ef75d654e0e77b84013088"
+    }
+  ]
+}
