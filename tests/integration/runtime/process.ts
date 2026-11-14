@@ -1,19 +1,20 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { defaultEngineSettings } from "@/contracts";
+import { defaultEngineSettings, parseFarmInput } from "@/contracts";
+import type { FrozenRun } from "@/contracts";
 import { calculate } from "@/engine";
 import { readRegistryRelease } from "@/registry";
 import { createPgClimateCache } from "@/server/cache";
-import { createPgJobStore } from "@/server/jobs";
+import { createPgJobStore, hashNormalizedInput } from "@/server/jobs";
 import { createPlanApi } from "@/server/jobs/http";
 import { prepareClimate } from "@/server/climate";
 import { runWorkerOnce } from "@/server/runtime";
 import { executeInThread } from "../../../scripts/worker";
-import { controlledRegistry, cutoff, freezeLeaseSeconds, poolForSchema, replayLeaseSeconds, savedPreparation } from "./support";
+import { controlledRegistry, cutoff, freezeLeaseSeconds, input, poolForSchema, replayLeaseSeconds, savedPreparation } from "./support";
 
 const config = z.object({ DATABASE_URL: z.url(), I1_SCHEMA: z.string().regex(/^i1_[a-z0-9_]+$/) }).parse(process.env);
-const mode = z.enum(["web-controlled", "web-live", "worker-freeze", "worker-replay", "worker-live", "worker-live-freeze", "worker-live-replay", "readiness"]).parse(process.argv[2]);
+const mode = z.enum(["web-controlled", "web-live", "worker-freeze", "worker-replay", "worker-live", "worker-live-freeze", "worker-live-replay", "readiness", "engine-diagnostic"]).parse(process.argv[2]);
 const pool = poolForSchema(config.DATABASE_URL, config.I1_SCHEMA);
 const jobs = createPgJobStore(pool);
 const event = (value: object) => { process.stdout.write(JSON.stringify(value) + "\n"); };
@@ -43,7 +44,17 @@ if (mode.startsWith("web-")) {
     await pool.query("SELECT 1 FROM gilir_climate_cache LIMIT 0");
     readRegistryRelease();
     event({ event: "worker_ready" });
-    if (mode !== "readiness") {
+    if (mode === "engine-diagnostic") {
+      const liveInput = parseFarmInput({ ...input, cropPurposeIds: [z.string().min(1).parse(process.argv[3])] });
+      const registry = readRegistryRelease();
+      const climate = await prepareClimate({ input: liveInput, cutoff, settings: defaultEngineSettings, cache: createPgClimateCache(pool) });
+      const run: FrozenRun = {
+        input: liveInput, settings: defaultEngineSettings, climate: climate.snapshots,
+        manifest: { schemaVersion: 1, normalizedInputHash: hashNormalizedInput(liveInput), engineVersion: "v1", configurationVersion: defaultEngineSettings.version, ...registry.identity, climateSnapshotIds: climate.snapshots.map(snapshot => snapshot.id), dataCutoff: cutoff },
+      };
+      const diagnostic = await executeInThread(run, registry);
+      event({ event: "engine_diagnostic", state: diagnostic.state, ...(diagnostic.state === "service_error" ? { error: diagnostic.error } : {}) });
+    } else if (mode !== "readiness") {
       const live = mode.startsWith("worker-live");
       const originalFreeze = jobs.freeze;
       if (mode.endsWith("-freeze")) jobs.freeze = async (...args) => {

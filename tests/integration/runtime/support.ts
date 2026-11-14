@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import type { ChildProcessByStdio } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
+import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import { Pool } from "pg";
 import { z } from "zod";
@@ -95,33 +97,59 @@ export function startProcess(args: { mode: string; connectionString: string; sch
     cwd: fileURLToPath(new URL("../../../", import.meta.url)),
     env: { ...process.env, DATABASE_URL: args.connectionString, I1_SCHEMA: args.schema }, stdio: ["ignore", "pipe", "pipe"],
   });
+  return ownProcess(child);
+}
+
+export function ownProcess(child: ChildProcessByStdio<null, Readable, Readable>) {
   let stdout = "";
   let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
   child.stdout.on("data", chunk => { stdout += chunk.toString(); });
   child.stderr.on("data", chunk => { stderr += chunk.toString(); });
   const completed = new Promise<{ code: number | null; signal: NodeJS.Signals | null }>((resolve, reject) => {
     child.once("error", reject);
-    child.once("exit", (code, signal) => { resolve({ code, signal }); });
+    child.once("close", (code, signal) => { resolve({ code, signal }); });
   });
+  async function waitForExit(timeout: number) {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([completed, new Promise<never>((_, reject) => {
+        timer = setTimeout(() => { reject(new Error("Timed out waiting for child exit. " + stderr)); }, timeout);
+      })]);
+    } finally { clearTimeout(timer); }
+  }
+  async function stop(signal: NodeJS.Signals = "SIGTERM") {
+    if (child.exitCode === null && child.signalCode === null) child.kill(signal);
+    try { return await waitForExit(5000); }
+    catch (error) {
+      if (signal === "SIGKILL") throw error;
+      child.kill("SIGKILL");
+      return waitForExit(5000);
+    }
+  }
   return {
-    child, completed, logs: () => stdout + stderr,
+    child, logs: () => stdout + stderr,
+    async exit(timeout = 20000) {
+      try { return await waitForExit(timeout); }
+      catch (error) { await stop("SIGKILL"); throw error; }
+    },
     async event(name: string, timeout = 20000) {
       const deadline = Date.now() + timeout;
-      while (Date.now() < deadline) {
-        for (const line of stdout.split("\n")) {
-          const parsed = z.object({ event: z.string() }).passthrough().safeParse(line ? JSON.parse(line) : null);
-          if (parsed.success && parsed.data.event === name) return parsed.data;
+      try {
+        while (Date.now() < deadline) {
+          for (const line of stdout.slice(0, stdout.lastIndexOf("\n") + 1).split("\n")) {
+            const parsed = z.object({ event: z.string() }).passthrough().safeParse(line ? JSON.parse(line) : null);
+            if (parsed.success && parsed.data.event === name) return parsed.data;
+          }
+          assert.equal(child.signalCode, null, "Child was signalled before " + name + ". " + child.signalCode + ". " + stderr);
+          assert.equal(child.exitCode, null, "Child exited before " + name + ". " + stderr);
+          await delay(25);
         }
-        assert.equal(child.exitCode, null, "Child exited before " + name + ". " + stderr);
-        await delay(25);
-      }
-      throw new Error("Timed out waiting for " + name + ". " + stderr);
+        throw new Error("Timed out waiting for " + name + ". " + stderr);
+      } catch (error) { await stop("SIGKILL"); throw error; }
     },
-    async stop(signal: NodeJS.Signals = "SIGTERM") {
-      if (child.exitCode === null && child.signalCode === null) child.kill(signal);
-      const timeout = setTimeout(() => { child.kill("SIGKILL"); }, 5000);
-      try { return await completed; } finally { clearTimeout(timeout); }
-    },
+    stop,
   };
 }
 

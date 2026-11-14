@@ -59,7 +59,7 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
           const worker = startProcess({ ...db, mode: "worker-replay" });
           processes.push(worker);
           expect((await worker.event("tick")).kind).toBe("completed");
-          expect((await worker.completed).code).toBe(0);
+          expect(await worker.exit()).toEqual({ code: 0, signal: null });
           const state = await client.read(capability);
           assert.equal(state.state, "completed");
           if (state.state !== "completed") throw new Error("Restart did not complete.");

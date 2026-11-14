@@ -5,13 +5,10 @@ import { resolve } from "node:path";
 import { z } from "zod";
 import { createPlannerClient } from "@/client/planner";
 import { defaultEngineSettings, parseFarmInput } from "@/contracts";
-import type { FrozenRun, JobCapability } from "@/contracts";
-import { readRegistryRelease } from "@/registry";
+import type { JobCapability } from "@/contracts";
 import { createPgClimateCache } from "@/server/cache";
 import { historicalPeriod, prepareClimate } from "@/server/climate";
 import { addDays } from "@/server/climate/dates";
-import { hashNormalizedInput } from "@/server/jobs";
-import { executeInThread } from "../../../scripts/worker";
 import { verifyRestartedPipeline } from "./acceptance";
 import { cutoff, database, freezeLeaseSeconds, frozenEvidence, input, startProcess } from "./support";
 
@@ -32,7 +29,7 @@ export async function runLiveAcceptance(preflight = false) {
     const readiness = startProcess({ ...db, mode: "readiness" });
     processes.push(readiness);
     await readiness.event("worker_ready");
-    assert.equal((await readiness.completed).code, 0);
+    assert.deepEqual(await readiness.exit(), { code: 0, signal: null });
     checks.postgresAndWorkerReadiness = "PASSED";
 
     if (catalogue.entries.length === 0 || preflight) {
@@ -54,13 +51,11 @@ export async function runLiveAcceptance(preflight = false) {
       const worker = startProcess({ ...db, mode: "worker-live" });
       processes.push(worker);
       checks.productionWorker = await worker.event("tick");
-      assert.equal((await worker.completed).code, 0);
-      const registry = readRegistryRelease();
-      const run: FrozenRun = {
-        input: liveInput, settings: defaultEngineSettings, climate: actual.snapshots,
-        manifest: { schemaVersion: 1, normalizedInputHash: hashNormalizedInput(liveInput), engineVersion: "v1", configurationVersion: defaultEngineSettings.version, ...registry.identity, climateSnapshotIds: actual.snapshots.map(snapshot => snapshot.id), dataCutoff: cutoff },
-      };
-      const diagnostic = await executeInThread(run, registry);
+      assert.deepEqual(await worker.exit(), { code: 0, signal: null });
+      const diagnosticProcess = startProcess({ ...db, mode: "engine-diagnostic", extra: [cropPurposeId] });
+      processes.push(diagnosticProcess);
+      const diagnostic = await diagnosticProcess.event("engine_diagnostic", 240000);
+      assert.deepEqual(await diagnosticProcess.exit(), { code: 0, signal: null });
       checks.productionEngineDiagnostic = { state: diagnostic.state, ...(diagnostic.state === "service_error" ? { error: diagnostic.error } : {}), evidence: "Direct diagnostic only. This was not a production-accepted HTTP job." };
       if (diagnostic.state === "service_error") blockers.push({ owner: "E2/E3 / yslee1106", reason: "The actual calculation thread returns service_error. A service_error is rejected by the strict I1 acceptance runner." });
       checks.liveRestartAcceptance = "NOT RUN. A production-accepted request and implemented scientific outcome are required.";
@@ -95,7 +90,7 @@ export async function runLiveAcceptance(preflight = false) {
           processes.push(worker);
           const tick = await worker.event("tick", 240000);
           assert.equal(tick.kind, "completed");
-          assert.equal((await worker.completed).code, 0);
+          assert.deepEqual(await worker.exit(), { code: 0, signal: null });
           const completed = await client.read(capability);
           assert.equal(completed.state, "completed");
           if (completed.state !== "completed") throw new Error("Live job did not complete.");
@@ -120,7 +115,10 @@ export async function runLiveAcceptance(preflight = false) {
     for (const value of [db.connectionString, liveInput.field.label, ...liveInput.field.ring.flatMap(point => point.map(String)), JSON.stringify(liveInput.field.lookup), JSON.stringify(liveInput.field.ring), JSON.stringify(liveInput)]) assert.ok(!logs.includes(value), "A private value appeared in logs.");
     checks.processLogPrivacy = "PASSED. Database URL, field label, exact lookup, polygon, and full input are absent from captured child logs.";
     return { status: blockers.length ? "BLOCKED" : "PASSED", evidence: "Actual production catalogue/API, PostgreSQL, live NASA, and production calculation thread. No fixture supplies a production result.", checks, blockers };
-  } finally { await Promise.all(processes.map(process => process.stop())); await db.close(); }
+  } finally {
+    try { await Promise.all(processes.map(process => process.stop())); }
+    finally { await db.close(); }
+  }
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
