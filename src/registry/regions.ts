@@ -22,4 +22,12 @@ export const regions = {
   eastAfrica: box(28.8, 48.0, -11.8, 15.0),
   mediterranean: box(-10.0, 37.0, 30.0, 46.0),
   latitude35To45North: box(-180, 180, 35.0, 45.0),
+  tropics: box(-180, 180, -23.44, 23.44),
+  westAfrica: box(-17.6, 15.9, 4.0, 27.3),
+  europe: box(-10.5, 40.0, 35.0, 71.2),
+  japanHonshuKyushuShikoku: box(129.5, 142.1, 30.9, 41.6),
+  japanHokkaido: box(139.3, 145.9, 41.3, 45.6),
+  centralUsa: box(-104.1, -87.5, 35.0, 49.0),
+  contiguousUsa: box(-124.8, -66.9, 24.5, 49.4),
+  californiaDesert: box(-116.6, -114.1, 32.5, 34.3),
 } as const;

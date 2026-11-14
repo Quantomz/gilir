@@ -28,3 +28,54 @@ The crop-to-row mappings ("Barley/Oats/Wheat" for wheat, "Beans, dry and Pulses"
 ## Still needed
 
 - Human peer confirmation of this release in the PR. If the peer changes any value, bump the release version rather than editing `fao56-2026-11-14` in place.
+
+---
+
+# Release `fao56-temperature-2026-11-14`: independent source review
+
+**Reviewer:** a separate Claude agent, run on 2026-11-15, with no access to the author's conclusions.
+
+**How it checked the sources:**
+- FAO-56: re-downloaded the raw HTML and parsed the Table 11 and 12 cells.
+- Teixeira et al. 2013: extracted the text from the openly hosted PDF.
+- Vargas et al. 2021: read the full-text XML from Europe PMC.
+- Silva et al. 2020: read through a summarising web tool, because SciELO blocked direct download.
+- Gourdji et al. 2013: the publisher's bot check blocked it. The reviewer matched the 34/35/36/39 °C values and the 30-day window against search snippets of the methods. The research notes record an earlier full-page read of the same paper.
+
+**Not a human review.** Human peer confirmation is still pending.
+
+## Result
+
+All transcribed numbers match the sources the reviewer could read:
+- every new Table 11 stage length, total, planting date and region
+- every Kc ini/mid/end and crop-group Kc ini
+- the Teixeira Table 2 values
+- the common bean 30/20 °C statements
+
+The readings of ambiguous cells were confirmed as reasonable and disclosed:
+- rice "Dec; May / Tropics; Mediterranean" split into two profiles
+- soybean "30/35" read as 35, the only value that matches the 140-day total
+- groundnut planting cells misaligned in the HTML
+
+## Findings and how they were handled
+
+| Finding | Action |
+|---|---|
+| Faba bean dry Nov Europe (235 d) and "Grains (small)" rows omitted without a stated reason | Reasons recorded in `release-2-temperature-and-crops.md` (duplicate Europe faba row; Grains (small) names no crop). |
+| Table 12 source section listed only footnotes 1, 2, 10, 11 | The latest release uses a Table 12 source entry citing footnotes 1, 2, 4, 6, 9, 10, 11 and Table 14. The earlier release is unchanged. |
+| Footnote 9 wording dropped "having less dense plant populations" | Restored verbatim; the assumption is stated. |
+| Pea Kc note implied a footnote marker on the dry/seed cell | Reworded to say footnote 2's text gives 1.20 for peas on tall stalks. |
+| Bean limitations said "around flowering" (not in either source); Silva's "in the tropics" missing | Mid-season scope now labelled a Gilir assumption, and the tropics limit added. |
+| `silva2020` section said Introduction; bean source titles were descriptions | Section set to Discussion; real paper titles used. |
+| Wheat rule text cited Teixeira and Porter & Gawith, but `sourceIds` listed only Gourdji | `teixeira2013` added to `sourceIds`. The Porter & Gawith sentence moved to the evidence doc. |
+| Window caveat said only "can count more days" | Now also says it can miss window days falling before mid-season. |
+| Sorghum "equals Pereira 2021" had no source entry | Removed from the data; kept in the evidence doc as context. |
+| Rice carried the generic rain-wetting Kc ini note, which does not apply to a flooded Kc ini | Removed for rice. |
+| Potato "assumes no vine kill" overstated footnote 4 | Reworded to say vine kill is not assumed. |
+| Japan box covered Korea, northeast China and the Russian Far East | Split into two rectangles around Japan's main islands. |
+| USA box covers northern Mexico and southern Canada; California desert box includes Yuma and Mexicali | Warnings added to the affected profiles. |
+
+## Still needed
+
+- Human peer confirmation.
+- A browser read of Gourdji et al. 2013's methods to confirm which daily temperature variable it compares.

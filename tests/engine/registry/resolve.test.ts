@@ -40,7 +40,33 @@ describe("E1 registry resolution with the FAO-56 release", () => {
   });
 
   it("reports crops outside the released catalogue", () => {
-    expect(resolveAt(["rice-paddy"], places.ibadanNigeria).gaps[0].reason).toBe("rice-paddy is not in catalogue fao56-2026-11-14.");
+    expect(resolveAt(["teff-grain"], places.ibadanNigeria).gaps[0].reason).toBe("teff-grain is not in catalogue fao56-temperature-2026-11-14.");
+  });
+
+  it("resolves the added crops by region", () => {
+    expect(profileIds(["rice-paddy", "soybean-grain", "sweet-potato"], places.ibadanNigeria)).toEqual([
+      "rice-paddy-fao56-tropics-dec", "soybean-grain-fao56-tropics-dec", "sweet-potato-fao56-tropics-rainy-season",
+    ]);
+    expect(profileIds(["rice-paddy", "groundnut", "cowpea-dry", "mung-bean-dry", "faba-bean-dry", "pea-dry"], places.madridSpain)).toEqual([
+      "rice-paddy-fao56-mediterranean-may", "groundnut-fao56-mediterranean", "cowpea-dry-fao56-mediterranean-mar",
+      "mung-bean-dry-fao56-mediterranean-mar", "faba-bean-dry-fao56-mediterranean-mar-apr", "pea-dry-fao56-mediterranean-mar-apr",
+    ]);
+    expect(profileIds(["potato", "pea-dry", "barley-grain"], places.boiseIdaho)).toEqual([
+      "potato-fao56-idaho-apr-may", "pea-dry-fao56-idaho-apr", "barley-grain-fao56-lat35-45n-mar-apr",
+    ]);
+    expect(profileIds(["sorghum-grain", "safflower-seed", "sunflower-seed"], places.fresnoCalifornia)).toEqual([
+      "sorghum-grain-fao56-usa-pakistan-mediterranean-may-jun", "safflower-seed-fao56-california-apr", "sunflower-seed-fao56-mediterranean-california-apr-may",
+    ]);
+    expect(profileIds(["barley-grain", "oats-grain"], places.bhopalIndia)).toEqual([
+      "barley-grain-fao56-central-india-nov", "oats-grain-fao56-central-india-nov",
+    ]);
+  });
+
+  it("returns the approved heat rules with the resolved profile", () => {
+    const [maize] = resolveAt(["maize-grain"], places.ibadanNigeria).profiles;
+    expect(maize.temperatureRules.map(rule => [rule.variable, rule.thresholdC, rule.scope])).toEqual([["max_c", 35, { kind: "stage", stage: "middle" }]]);
+    const [bean] = resolveAt(["common-bean-dry"], places.boiseIdaho).profiles;
+    expect(bean.temperatureRules.map(rule => [rule.variable, rule.thresholdC])).toEqual([["max_c", 30], ["min_c", 20]]);
   });
 
   it("always reports pest coverage as unavailable and releases no rotation rules", () => {

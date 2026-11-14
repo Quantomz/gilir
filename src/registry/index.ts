@@ -1,6 +1,6 @@
 import type { Catalogue, ReleasedRegistry } from "@/contracts/registry";
-import { releasedCatalogueEntries, releasedProfiles } from "./profiles";
-import { releasedSources } from "./sources";
+import { buildCatalogueEntries, buildProfiles } from "./profiles";
+import { fao56Release1Sources, releasedSources } from "./sources";
 import { assertValidRelease } from "./validate";
 
 export { resolveRegistry } from "./resolve";
@@ -27,22 +27,32 @@ const emptyV1 = {
 const fao56Release1 = {
   kind: "released",
   identity: { catalogueVersion: "fao56-2026-11-14", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-2026-11-14", entries: releasedCatalogueEntries },
+  catalogue: { version: "fao56-2026-11-14", entries: buildCatalogueEntries(1) },
+  sources: fao56Release1Sources,
+  profiles: buildProfiles(1),
+  rules: [],
+  coverage: [],
+};
+
+const fao56Release2 = {
+  kind: "released",
+  identity: { catalogueVersion: "fao56-temperature-2026-11-14", ruleVersion: "no-rules-2026-11-14" },
+  catalogue: { version: "fao56-temperature-2026-11-14", entries: buildCatalogueEntries(2) },
   sources: releasedSources,
-  profiles: releasedProfiles,
+  profiles: buildProfiles(2),
   rules: [],
   coverage: [],
 };
 
 const releases: ReadonlyMap<string, ReleasedRegistry> = new Map(
-  [emptyV1, fao56Release1].map(raw => {
+  [emptyV1, fao56Release1, fao56Release2].map(raw => {
     const release = deepFreeze(assertValidRelease(raw));
     return [release.identity.catalogueVersion, release] as const;
   }),
 );
 
 export const releasedVersions: readonly string[] = Object.freeze([...releases.keys()]);
-export const latestReleaseVersion = fao56Release1.identity.catalogueVersion;
+export const latestReleaseVersion = fao56Release2.identity.catalogueVersion;
 
 export function readRegistryRelease(version: string = latestReleaseVersion): ReleasedRegistry {
   const release = releases.get(version);

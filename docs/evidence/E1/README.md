@@ -1,36 +1,53 @@
 # E1 evidence
 
-Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Release: `fao56-2026-11-14` (the empty `v1-empty` release stays readable).
+Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Latest release: `fao56-temperature-2026-11-14` (19 crops, 45 profiles, temperature rules for maize, bean, wheat, rice and soybean). Earlier releases `fao56-2026-11-14` and `v1-empty` stay readable and unchanged.
 
 | File | Contents |
 |---|---|
-| `source-comparison.md` | Every released number next to the FAO-56 Table 11/12 cell it came from; omitted rows; assumptions not from the source |
+| `release-2-temperature-and-crops.md` | Latest release: temperature rules with sources and caveats, the 16 added crops, Kc range choices, skipped rows, Pereira 2021 alternative values |
+| `source-comparison.md` | Release `fao56-2026-11-14`: every number next to the FAO-56 Table 11/12 cell it came from; omitted rows; assumptions not from the source |
 | `review.md` | Independent source check (separate Claude agent) and follow-ups |
 | `i2-handoff.md` | Supported, no-calendar-fit and insufficient-data test inputs for I2 |
 
 ## What the release contains
 
-- **Catalogue:** `common-bean-dry`, `maize-grain`, `wheat-grain`.
-- **Profiles:** 12 regional profiles (5 maize, 2 dry bean, 5 wheat), from FAO-56 Table 11 (stage lengths) and Table 12 (Kc).
+**`fao56-temperature-2026-11-14` (latest, default)**
+- **Catalogue:** 19 food crops: barley, common bean (dry), cowpea (dry), faba bean (dry), groundnut, lentil, maize, millet, mung bean (dry), oats, pea (dry), potato, rice (paddy), safflower, sorghum, soybean, sunflower, sweet potato, wheat.
+- **Profiles:** 45 regional profiles from FAO-56 Table 11 (stage lengths) and Table 12 (Kc).
+- **Temperature rules (mid-season, daily):**
+  - maize Tmax > 35 °C
+  - wheat Tmax > 34 °C
+  - common bean Tmax > 30 °C and Tmin > 20 °C
+  - rice Tmax > 36 °C
+  - soybean Tmax > 39 °C
+
+  Sources: Gourdji et al. 2013, Teixeira et al. 2013, Vargas et al. 2021 and Silva et al. 2020. Each rule carries its caveats.
+
+**`fao56-2026-11-14` (earlier release, kept unchanged)**
+- 3 crops (maize, dry bean, wheat), 12 profiles, no temperature rules.
+
+**Both releases**
 - **Turnaround:** 7 days, labelled as a Gilir scheduling assumption.
-- **Not released:** temperature rules, preparation text and rotation rules. The cited sources contain none.
+- **Not released:** preparation text and rotation rules. The cited sources contain none.
 - **Pest/weed coverage:** none. `pestCoverage` is always unavailable (spec 1.1).
 
-## Verification (2026-11-14)
+## Verification (2026-11-15, latest release)
 
-Node: the repo requires Node >= 24. This machine has no Node 24, so the checks ran on Node 22.20.0. The default Node 20.19.1 runs the tests but cannot run Vitest's failure reporter (`Map.groupBy`).
+Node: the repo requires Node >= 24. This machine has no Node 24, so the checks ran on Node 22.20.0.
 
 | Command | Result |
 |---|---|
-| `npx vitest run tests/engine/registry` | 3 files, 35 tests passed |
-| `npm run check` | typecheck passed; 13 files / 99 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
-| `npm run build` | passed; routes built including `/api/catalogue` |
+| `npx vitest run tests/engine/registry` | 3 files, 39 tests passed |
+| `npm run check` | typecheck passed; 13 files / 103 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
+| `npm run build` | passed |
+| JSON comparison of `fao56-2026-11-14` against the committed version | byte-for-byte identical |
 
-All E1 tests use the real release data or labelled synthetic fixtures (`syntheticRegistryFixture`) for resolution-rule edge cases. Fixture tests are component evidence only. A live plan from this data belongs to I2.
+E1 tests use the real release data, plus labelled synthetic fixtures (`syntheticRegistryFixture`) for resolution-rule edge cases. Fixture tests are component evidence only; a live plan from this data belongs to I2.
 
 ## Not verified here
 
-- Human peer review of the source comparison (requested in the PR).
+- Human peer review of both releases.
+- A browser read of Gourdji et al. 2013's methods; the variable it compares is not confirmed verbatim.
 - That NASA POWER returns 15 or more complete seasons at the I2 hand-off point (B2/I2).
 - Checks on Node 24 specifically.
 - pstack: `AGENTS.md` asks for pstack's poteto-mode workflow, but pstack is not installed in this environment, so it did not run.

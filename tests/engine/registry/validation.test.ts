@@ -84,10 +84,10 @@ describe("E1 release validation", () => {
 
   it("rejects catalogue entries without profiles and profiles outside the catalogue", () => {
     const release = editableLatestRelease();
-    release.catalogue.entries.push({ id: "rice-paddy" as never, label: "Rice (paddy)", purpose: "food" });
+    release.catalogue.entries.push({ id: "teff-grain" as never, label: "Teff (grain)", purpose: "food" });
     nigeriaMaize(release).cropPurposeId = "maize-silage" as never;
     const issues = issuesOf(release);
-    expect(issues).toContainEqual("catalogue rice-paddy: no released profile with this crop-purpose");
+    expect(issues).toContainEqual("catalogue teff-grain: no released profile with this crop-purpose");
     expect(issues).toContainEqual(expect.stringMatching(/crop-purpose maize-silage is not in the catalogue/));
   });
 
