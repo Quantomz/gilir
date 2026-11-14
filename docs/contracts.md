@@ -17,7 +17,7 @@ Contract version 1 is the shared starting point for all cards. `src/contracts/` 
 | B3 | `runWorkerOnce` in `src/server/runtime.ts` | Receives JobStore, prepareClimate, registry reader, calculator, fixed clock/cutoff settings, and worker ID. Tests inject these dependencies. RuntimeDependencies and its explicit unimplemented entrypoint are already present. B3 implements it. |
 | E1 | `readRegistryRelease(version?)`, `readCatalogue(version?)` | Returns the immutable released version. Initial real catalogue is empty. |
 | E1 | `resolveRegistry(input,registry)` | RegistryLookup to RegistryResolution, including selected applicable profiles, physical/regulatory rules, and gaps. |
-| E2 | `buildClimateCohort(input)` | CohortInput to common usable seasons, excluded-season reasons, and climate insights. |
+| E2 | `buildClimateCohort(input)` | CohortInput to common usable seasons, excluded-season reasons, annual applicability climate evidence, and climate insights. |
 | E2 | `assessClimate(input)` | MetricInput to assessed occurrences, named metrics, flags, or missing-data evidence. Use `metricInputFixture`. |
 | E3 | `calculate(run,registry,{assess?,buildCohort?,resolveRegistry?})` | FrozenRun and RegistryRelease to one PlanResult. Injection makes E3 independent of E1 and E2 implementation. |
 | E3 | `findCalendar`, `rankCandidates`, `explainResult` | Exact input/result types are in `src/contracts/engine.ts`. Search proof and budget exhaustion are separate variants. |
@@ -37,6 +37,33 @@ Global package changes and contract amendments belong to kyusuku. Card-specific 
 - This spec 1.1 amendment replaces the pre-release contract while retaining `schemaVersion: 1`. It breaks old starter inputs, completed snapshots, and registry artifacts containing retired fields or tuples. Strict parsers reject those artifacts. No automatic conversion, stored-data rewrite, or database migration is included. Old queued jobs require a separate compatibility decision before deployment into persisted starter data. Frozen inputs, hashes, manifests, and identities are never relabeled.
 - `RegistryRelease` supports explicitly synthetic fixtures in tests. `ReleasedRegistry` is the production-only type. B3 accepts only released registry data and actual provider snapshots. Catalogue/profile publication still requires source review.
 - Immutable FrozenRun includes normalized input, data cutoff, climate snapshot IDs, registry versions, engine/config versions, and settings. A retry cannot switch those values silently.
+
+## E3 engine ports
+
+`ClimateCohort.applicabilityClimate` is required and has exactly the `RegistryLookup["climate"]` type. E2 owns the annual aggregation definition, its version in the cohort method metadata, and explicit unavailable evidence with reasons. E3 forwards this evidence unchanged to E1 for profile applicability.
+
+`CalendarSearchInput.initialPredecessor` is required. A crop-purpose ID records the last known crop. Null records an unknown predecessor. Waiting and recorded fallow retain a known predecessor for successor constraints.
+
+`RankingInput.rankingDecimalPlaces` is required. `rankingDecimalPlacesSchema` validates an integer from 0 through 12. E3 compares each metric using `Number(value.toFixed(rankingDecimalPlaces))` under the frozen setting and runtime. Raw assessment metrics remain available for display and audit.
+
+Direct `rankCandidates` returns `kind: "none"` only for empty input. Missing or invalid required ranking metrics throw at this boundary. `calculate` classifies missing required evidence as `insufficient_data` and contradictory assessment data as `service_error`.
+
+Selected `RankingResult` includes a required `RankingDecision`. `ExplanationInput.decision` receives that decision or null when there is no selected candidate. The decision compares the winner with the final runner-up under the full fixed ordering.
+
+| Decision kind | Evidence |
+| --- | --- |
+| `only_candidate` | The selected candidate is the sole assessed candidate. |
+| `environmental_pool` | `comparedCalendarKey`, `selectedFlagged`, and `otherFlagged`. |
+| `metric` | `comparedCalendarKey`, the fixed `metricId` and its matching `unit`, and rounded `selectedValue` and `otherValue`. |
+| `baseline` | `comparedCalendarKey` identifies the candidate displaced by baseline preference. |
+| `fewer_occurrences` | `comparedCalendarKey` identifies the candidate displaced by occurrence count. |
+| `canonical` | `comparedCalendarKey` identifies the candidate displaced by canonical order. |
+
+The canonical key serializes ordered crop-purpose IDs, profile IDs and versions, and dates. JavaScript code-unit string comparison orders the keys. Calendar origin is excluded from identity so generated and baseline duplicates share an assessment.
+
+Default `EngineSettings.version` is `v2`. Independent limits are `structuralExpansionLimit = 2_000_000`, `gridExpansionLimit = 2_000_000`, and `scoredCandidateLimit = 100_000`. `SearchCoverage` requires `gridExpandedStates` and `gridExpansionLimit` alongside the existing structural and scoring fields. Every opened ranking prefix counts once, including prefixes yielding no complete calendar. Each additional unique complete assessment counts once, including an insufficient-data response. Independently assessed baseline and witness seeds consume neither additional ranking budget.
+
+The grid prefix limit is a deterministic safety bound whose performance has yet to be benchmarked. Exhaustion exactly at a limit is complete when no work remains. A limit with pending work is `limit_reached`. Zero structural budget preserves an eligible baseline. Zero grid or scoring budgets preserve assessed eligible seeds. This pre-release correction adds required search fields to strict saved-result parsing while retaining `schemaVersion: 1`.
 
 ## HTTP wire format
 
@@ -67,7 +94,7 @@ B2 receives the ClimateCache port. B3 implements its PostgreSQL runtime adapter 
 | --- | --- |
 | `src/fixtures/input.ts` | inputFixture |
 | `src/fixtures/results.ts` | resultFixtures, completedSnapshotFixture, completedSnapshotsByState, jobFixtures |
-| `src/fixtures/science.ts` | syntheticRegistryFixture, registryResolutionFixture, frozenRunFixture, metricInputFixture and related small weather examples |
+| `src/fixtures/science.ts` | syntheticRegistryFixture, registryResolutionFixture, climateCohortFixture, frozenRunFixture, metricInputFixture and related small weather examples |
 | `src/fixtures/client.ts` | fixtureClient and makeFixtureClient |
 
 `npm run dev` exposes `/dev/fixtures`. It is a development-only lab. Production requests to that route return 404. Synthetic data is labeled and cannot serve as the project's scientific evidence. All real ports either return empty/unavailable data or throw a named unimplemented error until their card is implemented.

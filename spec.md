@@ -248,7 +248,7 @@ Not part of the MVP. See section 3.4. No breach or shortfall metric is calculate
 
 For sorted observations `x[1..N]`, use the nearest-rank quantile `Qp = x[ceil(p*N)]`. A 90th-percentile mismatch describes a relatively adverse historical replay outcome. It does not mean a 90% probability of harvest success.
 
-Derived ranking metrics are rounded to six decimal places before lexicographic comparison. Display rounding happens separately. Source values and unrounded intermediate results remain available for audit. The numeric policy and runtime version are pinned for reproducibility.
+Derived ranking metrics use `Number(value.toFixed(rankingDecimalPlaces))` before lexicographic comparison. The frozen `rankingDecimalPlaces` setting is an integer from 0 through 12 and defaults to 6. Display rounding happens separately. Source values and unrounded intermediate results remain available for audit. The numeric policy and runtime version are pinned for reproducibility.
 
 ## 6. Candidate generation and ranking
 
@@ -284,23 +284,25 @@ Dates available to the ranking search are every seventh day from the planning st
 The engine follows this fixed sequence:
 
 1. Normalize and validate inputs. Freeze source snapshots, profiles, rules, settings, and data cutoff for the run.
-2. Resolve profile applicability and required data. Return available insights without a plan if required evidence is missing.
-3. Build the common climate cohort and cache metrics for each evaluated crop-profile and date interval.
+2. Build the common climate cohort and annual applicability climate evidence. E2 owns the annual aggregation definition, its method version, and explicit unavailable reasons.
+3. Resolve profile applicability using that evidence and cache metrics for each evaluated crop-profile and date interval. Return available insights without a plan if required evidence is missing.
 4. Evaluate the eligible repeat of the farmer's existing rotation independently of search limits.
 5. Use an eligible baseline as a structural witness. If none exists, run a daily structural feasibility search to find a witness containing every selected crop.
 6. Seed the candidate pool with that witness and the eligible baseline.
 7. Enumerate additional candidates on the search date grid, score them, and keep the best candidate under the ranking tuple.
 8. Produce one result and deterministic explanations from the winning candidate's records.
 
-The structural search uses states containing the next available day, previous profile where turnaround depends on it, and a bitset of selected crops already included. Wait edges advance one day. Crop edges advance by positive occupancy and turnaround durations. A rule with additional state dependence must extend this state before it can prune paths.
+The structural search uses states containing the next available day, the last known crop-purpose ID required by successor constraints, and a bitset of selected crops already included. The initial predecessor is an explicit crop-purpose ID or null for unknown history. Wait edges advance one day. Waiting and recorded fallow retain a known predecessor. Crop edges advance by positive occupancy and turnaround durations. A rule with additional state dependence must extend this state before it can prune paths.
 
 Safe pruning includes overlap, out-of-window endings, and a lower bound proving that remaining mandatory durations cannot fit. Environmental scores do not prune the structural search. A memoized state is reusable only when every active hard constraint is represented in its key.
 
-The search uses sorted crop IDs, sorted dates, and fixed traversal order. Default budgets are two million structural state expansions and one hundred thousand additional complete scored candidates. Budgets count operations, not elapsed wall-clock time. These are initial engineering settings and need measurement on representative workloads.
+The search uses sorted crop IDs, sorted dates, and fixed traversal order. Default settings version `v2` has three independent budgets. `structuralExpansionLimit` permits 2,000,000 daily structural state expansions. `gridExpansionLimit` permits 2,000,000 opened ranking prefixes, including prefixes that produce no complete calendar. `scoredCandidateLimit` permits 100,000 additional unique complete candidate assessments, including assessments that return insufficient data. The independently evaluated baseline and witness consume neither additional ranking budget. Budgets count operations. The prefix cap is a deterministic safety bound. Representative workloads have yet to establish suitable performance or optimal budget values.
+
+Search coverage reports `structuralExpandedStates`, `gridExpandedStates`, and `scoredCandidates` beside their respective limits. Reaching a numeric limit marks a search incomplete only when work remains. Exhaustion exactly at a limit is complete. Zero structural budget preserves an eligible baseline. Zero grid or scoring budgets preserve an eligible assessed baseline or witness.
 
 An exhausted finite structural search can prove that no arrangement fits under the released profiles and generated-duration settings. A simple summed-duration lower bound can also prove impossibility. These proofs describe the supported model, not every cultivar or possible farming practice. Exhausting only the weekly ranking grid cannot prove this. If a budget ends before proof or a witness and no eligible baseline exists, return `search_incomplete` and allow retry.
 
-If a valid assessed candidate exists when the ranking budget ends, return the best assessed candidate with `search_complete = false`. The result says that the search was limited. It does not claim a global optimum. Completion of the grid search means completion of that declared grid, not all possible daily schedules.
+If a valid assessed candidate exists when either ranking budget ends with work remaining, return the best assessed candidate with `search.ranking = limit_reached`. The result says that the search was limited. Completion of the declared grid sets `search.ranking = grid_complete`.
 
 There is no random sampling, unseeded heuristic, LLM call, or wall-clock-dependent selection. Repeated runs over the same immutable input and data versions produce the same semantic result. Operational timestamps are outside that equality contract.
 

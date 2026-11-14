@@ -67,8 +67,8 @@ const details = {
   },
   preparation: [{ templateId: "synthetic-preparation", text: "Example preparation text for layout tests.", sourceIds: [] }],
   search: {
-    structural: "witness", ranking: "grid_complete", structuralExpandedStates: 1, scoredCandidates: 1,
-    structuralExpansionLimit: 10, scoredCandidateLimit: 10, gridStepDays: 7,
+    structural: "witness", ranking: "grid_complete", structuralExpandedStates: 1, gridExpandedStates: 1, scoredCandidates: 0,
+    structuralExpansionLimit: 10, gridExpansionLimit: 10, scoredCandidateLimit: 10, gridStepDays: 7,
   },
   provenance: {
     kind: "synthetic", label: syntheticLabel, manifest: { kind: "available", value: frozenRunFixture.manifest },
@@ -81,7 +81,7 @@ const emptyDetails = {
   ...details, insights: [], metrics: [], seasonMetrics: [], preparation: [],
   cohort: { kind: "unavailable", reason: "A complete cohort was not assessed in this example." },
   baseline: { kind: "not_assessable", reasons: ["Baseline was not scored in this example."] },
-  search: { ...details.search, structural: "not_started", ranking: "not_started", structuralExpandedStates: 0, scoredCandidates: 0 },
+  search: { ...details.search, structural: "not_started", ranking: "not_started", structuralExpandedStates: 0, gridExpandedStates: 0, scoredCandidates: 0 },
 } satisfies ResultDetails;
 
 const warningMetric = { ...metric, value: { kind: "available", value: 0.5 } } satisfies AssessmentMetric;
