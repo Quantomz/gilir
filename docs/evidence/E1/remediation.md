@@ -2,7 +2,7 @@
 
 The corrected default `fao56-reviewed-2026-11-15` retains 75 FAO-56 profiles covering 40 food crop purposes. It removes unsupported operational temperature mappings, withholds 11 unresolved rows, and records four printed-duration conflicts as unavailable. Supported stage allocations, Kc values, planting recommendations, management assumptions, harvest choices, approximate boundaries, and the 7-day scheduling assumption remain.
 
-This record describes the implementation comparison against X1's inspected source observations. Independent review of the corrected change is **PENDING**. No agronomist, human-peer, cross-family, deployed-plan, or live-provider approval is claimed.
+This record describes the implementation comparison against X1's inspected source observations. The coordinator records the independent exact-head verdict in [PR #33](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/33) before merge. No agronomist, human-peer, cross-family, deployed-plan, or live-provider approval is claimed.
 
 ## Identity and retry behavior
 
@@ -64,7 +64,7 @@ The new profiles have empty `temperatureRules` arrays and cite only FAO-56 Table
 
 ## Verification and review
 
-Pstack path: `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`; selected playbook: Bug fix. The implementation followed the coordinator's two-candidate design review. Model the Domain put publication decisions on the existing source rows. Prove It Works changed verification to the public registry and resolver. The installed Deslop skill was applied before each implementation commit. Native Comment Sicko and cloud review are unavailable; a separate coordinator review follows.
+Pstack path: `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`; selected playbook: Bug fix. The implementation followed the coordinator's two-candidate design review. Model the Domain put publication decisions on the existing source rows. Prove It Works changed verification to the public registry and resolver. The installed Deslop skill was applied before each implementation commit. Native Comment Sicko and cloud review are unavailable. A fresh local GPT reviewer inspected comments and suppressions. Both accepted cleanups were applied; a separate independent exact-head review gates merge.
 
 The first focused regression was committed before production changes as `44b18f9`. Its observed failure was:
 
@@ -83,9 +83,9 @@ Checks use Node `v24.22.3` with `PATH=/Users/kyusuku/.npm/_npx/387698761821791d/
 | `npx vitest run tests/engine/registry/source-remediation.test.ts` after initial fix | Passed: 10 tests |
 | `npx vitest run tests/engine/registry` after correction | Passed: 7 files, 67 tests |
 | `npm run typecheck` | Passed: route types generated and TypeScript exited 0 |
-| `npm run check` | NOT RUN by implementation delegate; coordinator owns full check |
-| `npm run build` | NOT RUN by implementation delegate; coordinator owns build |
-| Independent exact-change review | PENDING |
+| `npm run check` with real PostgreSQL suites enabled | Passed at `b657167`: 564 tests passed; one opt-in live I1 test skipped; typecheck and module boundaries passed |
+| `npm run build` | Passed at `b657167` |
+| Independent exact-change review | Required before merge; exact-head verdict is recorded in PR #33 |
 | Live NASA, HTTP, PostgreSQL, restarts, and returned plan | NOT RUN here; separate integration acceptance |
 
 The [handoff cases](i2-handoff.md) and [public-entrypoint observations](remediation-observed.json) identify the supported profiles and missing coverage. E1 is not marked Done by this implementation record.

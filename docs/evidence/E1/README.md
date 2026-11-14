@@ -6,8 +6,8 @@ This source correction preserves supported FAO curation, withholds 11 unresolved
 
 | File | Current purpose |
 | --- | --- |
-| [remediation.md](remediation.md) | Source decisions, compatibility policy, verification, and pending review |
-| [remediation-observed.json](remediation-observed.json) | Public-entrypoint inventory, canonical digest, source comparison counts, and selected cases |
+| [remediation.md](remediation.md) | Source decisions, compatibility policy, verification, and the independent review gate |
+| [remediation-observed.json](remediation-observed.json) | Implementation observations captured before independent review, including inventory, digest, source comparisons, and selected cases |
 | [i2-handoff.md](i2-handoff.md) | Supported Boise case and unsupported Bangkok control |
 | [source-comparison.md](source-comparison.md) | Superseded draft source curation, preserved for history |
 | [release-2-temperature-and-crops.md](release-2-temperature-and-crops.md) | Superseded draft field-crop and temperature narrative |
