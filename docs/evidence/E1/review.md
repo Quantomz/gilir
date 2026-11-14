@@ -90,3 +90,43 @@ No threshold value changed.
 ## Still needed
 
 - Human peer confirmation.
+
+---
+
+# Release `fao56-vegetables-2026-11-15`: independent source review
+
+**Reviewer:** a separate Claude agent, run on 2026-11-15, with no access to the author's conclusions.
+
+**How it checked the sources:**
+- FAO-56: re-downloaded the raw HTML and parsed Tables 11 and 12 itself, expanding row spans.
+- Luo 2011: extracted the text from an open PDF.
+- Qin et al. 2020: read the Europe PMC full-text XML.
+
+**Not a human review.**
+
+## Result
+
+Every number matches FAO-56 for all 41 new profiles: stage lengths, totals and the summed-total handling, planting dates, Kc values, group Kc ini, and the readings of footnotes 1, 2, 3, 6 and 12. The first-listed claims are correct, and the ambiguous cells were read correctly and consistently:
+- spinach "15/25" and "60/70"
+- sweet pepper "25/30"
+- eggplant printed total 40
+- dry onion "Oct; Jan."
+- squash "Apr; Dec."
+- sweet maize "103"
+- the two green-bean rows that both name California
+
+The broccoli (−9 to −7 °C field lethal minimum; 35 °C failure point) and lettuce (> 30 °C bolting) values and citations were verified.
+
+## Findings and how they were handled
+
+| Finding | Action |
+|---|---|
+| Table beet: second row "Mediterranean & Arid" (90 d) was not named in a warning (required) | Warning added, and the test now checks it. |
+| Broccoli heat caveat omitted Table 2 footnote b and "shorter heat exposures produced little injury"; stated mid-season timing as fact (required) | Caveat now gives the one-week exposure and says one day is much milder. Mid-season timing is labelled a Gilir assumption. |
+| Lettuce caveat stated "six-leaf stage through heading" as fact and "no exposure duration" | Reworded: Qin's sustained 33/25 °C treatment is cited, and the whole-season scope is labelled an assumption. |
+| `luo2011` section cited only §2.2 | Now cites §2.2 and §3.3. |
+| Green bean warning wording; Egypt/Lebanon precedence over the Mediterranean row not explained; Egypt box reaches Israel, Palestine, Jordan and north-west Saudi Arabia | Warnings rewritten and added. |
+
+## Still needed
+
+- Human peer confirmation.

@@ -30,4 +30,8 @@ export const regions = {
   centralUsa: box(-104.1, -87.5, 35.0, 49.0),
   contiguousUsa: box(-124.8, -66.9, 24.5, 49.4),
   californiaDesert: box(-116.6, -114.1, 32.5, 34.3),
+  italy: box(6.6, 18.6, 36.6, 47.1),
+  philippines: box(116.9, 126.6, 4.6, 21.1),
+  egypt: box(24.7, 36.9, 22.0, 31.7),
+  lebanon: box(35.1, 36.7, 33.05, 34.7),
 } as const;

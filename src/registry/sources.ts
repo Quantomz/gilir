@@ -63,5 +63,29 @@ const fao56Table12Release2 = {
   section: "Chapter 6, Table 12 (single time-averaged crop coefficients for non-stressed, well-managed crops in subhumid climates) with footnotes 1, 2, 4, 6, 9, 10 and 11, and Table 14 with the rice Kc ini paragraph",
 } as const;
 
+export const luo2011 = {
+  id: "luo2011",
+  title: "Luo 2011, Temperature thresholds and crop production: a review, Climatic Change 109:583-598",
+  url: "https://doi.org/10.1007/s10584-011-0028-6",
+  section: "Table 2 broccoli row: lethal minimum -9 to -7 °C (field) and failure point 35 °C maximum temperature during inflorescence production and floral initiation; sections 2.2 and 3.3",
+  publishedOn: yearOnly(2011),
+  extractedOn: "2026-11-15",
+} as const;
+
+export const qin2020 = {
+  id: "qin2020",
+  title: "Qin et al. 2020, Phosphoproteomic analysis of lettuce (Lactuca sativa L.) reveals starch and sucrose metabolism functions during bolting induced by high temperature, PLoS ONE 15(12): e0244198",
+  url: "https://doi.org/10.1371/journal.pone.0244198",
+  section: "Introduction: temperatures above 30 °C have resulted in early lettuce bolting (citing Jenni & Yan 2009); optimum growth 15-20 °C",
+  publishedOn: yearOnly(2020),
+  extractedOn: "2026-11-15",
+} as const;
+
+const fao56Table12Release3 = {
+  ...fao56Table12,
+  section: "Chapter 6, Table 12 crop and group rows (small vegetables, Solanum family, cucumber family, roots and tubers, legumes, cereals, oil crops) with footnotes 1, 2, 4, 6, 9, 10, 11 and 12, and Table 14 with the rice Kc ini paragraph",
+} as const;
+
 export const fao56Release1Sources = [fao56Table11, fao56Table12] as const;
 export const releasedSources = [fao56Table11, fao56Table12Release2, gourdji2013, teixeira2013, vargas2021, silva2020] as const;
+export const release3Sources = [fao56Table11, fao56Table12Release3, gourdji2013, teixeira2013, vargas2021, silva2020, luo2011, qin2020] as const;

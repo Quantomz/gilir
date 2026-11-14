@@ -40,7 +40,7 @@ describe("E1 registry resolution with the FAO-56 release", () => {
   });
 
   it("reports crops outside the released catalogue", () => {
-    expect(resolveAt(["teff-grain"], places.ibadanNigeria).gaps[0].reason).toBe("teff-grain is not in catalogue fao56-temperature-2026-11-14.");
+    expect(resolveAt(["teff-grain"], places.ibadanNigeria).gaps[0].reason).toBe("teff-grain is not in catalogue fao56-vegetables-2026-11-15.");
   });
 
   it("resolves the added crops by region", () => {

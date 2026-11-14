@@ -1,17 +1,21 @@
 # E1 evidence
 
-Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Latest release: `fao56-temperature-2026-11-14` (19 crops, 45 profiles, temperature rules for maize, bean, wheat, rice and soybean). Earlier releases `fao56-2026-11-14` and `v1-empty` stay readable and unchanged.
+Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Latest release: `fao56-vegetables-2026-11-15` (42 crops, 86 profiles: 19 field crops plus 23 annual vegetables and fruits). Earlier releases `fao56-temperature-2026-11-14`, `fao56-2026-11-14` and `v1-empty` stay readable and unchanged.
 
 | File | Contents |
 |---|---|
-| `release-2-temperature-and-crops.md` | Latest release: temperature rules with sources and caveats, the 16 added crops, Kc range choices, skipped rows, Pereira 2021 alternative values |
+| `release-3-vegetables.md` | Latest release: the 23 vegetables and annual fruits, first-listed row choices, broccoli and lettuce temperature rules, skipped rows, Pereira 2021 vegetable alternatives |
+| `release-2-temperature-and-crops.md` | Release `fao56-temperature-2026-11-14`: temperature rules with sources and caveats, the 16 added crops, Kc range choices, skipped rows, Pereira 2021 alternative values |
 | `source-comparison.md` | Release `fao56-2026-11-14`: every number next to the FAO-56 Table 11/12 cell it came from; omitted rows; assumptions not from the source |
 | `review.md` | Independent source check (separate Claude agent) and follow-ups |
 | `i2-handoff.md` | Supported, no-calendar-fit and insufficient-data test inputs for I2 |
 
 ## What the release contains
 
-**`fao56-temperature-2026-11-14` (latest, default)**
+**`fao56-vegetables-2026-11-15` (latest, default)**
+- Everything in `fao56-temperature-2026-11-14`, plus 23 annual vegetables and fruits (41 profiles). Broccoli frost and heat rules and a lettuce bolting rule. See `release-3-vegetables.md`.
+
+**`fao56-temperature-2026-11-14`**
 - **Catalogue:** 19 food crops: barley, common bean (dry), cowpea (dry), faba bean (dry), groundnut, lentil, maize, millet, mung bean (dry), oats, pea (dry), potato, rice (paddy), safflower, sorghum, soybean, sunflower, sweet potato, wheat.
 - **Profiles:** 45 regional profiles from FAO-56 Table 11 (stage lengths) and Table 12 (Kc).
 - **Temperature rules (mid-season, daily):**
@@ -37,16 +41,16 @@ Node: the repo requires Node >= 24. This machine has no Node 24, so the checks r
 
 | Command | Result |
 |---|---|
-| `npx vitest run tests/engine/registry` | 3 files, 39 tests passed |
-| `npm run check` | typecheck passed; 13 files / 103 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
+| `npx vitest run tests/engine/registry` | 4 files, 47 tests passed |
+| `npm run check` | typecheck passed; 14 files / 111 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
 | `npm run build` | passed |
-| JSON comparison of `fao56-2026-11-14` against the committed version | byte-for-byte identical |
+| JSON comparison of `v1-empty`, `fao56-2026-11-14` and `fao56-temperature-2026-11-14` against the committed versions | byte-for-byte identical |
 
 E1 tests use the real release data, plus labelled synthetic fixtures (`syntheticRegistryFixture`) for resolution-rule edge cases. Fixture tests are component evidence only; a live plan from this data belongs to I2.
 
 ## Not verified here
 
-- Human peer review of both releases.
+- Human peer review of all releases.
 - Gourdji et al. 2013 full text checked (values, window and source confirmed); it does not state whether daily maximum or minimum is compared (see review.md).
 - That NASA POWER returns 15 or more complete seasons at the I2 hand-off point (B2/I2).
 - Checks on Node 24 specifically.

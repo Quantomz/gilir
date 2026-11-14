@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { latestReleaseVersion, readCatalogue, readRegistryRelease, releasedVersions, validateRelease } from "@/registry";
 
 const release1 = "fao56-2026-11-14";
+const release2 = "fao56-temperature-2026-11-14";
 
 const release1Totals: Record<string, number> = {
   "maize-grain-fao56-idaho-apr": 170,
@@ -101,9 +102,9 @@ const stagesOf = (profile: ReturnType<typeof readRegistryRelease>["profiles"][nu
 };
 
 describe("E1 registry releases", () => {
-  it("serves the temperature release by default and every release passes validation", () => {
+  it("serves the vegetables release by default and every release passes validation", () => {
     expect(readRegistryRelease().identity.catalogueVersion).toBe(latestReleaseVersion);
-    expect(latestReleaseVersion).toBe("fao56-temperature-2026-11-14");
+    expect(latestReleaseVersion).toBe("fao56-vegetables-2026-11-15");
     for (const version of releasedVersions) {
       const release = readRegistryRelease(version);
       expect(validateRelease(release)).toEqual({ ok: true, release });
@@ -111,7 +112,7 @@ describe("E1 registry releases", () => {
   });
 
   it("keeps earlier releases readable and unchanged for frozen-job retries", () => {
-    expect(releasedVersions).toEqual(["v1-empty", release1, latestReleaseVersion]);
+    expect(releasedVersions).toEqual(["v1-empty", release1, release2, latestReleaseVersion]);
     expect(readCatalogue("v1-empty")).toEqual({ version: "v1-empty", entries: [] });
     const first = readRegistryRelease(release1);
     expect(first.catalogue.entries.map(entry => entry.id)).toEqual(["common-bean-dry", "maize-grain", "wheat-grain"]);
@@ -124,7 +125,7 @@ describe("E1 registry releases", () => {
   });
 
   it("publishes 19 food crops, each backed by released profiles", () => {
-    const release = readRegistryRelease();
+    const release = readRegistryRelease(release2);
     expect(release.catalogue.entries.map(entry => entry.id)).toEqual([
       "barley-grain", "common-bean-dry", "cowpea-dry", "faba-bean-dry", "groundnut", "lentil-dry", "maize-grain",
       "millet-grain", "mung-bean-dry", "oats-grain", "pea-dry", "potato", "rice-paddy", "safflower-seed",
@@ -137,7 +138,7 @@ describe("E1 registry releases", () => {
   });
 
   it("matches every generated stage allocation to its FAO-56 Table 11 row", () => {
-    const profiles = readRegistryRelease().profiles;
+    const profiles = readRegistryRelease(release2).profiles;
     expect(Object.fromEntries(profiles.map(profile => [profile.id, stagesOf(profile)]))).toEqual(fao56Table11Stages);
     const printedTotalsThatDisagree: Record<string, number> = {
       "sorghum-grain-fao56-usa-pakistan-mediterranean-may-jun": 130,
@@ -153,11 +154,11 @@ describe("E1 registry releases", () => {
   });
 
   it("matches every Kc to its FAO-56 Table 12 row and footnote choice", () => {
-    for (const profile of readRegistryRelease().profiles) {
+    for (const profile of readRegistryRelease(release2).profiles) {
       if (profile.cropPurposeId === "wheat-grain") continue;
       expect([profile.kc.initial, profile.kc.middle, profile.kc.end]).toEqual(fao56Table12Kc[profile.cropPurposeId]);
     }
-    const wheat = Object.fromEntries(readRegistryRelease().profiles
+    const wheat = Object.fromEntries(readRegistryRelease(release2).profiles
       .filter(profile => profile.cropPurposeId === "wheat-grain")
       .map(profile => [profile.id, [profile.kc.initial, profile.kc.middle, profile.kc.end]]));
     expect(wheat).toEqual({
@@ -170,7 +171,7 @@ describe("E1 registry releases", () => {
   });
 
   it("adds the approved mid-season temperature rules and nothing else", () => {
-    for (const profile of readRegistryRelease().profiles) {
+    for (const profile of readRegistryRelease(release2).profiles) {
       const rules = profile.temperatureRules.map(rule => `${rule.variable} ${rule.predicate} ${rule.thresholdC}`);
       expect(rules).toEqual(expectedTemperatureRules[profile.cropPurposeId] ?? []);
       for (const rule of profile.temperatureRules) {
@@ -183,7 +184,7 @@ describe("E1 registry releases", () => {
   });
 
   it("cites only reviewed real sources and labels turnaround as a scheduling assumption", () => {
-    const release = readRegistryRelease();
+    const release = readRegistryRelease(release2);
     expect(release.sources.map(source => source.id)).toEqual(["fao56-table11", "fao56-table12", "gourdji2013", "teixeira2013", "vargas2021", "silva2020"]);
     for (const profile of release.profiles) {
       expect(profile.status).toBe("released");
@@ -197,7 +198,7 @@ describe("E1 registry releases", () => {
   });
 
   it("flags paddy rice water losses and omits unconfirmed groundnut planting months", () => {
-    const profiles = readRegistryRelease().profiles;
+    const profiles = readRegistryRelease(release2).profiles;
     for (const rice of profiles.filter(profile => profile.cropPurposeId === "rice-paddy")) {
       expect(rice.warnings.join(" ")).toMatch(/excludes ponding, seepage and percolation/);
     }
@@ -211,10 +212,10 @@ describe("E1 registry releases", () => {
   });
 
   it("returns deeply immutable release objects", () => {
-    const release = readRegistryRelease();
+    const release = readRegistryRelease(release2);
     const kc = release.profiles[0].kc as { middle: number };
     expect(() => { kc.middle = 9; }).toThrow(TypeError);
     expect(Object.isFrozen(release.profiles[0].temperatureRules)).toBe(true);
-    expect(readRegistryRelease()).toBe(release);
+    expect(readRegistryRelease(release2)).toBe(release);
   });
 });
