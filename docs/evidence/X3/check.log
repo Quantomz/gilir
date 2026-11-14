@@ -1,0 +1,39 @@
+
+> gilir@0.1.0 check
+> npm run typecheck && npm run test && npm run check:boundaries
+
+
+> gilir@0.1.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> gilir@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-x3
+
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+X3 reference checks only; zero engine comparisons. Run node --import tsx tests/overflow/metric-audit/run.ts for engine comparisons.
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+
+ Test Files  24 passed | 1 skipped (25)
+      Tests  294 passed | 1 skipped (295)
+   Start at  00:33:34
+   Duration  13.51s (tests 87%, import 7%, transform 6%)
+
+
+> gilir@0.1.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Module boundaries passed.

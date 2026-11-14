@@ -1,0 +1,30 @@
+PASS adapted FAO day 187 ET0 inferred from one-day mismatch: expected 0.18558187821055977 ± 1e-10, actual 0.18558187821055971, denominator 4 windows, expected 3.88089551597236 ± 1e-9, actual 3.880895515972357, expected 3.88 ± 0.02, actual 3.880895515972357
+PASS one-day window frequency: expected 0.25 ± 1e-10, actual 0.25
+PASS four-day default window mismatch and denominator: expected 0.7420604167804314 ± 1e-10, actual 0.7420604167804314, denominator 1 windows
+PASS four-day default window frequency: expected 1 ± 1e-10, actual 1
+PASS nine-day rolling frequency and denominator: expected 0.6666666666666666 ± 1e-10, actual 0.6666666666666666, denominator 3 windows
+PASS nine-day rolling mismatch and denominator: expected 0.32214141184171 ± 1e-10, actual 0.32214141184171, denominator 3 windows
+PASS worst crop frequency with 1 wet occurrence(s): expected 0.6666666666666666 ± 1e-10, actual 0.6666666666666666, denominator 2 occurrences
+PASS wet occurrence 1 frequency with 1 wet occurrence(s): expected 0 ± 1e-10, actual 0
+PASS worst crop mismatch with 1 wet occurrence(s): expected 0.32214141184171 ± 1e-10, actual 0.32214141184171, denominator 2 occurrences
+PASS wet occurrence 1 mismatch with 1 wet occurrence(s): expected 0 ± 1e-10, actual 0
+PASS worst crop frequency with 2 wet occurrence(s): expected 0.6666666666666666 ± 1e-10, actual 0.6666666666666666, denominator 3 occurrences
+PASS wet occurrence 1 frequency with 2 wet occurrence(s): expected 0 ± 1e-10, actual 0
+PASS wet occurrence 2 frequency with 2 wet occurrence(s): expected 0 ± 1e-10, actual 0
+PASS worst crop mismatch with 2 wet occurrence(s): expected 0.32214141184171 ± 1e-10, actual 0.32214141184171, denominator 3 occurrences
+PASS wet occurrence 1 mismatch with 2 wet occurrence(s): expected 0 ± 1e-10, actual 0
+PASS wet occurrence 2 mismatch with 2 wet occurrence(s): expected 0 ± 1e-10, actual 0
+FAIL raw mean_frequency at ranking precision 0: expected 0.6666666666666666 ± 1e-10, actual 1
+FAIL raw mean_mismatch at ranking precision 0: expected 0.32214141184171 ± 1e-10, actual 0
+FAIL raw mean_frequency at ranking precision 6: expected 0.6666666666666666 ± 1e-10, actual 0.666667
+FAIL raw mean_mismatch at ranking precision 6: expected 0.32214141184171 ± 1e-10, actual 0.322141
+PASS missing humidity returns insufficient data
+PASS missing humidity makes mean_frequency unavailable
+PASS missing humidity makes mean_mismatch unavailable
+PASS missing rainfall returns insufficient data
+PASS missing rainfall makes mean_frequency unavailable
+PASS missing rainfall makes mean_mismatch unavailable
+PASS zero Kc demand returns insufficient data
+PASS zero Kc demand makes mean_frequency unavailable
+PASS zero Kc demand makes mean_mismatch unavailable
+X3 engine audit: 25 passed, 4 failed, 0 skipped.
