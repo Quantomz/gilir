@@ -1,0 +1,16 @@
+
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-i1
+
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+
+ Test Files  3 passed | 1 skipped (4)
+      Tests  11 passed | 1 skipped (12)
+   Start at  19:26:54
+   Duration  12.84s (tests 97%, import 2%, transform 1%)

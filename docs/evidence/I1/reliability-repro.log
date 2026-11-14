@@ -1,0 +1,7 @@
+Baseline a8d9b3b03511ab1c5df163c722499c0f0d1628e1
+Node 24, real child stdout pipe, unmodified startProcess helper.
+split event failure SyntaxError Unexpected end of JSON input
+stalled child event { event: 'tick' }
+exit observation still waiting for child exit
+child remains alive true
+manual cleanup { code: null, signal: 'SIGKILL' }

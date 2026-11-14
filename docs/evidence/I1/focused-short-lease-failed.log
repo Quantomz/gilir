@@ -1,0 +1,39 @@
+
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-i1
+
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+ ❯ tests/integration/runtime/runtime.test.ts (4 tests | 1 failed) 8534ms
+   ❯ I1 real adapters with controlled scientific calculations (4)
+     × preserves the entire real NASA frozen run across a killed separate worker and web restart 3302ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/runtime/runtime.test.ts > I1 real adapters with controlled scientific calculations > preserves the entire real NASA frozen run across a killed separate worker and web restart
+AssertionError: expected 'lost_lease' to be 'completed' // Object.is equality
+
+Expected: "completed"
+Received: "lost_lease"
+
+ ❯ Object.finishAfterRestart tests/integration/runtime/runtime.test.ts:61:53
+     59|           const worker = startProcess({ ...db, mode: "worker-replay" }…
+     60|           processes.push(worker);
+     61|           expect((await worker.event("tick")).kind).toBe("completed");
+       |                                                     ^
+     62|           expect((await worker.completed).code).toBe(0);
+     63|           const state = await client.read(capability);
+ ❯ verifyRestartedPipeline tests/integration/runtime/acceptance.ts:39:23
+ ❯ tests/integration/runtime/runtime.test.ts:43:24
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed | 1 skipped (3)
+      Tests  1 failed | 5 passed | 1 skipped (7)
+   Start at  19:08:39
+   Duration  8.73s (tests 96%, import 3%, transform 1%)
+

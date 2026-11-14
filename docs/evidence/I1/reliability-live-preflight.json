@@ -1,0 +1,131 @@
+{
+  "status": "BLOCKED",
+  "evidence": "Actual production catalogue/API, PostgreSQL, live NASA, and production calculation thread. No fixture supplies a production result.",
+  "checks": {
+    "catalogue": {
+      "version": "v1-empty",
+      "entries": 0
+    },
+    "postgresAndWorkerReadiness": "PASSED",
+    "httpSubmission": {
+      "kind": "invalid",
+      "issues": [
+        {
+          "path": [
+            "cropPurposeIds",
+            0
+          ],
+          "message": "Select a crop from the current catalogue."
+        }
+      ]
+    },
+    "liveNASA": {
+      "kind": "ready",
+      "snapshots": [
+        {
+          "id": "power-cb387245dc5085f0eca8997e58ffdf9f004970f8934fda77faf3c9d86b04f862",
+          "kind": "provider",
+          "contentHash": "be145474c99595428bc4b6cb084bf5aeb177316903ecb94fc08c7b45c32a1ce3",
+          "retrievedAt": "2026-11-14T12:28:41.962Z",
+          "cutoff": "2026-11-14",
+          "days": 9497,
+          "firstDate": "2000-06-30",
+          "lastDate": "2026-06-30",
+          "products": [
+            {
+              "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_METEOROLOGY:lat208:lon449",
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=100.625&latitude=14&start=20000630&end=20260630&format=JSON&time-standard=UTC"
+            }
+          ]
+        },
+        {
+          "id": "power-095928fcbf81bff7d4475b79efafdba8501e9c0ae6810bd65e4681a36bb7e08c",
+          "kind": "provider",
+          "contentHash": "64e27e7f500d6c20de5cf6b2c54126543b941e53ff9640b9b99bfb57f25e859b",
+          "retrievedAt": "2026-11-14T12:28:43.356Z",
+          "cutoff": "2026-11-14",
+          "days": 9497,
+          "firstDate": "2000-06-30",
+          "lastDate": "2026-06-30",
+          "products": [
+            {
+              "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_SOLAR:lat103:lon280",
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=100.5&latitude=13.5&start=20000630&end=20260630&format=JSON&time-standard=UTC"
+            }
+          ]
+        },
+        {
+          "id": "power-c233ae41b31dc363df081fa57671a3a701d9a37f48358c7eb69253d3b2a5bb1c",
+          "kind": "provider",
+          "contentHash": "3e03cf752c603e614da1fec2501cc8b7359bd5d716accb07bc685abc85cbeb69",
+          "retrievedAt": "2026-11-14T12:28:45.165Z",
+          "cutoff": "2026-11-14",
+          "days": 9497,
+          "firstDate": "2000-06-30",
+          "lastDate": "2026-06-30",
+          "products": [
+            {
+              "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_IMERG:lat1037:lon2805",
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=100.55&latitude=13.75&start=20000630&end=20260630&format=JSON&time-standard=UTC"
+            }
+          ]
+        }
+      ]
+    },
+    "productionWorker": {
+      "event": "tick",
+      "kind": "idle"
+    },
+    "productionEngineDiagnostic": {
+      "state": "service_error",
+      "error": {
+        "code": "not_implemented",
+        "message": "The planning engine is not implemented.",
+        "retryable": false
+      },
+      "evidence": "Direct diagnostic only. This was not a production-accepted HTTP job."
+    },
+    "liveRestartAcceptance": "NOT RUN. A production-accepted request and implemented scientific outcome are required.",
+    "processLogPrivacy": "PASSED. Database URL, field label, exact lookup, polygon, and full input are absent from captured child logs."
+  },
+  "blockers": [
+    {
+      "owner": "E1 / yslee1106",
+      "reason": "The actual released catalogue is empty. The production HTTP API rejects a selected crop before any live job can be accepted."
+    },
+    {
+      "owner": "E2/E3 / yslee1106",
+      "reason": "The actual calculation thread returns service_error. A service_error is rejected by the strict I1 acceptance runner."
+    }
+  ]
+}
