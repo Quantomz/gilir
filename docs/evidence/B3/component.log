@@ -1,0 +1,7 @@
+RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-b3
+
+
+ Test Files  3 passed (3)
+      Tests  28 passed (28)
+   Start at  18:47:40
+   Duration  1.03s (tests 78%, import 12%, transform 10%)

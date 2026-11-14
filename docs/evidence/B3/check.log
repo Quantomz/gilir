@@ -1,0 +1,27 @@
+> gilir@0.1.0 check
+> npm run typecheck && npm run test && npm run check:boundaries
+
+
+> gilir@0.1.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> gilir@0.1.0 test
+> vitest run
+
+
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-b3
+
+
+ Test Files  5 passed (5)
+      Tests  36 passed | 4 skipped (40)
+   Start at  18:47:43
+   Duration  1.35s (tests 87%, import 10%, transform 3%)
+
+
+> gilir@0.1.0 check:boundaries
+> node scripts/check-boundaries.mjs
+
+Module boundaries passed.
