@@ -1,3 +1,4 @@
+
 > gilir@0.1.0 check
 > npm run typecheck && npm run test && npm run check:boundaries
 
@@ -12,7 +13,7 @@ Generating route types...
 > vitest run
 
 
- RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-e3-arena-astra
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-e3
 
 Applied 001-jobs.sql
 Applied 002-climate-cache.sql
@@ -25,10 +26,10 @@ Applied 002-climate-cache.sql
 Applied 001-jobs.sql
 Applied 002-climate-cache.sql
 
- Test Files  21 passed | 1 skipped (22)
-      Tests  217 passed | 1 skipped (218)
-   Start at  23:15:23
-   Duration  12.80s (tests 92%, import 7%, transform 1%)
+ Test Files  23 passed | 1 skipped (24)
+      Tests  291 passed | 1 skipped (292)
+   Start at  23:36:18
+   Duration  12.63s (tests 91%, import 8%, transform 1%)
 
 
 > gilir@0.1.0 check:boundaries

@@ -1,96 +1,40 @@
-# E3 deterministic search component evidence
+# E3 component acceptance
 
-This candidate implements `calculate`, `findCalendar`, `rankCandidates`, and `explainResult` against the committed E3 ports from `87f9b38`. E1 and E2 remain owned by yslee1106. The tests inject explicitly synthetic registry, cohort, and assessment ports. They establish E3 component behavior, not scientific validation or a real E1/E2 integration.
+E3 implements deterministic calendar search, fixed ranking, historical comparison, and explanations through `calculate`, `findCalendar`, `rankCandidates`, and `explainResult`. E1 supplies released profiles and rules; E2 supplies climate cohorts and assessments. These checks use explicitly synthetic dependencies and do not establish scientific or live application acceptance.
 
-## Workflow and scope
+## Verified source
 
-The installed pstack skill is `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`. The Feature playbook applies. The parent completed the how and architecture stages and supplied `.audit/gilir/e3-design.md` plus `e3-design-astra.md`. This isolated implementation runner owns only the E3 files. The parent owns the blind acceptance check, no-comments review, exact-commit review, GitHub, and any merge.
+Independent review approved source commit `09c42a11058f0acf4d9d9aa01ea445c5fcafbf1d` with no unresolved actionable findings. Final evidence and card updates do not change the reviewed source or tests.
 
-The Feature steps are tracked here with their assigned owner.
-
-1. `how` over the affected subsystem. Completed by the parent before this implementation.
-2. `architect` for parallel design exploration. Completed by the parent. The agreed design is binding.
-3. Write the throughput checkpoint as four todo items. Recorded below.
-4. Delegate code-writing to a subagent using your configured feature model. This arena runner owns its diff directly under the playbook's no-nested-agent exception.
-5. Verify on the matching surface. Targeted behavior tests, strict result parsing, typecheck, PostgreSQL-backed full checks, and the production build ran locally.
-6. Rebase into small, ordered commits. Search and ranking precede composition, explanations, and evidence. Root applies the selected candidate to the merged contract baseline.
-7. If the design is contested, `interrogate` before shipping. No contested design was assigned. Independent review remains with root.
-8. Run **Opening a PR**. Root owns this step. This runner does not operate GitHub.
-
-The throughput checkpoint is complete.
-
-- Blocking first steps. Read the instructions, contracts, agreed design, and E3 card. Install cached dependencies with Node 24 before coding.
-- Independent workstreams. This runner owns one whole candidate. The competing candidate and blind verifier use separate worktrees and do not share source writes.
-- Shared mutable state. Each worktree has its own dependencies and `.next` output. Root allocates the shared disposable PostgreSQL slot because backend tests truncate a shared cache.
-- Smallest safe decomposition. One runner owns calendar invariants, both traversals, ranking, and composition. A single calendar validator prevents seeds and generated calendars from silently applying different rules.
-
-Model the Domain puts complete structural state in a compact visited bitset. Boundary Discipline checks injected profiles and assessments before accepting them. Type System Discipline uses the existing contracts and schema-derived validators. The deslop pass checked the diff for redundant wrappers, narration comments, unsafe casts, and scope spill. No E1/E2 algorithm, shared contract, dependency, backend, or ownership file changed.
-
-## Observable acceptance
-
-| Requirement | Evidence |
+| Check | Observed result |
 | --- | --- |
-| Mandatory crops, no substitutions, occupancy, turnaround, and horizon | `calendar.test.ts` checks all selected purposes, final release, exact duration proof, anniversary dates, and hard windows. |
-| Repeats | `calendar.test.ts` enumerates a complete prefix and its legal repeat. `calculate.test.ts` lets a repeated crop win an explicit schedule-metric fixture. |
-| Daily witness and complete proof | `calendar.test.ts` checks a nonweekly planting date and compares feasibility with a separate exhaustive oracle across 96 small state spaces. |
-| Known predecessors | `calendar.test.ts` verifies prohibitions survive waiting and recorded fallow. Unknown history does not invent a predecessor. |
-| Structural budget boundaries | `calendar.test.ts` checks zero, interrupted, exact exhaustion, witness-at-limit, and a supported baseline before a generated-duration proof. |
-| Independent ranking counters | `calendar.test.ts` counts dead prefixes. `calculate.test.ts` checks independent zero budgets, exact score/prefix exhaustion, and incomplete ranking with a valid seed. |
-| Seed assessment deduplication | `calculate.test.ts` checks baseline/witness identity once, including unavailable evidence. Seeds consume no additional assessment budget. |
-| Fixed ranking | `ranking.test.ts` has a distinct winner for each tuple position, the environmental pool, all-warning candidates, baseline preference, fewer occurrences, and canonical ties. |
-| Frozen precision | `ranking.test.ts` checks `Number(value.toFixed(precision))`, raw metric preservation, and invalid precision. |
-| Final deciding comparison | `ranking.test.ts` checks the final runner-up after a later displacement. `explain.test.ts` checks the actual metric and values or the actual tie rule. |
-| Required evidence versus contradictory output | `ranking.test.ts` rejects missing, duplicate, unavailable, wrong-unit, nonfinite, and out-of-range evidence. `calculate.test.ts` checks insufficient-data versus processing-error classification. |
-| Optional temperature evidence | `calculate.test.ts` forwards annual applicability unchanged, accepts broad profiles despite unavailable annual summaries, and preserves optional temperature gaps. |
-| Assessor calendar integrity | `calculate.test.ts` rejects removed, added, reordered, or altered crop, profile, version, planting, occupancy, and release records. |
-| All six result states | `calculate.test.ts` exercises every state and parses the results with the strict public result schema. No-plan states have no timeline. |
-| Historical support and coverage | `baseline.test.ts` checks skipped history, unsupported crops and durations, ambiguous allocations, unknown coverage, explicit fallow, approximate dates, unselected contextual crops, and optional comparison gaps. |
-| Whole-sequence translation | `baseline.test.ts` checks a December-crossing sequence, leap-changed duration, and clipping explicit fallow outside the horizon without dropping a crop. |
-| Baseline eligibility and recommendation | `baseline.test.ts` checks hard-window context, short supported historical duration before a generated proof, and kept history with zero budgets. `explain.test.ts` checks changed history. |
-| Determinism and immutable inputs | `calculate.test.ts` deep-freezes inputs and registry data, compares repeated results, and verifies the original serialization remains unchanged. |
-| Water answer invariance | `calculate.test.ts` changes only backup-water context and verifies equal plans and ranking. |
-| Source-backed explanations | `explain.test.ts` preserves preparation source IDs, frozen manifest and climate metadata, separate synthetic labels, and raw new-minus-baseline deltas. Missing released source references produce a processing error. |
-| Repeated-crop transitions | `explain.test.ts` matches occurrences chronologically and checks additions, removals, date shifts, and order changes. |
+| `npx vitest run tests/engine/search` | 147 tests passed across seven files. |
+| Independent public-API acceptance | 35 tests passed, including an exhaustive oracle over 240 small calendar domains. These tests were written before either implementation was inspected. |
+| `npm run check` with all three local PostgreSQL test variables | 291 passed, one intentional opt-in live-climate skip. Typecheck and module boundaries passed. [Log](check.log). |
+| `npm run build` | Production build passed. [Log](build.log). |
+| Independent review and comments scan | All reproduced defects closed; no added code comments or suppressions. |
 
-The synthetic metrics in these tests are invented comparison values. E3 neither computes nor publishes agronomic metrics.
+Verification used Node24 and a disposable PostgreSQL18 database. `TEST_DATABASE_URL`, `B3_TEST_DATABASE_URL`, and `I1_TEST_DATABASE_URL` pointed to that database. Live external climate acceptance was disabled. No production database or provider request was needed for these checks.
 
-## Resource behavior
+## Behavior covered
 
-Daily proof merges only `(available day, previous crop, selected mask)`. The bitset bounds retained visited state by the calendar horizon and at most twelve selected purposes. The ranking traversal does not merge histories that may score differently. It retains its current prefix, the baseline, the best and runner-up assessments, and at most two seed identities.
-
-Each ranking prefix is unique because every parent offers a sorted, deduplicated set of next crop/date edges. A child appends one occurrence to exactly one parent. A prefix emits its complete calendar once. Generated candidates therefore need no retained set of 100,000 canonical strings. Only the independently assessed seed keys are skipped.
-
-The default prefix limit remains an unbenchmarked deterministic safety bound. No representative performance or memory claim is made. E2's whole-calendar assessment cost remains outside this fixture evidence.
-
-## Verification
-
-Use the supplied local Node 24 executable directory at the start of `PATH`.
-
-```sh
-export PATH=/Users/kyusuku/.npm/_npx/387698761821791d/node_modules/node/bin:$PATH
-npm ci --offline --no-audit --no-fund
-npx vitest run tests/engine/search
-npm run typecheck
-TEST_DATABASE_URL="$GILIR_TEST_DATABASE_URL" B3_TEST_DATABASE_URL="$GILIR_TEST_DATABASE_URL" I1_TEST_DATABASE_URL="$GILIR_TEST_DATABASE_URL" npm run check
-npm run build
-```
-
-`GILIR_TEST_DATABASE_URL` represents the authorized disposable PostgreSQL 18 connection on `127.0.0.1:55418`. Credentials are omitted from this document. The first full check under the network sandbox failed with `connect EPERM`; the authorized escalated rerun used the same disposable database and passed. Live external climate acceptance was not enabled.
-
-Verification ran on Node `v24.22.3` against the final source and test tree recorded in `f9a022273ec85fec6c098aa36fd3263d0c717cd3`.
-
-| Command | Observed result |
+| Area | Executable evidence |
 | --- | --- |
-| `npm ci --offline --no-audit --no-fund` | Passed. Installed 194 cached packages. |
-| `npx vitest run tests/engine/search` | Passed. 76 tests in five files. |
-| `npm run typecheck` | Passed. |
-| `npm run check` with the three disposable database variables | Passed. 217 tests, one intentional live-climate skip, and module boundaries passed. See [check.log](check.log). |
-| `npm run build` | Passed. Production webpack build and TypeScript completed. See [build.log](build.log). |
-| `git diff --check` | Passed. |
+| Calendar constraints and proof | `calendar.test.ts` and `independent.test.ts`: mandatory purposes, necessary repeats, inclusive occupancy, final turnaround, leap and wrapped windows, predecessor continuity, daily witnesses, duration proof, exhaustive proof, exact structural limits. |
+| Ranking | `ranking.test.ts` and `independent.test.ts`: every fixed metric position, comparison precision, raw evidence preservation, environmental pools, baseline/count/canonical ties, runner-up decisions, invalid or missing evidence. |
+| Baseline | `baseline.test.ts` and `acceptance-fixes.test.ts`: whole-sequence year shifts, supported historical allocations, leap effects, known fallow versus unknown coverage, contextual histories, optional lookup failures, more than twelve historical purposes, eligible baseline evidence requirements. |
+| Composition and limits | `calculate.test.ts` and `acceptance-fixes.test.ts`: all six result states, independent seed assessment, exact grid/score limits, common window-edge dates, interrupted counters, required versus optional gaps, cohort-selected elevation, immutable repeated runs. |
+| Dependency integrity | `calculate.test.ts` and `acceptance-fixes.test.ts`: frozen profile/rule identity, exact assessor calendar identity, equivalent cohort intervals, valid season membership, duplicate season rejection, missing released sources. |
+| Explanation and provenance | `explain.test.ts` and `acceptance-fixes.test.ts`: actual deciding comparisons, raw deltas, repeated-crop transitions, source-backed preparation, approximate history, precise predecessor disclosure, frozen climate metadata and visible synthetic labels. |
 
-The source commits are `aef137a` for calendar proof and ranking, then `f9a0222` for composition and explanations. This evidence-only follow-up does not change tested source. No performance conclusion is drawn from test-run or build timing.
+Daily feasibility merges only available day, predecessor and included-crop state in a compact bitset. Ranking retains the current prefix, baseline, two seed identities, winner and runner-up. Unique crop/date edges make generated prefixes unique; the engine does not retain every complete assessment or calendar key.
 
-## Unresolved integration limits
+Search limits count operations. The separate prefix limit is an engineering safety bound whose default has not been benchmarked on representative scientific workloads. A completed grid does not establish daily optimality.
 
-- Real crop publication, scientific metric validation, NASA acceptance, I1/I2/I3 assembled acceptance, and browser/PDF behavior are not established by these E3 fixtures.
-- This candidate does not self-approve. The independent blind acceptance and exact-commit review remain with root. All configured arena models belong to GPT; no cross-family judge is configured.
+## Integration handoff
+
+Shared ports landed in [PR27](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/27) and [PR29](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/29). E2 returns annual applicability and selected elevation evidence; E3 forwards them unchanged. An evidence or processing failure after ranking starts is `interrupted`, not an operation-limit claim.
+
+[E2 PR28](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/28), inspected at `1563e0ab1f756194ebd1bbaca16f971b3c735365`, needs the new cohort elevation field when rebased. Two further code-inspection items remain for its owner: preserve raw means in assessment evidence, and distinguish historical stage allocations from generated allocations when their total durations match. The current [assessment implementation](https://github.com/Quantomz/nefalos_nasa_hackathon/blob/1563e0ab1f756194ebd1bbaca16f971b3c735365/src/engine/metrics/assess.ts) rounds returned means and searches generated stages first. E3 does not rewrite E2's scientific parameters.
+
+Released E1 data, real E2 integration, live NASA replay, I1/I2/I3 acceptance, and browser/PDF behavior remain separate checks. E1/E2 ownership stays with yslee1106. The implementation comparison and independent reviews used GPT-family models; no cross-family judge was configured. The dedicated Comment Sicko tool was unavailable, so an independent read-only comments review was performed.
