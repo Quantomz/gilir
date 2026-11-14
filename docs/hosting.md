@@ -1,8 +1,8 @@
 # Prepare Gilir hosting
 
-This setup is prepared locally. No Gilir Railway project, hosted database, service, public domain, or deployment has been created by this work. The remaining provisioning and deployment steps can incur charges. Follow the owner's latest authorization when executing them.
+The container setup is prepared and tested locally. The coordinator created the empty private [Gilir project](https://railway.com/project/a110cf19-bdbc-45eb-9769-e4c98ffeee82) in Nefalos after the owner requested hosting setup. A hosted database, running application, and public domain are not established by this source change. Provisioning and deployment can incur charges. Follow the owner's latest authorization when executing them.
 
-Target the **Nefalos** Railway workspace requested by the owner. The parent verified workspace ID `b092dee0-34fb-4b63-9189-e0217fa75aa3` in the existing signed-in browser session. Do not use the CLI's personal default workspace or the existing Caravan project. Gilir project, environment, and service IDs remain unset in this local preparation.
+Target the **Nefalos** Railway workspace requested by the owner. The coordinator verified workspace ID `b092dee0-34fb-4b63-9189-e0217fa75aa3` in the existing signed-in browser session. Gilir project ID is `a110cf19-bdbc-45eb-9769-e4c98ffeee82`; its production environment is `05626386-ac59-4759-9f42-2118d6941513`. Do not use the CLI's personal default workspace or the existing Caravan project. Read back service IDs from this Gilir project during provisioning.
 
 Use one reviewed Git commit for every service. The image runs Next.js and the durable worker as separate processes. PostgreSQL stores jobs and immutable weather snapshots. The cleanup process runs hourly. Local verification is recorded in [hosting evidence](evidence/hosting/README.md).
 

@@ -5,6 +5,8 @@ import { setTimeout as delay } from "node:timers/promises";
 let database;
 try { database = new URL(process.env.DATABASE_URL ?? ""); }
 catch { throw new Error("Set DATABASE_URL to the disposable local gilir_hosting database."); }
+assert(["postgres:", "postgresql:"].includes(database.protocol), "Use a PostgreSQL connection URL.");
+assert.equal(database.search, "", "Connection query parameters are not allowed for the local smoke database.");
 assert(["host.docker.internal", "127.0.0.1", "localhost"].includes(database.hostname), "Use a disposable local PostgreSQL database.");
 assert.equal(database.pathname, "/gilir_hosting", "Use the isolated gilir_hosting database.");
 const image = process.env.GILIR_SMOKE_IMAGE ?? "gilir-hosting:smoke";
