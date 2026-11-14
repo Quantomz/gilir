@@ -32,7 +32,7 @@ if (values.help) {
       ring: [[longitude - width, latitude - width], [longitude + width, latitude - width],
         [longitude + width, latitude + width], [longitude - width, latitude + width], [longitude - width, latitude - width]],
     },
-    cropPurposeIds: ["climate-retrieval-only"], water: "rain_only", priority: "water", planningStart, history: { kind: "skipped" },
+    cropPurposeIds: ["climate-retrieval-only"], water: "rain_only", planningStart, history: { kind: "skipped" },
   });
   await mkdir(output, { recursive: true });
   const sources: { productId: string; url: string; retrievedAt: string; contentHash: string; file: string }[] = [];

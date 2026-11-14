@@ -1,0 +1,30 @@
+FAIL adapted FAO day 187 ET0 inferred from one-day mismatch: Climate assessment is not implemented
+FAIL one-day window frequency: Climate assessment is not implemented
+FAIL four-day default window mismatch and denominator: Climate assessment is not implemented
+FAIL four-day default window frequency: Climate assessment is not implemented
+FAIL nine-day rolling frequency and denominator: Climate assessment is not implemented
+FAIL nine-day rolling mismatch and denominator: Climate assessment is not implemented
+FAIL worst crop frequency with 1 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 1 frequency with 1 wet occurrence(s): Climate assessment is not implemented
+FAIL worst crop mismatch with 1 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 1 mismatch with 1 wet occurrence(s): Climate assessment is not implemented
+FAIL worst crop frequency with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 1 frequency with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 2 frequency with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL worst crop mismatch with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 1 mismatch with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL wet occurrence 2 mismatch with 2 wet occurrence(s): Climate assessment is not implemented
+FAIL raw mean_frequency at ranking precision 0: Climate assessment is not implemented
+FAIL raw mean_mismatch at ranking precision 0: Climate assessment is not implemented
+FAIL raw mean_frequency at ranking precision 6: Climate assessment is not implemented
+FAIL raw mean_mismatch at ranking precision 6: Climate assessment is not implemented
+FAIL missing humidity returns insufficient data: Climate assessment is not implemented
+FAIL missing humidity makes mean_frequency unavailable: Climate assessment is not implemented
+FAIL missing humidity makes mean_mismatch unavailable: Climate assessment is not implemented
+FAIL missing rainfall returns insufficient data: Climate assessment is not implemented
+FAIL missing rainfall makes mean_frequency unavailable: Climate assessment is not implemented
+FAIL missing rainfall makes mean_mismatch unavailable: Climate assessment is not implemented
+FAIL zero Kc demand returns insufficient data: Climate assessment is not implemented
+FAIL zero Kc demand makes mean_frequency unavailable: Climate assessment is not implemented
+FAIL zero Kc demand makes mean_mismatch unavailable: Climate assessment is not implemented
+X3 engine audit: 0 passed, 29 failed, 0 skipped.

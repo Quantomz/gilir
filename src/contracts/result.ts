@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { count, cropPurposeIdSchema, evidence, isoDateSchema, labels, positiveDays, sourceReferenceSchema } from "./common";
+import { count, cropPurposeIdSchema, evidence, fraction, isoDateSchema, labels, positiveDays, sourceReferenceSchema } from "./common";
 import { farmInputSchema } from "./input";
 
 const dateInterval = z.strictObject({ start: isoDateSchema, endExclusive: isoDateSchema }).refine(
@@ -34,7 +34,7 @@ export const assessmentMetricSchema = z.strictObject({
 export type AssessmentMetric = z.infer<typeof assessmentMetricSchema>;
 
 const gapSchema = z.strictObject({
-  code: z.enum(["crop_profile", "climate", "temperature_rule", "rotation_rule", "history", "priority_metric"]),
+  code: z.enum(["crop_profile", "climate", "temperature_rule", "rotation_rule", "history", "ranking_metric"]),
   reason: labels,
   cropPurposeIds: z.array(cropPurposeIdSchema).readonly(),
   sourceIds: z.array(labels).readonly(),
@@ -69,27 +69,20 @@ const provenance = z.discriminatedUnion("kind", [
   z.strictObject({ kind: z.literal("synthetic"), label: labels, ...provenanceShape }),
 ]);
 
-export const priorityMetricIds = Object.freeze({
-  water: ["mean_frequency", "mean_mismatch"],
-  soil: ["unplanted_days", "longest_unplanted_gap", "mean_frequency", "mean_mismatch"],
-  bad_year: ["q90_mismatch", "q90_temperature_exposure", "mean_frequency"],
-  pests_weeds: ["rule_breaches", "break_shortfall", "mean_frequency", "mean_mismatch"],
-});
+export const rankingMetricIds = Object.freeze([
+  "mean_frequency", "mean_mismatch", "unplanted_days", "longest_unplanted_gap",
+] as const);
 
-const rankingComponent = z.strictObject({
-  metricId: labels,
-  value: z.number(),
-  unit: z.enum(["fraction", "days", "count"]),
+const rankingTuple = z.strictObject({
+  components: z.tuple([
+    z.strictObject({ metricId: z.literal(rankingMetricIds[0]), value: fraction, unit: z.literal("fraction") }).readonly(),
+    z.strictObject({ metricId: z.literal(rankingMetricIds[1]), value: fraction, unit: z.literal("fraction") }).readonly(),
+    z.strictObject({ metricId: z.literal(rankingMetricIds[2]), value: count, unit: z.literal("days") }).readonly(),
+    z.strictObject({ metricId: z.literal(rankingMetricIds[3]), value: count, unit: z.literal("days") }).readonly(),
+  ]).readonly(),
 }).readonly();
-export type RankingComponent = z.infer<typeof rankingComponent>;
-
-const rankingTuple = z.discriminatedUnion("priority", [
-  z.strictObject({ priority: z.literal("water"), components: z.tuple([rankingComponent, rankingComponent]).readonly() }),
-  z.strictObject({ priority: z.literal("soil"), components: z.tuple([rankingComponent, rankingComponent, rankingComponent, rankingComponent]).readonly() }),
-  z.strictObject({ priority: z.literal("bad_year"), components: z.tuple([rankingComponent, rankingComponent, rankingComponent]).readonly() }),
-  z.strictObject({ priority: z.literal("pests_weeds"), components: z.tuple([rankingComponent, rankingComponent, rankingComponent, rankingComponent]).readonly() }),
-]).readonly();
-export type PriorityTuple = z.infer<typeof rankingTuple>;
+export type RankingTuple = z.infer<typeof rankingTuple>;
+export type RankingComponent = RankingTuple["components"][number];
 
 const seasonMetrics = z.strictObject({
   replayStart: isoDateSchema,
@@ -111,7 +104,7 @@ export type PlanOccurrence = z.infer<typeof planOccurrence>;
 const plan = z.strictObject({
   horizon: dateInterval,
   occurrences: z.array(planOccurrence).min(1).readonly(),
-  priorityTuple: rankingTuple,
+  rankingTuple,
 }).readonly();
 export type Plan = z.infer<typeof plan>;
 
@@ -180,10 +173,12 @@ export type BaselineComparison = z.infer<typeof baseline>;
 
 const search = z.strictObject({
   structural: z.enum(["not_started", "witness", "proved_impossible", "limit_reached"]),
-  ranking: z.enum(["not_started", "grid_complete", "limit_reached"]),
+  ranking: z.enum(["not_started", "grid_complete", "limit_reached", "interrupted"]),
   structuralExpandedStates: count,
+  gridExpandedStates: count,
   scoredCandidates: count,
   structuralExpansionLimit: count,
+  gridExpansionLimit: count,
   scoredCandidateLimit: count,
   gridStepDays: positiveDays,
 }).readonly();

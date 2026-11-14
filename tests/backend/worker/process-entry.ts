@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
-import { farmInputSchema, runManifestSchema } from "@/contracts";
+import { farmInputSchema, rankingDecimalPlacesSchema, runManifestSchema } from "@/contracts";
 import type { FrozenRun } from "@/contracts";
 import { providerSnapshotSchema } from "@/server/cache/schema";
 import { runWorkerLoop, runWorkerOnce } from "@/server/runtime";
@@ -12,9 +12,9 @@ const storedRun: z.ZodType<FrozenRun> = z.strictObject({
   manifest: runManifestSchema,
   climate: z.array(providerSnapshotSchema),
   settings: z.strictObject({
-    version: z.string(), targetSeasons: z.number(), minimumUsableSeasons: z.number(), structuralExpansionLimit: z.number(),
+    version: z.string(), targetSeasons: z.number(), minimumUsableSeasons: z.number(), structuralExpansionLimit: z.number(), gridExpansionLimit: z.number(),
     scoredCandidateLimit: z.number(), searchGridStepDays: z.number(), mismatchWindowDays: z.number(), dryDayThresholdMm: z.number(),
-    rankingDecimalPlaces: z.number(), adverseQuantile: z.number(),
+    rankingDecimalPlaces: rankingDecimalPlacesSchema, adverseQuantile: z.number(),
   }),
 });
 

@@ -1,10 +1,10 @@
 import type { ClimateSnapshot, DailyWeather, EngineSettings } from "./climate";
 import type { CropPurposeId, EvidenceValue, IsoDate } from "./common";
-import type { FarmInput, Priority } from "./input";
-import type { CropProfile, RegistryResolution, RotationRule } from "./registry";
+import type { FarmInput } from "./input";
+import type { CropProfile, RegistryLookup, RotationRule } from "./registry";
 import type {
   AssessmentMetric, BaselineComparison, CalendarOccurrence, CalendarProof, EvidenceGap,
-  PlanOccurrence, PlanResult, PriorityTuple, ResultDetails, ResultWarning, RunManifest,
+  PlanOccurrence, PlanResult, RankingComponent, RankingTuple, ResultDetails, ResultWarning, RunManifest,
 } from "./result";
 
 export interface FrozenRun {
@@ -39,6 +39,8 @@ export interface CohortInput {
 
 export interface ClimateCohort {
   readonly coverage: ResultDetails["cohort"];
+  readonly applicabilityClimate: RegistryLookup["climate"];
+  readonly elevationM: EvidenceValue<number>;
   readonly usable: readonly ReplaySeason[];
   readonly insights: ResultDetails["insights"];
   readonly gaps: readonly EvidenceGap[];
@@ -46,7 +48,6 @@ export interface ClimateCohort {
 
 export interface MetricInput {
   readonly history: FarmInput["history"];
-  readonly pestCoverage: RegistryResolution["pestCoverage"];
   readonly calendar: CandidateCalendar;
   readonly profiles: readonly CropProfile[];
   readonly rules: readonly RotationRule[];
@@ -54,7 +55,6 @@ export interface MetricInput {
   readonly settings: EngineSettings;
   readonly latitudeDeg: number;
   readonly elevationM: EvidenceValue<number>;
-  readonly priority: Priority;
 }
 
 interface AssessmentEvidence {
@@ -73,6 +73,7 @@ export interface CalendarSearchInput {
   readonly cropPurposeIds: readonly CropPurposeId[];
   readonly profiles: readonly CropProfile[];
   readonly hardConstraints: readonly RotationRule[];
+  readonly initialPredecessor: CropPurposeId | null;
   readonly eligibleBaseline: CandidateCalendar | null;
   readonly expansionLimit: number;
 }
@@ -89,11 +90,23 @@ export interface AssessedCandidate {
 
 export interface RankingInput {
   readonly candidates: readonly AssessedCandidate[];
-  readonly priority: Priority;
+  readonly rankingDecimalPlaces: number;
 }
 
+type MetricComparison<Component = RankingComponent> = Component extends RankingComponent
+  ? { readonly metricId: Component["metricId"]; readonly unit: Component["unit"] }
+  : never;
+
+export type RankingDecision =
+  | { readonly kind: "only_candidate" }
+  | { readonly kind: "environmental_pool"; readonly comparedCalendarKey: string; readonly selectedFlagged: boolean; readonly otherFlagged: boolean }
+  | ({ readonly kind: "metric"; readonly comparedCalendarKey: string; readonly selectedValue: number; readonly otherValue: number } & MetricComparison)
+  | { readonly kind: "baseline"; readonly comparedCalendarKey: string }
+  | { readonly kind: "fewer_occurrences"; readonly comparedCalendarKey: string }
+  | { readonly kind: "canonical"; readonly comparedCalendarKey: string };
+
 export type RankingResult =
-  | { readonly kind: "selected"; readonly candidate: AssessedCandidate; readonly priorityTuple: PriorityTuple }
+  | { readonly kind: "selected"; readonly candidate: AssessedCandidate; readonly rankingTuple: RankingTuple; readonly decision: RankingDecision }
   | { readonly kind: "none" };
 
 type ExplanationOutcome = PlanResult extends infer R
@@ -106,6 +119,7 @@ export interface ExplanationInput {
   readonly run: FrozenRun;
   readonly outcome: ExplanationOutcome;
   readonly selected: AssessedCandidate | null;
+  readonly decision: RankingDecision | null;
   readonly baseline: BaselineComparison;
   readonly cohort: ResultDetails["cohort"];
   readonly insights: ResultDetails["insights"];

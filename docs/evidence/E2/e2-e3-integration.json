@@ -1,0 +1,157 @@
+{
+  "check": "real E2 cohort and assessment with E3 choose the better generated stage model at identical dates",
+  "schemaValidation": "synthetic registry, recorded input, skipped input, cohort, both assessments, both PlanResults passed",
+  "generatedStages": {
+    "initial": 5,
+    "development": 1,
+    "middle": 1,
+    "late": 1
+  },
+  "historicalStages": {
+    "initial": 1,
+    "development": 1,
+    "middle": 5,
+    "late": 1
+  },
+  "hardPlantingWindow": "07-01 only",
+  "gridCandidates": 1,
+  "gridTermination": {
+    "kind": "grid_complete",
+    "expandedStates": 2
+  },
+  "sharedKey": "[[\"synthetic-crop\",\"synthetic-profile\",\"synthetic-v1\",\"2026-07-01\",\"2026-07-08\",\"2026-07-10\"]]",
+  "baselineEligible": true,
+  "directBaseline": {
+    "flagged": true,
+    "frequency": 1,
+    "mismatch": 0.48890175468270414,
+    "rainfallWarning": true
+  },
+  "directGenerated": {
+    "flagged": false,
+    "frequency": 0,
+    "mismatch": 0,
+    "rainfallWarning": false
+  },
+  "directRankWinner": "generated",
+  "directRankDecision": {
+    "kind": "environmental_pool",
+    "comparedCalendarKey": "[[\"synthetic-crop\",\"synthetic-profile\",\"synthetic-v1\",\"2026-07-01\",\"2026-07-08\",\"2026-07-10\"]]",
+    "selectedFlagged": false,
+    "otherFlagged": true
+  },
+  "calculateWithHistory": {
+    "state": "plan",
+    "calls": [
+      {
+        "origin": "baseline",
+        "key": "[[\"synthetic-crop\",\"synthetic-profile\",\"synthetic-v1\",\"2026-07-01\",\"2026-07-08\",\"2026-07-10\"]]",
+        "assessment": {
+          "flagged": true,
+          "frequency": 1,
+          "mismatch": 0.48890175468270414,
+          "rainfallWarning": true
+        }
+      },
+      {
+        "origin": "generated",
+        "key": "[[\"synthetic-crop\",\"synthetic-profile\",\"synthetic-v1\",\"2026-07-01\",\"2026-07-08\",\"2026-07-10\"]]",
+        "assessment": {
+          "flagged": false,
+          "frequency": 0,
+          "mismatch": 0,
+          "rainfallWarning": false
+        }
+      }
+    ],
+    "search": {
+      "structural": "witness",
+      "ranking": "grid_complete",
+      "structuralExpandedStates": 0,
+      "gridExpandedStates": 2,
+      "scoredCandidates": 1,
+      "structuralExpansionLimit": 100,
+      "gridExpansionLimit": 100,
+      "scoredCandidateLimit": 100,
+      "gridStepDays": 7
+    },
+    "recommendation": "changed",
+    "tuple": {
+      "components": [
+        {
+          "metricId": "mean_frequency",
+          "value": 0,
+          "unit": "fraction"
+        },
+        {
+          "metricId": "mean_mismatch",
+          "value": 0,
+          "unit": "fraction"
+        },
+        {
+          "metricId": "unplanted_days",
+          "value": 357,
+          "unit": "days"
+        },
+        {
+          "metricId": "longest_unplanted_gap",
+          "value": 357,
+          "unit": "days"
+        }
+      ]
+    },
+    "explanation": "This calendar had no environmental flags in the performed checks; the final runner-up was flagged."
+  },
+  "calculateWithoutHistory": {
+    "state": "plan",
+    "calls": [
+      {
+        "origin": "generated",
+        "key": "[[\"synthetic-crop\",\"synthetic-profile\",\"synthetic-v1\",\"2026-07-01\",\"2026-07-08\",\"2026-07-10\"]]",
+        "assessment": {
+          "flagged": false,
+          "frequency": 0,
+          "mismatch": 0,
+          "rainfallWarning": false
+        }
+      }
+    ],
+    "search": {
+      "structural": "witness",
+      "ranking": "grid_complete",
+      "structuralExpandedStates": 1,
+      "gridExpandedStates": 2,
+      "scoredCandidates": 0,
+      "structuralExpansionLimit": 100,
+      "gridExpansionLimit": 100,
+      "scoredCandidateLimit": 100,
+      "gridStepDays": 7
+    },
+    "tuple": {
+      "components": [
+        {
+          "metricId": "mean_frequency",
+          "value": 0,
+          "unit": "fraction"
+        },
+        {
+          "metricId": "mean_mismatch",
+          "value": 0,
+          "unit": "fraction"
+        },
+        {
+          "metricId": "unplanted_days",
+          "value": 357,
+          "unit": "days"
+        },
+        {
+          "metricId": "longest_unplanted_gap",
+          "value": 357,
+          "unit": "days"
+        }
+      ]
+    }
+  },
+  "externalCalendarDatesEqual": true,
+  "inputMutation": false
+}

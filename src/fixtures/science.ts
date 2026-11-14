@@ -2,7 +2,7 @@ import { defaultEngineSettings } from "@/contracts/climate";
 import type { ClimateSnapshot, DailyWeather } from "@/contracts/climate";
 import { parseIsoDate } from "@/contracts/common";
 import type { EvidenceValue } from "@/contracts/common";
-import type { FrozenRun, MetricInput, ReplaySeason } from "@/contracts/engine";
+import type { ClimateCohort, FrozenRun, MetricInput, ReplaySeason } from "@/contracts/engine";
 import { syntheticRegistrySchema } from "@/contracts/registry";
 import { inputFixture } from "./input";
 
@@ -61,7 +61,6 @@ export const syntheticRegistryFixture = syntheticRegistrySchema.parse({
     sourceIds: syntheticSourceIds,
   }],
   rules: [],
-  coverage: [],
 });
 
 function available(value: number): EvidenceValue<number> { return { kind: "available", value }; }
@@ -100,6 +99,24 @@ export const replaySeasonFixture = {
   days: weatherDays.slice(0, 4),
 } satisfies ReplaySeason;
 
+export const climateCohortFixture = {
+  coverage: {
+    kind: "available",
+    value: {
+      targetSeasons: 1, minimumUsableSeasons: 1, methodVersion: "synthetic-cohort-v1",
+      seasons: [{ status: "usable", interval: replaySeasonFixture.interval }],
+    },
+  },
+  applicabilityClimate: {
+    meanAnnualTemperatureC: { kind: "unavailable", reason: "Synthetic replay has no complete annual temperature evidence." },
+    meanAnnualPrecipitationMm: { kind: "unavailable", reason: "Synthetic replay has no complete annual precipitation evidence." },
+  },
+  elevationM: climateSnapshotFixture.elevationM,
+  usable: [replaySeasonFixture],
+  insights: [],
+  gaps: [],
+} satisfies ClimateCohort;
+
 export const frozenRunFixture = {
   input: inputFixture,
   manifest: {
@@ -118,7 +135,6 @@ export const frozenRunFixture = {
 
 export const metricInputFixture = {
   history: inputFixture.history,
-  pestCoverage: { kind: "unavailable", reason: "No synthetic pest-host coverage is asserted." },
   calendar: {
     origin: "generated",
     horizon: { start: inputFixture.planningStart, endExclusive: parseIsoDate("2027-07-01") },
@@ -131,14 +147,12 @@ export const metricInputFixture = {
   rules: syntheticRegistryFixture.rules,
   cohort: [replaySeasonFixture],
   settings: frozenRunFixture.settings,
-  latitudeDeg: climateSnapshotFixture.latitudeDeg,
-  elevationM: climateSnapshotFixture.elevationM,
-  priority: inputFixture.priority,
+  latitudeDeg: frozenRunFixture.input.field.lookup[1],
+  elevationM: climateCohortFixture.elevationM,
 } satisfies MetricInput;
 
 export const registryResolutionFixture = {
   profiles: syntheticRegistryFixture.profiles,
   rules: syntheticRegistryFixture.rules,
   gaps: [],
-  pestCoverage: { kind: "unavailable", reason: "No synthetic pest-host coverage is asserted." },
 } satisfies import("@/contracts").RegistryResolution;

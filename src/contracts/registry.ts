@@ -106,37 +106,16 @@ const regulation = z.strictObject({
   predecessorCropPurposeIds: z.array(cropPurposeIdSchema).min(1).readonly(),
   successorCropPurposeIds: z.array(cropPurposeIdSchema).min(1).readonly(),
 });
-const hostFreeBreak = z.strictObject({
-  kind: z.literal("minimum_host_free_break"),
-  hostCropPurposeIds: z.array(cropPurposeIdSchema).min(1).readonly(),
-  nonHostCropPurposeIds: z.array(cropPurposeIdSchema).readonly(),
-  requiredBreakDays: positiveDays,
-});
 const rotationRule = z.strictObject({
   id: labels,
   version: labels,
   target: labels,
   applicability,
-  category: z.enum(["pest", "weed", "environment", "physical_or_regulatory"]),
-  predicate: z.discriminatedUnion("kind", [hostFreeBreak, regulation]),
+  category: z.literal("physical_or_regulatory"),
+  predicate: regulation,
   limitations: z.array(labels).readonly(),
   preparation: z.array(prep).readonly(),
   sourceIds,
-});
-const coverage = z.strictObject({
-  id: labels,
-  applicability,
-  targets: z.array(labels).min(1).readonly(),
-  assessedCropPurposeIds: z.array(cropPurposeIdSchema).min(1).readonly(),
-  assessedRelationships: z.array(z.strictObject({
-    leftCropPurposeId: cropPurposeIdSchema,
-    rightCropPurposeId: cropPurposeIdSchema,
-    target: labels,
-    ruleIds: z.array(labels).readonly(),
-  })).readonly(),
-  limitations: z.array(labels).readonly(),
-  sourceIds,
-  review: reviewSchema,
 });
 
 const reviewedProfile = profile.extend({ status: z.literal("released"), review: reviewSchema }).readonly();
@@ -158,7 +137,6 @@ export const releasedRegistrySchema = z.strictObject({
   sources: z.array(sourceReferenceSchema).readonly(),
   profiles: z.array(reviewedProfile).readonly(),
   rules: z.array(reviewedRule).readonly(),
-  coverage: z.array(coverage).readonly(),
 }).readonly();
 export const syntheticRegistrySchema = z.strictObject({
   ...releaseShape,
@@ -167,7 +145,6 @@ export const syntheticRegistrySchema = z.strictObject({
   sources: z.array(sourceReferenceSchema).length(0).readonly(),
   profiles: z.array(syntheticProfile).readonly(),
   rules: z.array(syntheticRule).readonly(),
-  coverage: z.array(coverage.omit({ review: true })).readonly(),
 }).readonly();
 
 export type ReleasedRegistry = z.infer<typeof releasedRegistrySchema>;
@@ -192,7 +169,4 @@ export interface RegistryResolution {
   readonly profiles: readonly CropProfile[];
   readonly gaps: readonly EvidenceGap[];
   readonly rules: readonly RotationRule[];
-  readonly pestCoverage: EvidenceValue<
-    readonly { readonly id: string; readonly targets: readonly string[]; readonly ruleIds: readonly string[] }[]
-  >;
 }

@@ -95,7 +95,7 @@ export function dependencies(jobs = new MemoryJobs()): RuntimeDependencies {
     prepareClimate: async () => ({ kind: "ready", snapshots: [snapshot] }),
     readRegistryRelease,
     calculate: run => resultForRun(run),
-    settings: { version: "test-v1", targetSeasons: 25, minimumUsableSeasons: 15, structuralExpansionLimit: 10, scoredCandidateLimit: 10, searchGridStepDays: 7, mismatchWindowDays: 7, dryDayThresholdMm: 1, rankingDecimalPlaces: 6, adverseQuantile: 0.9 },
+    settings: { version: "test-v1", targetSeasons: 25, minimumUsableSeasons: 15, structuralExpansionLimit: 10, gridExpansionLimit: 10, scoredCandidateLimit: 10, searchGridStepDays: 7, mismatchWindowDays: 7, dryDayThresholdMm: 1, rankingDecimalPlaces: 6, adverseQuantile: 0.9 },
     workerId: "test-worker",
     leaseSeconds: 60,
     now: () => "2026-01-01T00:00:00.000Z",

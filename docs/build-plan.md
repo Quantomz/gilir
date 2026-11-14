@@ -1,14 +1,14 @@
 # Build Gilir in three parallel lanes
 
-This is a ten-hour planning budget for three AI-assisted builders. It is not a delivery guarantee. Each person has eight hours of core implementation and two reserved hours for integration, review, and fixes. There is no planning-only lane.
+The initial plan budgeted ten hours for each of three AI-assisted builders. It is not a delivery guarantee. The approved E3 handoff on 14 November moves its three-hour estimate to kyusuku while yslee1106 completes E1 and E2. Each person retains two hours for integration, review, and fixes. There is no planning-only lane.
 
 The shared starter is prepared before the timed build. Every coding card starts from it, uses an explicit fixture or port, and can be implemented without another card merging. The final assembled application necessarily depends on the completed modules. Integration cards name those dependencies instead of hiding them.
 
 | Owner | Core cards | Core budget | Final integration | Total |
 | --- | --- | --- | --- | --- |
 | Quantomz | F1, F2, F3, F4 | 8 h | I3, 2 h | 10 h |
-| kyusuku | B1, B2, B3 | 8 h | I1, 2 h | 10 h |
-| yslee1106 | E1, E2, E3 | 8 h | I2, 2 h | 10 h |
+| kyusuku | B1, B2, B3, E3 | 11 h | I1, 2 h | 13 h |
+| yslee1106 | E1, E2 | 5 h | I2, 2 h | 7 h |
 
 The user explicitly owns backend setup. Quantomz's frontend assignment follows the OneTab precedent. The calculations and data work are split across both backend lanes.
 
@@ -16,7 +16,7 @@ The user explicitly owns backend setup. Quantomz's frontend assignment follows t
 
 The board has exactly four columns: `Quantomz | Frontend`, `kyusuku | Backend and NASA data`, `yslee1106 | Crop data and calculations`, and `Done`. Integration cards stay in the relevant owner column. Overflow uses the help-wanted label inside its home lane, not another column. When someone claims a helper card, update its assignee and move it to that person's column. Move to Done only under the completion rule below.
 
-Every card has a numeric `Estimate (hours)` field visible in the board view. Values are person-hours, matching OneTab. Assigned core and integration cards total 10 hours per person. Unassigned X cards are optional additional work and are excluded from those totals.
+Every card has a numeric `Estimate (hours)` field visible in the board view. Values are person-hours, matching OneTab. The current allocation above preserves each card's estimate and the original 30-hour team total. Unassigned X cards are optional additional work and are excluded from those totals.
 
 ## Start together
 
@@ -71,7 +71,7 @@ GitHub owns task status. Repository card briefs own implementation detail. Updat
 | [B3](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/7) | kyusuku | 2 h | core |
 | [E1](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8) | yslee1106 | 2 h | core |
 | [E2](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/9) | yslee1106 | 3 h | core |
-| [E3](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/10) | yslee1106 | 3 h | core |
+| [E3](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/10) | kyusuku | 3 h | core |
 | [I1](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/11) | kyusuku | 2 h | integration |
 | [I2](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/12) | yslee1106 | 2 h | integration |
 | [I3](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/13) | Quantomz | 2 h | integration |
