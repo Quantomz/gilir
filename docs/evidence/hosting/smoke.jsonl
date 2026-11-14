@@ -1,0 +1,9 @@
+{"check":"image_build","status":"passed","imageId":"sha256:e4be61c234f1ee386c19c44e5aceec67ca4f21cbb4a45f49ea805ab5948e5fb3"}
+{"check":"non_root_runtime","status":"passed"}
+{"check":"migrations_idempotent","status":"passed"}
+{"check":"worker_readiness","status":"passed"}
+{"check":"cleanup_exits","status":"passed","purged":0}
+{"check":"web_http","status":"passed","httpStatus":200,"containerPort":8080}
+{"check":"production_fixture_hidden","status":"passed","httpStatus":404}
+{"check":"catalogue_http","status":"passed","httpStatus":200,"entries":0}
+{"check":"idle_worker_sigterm","status":"passed","exitCode":0}
