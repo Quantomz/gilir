@@ -48,6 +48,20 @@ describe("deterministic result explanations", () => {
     expect(JSON.stringify(result)).not.toContain("Infinity");
   });
 
+  it("labels a generated winner as changed when the baseline dates are identical", () => {
+    const input = explanation();
+    if (!input.selected) throw new Error("Expected a selected fixture.");
+    const result = explainResult({ ...input, baseline: { kind: "assessed", recommendation: "no_recommendation", eligible: true,
+      approximateDates: false, occurrences: input.selected.assessment.occurrences, metrics: metrics([0.5, 0.2, 20, 10]), deltas: [], changes: [] } });
+    expect(result.baseline).toMatchObject({ kind: "assessed", recommendation: "changed", changes: [],
+      deltas: [
+        { metricId: "mean_frequency", difference: { kind: "available", value: -0.4 } },
+        { metricId: "mean_mismatch", difference: { kind: "available", value: -0.1 } },
+        { metricId: "unplanted_days", difference: { kind: "available", value: 0 } },
+        { metricId: "longest_unplanted_gap", difference: { kind: "available", value: 0 } },
+      ] });
+  });
+
   it("preserves source references, frozen product metadata, and visible synthetic climate labels", () => {
     const p = profile();
     const base = registry([p]);
