@@ -3,7 +3,7 @@ import type { AssessedCandidate, RankingDecision, RankingInput, RankingResult } 
 import { assessmentMetricSchema, rankingMetricIds } from "@/contracts/result";
 import type { EvidenceGap, RankingTuple } from "@/contracts/result";
 import { validateAssessment } from "./evidence";
-import { calendarKey, compareText, dayCount } from "./calendar";
+import { assessmentKey, calendarKey, compareText, dayCount } from "./calendar";
 
 export class MissingRankingEvidence extends Error {
   constructor(readonly gaps: readonly EvidenceGap[]) {
@@ -43,7 +43,7 @@ export function rankingTuple(candidate: AssessedCandidate, precision: number): R
   ] };
 }
 
-interface Ranked { readonly candidate: AssessedCandidate; readonly key: string; readonly tuple: RankingTuple }
+interface Ranked { readonly candidate: AssessedCandidate; readonly key: string; readonly assessmentKey: string; readonly tuple: RankingTuple }
 
 function compare(a: Ranked, b: Ranked): number {
   if (a.candidate.assessment.flagged !== b.candidate.assessment.flagged) return a.candidate.assessment.flagged ? 1 : -1;
@@ -81,12 +81,13 @@ export class RankingAccumulator {
   constructor(private readonly precision: number) { rankingDecimalPlacesSchema.parse(precision); }
 
   add(candidate: AssessedCandidate): void {
-    const record = { candidate, key: calendarKey(candidate.calendar), tuple: rankingTuple(candidate, this.precision) };
-    if (record.key === this.best?.key) {
+    const record = { candidate, key: calendarKey(candidate.calendar), assessmentKey: assessmentKey(candidate.calendar),
+      tuple: rankingTuple(candidate, this.precision) };
+    if (record.assessmentKey === this.best?.assessmentKey) {
       if (compare(record, this.best) < 0) this.best = record;
       return;
     }
-    if (record.key === this.second?.key) {
+    if (record.assessmentKey === this.second?.assessmentKey) {
       if (compare(record, this.second) >= 0) return;
       this.second = null;
     }

@@ -60,12 +60,12 @@ describe("fixed water-first ordering", () => {
     expect(winner([first, best, second]).decision).toMatchObject({ kind: "metric", comparedCalendarKey: calendarKey(second.calendar), selectedValue: 0.1, otherValue: 0.2 });
   });
 
-  it("deduplicates baseline/generated identities and preserves the baseline tie preference", () => {
+  it("retains both origin assessments and preserves the same-date baseline tie preference", () => {
     const generated = candidate();
     const baseline = { ...generated, calendar: { ...generated.calendar, origin: "baseline" as const } };
     const result = winner([generated, baseline]);
     expect(result.candidate.calendar.origin).toBe("baseline");
-    expect(result.decision.kind).toBe("only_candidate");
+    expect(result.decision).toEqual({ kind: "baseline", comparedCalendarKey: calendarKey(generated.calendar) });
   });
 });
 
