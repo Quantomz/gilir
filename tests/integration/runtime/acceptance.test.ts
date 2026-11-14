@@ -1,7 +1,5 @@
 import { expect, it, vi } from "vitest";
 import type { CompletedSnapshot } from "@/contracts";
-import { calculate as productionCalculation } from "@/engine";
-import { readRegistryRelease } from "@/registry";
 import { hashNormalizedInput } from "@/server/jobs";
 import type { AcceptanceControls } from "./acceptance";
 import { verifyRestartedPipeline } from "./acceptance";
@@ -24,9 +22,9 @@ function injectedControls(result: CompletedSnapshot["result"]): AcceptanceContro
   };
 }
 
-it("rejects the actual unimplemented engine service_error even when declared as the expected state", async () => {
+it("rejects a controlled service_error even when declared as the expected state", async () => {
   const run = controlledRun();
-  const controls = injectedControls(productionCalculation(run, readRegistryRelease()));
+  const controls = injectedControls({ state: "service_error", error: { code: "processing_failed", message: "Controlled service error.", retryable: false }, details: controlledCalculation(run).details });
   await expect(verifyRestartedPipeline(controls)).rejects.toThrow("A service error is not successful live pipeline acceptance");
   expect(controls.client.remove).toHaveBeenCalledOnce();
 });
