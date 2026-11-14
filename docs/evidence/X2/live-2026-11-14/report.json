@@ -1,0 +1,2516 @@
+{
+  "schemaVersion": 1,
+  "mode": "live",
+  "source": {
+    "kind": "live"
+  },
+  "context": {
+    "planningStart": "2027-07-01",
+    "cutoff": "2026-11-14",
+    "settings": {
+      "version": "v2",
+      "targetSeasons": 25,
+      "minimumUsableSeasons": 15,
+      "structuralExpansionLimit": 2000000,
+      "gridExpansionLimit": 2000000,
+      "scoredCandidateLimit": 100000,
+      "searchGridStepDays": 7,
+      "mismatchWindowDays": 7,
+      "dryDayThresholdMm": 1,
+      "rankingDecimalPlaces": 6,
+      "adverseQuantile": 0.9
+    },
+    "horizon": {
+      "start": "2027-07-01",
+      "endExclusive": "2028-07-01"
+    },
+    "horizonDays": 366,
+    "period": {
+      "start": "2000-06-30",
+      "endExclusive": "2026-07-02",
+      "horizonDays": 366,
+      "seasons": [
+        {
+          "start": "2001-07-01",
+          "endExclusive": "2002-07-02"
+        },
+        {
+          "start": "2002-07-01",
+          "endExclusive": "2003-07-02"
+        },
+        {
+          "start": "2003-07-01",
+          "endExclusive": "2004-07-01"
+        },
+        {
+          "start": "2004-07-01",
+          "endExclusive": "2005-07-02"
+        },
+        {
+          "start": "2005-07-01",
+          "endExclusive": "2006-07-02"
+        },
+        {
+          "start": "2006-07-01",
+          "endExclusive": "2007-07-02"
+        },
+        {
+          "start": "2007-07-01",
+          "endExclusive": "2008-07-01"
+        },
+        {
+          "start": "2008-07-01",
+          "endExclusive": "2009-07-02"
+        },
+        {
+          "start": "2009-07-01",
+          "endExclusive": "2010-07-02"
+        },
+        {
+          "start": "2010-07-01",
+          "endExclusive": "2011-07-02"
+        },
+        {
+          "start": "2011-07-01",
+          "endExclusive": "2012-07-01"
+        },
+        {
+          "start": "2012-07-01",
+          "endExclusive": "2013-07-02"
+        },
+        {
+          "start": "2013-07-01",
+          "endExclusive": "2014-07-02"
+        },
+        {
+          "start": "2014-07-01",
+          "endExclusive": "2015-07-02"
+        },
+        {
+          "start": "2015-07-01",
+          "endExclusive": "2016-07-01"
+        },
+        {
+          "start": "2016-07-01",
+          "endExclusive": "2017-07-02"
+        },
+        {
+          "start": "2017-07-01",
+          "endExclusive": "2018-07-02"
+        },
+        {
+          "start": "2018-07-01",
+          "endExclusive": "2019-07-02"
+        },
+        {
+          "start": "2019-07-01",
+          "endExclusive": "2020-07-01"
+        },
+        {
+          "start": "2020-07-01",
+          "endExclusive": "2021-07-02"
+        },
+        {
+          "start": "2021-07-01",
+          "endExclusive": "2022-07-02"
+        },
+        {
+          "start": "2022-07-01",
+          "endExclusive": "2023-07-02"
+        },
+        {
+          "start": "2023-07-01",
+          "endExclusive": "2024-07-01"
+        },
+        {
+          "start": "2024-07-01",
+          "endExclusive": "2025-07-02"
+        },
+        {
+          "start": "2025-07-01",
+          "endExclusive": "2026-07-02"
+        }
+      ],
+      "lookbackDays": 366,
+      "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+    },
+    "expectedDays": 9498,
+    "cohortLookbackDays": 0
+  },
+  "execution": "complete",
+  "limits": "Coverage at four public locations and the recorded dates only. No ET0, crop, ranking, or worldwide agronomic validation.",
+  "locations": [
+    {
+      "location": {
+        "id": "cordoba",
+        "label": "Cordoba",
+        "category": "southern",
+        "lookup": [
+          -64.19,
+          -31.42
+        ]
+      },
+      "bundleSha256": "730e9bd3d8b1d35aa1c5ea2e405a7a35b2c9028b5231940d1f57d4201aff9f4e",
+      "summary": {
+        "preparation": {
+          "kind": "ready"
+        },
+        "attemptCount": 3,
+        "products": [
+          {
+            "productId": "POWER_METEOROLOGY",
+            "cell": {
+              "id": "POWER_METEOROLOGY:lat117:lon185",
+              "latitude": -31.5,
+              "longitude": -64.375
+            },
+            "gridDegrees": [
+              0.5,
+              0.625
+            ],
+            "fields": [
+              {
+                "field": "meanC",
+                "parameter": "T2M",
+                "unit": "degC"
+              },
+              {
+                "field": "minC",
+                "parameter": "T2M_MIN",
+                "unit": "degC"
+              },
+              {
+                "field": "maxC",
+                "parameter": "T2M_MAX",
+                "unit": "degC"
+              },
+              {
+                "field": "humidityPct",
+                "parameter": "RH2M",
+                "unit": "%"
+              },
+              {
+                "field": "wind2mMs",
+                "parameter": "WS2M",
+                "unit": "m/s"
+              },
+              {
+                "field": "pressureKpa",
+                "parameter": "PS",
+                "unit": "kPa"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-807a9951912a00aa269dec1f0055dd43078689203da77b3945905b049fe8fa54",
+            "contentHash": "f69166cef9dac5bcac15ad467608d6694c29a63336c1356c00e62024c33d7bcf",
+            "retrievedAt": "2026-11-14T18:47:57.859Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 662.17
+            },
+            "returnedCenter": [
+              -64.375,
+              -31.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "meanC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "minC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "maxC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "humidityPct",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "wind2mMs",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "pressureKpa",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_METEOROLOGY:lat117:lon185",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=-64.375&latitude=-31.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "meanC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "minC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "maxC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "humidityPct",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_SOLAR",
+            "cell": {
+              "id": "POWER_SOLAR:lat58:lon115",
+              "latitude": -31.5,
+              "longitude": -64.5
+            },
+            "gridDegrees": [
+              1,
+              1
+            ],
+            "fields": [
+              {
+                "field": "solarMjM2Day",
+                "parameter": "ALLSKY_SFC_SW_DWN",
+                "unit": "MJ/m²/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-404df3e0c078b681d5a397e670cbc32d894369188da3baaf188f13df54fef706",
+            "contentHash": "390a2cc028e493c4f0c09f207ab642879916547dd33df8d20bea9ffa38885cc7",
+            "retrievedAt": "2026-11-14T18:47:59.533Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 662.17
+            },
+            "returnedCenter": [
+              -64.5,
+              -31.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "solarMjM2Day",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_SOLAR:lat58:lon115",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=-64.5&latitude=-31.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "solarMjM2Day",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_IMERG",
+            "cell": {
+              "id": "POWER_IMERG:lat585:lon1158",
+              "latitude": -31.45,
+              "longitude": -64.15
+            },
+            "gridDegrees": [
+              0.1,
+              0.1
+            ],
+            "fields": [
+              {
+                "field": "rainMm",
+                "parameter": "IMERG_PRECTOT",
+                "unit": "mm/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-730a7afc8c3b19ce6cfffe5fdebfc39bc37af65c435ed72c24f80882cd589ffe",
+            "contentHash": "ab92810f13b01d824fb4eccc812e4ba017338ee262a21f882e055315de59b1fe",
+            "retrievedAt": "2026-11-14T18:48:01.560Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 662.17
+            },
+            "returnedCenter": [
+              -64.15,
+              -31.45
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "rainMm",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_IMERG:lat585:lon1158",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=-64.15&latitude=-31.45&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "rainMm",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "cohort": {
+          "coverage": {
+            "kind": "available",
+            "value": {
+              "targetSeasons": 25,
+              "minimumUsableSeasons": 15,
+              "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+              "seasons": [
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2025-07-01",
+                    "endExclusive": "2026-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2024-07-01",
+                    "endExclusive": "2025-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2023-07-01",
+                    "endExclusive": "2024-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2022-07-01",
+                    "endExclusive": "2023-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2021-07-01",
+                    "endExclusive": "2022-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2020-07-01",
+                    "endExclusive": "2021-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2019-07-01",
+                    "endExclusive": "2020-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2018-07-01",
+                    "endExclusive": "2019-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2017-07-01",
+                    "endExclusive": "2018-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2016-07-01",
+                    "endExclusive": "2017-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2015-07-01",
+                    "endExclusive": "2016-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2014-07-01",
+                    "endExclusive": "2015-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2013-07-01",
+                    "endExclusive": "2014-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2012-07-01",
+                    "endExclusive": "2013-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2011-07-01",
+                    "endExclusive": "2012-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2010-07-01",
+                    "endExclusive": "2011-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2009-07-01",
+                    "endExclusive": "2010-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2008-07-01",
+                    "endExclusive": "2009-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2007-07-01",
+                    "endExclusive": "2008-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2006-07-01",
+                    "endExclusive": "2007-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2005-07-01",
+                    "endExclusive": "2006-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2004-07-01",
+                    "endExclusive": "2005-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2003-07-01",
+                    "endExclusive": "2004-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2002-07-01",
+                    "endExclusive": "2003-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2001-07-01",
+                    "endExclusive": "2002-07-02"
+                  }
+                }
+              ]
+            }
+          },
+          "usableSeasons": 25,
+          "meetsMinimumSeasons": true,
+          "applicabilityClimate": {
+            "meanAnnualTemperatureC": {
+              "kind": "available",
+              "value": 16.869189071038235
+            },
+            "meanAnnualPrecipitationMm": {
+              "kind": "available",
+              "value": 837.8432
+            }
+          },
+          "elevationM": {
+            "kind": "available",
+            "value": 662.17
+          },
+          "gaps": []
+        }
+      },
+      "integrity": {
+        "kind": "recorded"
+      }
+    },
+    {
+      "location": {
+        "id": "berlin",
+        "label": "Berlin",
+        "category": "temperate",
+        "lookup": [
+          13.4,
+          52.52
+        ]
+      },
+      "bundleSha256": "90d4e518d148aeec0953f2e7d26f20faeff8a777b8c2c0f7ade09ea40a013d48",
+      "summary": {
+        "preparation": {
+          "kind": "ready"
+        },
+        "attemptCount": 3,
+        "products": [
+          {
+            "productId": "POWER_METEOROLOGY",
+            "cell": {
+              "id": "POWER_METEOROLOGY:lat285:lon309",
+              "latitude": 52.5,
+              "longitude": 13.125
+            },
+            "gridDegrees": [
+              0.5,
+              0.625
+            ],
+            "fields": [
+              {
+                "field": "meanC",
+                "parameter": "T2M",
+                "unit": "degC"
+              },
+              {
+                "field": "minC",
+                "parameter": "T2M_MIN",
+                "unit": "degC"
+              },
+              {
+                "field": "maxC",
+                "parameter": "T2M_MAX",
+                "unit": "degC"
+              },
+              {
+                "field": "humidityPct",
+                "parameter": "RH2M",
+                "unit": "%"
+              },
+              {
+                "field": "wind2mMs",
+                "parameter": "WS2M",
+                "unit": "m/s"
+              },
+              {
+                "field": "pressureKpa",
+                "parameter": "PS",
+                "unit": "kPa"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-34238d69ae608585156277381b3151cf7f8a4281a743db39e1d8a6d6245bdd2f",
+            "contentHash": "950937de97dce45a183a699ef5f91b16305001d26c40e2c9e023672bffd31d06",
+            "retrievedAt": "2026-11-14T18:48:04.527Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 48.98
+            },
+            "returnedCenter": [
+              13.125,
+              52.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "meanC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "minC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "maxC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "humidityPct",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "wind2mMs",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "pressureKpa",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_METEOROLOGY:lat285:lon309",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=13.125&latitude=52.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "meanC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "minC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "maxC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "humidityPct",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_SOLAR",
+            "cell": {
+              "id": "POWER_SOLAR:lat142:lon193",
+              "latitude": 52.5,
+              "longitude": 13.5
+            },
+            "gridDegrees": [
+              1,
+              1
+            ],
+            "fields": [
+              {
+                "field": "solarMjM2Day",
+                "parameter": "ALLSKY_SFC_SW_DWN",
+                "unit": "MJ/m²/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-cf0de5615720d9ae8459635c4d4b70259ee3594f75aa89fa72966efc5c75e221",
+            "contentHash": "ba3a272e06e89c0b8c78a24179e71d6f5383fd39e5d6e61594a7f0707da47ff9",
+            "retrievedAt": "2026-11-14T18:48:06.192Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 53.46
+            },
+            "returnedCenter": [
+              13.5,
+              52.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "solarMjM2Day",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_SOLAR:lat142:lon193",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=13.5&latitude=52.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "solarMjM2Day",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_IMERG",
+            "cell": {
+              "id": "POWER_IMERG:lat1425:lon1934",
+              "latitude": 52.55,
+              "longitude": 13.45
+            },
+            "gridDegrees": [
+              0.1,
+              0.1
+            ],
+            "fields": [
+              {
+                "field": "rainMm",
+                "parameter": "IMERG_PRECTOT",
+                "unit": "mm/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-c1eb379c4728bd668eaa1579ac3742f3cb4e0d38959cfdb890ccf7718457e3be",
+            "contentHash": "d7839c9bf29a848a3ea58181f6a8e34605ab57796543999d3413d3313551b566",
+            "retrievedAt": "2026-11-14T18:48:07.834Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 53.46
+            },
+            "returnedCenter": [
+              13.45,
+              52.55
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "rainMm",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_IMERG:lat1425:lon1934",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=13.45&latitude=52.55&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "rainMm",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "cohort": {
+          "coverage": {
+            "kind": "available",
+            "value": {
+              "targetSeasons": 25,
+              "minimumUsableSeasons": 15,
+              "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+              "seasons": [
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2025-07-01",
+                    "endExclusive": "2026-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2024-07-01",
+                    "endExclusive": "2025-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2023-07-01",
+                    "endExclusive": "2024-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2022-07-01",
+                    "endExclusive": "2023-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2021-07-01",
+                    "endExclusive": "2022-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2020-07-01",
+                    "endExclusive": "2021-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2019-07-01",
+                    "endExclusive": "2020-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2018-07-01",
+                    "endExclusive": "2019-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2017-07-01",
+                    "endExclusive": "2018-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2016-07-01",
+                    "endExclusive": "2017-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2015-07-01",
+                    "endExclusive": "2016-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2014-07-01",
+                    "endExclusive": "2015-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2013-07-01",
+                    "endExclusive": "2014-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2012-07-01",
+                    "endExclusive": "2013-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2011-07-01",
+                    "endExclusive": "2012-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2010-07-01",
+                    "endExclusive": "2011-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2009-07-01",
+                    "endExclusive": "2010-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2008-07-01",
+                    "endExclusive": "2009-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2007-07-01",
+                    "endExclusive": "2008-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2006-07-01",
+                    "endExclusive": "2007-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2005-07-01",
+                    "endExclusive": "2006-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2004-07-01",
+                    "endExclusive": "2005-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2003-07-01",
+                    "endExclusive": "2004-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2002-07-01",
+                    "endExclusive": "2003-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2001-07-01",
+                    "endExclusive": "2002-07-02"
+                  }
+                }
+              ]
+            }
+          },
+          "usableSeasons": 25,
+          "meetsMinimumSeasons": true,
+          "applicabilityClimate": {
+            "meanAnnualTemperatureC": {
+              "kind": "available",
+              "value": 9.916049180327871
+            },
+            "meanAnnualPrecipitationMm": {
+              "kind": "available",
+              "value": 646.5819999999999
+            }
+          },
+          "elevationM": {
+            "kind": "available",
+            "value": 48.98
+          },
+          "gaps": []
+        }
+      },
+      "integrity": {
+        "kind": "recorded"
+      }
+    },
+    {
+      "location": {
+        "id": "quito",
+        "label": "Quito",
+        "category": "equatorial",
+        "lookup": [
+          -78.5,
+          -0.2
+        ]
+      },
+      "bundleSha256": "367e9393b2d6b8519b204abbb6f1119c434885390af77cae9a39a0249f8f7aa9",
+      "summary": {
+        "preparation": {
+          "kind": "ready"
+        },
+        "attemptCount": 3,
+        "products": [
+          {
+            "productId": "POWER_METEOROLOGY",
+            "cell": {
+              "id": "POWER_METEOROLOGY:lat180:lon162",
+              "latitude": 0,
+              "longitude": -78.75
+            },
+            "gridDegrees": [
+              0.5,
+              0.625
+            ],
+            "fields": [
+              {
+                "field": "meanC",
+                "parameter": "T2M",
+                "unit": "degC"
+              },
+              {
+                "field": "minC",
+                "parameter": "T2M_MIN",
+                "unit": "degC"
+              },
+              {
+                "field": "maxC",
+                "parameter": "T2M_MAX",
+                "unit": "degC"
+              },
+              {
+                "field": "humidityPct",
+                "parameter": "RH2M",
+                "unit": "%"
+              },
+              {
+                "field": "wind2mMs",
+                "parameter": "WS2M",
+                "unit": "m/s"
+              },
+              {
+                "field": "pressureKpa",
+                "parameter": "PS",
+                "unit": "kPa"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-57612740752a3db81011021827cd959a00e139bd8c4f9384c4b71a3733d7719f",
+            "contentHash": "66cd06ffc000a7e96ccb3f71a013a346d95d6d6d4ec48fbe240c7392080c0c0e",
+            "retrievedAt": "2026-11-14T18:48:10.449Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 1862.95
+            },
+            "returnedCenter": [
+              -78.75,
+              0
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "meanC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "minC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "maxC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "humidityPct",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "wind2mMs",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "pressureKpa",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_METEOROLOGY:lat180:lon162",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=-78.75&latitude=0&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "meanC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "minC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "maxC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "humidityPct",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_SOLAR",
+            "cell": {
+              "id": "POWER_SOLAR:lat89:lon101",
+              "latitude": -0.5,
+              "longitude": -78.5
+            },
+            "gridDegrees": [
+              1,
+              1
+            ],
+            "fields": [
+              {
+                "field": "solarMjM2Day",
+                "parameter": "ALLSKY_SFC_SW_DWN",
+                "unit": "MJ/m²/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-b43413f6f81df6c8a61aec63feec98f61a99024fedb939c5f80213bca63fe5c7",
+            "contentHash": "d9d6b4f859024283c22a14a25aaacbc027d49996aff184c6be2b982dea62517e",
+            "retrievedAt": "2026-11-14T18:48:12.040Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 2501.19
+            },
+            "returnedCenter": [
+              -78.5,
+              -0.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "solarMjM2Day",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_SOLAR:lat89:lon101",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=-78.5&latitude=-0.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "solarMjM2Day",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_IMERG",
+            "cell": {
+              "id": "POWER_IMERG:lat898:lon1015",
+              "latitude": -0.15,
+              "longitude": -78.45
+            },
+            "gridDegrees": [
+              0.1,
+              0.1
+            ],
+            "fields": [
+              {
+                "field": "rainMm",
+                "parameter": "IMERG_PRECTOT",
+                "unit": "mm/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-e144577cdb08d2597b61aaccb29acfdeed56cda2fcc1fb827286d988808d8f14",
+            "contentHash": "e741ceadbb90200846705fdeee209ee951cc2522b8c275eeb3e9160217e6d80c",
+            "retrievedAt": "2026-11-14T18:48:14.077Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 1862.95
+            },
+            "returnedCenter": [
+              -78.45,
+              -0.15
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "rainMm",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_IMERG:lat898:lon1015",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=-78.45&latitude=-0.15&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "rainMm",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "cohort": {
+          "coverage": {
+            "kind": "available",
+            "value": {
+              "targetSeasons": 25,
+              "minimumUsableSeasons": 15,
+              "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+              "seasons": [
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2025-07-01",
+                    "endExclusive": "2026-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2024-07-01",
+                    "endExclusive": "2025-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2023-07-01",
+                    "endExclusive": "2024-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2022-07-01",
+                    "endExclusive": "2023-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2021-07-01",
+                    "endExclusive": "2022-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2020-07-01",
+                    "endExclusive": "2021-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2019-07-01",
+                    "endExclusive": "2020-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2018-07-01",
+                    "endExclusive": "2019-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2017-07-01",
+                    "endExclusive": "2018-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2016-07-01",
+                    "endExclusive": "2017-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2015-07-01",
+                    "endExclusive": "2016-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2014-07-01",
+                    "endExclusive": "2015-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2013-07-01",
+                    "endExclusive": "2014-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2012-07-01",
+                    "endExclusive": "2013-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2011-07-01",
+                    "endExclusive": "2012-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2010-07-01",
+                    "endExclusive": "2011-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2009-07-01",
+                    "endExclusive": "2010-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2008-07-01",
+                    "endExclusive": "2009-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2007-07-01",
+                    "endExclusive": "2008-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2006-07-01",
+                    "endExclusive": "2007-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2005-07-01",
+                    "endExclusive": "2006-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2004-07-01",
+                    "endExclusive": "2005-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2003-07-01",
+                    "endExclusive": "2004-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2002-07-01",
+                    "endExclusive": "2003-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2001-07-01",
+                    "endExclusive": "2002-07-02"
+                  }
+                }
+              ]
+            }
+          },
+          "usableSeasons": 25,
+          "meetsMinimumSeasons": true,
+          "applicabilityClimate": {
+            "meanAnnualTemperatureC": {
+              "kind": "available",
+              "value": 17.548666666666666
+            },
+            "meanAnnualPrecipitationMm": {
+              "kind": "available",
+              "value": 1524.2839999999997
+            }
+          },
+          "elevationM": {
+            "kind": "available",
+            "value": 1862.95
+          },
+          "gaps": []
+        }
+      },
+      "integrity": {
+        "kind": "recorded"
+      }
+    },
+    {
+      "location": {
+        "id": "taveuni",
+        "label": "Taveuni",
+        "category": "dateline-adjacent",
+        "lookup": [
+          179.9,
+          -16.8
+        ]
+      },
+      "bundleSha256": "1498651fcee4796c6528f9e65bc4e824fdf2b926845a7c4966c4adcdedb6c721",
+      "summary": {
+        "preparation": {
+          "kind": "ready"
+        },
+        "attemptCount": 3,
+        "products": [
+          {
+            "productId": "POWER_METEOROLOGY",
+            "cell": {
+              "id": "POWER_METEOROLOGY:lat146:lon0",
+              "latitude": -17,
+              "longitude": -180
+            },
+            "gridDegrees": [
+              0.5,
+              0.625
+            ],
+            "fields": [
+              {
+                "field": "meanC",
+                "parameter": "T2M",
+                "unit": "degC"
+              },
+              {
+                "field": "minC",
+                "parameter": "T2M_MIN",
+                "unit": "degC"
+              },
+              {
+                "field": "maxC",
+                "parameter": "T2M_MAX",
+                "unit": "degC"
+              },
+              {
+                "field": "humidityPct",
+                "parameter": "RH2M",
+                "unit": "%"
+              },
+              {
+                "field": "wind2mMs",
+                "parameter": "WS2M",
+                "unit": "m/s"
+              },
+              {
+                "field": "pressureKpa",
+                "parameter": "PS",
+                "unit": "kPa"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-ba22392a7d8804a57f975db39a5aae8808e326b9eb3f930c98036b931813323d",
+            "contentHash": "cf55126e843b5375aacaf6a4783c8d803d43cbd1233dcdfc4fd6276241f5925e",
+            "retrievedAt": "2026-11-14T18:48:16.849Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 31.98
+            },
+            "returnedCenter": [
+              -180,
+              -17
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "meanC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "minC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "maxC",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "humidityPct",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "wind2mMs",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              },
+              {
+                "field": "pressureKpa",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_METEOROLOGY:lat146:lon0",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=-180&latitude=-17&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "meanC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "minC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "maxC",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "humidityPct",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_SOLAR",
+            "cell": {
+              "id": "POWER_SOLAR:lat73:lon359",
+              "latitude": -16.5,
+              "longitude": 179.5
+            },
+            "gridDegrees": [
+              1,
+              1
+            ],
+            "fields": [
+              {
+                "field": "solarMjM2Day",
+                "parameter": "ALLSKY_SFC_SW_DWN",
+                "unit": "MJ/m²/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-b3b2f848fbdb234657ce2f5516f5167764f50c51337566fe0413ac1ecd294ac5",
+            "contentHash": "b3ef973a1d4c27bc64fd077cdb7b182bcdc5113df314008af59a592c3969a214",
+            "retrievedAt": "2026-11-14T18:48:18.429Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 89.02
+            },
+            "returnedCenter": [
+              179.5,
+              -16.5
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "solarMjM2Day",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_SOLAR:lat73:lon359",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=179.5&latitude=-16.5&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "solarMjM2Day",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "productId": "POWER_IMERG",
+            "cell": {
+              "id": "POWER_IMERG:lat732:lon3599",
+              "latitude": -16.75,
+              "longitude": 179.95
+            },
+            "gridDegrees": [
+              0.1,
+              0.1
+            ],
+            "fields": [
+              {
+                "field": "rainMm",
+                "parameter": "IMERG_PRECTOT",
+                "unit": "mm/day"
+              }
+            ],
+            "status": "validated",
+            "snapshotId": "power-e75c3e6665b6c48c273320d234e42498d3d531268c041aa8d604857957818d79",
+            "contentHash": "d9c138c4c2f5623c9f6571f27b22a6c7e7bb07aa31a27028a6c096d08ac435d4",
+            "retrievedAt": "2026-11-14T18:48:20.069Z",
+            "elevationM": {
+              "kind": "available",
+              "value": 89.02
+            },
+            "returnedCenter": [
+              179.95,
+              -16.75
+            ],
+            "normalizedPeriod": {
+              "first": "2000-06-30",
+              "last": "2026-07-01",
+              "days": 9498
+            },
+            "observations": [
+              {
+                "field": "rainMm",
+                "availableDays": 9498,
+                "first": "2000-06-30",
+                "last": "2026-07-01"
+              }
+            ],
+            "provenance": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "cellId": "POWER_IMERG:lat732:lon3599",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=179.95&latitude=-16.75&start=20000630&end=20260701&format=JSON&time-standard=UTC",
+                "missingDatesByField": [
+                  {
+                    "field": "rainMm",
+                    "count": 0,
+                    "first": null,
+                    "last": null
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "cohort": {
+          "coverage": {
+            "kind": "available",
+            "value": {
+              "targetSeasons": 25,
+              "minimumUsableSeasons": 15,
+              "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+              "seasons": [
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2025-07-01",
+                    "endExclusive": "2026-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2024-07-01",
+                    "endExclusive": "2025-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2023-07-01",
+                    "endExclusive": "2024-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2022-07-01",
+                    "endExclusive": "2023-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2021-07-01",
+                    "endExclusive": "2022-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2020-07-01",
+                    "endExclusive": "2021-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2019-07-01",
+                    "endExclusive": "2020-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2018-07-01",
+                    "endExclusive": "2019-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2017-07-01",
+                    "endExclusive": "2018-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2016-07-01",
+                    "endExclusive": "2017-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2015-07-01",
+                    "endExclusive": "2016-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2014-07-01",
+                    "endExclusive": "2015-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2013-07-01",
+                    "endExclusive": "2014-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2012-07-01",
+                    "endExclusive": "2013-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2011-07-01",
+                    "endExclusive": "2012-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2010-07-01",
+                    "endExclusive": "2011-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2009-07-01",
+                    "endExclusive": "2010-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2008-07-01",
+                    "endExclusive": "2009-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2007-07-01",
+                    "endExclusive": "2008-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2006-07-01",
+                    "endExclusive": "2007-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2005-07-01",
+                    "endExclusive": "2006-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2004-07-01",
+                    "endExclusive": "2005-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2003-07-01",
+                    "endExclusive": "2004-07-01"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2002-07-01",
+                    "endExclusive": "2003-07-02"
+                  }
+                },
+                {
+                  "status": "usable",
+                  "interval": {
+                    "start": "2001-07-01",
+                    "endExclusive": "2002-07-02"
+                  }
+                }
+              ]
+            }
+          },
+          "usableSeasons": 25,
+          "meetsMinimumSeasons": true,
+          "applicabilityClimate": {
+            "meanAnnualTemperatureC": {
+              "kind": "available",
+              "value": 26.512277595628415
+            },
+            "meanAnnualPrecipitationMm": {
+              "kind": "available",
+              "value": 1837.0772
+            }
+          },
+          "elevationM": {
+            "kind": "available",
+            "value": 31.98
+          },
+          "gaps": []
+        }
+      },
+      "integrity": {
+        "kind": "recorded"
+      }
+    }
+  ]
+}
