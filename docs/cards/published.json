@@ -1,0 +1,269 @@
+[
+  {
+    "id": "F1",
+    "owner": "Quantomz",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Frontend",
+    "assignees": [
+      {
+        "id": "U_kgDOCvEfYQ",
+        "login": "Quantomz",
+        "name": "Felix",
+        "databaseId": 183574369
+      }
+    ],
+    "number": 1,
+    "title": "F1. Build the five-page input flow and editable history",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/1"
+  },
+  {
+    "id": "F2",
+    "owner": "Quantomz",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Frontend",
+    "assignees": [
+      {
+        "id": "U_kgDOCvEfYQ",
+        "login": "Quantomz",
+        "name": "Felix",
+        "databaseId": 183574369
+      }
+    ],
+    "number": 2,
+    "title": "F2. Implement global globe search and field selection",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/2"
+  },
+  {
+    "id": "F3",
+    "owner": "Quantomz",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Frontend",
+    "assignees": [
+      {
+        "id": "U_kgDOCvEfYQ",
+        "login": "Quantomz",
+        "name": "Felix",
+        "databaseId": 183574369
+      }
+    ],
+    "number": 3,
+    "title": "F3. Render the result, calculations, and one-year transition",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/3"
+  },
+  {
+    "id": "F4",
+    "owner": "Quantomz",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Frontend",
+    "assignees": [
+      {
+        "id": "U_kgDOCvEfYQ",
+        "login": "Quantomz",
+        "name": "Felix",
+        "databaseId": 183574369
+      }
+    ],
+    "number": 4,
+    "title": "F4. Save drafts and results locally and download a readable PDF",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/4"
+  },
+  {
+    "id": "B1",
+    "owner": "kyusuku",
+    "hours": 3,
+    "phase": "core",
+    "lane": "Backend and data",
+    "assignees": [
+      {
+        "id": "U_kgDOCMbenw",
+        "login": "kyusuku",
+        "name": "Tampraphon Lorattanasane",
+        "databaseId": 147250847
+      }
+    ],
+    "number": 5,
+    "title": "B1. Set up PostgreSQL and the authorized durable job API",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/5"
+  },
+  {
+    "id": "B2",
+    "owner": "kyusuku",
+    "hours": 3,
+    "phase": "core",
+    "lane": "Backend and data",
+    "assignees": [
+      {
+        "id": "U_kgDOCMbenw",
+        "login": "kyusuku",
+        "name": "Tampraphon Lorattanasane",
+        "databaseId": 147250847
+      }
+    ],
+    "number": 6,
+    "title": "B2. Retrieve NASA climate history and preserve data quality",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/6"
+  },
+  {
+    "id": "B3",
+    "owner": "kyusuku",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Backend and data",
+    "assignees": [
+      {
+        "id": "U_kgDOCMbenw",
+        "login": "kyusuku",
+        "name": "Tampraphon Lorattanasane",
+        "databaseId": 147250847
+      }
+    ],
+    "number": 7,
+    "title": "B3. Run the separate worker and wire real adapters",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/7"
+  },
+  {
+    "id": "E1",
+    "owner": "yslee1106",
+    "hours": 2,
+    "phase": "core",
+    "lane": "Calculations and crop data",
+    "assignees": [
+      {
+        "id": "U_kgDOBpjKBQ",
+        "login": "yslee1106",
+        "name": "Lee Ying Sheng",
+        "databaseId": 110676485
+      }
+    ],
+    "number": 8,
+    "title": "E1. Publish reviewed crop profiles and explicit evidence coverage",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8"
+  },
+  {
+    "id": "E2",
+    "owner": "yslee1106",
+    "hours": 3,
+    "phase": "core",
+    "lane": "Calculations and crop data",
+    "assignees": [
+      {
+        "id": "U_kgDOBpjKBQ",
+        "login": "yslee1106",
+        "name": "Lee Ying Sheng",
+        "databaseId": 110676485
+      }
+    ],
+    "number": 9,
+    "title": "E2. Implement climate replay and the deterministic assessment formulas",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/9"
+  },
+  {
+    "id": "E3",
+    "owner": "yslee1106",
+    "hours": 3,
+    "phase": "core",
+    "lane": "Calculations and crop data",
+    "assignees": [
+      {
+        "id": "U_kgDOBpjKBQ",
+        "login": "yslee1106",
+        "name": "Lee Ying Sheng",
+        "databaseId": 110676485
+      }
+    ],
+    "number": 10,
+    "title": "E3. Generate and rank one valid rotation with reproducible explanations",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/10"
+  },
+  {
+    "id": "I1",
+    "owner": "kyusuku",
+    "hours": 2,
+    "phase": "integration",
+    "lane": "Backend and data",
+    "assignees": [
+      {
+        "id": "U_kgDOCMbenw",
+        "login": "kyusuku",
+        "name": "Tampraphon Lorattanasane",
+        "databaseId": 147250847
+      }
+    ],
+    "number": 11,
+    "title": "I1. Verify the real database, worker, and climate pipeline",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/11"
+  },
+  {
+    "id": "I2",
+    "owner": "yslee1106",
+    "hours": 2,
+    "phase": "integration",
+    "lane": "Calculations and crop data",
+    "assignees": [
+      {
+        "id": "U_kgDOBpjKBQ",
+        "login": "yslee1106",
+        "name": "Lee Ying Sheng",
+        "databaseId": 110676485
+      }
+    ],
+    "number": 12,
+    "title": "I2. Validate a real generated plan and an honest failure",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/12"
+  },
+  {
+    "id": "I3",
+    "owner": "Quantomz",
+    "hours": 2,
+    "phase": "integration",
+    "lane": "Frontend",
+    "assignees": [
+      {
+        "id": "U_kgDOCvEfYQ",
+        "login": "Quantomz",
+        "name": "Felix",
+        "databaseId": 183574369
+      }
+    ],
+    "number": 13,
+    "title": "I3. Verify the complete phone and desktop journey and PDF",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/13"
+  },
+  {
+    "id": "X1",
+    "owner": "",
+    "hours": 0.75,
+    "phase": "overflow",
+    "lane": "Calculations and crop data",
+    "assignees": [],
+    "number": 14,
+    "title": "X1. Independently audit the crop sources and applicability",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/14"
+  },
+  {
+    "id": "X2",
+    "owner": "",
+    "hours": 0.75,
+    "phase": "overflow",
+    "lane": "Backend and data",
+    "assignees": [],
+    "number": 15,
+    "title": "X2. Check climate coverage across additional global locations",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/15"
+  },
+  {
+    "id": "X3",
+    "owner": "",
+    "hours": 0.75,
+    "phase": "overflow",
+    "lane": "Calculations and crop data",
+    "assignees": [],
+    "number": 16,
+    "title": "X3. Add an independent numerical cross-check for the engine",
+    "url": "https://github.com/Quantomz/nefalos_nasa_hackathon/issues/16"
+  }
+]

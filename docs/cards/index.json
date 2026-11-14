@@ -1,0 +1,221 @@
+[
+  {
+    "id": "F1",
+    "title": "F1. Build the five-page input flow and editable history",
+    "owner": "Quantomz",
+    "hours": 2,
+    "lane": "Frontend",
+    "phase": "core",
+    "files": [
+      "src/features/onboarding/**",
+      "src/app/page.tsx",
+      "src/app/layout.tsx",
+      "src/app/globals.css",
+      "tests/frontend/onboarding/**"
+    ]
+  },
+  {
+    "id": "F2",
+    "title": "F2. Implement global globe search and field selection",
+    "owner": "Quantomz",
+    "hours": 2,
+    "lane": "Frontend",
+    "phase": "core",
+    "files": [
+      "src/features/location/**",
+      "tests/frontend/location/**"
+    ]
+  },
+  {
+    "id": "F3",
+    "title": "F3. Render the result, calculations, and one-year transition",
+    "owner": "Quantomz",
+    "hours": 2,
+    "lane": "Frontend",
+    "phase": "core",
+    "files": [
+      "src/features/results/**",
+      "tests/frontend/results/**"
+    ]
+  },
+  {
+    "id": "F4",
+    "title": "F4. Save drafts and results locally and download a readable PDF",
+    "owner": "Quantomz",
+    "hours": 2,
+    "lane": "Frontend",
+    "phase": "core",
+    "files": [
+      "src/client/storage.ts",
+      "src/client/pdf.ts",
+      "src/client/pdf/**",
+      "public/fonts/**",
+      "tests/frontend/persistence/**",
+      "tests/frontend/pdf/**"
+    ]
+  },
+  {
+    "id": "B1",
+    "title": "B1. Set up PostgreSQL and the authorized durable job API",
+    "owner": "kyusuku",
+    "hours": 3,
+    "lane": "Backend and data",
+    "phase": "core",
+    "files": [
+      "src/server/jobs/**",
+      "src/app/api/catalogue/**",
+      "src/app/api/plans/**",
+      "src/client/planner.ts",
+      "migrations/001-jobs.sql",
+      "compose.yaml",
+      "scripts/migrate.ts",
+      ".env.example",
+      "tests/backend/jobs/**",
+      "tests/backend/api/**"
+    ]
+  },
+  {
+    "id": "B2",
+    "title": "B2. Retrieve NASA climate history and preserve data quality",
+    "owner": "kyusuku",
+    "hours": 3,
+    "lane": "Backend and data",
+    "phase": "core",
+    "files": [
+      "src/server/climate/**",
+      "tests/backend/climate/**",
+      "scripts/fetch-climate.ts"
+    ]
+  },
+  {
+    "id": "B3",
+    "title": "B3. Run the separate worker and wire real adapters",
+    "owner": "kyusuku",
+    "hours": 2,
+    "lane": "Backend and data",
+    "phase": "core",
+    "files": [
+      "src/server/runtime.ts",
+      "migrations/002-climate-cache.sql",
+      "src/server/cache/**",
+      "scripts/worker.ts",
+      "scripts/cleanup.ts",
+      "docs/operations.md",
+      "tests/backend/worker/**"
+    ]
+  },
+  {
+    "id": "E1",
+    "title": "E1. Publish reviewed crop profiles and explicit evidence coverage",
+    "owner": "yslee1106",
+    "hours": 2,
+    "lane": "Calculations and crop data",
+    "phase": "core",
+    "files": [
+      "src/registry/**",
+      "tests/engine/registry/**"
+    ]
+  },
+  {
+    "id": "E2",
+    "title": "E2. Implement climate replay and the deterministic assessment formulas",
+    "owner": "yslee1106",
+    "hours": 3,
+    "lane": "Calculations and crop data",
+    "phase": "core",
+    "files": [
+      "src/engine/metrics.ts",
+      "src/engine/metrics/**",
+      "tests/engine/metrics/**"
+    ]
+  },
+  {
+    "id": "E3",
+    "title": "E3. Generate and rank one valid rotation with reproducible explanations",
+    "owner": "yslee1106",
+    "hours": 3,
+    "lane": "Calculations and crop data",
+    "phase": "core",
+    "files": [
+      "src/engine/index.ts",
+      "src/engine/search.ts",
+      "src/engine/search/**",
+      "src/engine/explain.ts",
+      "src/engine/explain/**",
+      "tests/engine/search/**"
+    ]
+  },
+  {
+    "id": "I1",
+    "title": "I1. Verify the real database, worker, and climate pipeline",
+    "owner": "kyusuku",
+    "hours": 2,
+    "lane": "Backend and data",
+    "phase": "integration",
+    "files": [
+      "tests/integration/runtime/**",
+      "docs/evidence/I1/**"
+    ]
+  },
+  {
+    "id": "I2",
+    "title": "I2. Validate a real generated plan and an honest failure",
+    "owner": "yslee1106",
+    "hours": 2,
+    "lane": "Calculations and crop data",
+    "phase": "integration",
+    "files": [
+      "tests/integration/science/**",
+      "docs/evidence/I2/**"
+    ]
+  },
+  {
+    "id": "I3",
+    "title": "I3. Verify the complete phone and desktop journey and PDF",
+    "owner": "Quantomz",
+    "hours": 2,
+    "lane": "Frontend",
+    "phase": "integration",
+    "files": [
+      "tests/integration/browser/**",
+      "docs/evidence/I3/**"
+    ]
+  },
+  {
+    "id": "X1",
+    "title": "X1. Independently audit the crop sources and applicability",
+    "owner": "",
+    "hours": 0.75,
+    "lane": "Calculations and crop data",
+    "phase": "overflow",
+    "files": [
+      "docs/evidence/X1/**",
+      "tests/overflow/profile-audit/**"
+    ]
+  },
+  {
+    "id": "X2",
+    "title": "X2. Check climate coverage across additional global locations",
+    "owner": "",
+    "hours": 0.75,
+    "lane": "Backend and data",
+    "phase": "overflow",
+    "files": [
+      "scripts/check-global-coverage.ts",
+      "tests/overflow/global-coverage/**",
+      "docs/evidence/X2/**"
+    ]
+  },
+  {
+    "id": "X3",
+    "title": "X3. Add an independent numerical cross-check for the engine",
+    "owner": "",
+    "hours": 0.75,
+    "lane": "Calculations and crop data",
+    "phase": "overflow",
+    "files": [
+      "tests/overflow/metric-audit/**",
+      "docs/evidence/X3/**"
+    ]
+  }
+]
