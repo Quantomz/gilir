@@ -111,7 +111,7 @@ export function assertRequiredClimate(evidence: FrozenEvidence, period: { start:
   assert.equal(evidence.syntheticSnapshots, 0, "Synthetic snapshots cannot satisfy I1.");
   assert.equal(evidence.providerSnapshots, products.length, "Every required NASA product must be frozen.");
   assert.deepEqual(evidence.snapshots.map(snapshot => snapshot.id), evidence.manifest.climateSnapshotIds, "Stored snapshots must match the frozen manifest identity.");
-  assert.deepEqual(evidence.snapshots.flatMap(snapshot => snapshot.products.map(product => product.product)).sort(), products.map(product => product.id).sort(), "Every required NASA product must appear exactly once.");
+  assert.deepEqual(evidence.snapshots.flatMap(snapshot => snapshot.products.map(product => product.cellId.match(/^([^:]+):/)?.[1])).sort(), products.map(product => product.id).sort(), "Every required NASA product must appear exactly once.");
   const expectedDays = dayDistance(parseIsoDate(period.start), parseIsoDate(period.endExclusive));
   for (const snapshot of evidence.snapshots) {
     assert.deepEqual(snapshot.period, period, "Each frozen product must cover the full derived source period.");
@@ -120,8 +120,9 @@ export function assertRequiredClimate(evidence: FrozenEvidence, period: { start:
     assert.equal(snapshot.cutoff, evidence.manifest.dataCutoff);
     assert.equal(snapshot.products.length, 1);
     const actual = snapshot.products[0];
-    const expected = products.find(product => product.id === actual.product);
+    const expected = products.find(product => actual.cellId.startsWith(product.id + ":"));
     assert.ok(expected);
+    assert.ok(actual.product === expected.id || actual.product.startsWith(expected.id + " ["), "A frozen product label must match its native cell identity.");
     assert.deepEqual(actual.fields.map(field => field.field).sort(), expected.fields.map(field => field.field).sort());
   }
 }
