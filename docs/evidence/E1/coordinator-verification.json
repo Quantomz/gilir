@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "testedCodeCommit": "b657167439f1d9d1d86e6a41fde439a4450e80a3",
+  "catalogueVersion": "fao56-reviewed-2026-11-15",
+  "canonicalReleaseSha256": "608644417618b2b7d4fa5757d49b90fb4cafcb801ed8488f5fd07c3ffdee811b",
+  "node": "24.22.3",
+  "checks": [
+    {
+      "command": "npm run check",
+      "databaseSuites": "enabled against disposable PostgreSQL 18",
+      "exitCode": 0,
+      "passed": 564,
+      "skipped": 1,
+      "skipReason": "I1 strict live opt-in is a separate integration gate"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    }
+  ],
+  "reviewGate": {
+    "requiredBeforeMerge": true,
+    "verdictLocation": "https://github.com/Quantomz/nefalos_nasa_hackathon/pull/33"
+  },
+  "limits": [
+    "Local component and database tests do not establish live NASA integration, deployment, field validation, or agronomist approval."
+  ]
+}
