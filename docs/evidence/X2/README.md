@@ -62,7 +62,7 @@ The source and captures were tested with Node 24. Full database checks used loca
 | `npx vitest run tests/overflow/global-coverage` | 19 checks passed: 18 synthetic behavior checks and one regression against the four saved live captures. |
 | `npm run check` | 476 passed, one opt-in live I1 test skipped; type checking and module boundaries passed. |
 | `npm run build` | Passed. |
-| Independent review | In progress. |
+| Independent review | [PASS+NOTES](review.md): no P1/P2 findings; raw data and actual CLI checked independently. |
 
 Synthetic checks cover zero rain, one missing rain day, all-missing rain, unavailable elevation, HTTP 503 retries, permanent HTTP 422, corrupt HTTP 200, transport and body-read failures, partial snapshot preservation, and continuation. Replay checks reject changed bodies, bundles, URLs, attempts, clocks, summaries, contexts, missing files, and incomplete sources. Subprocess checks cover the actual CLI, exit codes, overwrite rejection, date overrides, and import without execution.
 
