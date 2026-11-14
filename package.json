@@ -10,6 +10,7 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
+    "migrate": "node --env-file-if-exists=.env --import tsx scripts/migrate.ts",
     "climate:fetch": "node --env-file-if-exists=.env --import tsx scripts/fetch-climate.ts",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
