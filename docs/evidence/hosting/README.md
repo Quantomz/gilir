@@ -1,4 +1,6 @@
-# Hosting preparation evidence
+# Historical local hosting evidence
+
+This note preserves the local image preparation results. Subsequent owner-approved deployment and public HTTP checks are recorded in [Railway production evidence](railway-production.md). Use that note for the hosted state and remaining checks.
 
 Recorded on 14 November 2026. The hosting branch starts from `77a0262e2fd614aa2c138ed9dc7f71af9fcc51bd`. No remote resource, migration, domain, or deployment was created by this work. The intended target is the owner's Nefalos Railway workspace. The parent confirmed workspace ID `b092dee0-34fb-4b63-9189-e0217fa75aa3` through the existing browser session. Project and service IDs remain outside this local preparation.
 
@@ -28,7 +30,7 @@ Run `npm run check` with both `TEST_DATABASE_URL` and `B3_TEST_DATABASE_URL` poi
 
 The tested image ID is `sha256:e4be61c234f1ee386c19c44e5aceec67ca4f21cbb4a45f49ea805ab5948e5fb3`. Its Node base digest is pinned in `Dockerfile`. Documentation changes do not enter the build context. The local smoke helper remains outside the runtime image.
 
-The author tested Linux ARM64 under Docker Desktop. Independent review subsequently built and ran all nine smoke checks on Linux AMD64 as well, producing image `sha256:83a3e5c5b5883cf5c3a4fa9ef72588d96e4cdc284532573d168e48f327f9fd4e`. Hosted Railway behavior remains unverified. Idle shutdown passed. Busy-worker shutdown and lease recovery rely on B3's scoped runtime tests and remain separate from this container check. Cleanup exit passed on an empty database, while retention behavior belongs to B1's PostgreSQL tests.
+The author tested Linux ARM64 under Docker Desktop. Independent review subsequently built and ran all nine smoke checks on Linux AMD64 as well, producing image `sha256:83a3e5c5b5883cf5c3a4fa9ef72588d96e4cdc284532573d168e48f327f9fd4e`. Hosted Railway behavior was not tested by those local checks. Idle shutdown passed. Busy-worker shutdown and lease recovery rely on B3's scoped runtime tests and remain separate from this container check. Cleanup exit passed on an empty database, while retention behavior belongs to B1's PostgreSQL tests.
 
 Independent review found that a PostgreSQL connection URL query could override the hostname checked by the local smoke guard. The helper now accepts only PostgreSQL protocols and rejects all connection query parameters before starting Docker. The query-override reproduction and a wrong-protocol URL both fail at that guard. This does not change the runtime image. The coordinator also created the empty Nefalos project recorded in the runbook; no hosted runtime claim follows from that project creation.
 
