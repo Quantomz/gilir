@@ -24,10 +24,13 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
     const baseUrl = "http://127.0.0.1:" + ready.port;
     const client = createPlannerClient({ baseUrl });
     const processes = [web];
+    const capabilityTokens = new Set<string>();
     const unauthorized = async (capability: JobCapability) => {
+      capabilityTokens.add(capability.token);
       const other = await client.submit(input);
       assert.equal(other.kind, "accepted");
       if (other.kind !== "accepted") throw new Error("Second capability not created.");
+      capabilityTokens.add(other.capability.token);
       try {
         for (const method of ["GET", "DELETE"]) {
           for (const token of [undefined, "incorrect-token", other.capability.token]) {
@@ -75,7 +78,7 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
         },
         assertPrivateLogs: async capability => {
           const logs = processes.map(process => process.logs()).join("\n");
-          for (const privateValue of [capability.token, db.connectionString, input.field.label, ...input.field.ring.flatMap(point => point.map(String)), JSON.stringify(input.field.lookup), JSON.stringify(input.field.ring), JSON.stringify(input)]) expect(logs).not.toContain(privateValue);
+          for (const privateValue of [...capabilityTokens, capability.token, db.connectionString, input.field.label, ...input.field.ring.flatMap(point => point.map(String)), JSON.stringify(input.field.lookup), JSON.stringify(input.field.ring), JSON.stringify(input)]) expect(logs).not.toContain(privateValue);
         },
       });
       expect(evidence.workerRestartPreservedFrozenRun).toBe(true);
