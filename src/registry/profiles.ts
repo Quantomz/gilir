@@ -231,6 +231,7 @@ interface Row {
   readonly cultivarGroup: string;
   readonly kc?: Crop["kc"];
   readonly warnings?: readonly string[];
+  readonly printedTotal?: number;
 }
 
 const month = (start: string, end: string): Window => ({ startMonthDay: start, endMonthDayInclusive: end });
@@ -364,7 +365,7 @@ const rows: readonly Row[] = [
     plantingWindow: month("04-01", "04-30"), plantingLabel: "April", precedence: 2, cultivarGroup: "Millet, Central USA example (140-day season)",
   },
   {
-    crop: "sorghum", slug: "usa-pakistan-mediterranean-may-jun", table11Row: "Sorghum | 20 | 35 | 40 | 30 | 130 | May/June | USA, Pakis., Med.",
+    crop: "sorghum", slug: "usa-pakistan-mediterranean-may-jun", table11Row: "Sorghum | 20 | 35 | 40 | 30 | 130 | May/June | USA, Pakis., Med.", printedTotal: 130,
     region: [regions.contiguousUsa, regions.pakistan, regions.mediterranean], regionLabel: "USA, Pakistan and Mediterranean", stages: [20, 35, 40, 30],
     plantingWindow: month("05-01", "06-30"), plantingLabel: "May/June", precedence: 1, cultivarGroup: "Grain sorghum, USA/Pakistan/Mediterranean example (130-day season)",
     warnings: ["The USA rectangle also covers northern Mexico and the southern edge of Canada; the source names only the USA."],
@@ -426,12 +427,12 @@ const rows: readonly Row[] = [
     plantingWindow: month("05-01", "05-31"), plantingLabel: "May", precedence: 2, cultivarGroup: "Faba bean, Europe example (90-day season)",
   },
   {
-    crop: "mungBean", slug: "mediterranean-mar", table11Row: "Green gram, cowpeas | 20 | 30 | 30 | 20 | 110 | March | Mediterranean",
+    crop: "mungBean", slug: "mediterranean-mar", table11Row: "Green gram, cowpeas | 20 | 30 | 30 | 20 | 110 | March | Mediterranean", printedTotal: 110,
     region: [regions.mediterranean], regionLabel: "Mediterranean", stages: [20, 30, 30, 20],
     plantingWindow: month("03-01", "03-31"), plantingLabel: "March", precedence: 1, cultivarGroup: "Mung bean, Mediterranean example (110-day season)",
   },
   {
-    crop: "cowpea", slug: "mediterranean-mar", table11Row: "Green gram, cowpeas | 20 | 30 | 30 | 20 | 110 | March | Mediterranean",
+    crop: "cowpea", slug: "mediterranean-mar", table11Row: "Green gram, cowpeas | 20 | 30 | 30 | 20 | 110 | March | Mediterranean", printedTotal: 110,
     region: [regions.mediterranean], regionLabel: "Mediterranean", stages: [20, 30, 30, 20],
     plantingWindow: month("03-01", "03-31"), plantingLabel: "March", precedence: 1, cultivarGroup: "Cowpea, Mediterranean example (110-day season)",
   },
@@ -509,7 +510,7 @@ function profileOf(row: Row, release: ReleaseNumber) {
     timing: {
       generatedStageDays: stageDays,
       historicalStageAllocations: [stageDays],
-      publishedDurationDays: { kind: "available", value: [total, total] },
+      publishedDurationDays: { kind: "available", value: [Math.min(total, row.printedTotal ?? total), Math.max(total, row.printedTotal ?? total)] },
       plantingWindows: row.plantingWindow === null ? [] : [{ window: row.plantingWindow, basis: "recommendation", sourceIds: table11 }],
       turnaround: turnaroundAssumption,
     },
@@ -524,7 +525,12 @@ function profileOf(row: Row, release: ReleaseNumber) {
     temperatureRules,
     rotationRuleIds: [],
     preparation: [],
-    warnings: [...crop.warnings, ...(row.warnings ?? [])],
+    warnings: [
+      ...crop.warnings,
+      ...(row.warnings ?? []),
+      ...(row.printedTotal === undefined || row.printedTotal === total ? [] :
+        [`FAO-56 Table 11 prints a ${row.printedTotal}-day total for this row, but its stage lengths add up to ${total} days; the stage lengths are used and both values are kept as the published range.`]),
+    ],
     sourceIds: [...table11, ...table12, ...temperatureSources],
   } as const;
 }

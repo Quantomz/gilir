@@ -74,6 +74,17 @@ Source cells are `Init | Dev | Mid | Late | Total | Plant date | Region`. Each p
 - **Soybean, Central USA**: the development cell is "30/35". 35 is used because only 20 + 35 + 60 + 25 = 140 matches the row total.
 - **Groundnut**: the plant-date cells are misaligned in the HTML ("Dry" / "season" / "May May/June"). No planting window is released for either groundnut profile.
 
+### Rows whose printed total disagrees with their stage lengths
+
+Found on 2026-11-15 when listing the release; both independent reviews missed it.
+
+| Row | Stage sum | Printed total | Released |
+|---|---|---|---|
+| Sorghum 20 \| 35 \| 40 \| 30 \| 130 \| May/June \| USA, Pakis., Med. | 125 | 130 | Stages as printed (125 days). `publishedDurationDays` is [125, 130], with a warning naming both values. |
+| Green gram, cowpeas 20 \| 30 \| 30 \| 20 \| 110 \| March \| Mediterranean | 100 | 110 | Stages as printed (100 days). `publishedDurationDays` is [100, 110] on both the mung bean and cowpea profiles, with the same warning. |
+
+No stage length was changed to force the totals to agree, because the source does not say which number is wrong.
+
 ### Table 11 rows not released
 
 | Row | Reason |

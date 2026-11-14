@@ -139,9 +139,20 @@ describe("E1 registry releases", () => {
   it("matches every generated stage allocation to its FAO-56 Table 11 row", () => {
     const profiles = readRegistryRelease().profiles;
     expect(Object.fromEntries(profiles.map(profile => [profile.id, stagesOf(profile)]))).toEqual(fao56Table11Stages);
+    const printedTotalsThatDisagree: Record<string, number> = {
+      "sorghum-grain-fao56-usa-pakistan-mediterranean-may-jun": 130,
+      "mung-bean-dry-fao56-mediterranean-mar": 110,
+      "cowpea-dry-fao56-mediterranean-mar": 110,
+    };
     for (const profile of profiles) {
       const total = stagesOf(profile).reduce((a, b) => a + b, 0);
-      expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, total] });
+      const printed = printedTotalsThatDisagree[profile.id];
+      if (printed === undefined) {
+        expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, total] });
+      } else {
+        expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, printed] });
+        expect(profile.warnings.join(" ")).toContain(`prints a ${printed}-day total`);
+      }
     }
   });
 
