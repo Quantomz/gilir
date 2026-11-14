@@ -1,11 +1,12 @@
 import { Pool } from "pg";
 import { expect, it, vi } from "vitest";
+import { defaultEngineSettings } from "@/contracts";
 import type { ClimateSnapshot } from "@/contracts";
 import { climateSnapshotFixture } from "@/fixtures/science";
-import { historicalPeriod } from "@/server/climate";
+import { createMemoryClimateCache, historicalPeriod } from "@/server/climate";
 import { products } from "@/server/climate/products";
 import type { FrozenEvidence } from "./acceptance";
-import { assertRequiredClimate, cutoff, frozenEvidence, frozenRun, providerEvidence } from "./support";
+import { assertRequiredClimate, cutoff, frozenEvidence, frozenRun, input, providerEvidence, savedPreparation } from "./support";
 
 function controlledProviderSnapshots() {
   return products.map(product => ({
@@ -35,6 +36,48 @@ function controlledEvidence(): FrozenEvidence {
 }
 
 const controlledPeriod = { start: "2000-07-01", endExclusive: "2000-07-06" };
+
+async function normalizedProviderEvidence(): Promise<FrozenEvidence> {
+  const controlled = controlledEvidence();
+  const prepare = await savedPreparation();
+  const climate = await prepare({ input, cutoff, settings: defaultEngineSettings, cache: createMemoryClimateCache() });
+  expect(climate.kind).toBe("ready");
+  const snapshots = climate.snapshots.filter(snapshot => snapshot.kind === "provider").map(providerEvidence);
+  expect(snapshots).toHaveLength(products.length);
+  return {
+    ...controlled, snapshots,
+    manifest: { ...controlled.manifest, climateSnapshotIds: snapshots.map(snapshot => snapshot.id) },
+    firstDate: climate.snapshots[0].days[0].date,
+    lastDate: climate.snapshots[0].days.at(-1)?.date ?? "",
+  };
+}
+
+it("accepts the descriptive product labels normalized from saved real NASA responses", async () => {
+  const evidence = await normalizedProviderEvidence();
+  expect(evidence.snapshots.flatMap(snapshot => snapshot.products.map(product => product.product))).toEqual([
+    "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+    "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+    "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+  ]);
+  expect(() => assertRequiredClimate(evidence, evidence.requiredSourcePeriod)).not.toThrow();
+});
+
+it("rejects normalized product labels that disagree with their native cell identity", async () => {
+  const evidence = await normalizedProviderEvidence();
+  const [meteorology, solar, imerg] = evidence.snapshots;
+  const snapshots = [
+    { ...meteorology, products: [{ ...meteorology.products[0], product: solar.products[0].product }] },
+    { ...solar, products: [{ ...solar.products[0], product: meteorology.products[0].product }] },
+    imerg,
+  ];
+  expect(() => assertRequiredClimate({ ...evidence, snapshots }, evidence.requiredSourcePeriod)).toThrow("A frozen product label must match its native cell identity");
+});
+
+it("rejects a duplicated normalized native product in place of a required product", async () => {
+  const evidence = await normalizedProviderEvidence();
+  const snapshots = [evidence.snapshots[0], evidence.snapshots[0], evidence.snapshots[2]];
+  expect(() => assertRequiredClimate({ ...evidence, manifest: { ...evidence.manifest, climateSnapshotIds: snapshots.map(snapshot => snapshot.id) }, snapshots }, evidence.requiredSourcePeriod)).toThrow("Every required NASA product must appear exactly once");
+});
 
 it("records the actual synthetic snapshot count before strict acceptance rejects it", async () => {
   const pool = new Pool();
