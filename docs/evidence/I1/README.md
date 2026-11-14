@@ -1,5 +1,47 @@
 # I1 acceptance evidence
 
+## Current harness verification
+
+The final strict live run is **NOT RUN** in this change. The coordinator will merge the corrected E1 release before running the source-backed acceptance. The expected primary result is fixed to `plan_with_warnings`. I1 remains open until the recorded live run and independent exact-change review complete.
+
+The harness uses the public illustrative `boise-dry-bean-june` case with `common-bean-dry`, planning start `2027-06-01`, and cutoff `2026-11-14`. The worker diagnostic imports the same case. The corrected catalogue must be `fao56-reviewed-2026-11-15`, and the result must identify `common-bean-dry-fao56-idaho-jun` at profile version `reviewed-2026-11-15.1`. These are acceptance requirements awaiting live observation.
+
+Each frozen provider snapshot now records its actual hash, retrieval time, cutoff, daily period, day count, daily sequence completeness, native cell, units, conversion version, and supplied product release and stream evidence. Source URLs retain their origin and path. Their query, fragment, and credentials are removed. Synthetic snapshots are counted from the stored snapshot kinds. The required source period is derived from the stored input, cutoff, and target-season setting. Every required product must cover that period with consecutive daily records.
+
+The returned and persisted report includes the selected profile and source references, actual cohort and usable-season count, unassessed checks, plan occurrence dates, result state, manifest, frozen digest, and result digest. The primary result must disclose unassessed temperature. A second HTTP request at the public Bangkok case must complete through the real registry, live NASA, PostgreSQL, and engine as `insufficient_data` with `crop_profile` gaps and an adequate real cohort. It must have no plan. That control runs after the primary job completes.
+
+Missing, wrong, and cross-job capabilities must receive HTTP 404 for GET and DELETE before and after primary restart. Each cross-job capability belongs to a short-lived peer job removed before a worker starts. Every issued token joins the child-log and report scan. The controlled adapter case also scans its peer tokens.
+
+A separately labelled HTTP 503 control uses the production API, registry, worker, and calculation executor configuration. Its only injected behavior is the provider response. Its fresh disposable schema avoids successful-case cache entries. It must observe three retrieval attempts and a saved `retrieval_failed` job. Preparation fails before calculation. Existing saved-response provider, expiry, stale-worker, and controlled-calculation checks retain their original scope.
+
+The CLI and opt-in Vitest entrypoint both write the sanitized JSON report on success and partial failure. An assertion or execution failure records a fixed code and stage. The report includes code SHA, tracked-diff digest, test-case ID, opaque job IDs, expected and actual states, exit status, and cleanup outcomes. The default path is `docs/evidence/I1/current-live-report.json`. `--report` or `I1_REPORT_PATH` selects an explicit path. The historical files below keep their original contents and tested code identities.
+
+```sh
+node --import tsx tests/integration/runtime/live.ts --report docs/evidence/I1/final-live-report.json
+I1_LIVE=1 I1_REPORT_PATH=docs/evidence/I1/final-live-vitest-report.json npx vitest run tests/integration/runtime/live.test.ts
+```
+
+The expected-state environment override has been removed. A no-plan result cannot satisfy the primary gate. The final report is written after owned child shutdown and schema cleanup. A report-write failure returns a sanitized CLI failure with exit 1.
+
+### Local checks before the corrected E1 merge
+
+The failing regression commit is `d830903`. Its synthetic snapshot test failed with `ZodError` and `Invalid input: expected "provider"`. After the fix, that test and the product metadata, individual product coverage, duplicate-day, duplicate-product, and CLI/Vitest partial-report checks pass.
+
+| Check | Observed result | Scope |
+| --- | --- | --- |
+| Scoped evidence, report, acceptance, and support suites | 13 passed, 1 skipped | The schema-cleanup case requires PostgreSQL. No live provider call ran. |
+| `npm run typecheck` | Passed | Current harness changes. |
+| `npm run check` with `I1_LIVE` and all database variables unset | [476 passed, 29 skipped](final-harness-check.log) | Typecheck, default non-database tests, and module boundaries. |
+| Final real PostgreSQL acceptance | NOT RUN by this implementation delegate | Coordinator owns the assembled run. |
+| Final strict NASA acceptance and production build | NOT RUN by this implementation delegate | Coordinator owns the corrected-release verification. |
+| Fresh independent exact-change review | Pending with coordinator | No independent or cross-family verdict is claimed here. |
+
+This change uses `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md` and the Bug fix playbook. The implementation delegate owns `tests/integration/runtime/**` and `docs/evidence/I1/**`. Model the Domain placed the two public inputs in named records. Fix Root Causes replaced catalogue-order selection and hardcoded snapshot counts at their source. Type System Discipline derives evidence shapes from the contract types. The throughput checkpoint ran the focused regression and typecheck before the non-database checks, then handed live execution and review to the coordinator. The deslop pass checked the owned diff for added narration, casts, suppressions, and unused indirection.
+
+## Historical execution records
+
+The following records describe their pinned commits. Their FAILED, BLOCKED, and NOT RUN results remain available for comparison.
+
 I1 remains **BLOCKED**. The production catalogue is empty, and the actual calculation thread returns `service_error` with `not_implemented`. The strict live test fails on this outcome. This evidence does not close issue #11.
 
 The tested code commit is `58d33f4bc3a1630498acd2731a2e4d639943869c`. Its assembled component baseline is `1caf3590cd88460b1087cc5cf57019367ff28997`. These are local worktree results. They do not establish deployment behavior. The coordinator subsequently merged main and enabled the real adapter suite in GitHub CI. CI uses the disposable `gilir_i1` database and keeps the live provider gate explicitly opt-in. Final review and CI results are recorded on the PR.

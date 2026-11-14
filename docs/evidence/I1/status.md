@@ -1,5 +1,13 @@
 # I1 verification status
 
+The final source-backed acceptance is **NOT RUN** for the current harness correction. I1 remains open. The coordinator will run the strict Boise dry-bean case after merging the reviewed E1 release and complete independent review of the exact change.
+
+The current harness requires `plan_with_warnings`, the reviewed Idaho 100-day bean profile, complete per-product climate periods, unchanged frozen and saved-result identities across restart, cross-job authorization rejection, an actual real-engine missing-profile control, and a production-composed provider-only HTTP 503 control. It writes sanitized success and partial-failure reports through both CLI and Vitest.
+
+The implementation delegate observed 13 passing scoped tests with one database-dependent skip, a passing typecheck, and [476 passing non-database tests with 29 skips](final-harness-check.log). Those skips include PostgreSQL and live-provider checks. The coordinator owns the final database run, strict live NASA run, production build, cleanup inventory, and independent review. [The current harness record](README.md) gives the report paths and commands.
+
+## Historical status before the final harness correction
+
 I1 remains **BLOCKED**. See [the acceptance evidence](README.md) for commands, source identity, results, and owners. The actual production catalogue has no released selectable entries, and the actual calculation thread returns `service_error` with `not_implemented` in the tested baseline.
 
 The isolated real PostgreSQL and HTTP checks pass with controlled scientific calculations and saved real NASA responses. They cover separate worker death and replay, web restart, authorization, stale leases, terminal expiry, persistent-cache concurrency, distinct cutoff identities, injected provider failures, and process-log privacy. These checks are operational evidence. They do not satisfy the source-backed live-plan gate.
