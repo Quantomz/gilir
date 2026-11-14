@@ -4,11 +4,13 @@ import { randomUUID } from "node:crypto";
 import { Pool } from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 import { createPlanApi } from "@/server/jobs/http";
-import { createPgJobStore, DatabaseNotConfiguredError } from "@/server/jobs";
+import { createPgJobStore, DatabaseNotConfiguredError, hashNormalizedInput } from "@/server/jobs";
 import { createPlannerClient } from "@/client/planner";
 import { inputFixture } from "@/fixtures/input";
 import { frozenRunFixture, syntheticRegistryFixture } from "@/fixtures/science";
-import { completedJobResultFixture, frozenJobRunFixture } from "../jobs/fixtures";
+import { resultFixtures } from "@/fixtures/results";
+import { parsePlanResult } from "@/contracts/result";
+import { frozenJobRunFixture } from "../jobs/fixtures";
 import type { JobStore } from "@/contracts/jobs";
 
 describe.skipIf(!process.env.TEST_DATABASE_URL)("HTTP planning API over PostgreSQL", () => {
@@ -87,18 +89,45 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("HTTP planning API over PostgreS
     expect((await fetch(base + "/api/plans", { method: "POST", body: "{" })).status).toBe(400);
   });
 
-  test("polling returns a completed saved snapshot through the real HTTP client", async () => {
+  test("rejects every retired priority before inserting a job", async () => {
+    for (const priority of ["water", "soil", "bad_year", "pests_weeds"]) {
+      const response = await post({ ...inputFixture, priority });
+      expect(response.status).toBe(400);
+      expect(await response.json()).toMatchObject({ kind: "invalid" });
+    }
+    expect((await pool.query("SELECT count(*)::int AS count FROM jobs")).rows[0].count).toBe(0);
+  });
+
+  test("persists immutable input and frozen identity and reads a four-component result over HTTP", async () => {
     api = createPlanApi({ store, readRegistry: () => syntheticRegistryFixture, dataCutoff: frozenRunFixture.manifest.dataCutoff });
     const client = createPlannerClient({ baseUrl: base });
     const submitted = await client.submit(inputFixture);
     if (submitted.kind !== "accepted") throw new Error("Expected an accepted job.");
+    const original = (await pool.query("SELECT input, input_hash FROM jobs WHERE id = $1", [submitted.capability.jobId])).rows[0];
+    expect(original.input).toEqual(inputFixture);
+    expect(original.input).not.toHaveProperty("priority");
+    expect(original.input_hash).toBe(hashNormalizedInput(inputFixture));
     const now = new Date().toISOString();
     const claimed = await store.claim({ workerId: "http-fixture-worker", now, leaseSeconds: 60 });
     if (!claimed) throw new Error("Expected a claimed job.");
     const run = frozenJobRunFixture;
     expect(await store.freeze(claimed.lease, run, now)).toBe(true);
-    expect(await store.complete(claimed.lease, completedJobResultFixture, now)).toBe(true);
-    expect(await client.read(submitted.capability)).toMatchObject({ state: "completed", snapshot: { input: inputFixture, result: completedJobResultFixture } });
+    expect(await store.freeze(claimed.lease, structuredClone(run), now)).toBe(true);
+    expect(await store.freeze(claimed.lease, { ...run, manifest: { ...run.manifest, engineVersion: "changed" } }, now)).toBe(false);
+    const result = parsePlanResult({ ...resultFixtures.plan, details: {
+      ...resultFixtures.plan.details,
+      provenance: { ...resultFixtures.plan.details.provenance, manifest: { kind: "available", value: run.manifest } },
+    } });
+    expect(await store.complete(claimed.lease, result, now)).toBe(true);
+    const state = await client.read(submitted.capability);
+    expect(state).toMatchObject({ state: "completed", snapshot: { input: inputFixture, result } });
+    if (state.state !== "completed" || state.snapshot.result.state !== "plan") throw new Error("Expected a completed fixture plan.");
+    expect(state.snapshot.result.plan.rankingTuple.components).toHaveLength(4);
+    await expect(pool.query("UPDATE jobs SET input = '{}'::jsonb WHERE id = $1", [submitted.capability.jobId])).rejects.toThrow("immutable");
+    await expect(pool.query("UPDATE jobs SET input_hash = 'changed' WHERE id = $1", [submitted.capability.jobId])).rejects.toThrow("immutable");
+    await expect(pool.query("UPDATE jobs SET frozen_run = '{}'::jsonb WHERE id = $1", [submitted.capability.jobId])).rejects.toThrow("immutable");
+    const persisted = (await pool.query("SELECT input, input_hash, frozen_run FROM jobs WHERE id = $1", [submitted.capability.jobId])).rows[0];
+    expect(persisted).toEqual({ ...original, frozen_run: run });
     const response = await fetch(base + "/api/plans/" + submitted.capability.jobId, { method: "DELETE", headers: { Authorization: "Bearer " + submitted.capability.token } });
     expect(response.status).toBe(204);
     expect(await response.text()).toBe("");

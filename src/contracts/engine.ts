@@ -1,10 +1,10 @@
 import type { ClimateSnapshot, DailyWeather, EngineSettings } from "./climate";
 import type { CropPurposeId, EvidenceValue, IsoDate } from "./common";
-import type { FarmInput, Priority } from "./input";
-import type { CropProfile, RegistryResolution, RotationRule } from "./registry";
+import type { FarmInput } from "./input";
+import type { CropProfile, RotationRule } from "./registry";
 import type {
   AssessmentMetric, BaselineComparison, CalendarOccurrence, CalendarProof, EvidenceGap,
-  PlanOccurrence, PlanResult, PriorityTuple, ResultDetails, ResultWarning, RunManifest,
+  PlanOccurrence, PlanResult, RankingTuple, ResultDetails, ResultWarning, RunManifest,
 } from "./result";
 
 export interface FrozenRun {
@@ -46,7 +46,6 @@ export interface ClimateCohort {
 
 export interface MetricInput {
   readonly history: FarmInput["history"];
-  readonly pestCoverage: RegistryResolution["pestCoverage"];
   readonly calendar: CandidateCalendar;
   readonly profiles: readonly CropProfile[];
   readonly rules: readonly RotationRule[];
@@ -54,7 +53,6 @@ export interface MetricInput {
   readonly settings: EngineSettings;
   readonly latitudeDeg: number;
   readonly elevationM: EvidenceValue<number>;
-  readonly priority: Priority;
 }
 
 interface AssessmentEvidence {
@@ -89,11 +87,10 @@ export interface AssessedCandidate {
 
 export interface RankingInput {
   readonly candidates: readonly AssessedCandidate[];
-  readonly priority: Priority;
 }
 
 export type RankingResult =
-  | { readonly kind: "selected"; readonly candidate: AssessedCandidate; readonly priorityTuple: PriorityTuple }
+  | { readonly kind: "selected"; readonly candidate: AssessedCandidate; readonly rankingTuple: RankingTuple }
   | { readonly kind: "none" };
 
 type ExplanationOutcome = PlanResult extends infer R

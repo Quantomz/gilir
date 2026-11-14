@@ -21,12 +21,12 @@ export const replayLeaseSeconds = 30;
 export const input = parseFarmInput({
   schemaVersion: 1,
   field: { ring: [[100.54, 13.74], [100.56, 13.74], [100.56, 13.76], [100.54, 13.76], [100.54, 13.74]], lookup: [100.55, 13.75], label: "I1 public illustrative location" },
-  cropPurposeIds: ["i1-controlled-crop"], water: "rain_only", priority: "water", planningStart: "2026-07-01", history: { kind: "skipped" },
+  cropPurposeIds: ["i1-controlled-crop"], water: "rain_only", planningStart: "2026-07-01", history: { kind: "skipped" },
 });
 export const controlledRegistry = releasedRegistrySchema.parse({
   kind: "released", identity: { catalogueVersion: "i1-controlled-only", ruleVersion: "i1-controlled-only" },
   catalogue: { version: "i1-controlled-only", entries: [{ id: "i1-controlled-crop", label: "Controlled transport test only", purpose: "food" }] },
-  sources: [], profiles: [], rules: [], coverage: [],
+  sources: [], profiles: [], rules: [],
 });
 
 export function poolForSchema(connectionString: string, schema: string) {

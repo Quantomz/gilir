@@ -9,7 +9,6 @@ export const inputFixture = parseFarmInput({
   },
   cropPurposeIds: ["synthetic-crop"],
   water: "rain_only",
-  priority: "water",
   planningStart: "2026-07-01",
   history: {
     kind: "recorded",

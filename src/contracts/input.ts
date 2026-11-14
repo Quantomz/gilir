@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { cropPurposeIdSchema, isoDateSchema, labels } from "./common";
 
-export const prioritySchema = z.enum(["water", "soil", "bad_year", "pests_weeds"]);
 export const waterAnswerSchema = z.enum(["rain_only", "rain_plus_backup", "unsure"]);
 const precision = z.enum(["exact", "approximate"]);
 
@@ -50,7 +49,6 @@ export const farmInputSchema = z.strictObject({
   }),
   cropPurposeIds: z.array(cropPurposeIdSchema).min(1).max(inputLimits.selectedCrops).readonly(),
   water: waterAnswerSchema,
-  priority: prioritySchema,
   planningStart: isoDateSchema,
   history: historySchema,
 }).superRefine(({ field, cropPurposeIds, history, planningStart }, ctx) => {
@@ -113,7 +111,6 @@ function containsLookup(ring: readonly LngLat[], [longitude, latitude]: LngLat):
 }
 
 export type FarmInput = z.infer<typeof farmInputSchema>;
-export type Priority = z.infer<typeof prioritySchema>;
 export type WaterAnswer = z.infer<typeof waterAnswerSchema>;
 export type HistoryEntry = z.infer<typeof historyEntrySchema>;
 export type DatePrecision = z.infer<typeof precision>;
