@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { CandidateCalendar, ClimateAssessment, ClimateCohort } from "@/contracts/engine";
 import type { CropPurposeId } from "@/contracts/common";
+import { evidence } from "@/contracts/common";
 import type { RegistryRelease, RegistryResolution } from "@/contracts/registry";
 import { calendarOccurrenceSchema, resultDetailsSchema } from "@/contracts/result";
 import type { ResultDetails } from "@/contracts/result";
@@ -18,6 +19,7 @@ const assessmentSchema = z.discriminatedUnion("kind", [
     occurrences: z.array(calendarOccurrenceSchema.unwrap().extend({ seasonMetrics: resultDetailsSchema.unwrap().shape.seasonMetrics })) }),
   z.strictObject({ kind: z.literal("insufficient_data"), ...shared, missing: resultDetailsSchema.unwrap().shape.unassessedChecks.unwrap().min(1) }),
 ]);
+const numberEvidenceSchema = evidence(z.number());
 
 export function validateAssessment(raw: ClimateAssessment, calendar: CandidateCalendar): ClimateAssessment {
   const assessment = assessmentSchema.parse(raw);
@@ -27,16 +29,28 @@ export function validateAssessment(raw: ClimateAssessment, calendar: CandidateCa
   return assessment;
 }
 
+export function validateAssessmentSeasons(assessment: ClimateAssessment, seasons: ClimateCohort["usable"]): void {
+  const allowed = new Set(seasons.map(season => season.interval.start));
+  const lists = [assessment.seasonMetrics, ...(assessment.kind === "assessed" ? assessment.occurrences.map(occurrence => occurrence.seasonMetrics) : [])];
+  for (const list of lists) {
+    const starts = list.map(season => season.replayStart);
+    if (new Set(starts).size !== starts.length || starts.some(start => !allowed.has(start))) {
+      throw new Error("Assessment seasons differ from the common climate cohort.");
+    }
+  }
+}
+
 export function validateCohort(cohort: ClimateCohort): void {
   resultDetailsSchema.unwrap().shape.cohort.parse(cohort.coverage);
   resultDetailsSchema.unwrap().shape.insights.parse(cohort.insights);
   resultDetailsSchema.unwrap().shape.unassessedChecks.parse(cohort.gaps);
-  for (const evidence of [cohort.applicabilityClimate.meanAnnualTemperatureC, cohort.applicabilityClimate.meanAnnualPrecipitationMm]) {
-    if (evidence.kind === "available" ? !Number.isFinite(evidence.value) : !evidence.reason) throw new Error("Invalid applicability climate evidence.");
-  }
+  numberEvidenceSchema.parse(cohort.elevationM);
+  numberEvidenceSchema.parse(cohort.applicabilityClimate.meanAnnualTemperatureC);
+  numberEvidenceSchema.parse(cohort.applicabilityClimate.meanAnnualPrecipitationMm);
   if (cohort.coverage.kind === "available") {
-    const reported = cohort.coverage.value.seasons.filter(season => season.status === "usable").map(season => JSON.stringify(season.interval)).sort();
-    const actual = cohort.usable.map(season => JSON.stringify(season.interval)).sort();
+    const reported = cohort.coverage.value.seasons.filter(season => season.status === "usable")
+      .map(season => JSON.stringify([season.interval.start, season.interval.endExclusive])).sort();
+    const actual = cohort.usable.map(season => JSON.stringify([season.interval.start, season.interval.endExclusive])).sort();
     if (JSON.stringify(reported) !== JSON.stringify(actual) || new Set(actual).size !== actual.length) throw new Error("Cohort coverage contradicts its replay seasons.");
   } else if (cohort.usable.length) throw new Error("Unavailable cohort contains usable replay seasons.");
 }

@@ -10,9 +10,10 @@ import { findCalendar } from "./search";
 import { explainResult } from "./explain";
 import { calendarKey, calendarProblems, compileCalendar, horizonFor } from "./search/calendar";
 import { initialPredecessor, modelBaseline } from "./search/baseline";
+import type { ModeledBaseline } from "./search/baseline";
 import { enumerateGrid } from "./search/grid";
 import { MissingRankingEvidence, RankingAccumulator, rankingTuple } from "./search/ranking";
-import { provenanceFor, validateAssessment, validateCohort, validateResolution, validateSources } from "./search/evidence";
+import { provenanceFor, validateAssessment, validateAssessmentSeasons, validateCohort, validateResolution, validateSources } from "./search/evidence";
 
 export { assessClimate, buildClimateCohort } from "./metrics";
 export { findCalendar, rankCandidates } from "./search";
@@ -24,7 +25,7 @@ export interface CalculateOptions {
   readonly buildCohort?: typeof buildClimateCohort;
 }
 
-const required = (gap: EvidenceGap) => gap.code === "climate" || gap.code === "crop_profile" || gap.code === "ranking_metric";
+const required = (gap: EvidenceGap) => gap.code === "climate" || gap.code === "crop_profile" || gap.code === "ranking_metric" || gap.code === "rotation_rule";
 const climateGap = (reason: string): EvidenceGap => ({ code: "climate", reason, cropPurposeIds: [], sourceIds: [] });
 
 export function calculate(run: FrozenRun, registry: RegistryRelease, options: CalculateOptions = {}): PlanResult {
@@ -33,7 +34,7 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     applicabilityClimate: {
       meanAnnualTemperatureC: { kind: "unavailable", reason: "No annual evidence was assessed." },
       meanAnnualPrecipitationMm: { kind: "unavailable", reason: "No annual evidence was assessed." },
-    }, usable: [], insights: [], gaps: [] };
+    }, elevationM: { kind: "unavailable", reason: "No elevation evidence was assessed." }, usable: [], insights: [], gaps: [] };
   let baseline: BaselineComparison = run.input.history.kind === "skipped" ? { kind: "not_recorded" }
     : { kind: "not_assessable", reasons: ["The historical comparison was not assessed."] };
   let search: SearchCoverage = {
@@ -89,13 +90,21 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     const history = run.input.history;
     const extras = history.kind === "skipped" ? [] : [...new Set(history.entries.flatMap(entry =>
       entry.kind === "crop" && entry.crop.kind === "catalogue" && !run.input.cropPurposeIds.includes(entry.crop.cropPurposeId) ? [entry.crop.cropPurposeId] : []))];
-    if (extras.length) {
-      const historical = resolve({ ...lookup, cropPurposeIds: extras }, registry);
-      validateResolution(historical, extras, registry);
-      resolution = { profiles: [...selectedProfiles, ...historical.profiles],
-        rules: [...new Map([...selectedRules, ...historical.rules].map(rule => [rule.id, rule])).values()], gaps: resolution.gaps };
-    }
-    const modeled = modelBaseline(run.input, horizon, resolution.profiles, resolution.rules);
+    const modeled = ((): ModeledBaseline => {
+      if (extras.length) {
+        try {
+          const historical = resolve({ ...lookup, cropPurposeIds: extras }, registry);
+          validateResolution(historical, extras, registry);
+          resolution = { profiles: [...selectedProfiles, ...historical.profiles],
+            rules: [...new Map([...selectedRules, ...historical.rules].map(rule => [rule.id, rule])).values()], gaps: resolution.gaps };
+        } catch {
+          return { kind: "unavailable", comparison: { kind: "not_assessable", reasons: [
+            "Historical-only profile or rule processing failed; no previous-rotation comparison was calculated.",
+          ] } };
+        }
+      }
+      return modelBaseline(run.input, horizon, resolution.profiles, resolution.rules);
+    })();
     if (modeled.kind === "unavailable") baseline = modeled.comparison;
     const searchInput = { horizon, cropPurposeIds: run.input.cropPurposeIds, profiles: selectedProfiles, hardConstraints: selectedRules,
       initialPredecessor: initialPredecessor(run.input), eligibleBaseline: modeled.kind === "modeled" && modeled.eligible ? modeled.calendar : null,
@@ -103,12 +112,11 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     const domain = compileCalendar(searchInput);
     const ranking = new RankingAccumulator(run.settings.rankingDecimalPlaces);
     const seen = new Set<string>();
-    let unavailableBaseline: { readonly key: string; readonly error: MissingRankingEvidence } | null = null;
     const assess = (calendar: CandidateCalendar): AssessedCandidate => {
-      if (unavailableBaseline?.key === calendarKey(calendar)) throw unavailableBaseline.error;
       const response = validateAssessment((options.assess ?? assessClimate)({ history: run.input.history, calendar,
         profiles: resolution.profiles, rules: resolution.rules, cohort: cohort.usable, settings: run.settings,
-        latitudeDeg: run.input.field.lookup[1], elevationM: run.climate[0]?.elevationM ?? { kind: "unavailable", reason: "No elevation evidence is available." } }), calendar);
+        latitudeDeg: run.input.field.lookup[1], elevationM: cohort.elevationM }), calendar);
+      validateAssessmentSeasons(response, cohort.usable);
       if (response.kind === "insufficient_data") {
         if (!response.missing.some(required)) throw new Error("An insufficient assessment did not identify missing required evidence.");
         throw new MissingRankingEvidence(response.missing);
@@ -117,17 +125,16 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
       rankingTuple(candidate, run.settings.rankingDecimalPlaces);
       return candidate;
     };
-    let baselineCandidate: AssessedCandidate | null = null;
     if (modeled.kind === "modeled") {
       try {
-        baselineCandidate = assess(modeled.calendar);
+        const baselineCandidate = assess(modeled.calendar);
         baseline = { kind: "assessed", recommendation: "no_recommendation", eligible: modeled.eligible, approximateDates: modeled.approximate,
           occurrences: baselineCandidate.assessment.occurrences, metrics: baselineCandidate.assessment.metrics, deltas: [], changes: [] };
         if (modeled.eligible) { ranking.add(baselineCandidate); seen.add(calendarKey(modeled.calendar)); }
       } catch (error) {
         if (!(error instanceof MissingRankingEvidence)) throw error;
-        unavailableBaseline = { key: calendarKey(modeled.calendar), error };
         baseline = { kind: "not_assessable", reasons: ["Required evidence for the historical comparison is unavailable."] };
+        if (modeled.eligible) throw error;
       }
     }
     const structural = findCalendar(searchInput);
@@ -136,18 +143,12 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     if (structural.kind === "limit_reached") return finish({ state: "search_incomplete" });
     const witnessKey = calendarKey(structural.calendar);
     if (!seen.has(witnessKey)) {
-      if (modeled.kind === "modeled" && modeled.eligible && !baselineCandidate && witnessKey === calendarKey(modeled.calendar)) {
-        const generated = findCalendar({ ...searchInput, eligibleBaseline: null });
-        search = { ...search, structuralExpandedStates: generated.expandedStates };
-        if (generated.kind !== "witness") return finish({ state: "insufficient_data", missing: [
-          { code: "ranking_metric", reason: "The only known valid calendar lacks required assessment evidence.", cropPurposeIds: run.input.cropPurposeIds, sourceIds: [] },
-        ] });
-        ranking.add(assess(generated.calendar));
-        seen.add(calendarKey(generated.calendar));
-      } else { ranking.add(assess(structural.calendar)); seen.add(witnessKey); }
+      ranking.add(assess(structural.calendar));
+      seen.add(witnessKey);
     }
     const grid = enumerateGrid(domain, run.settings.searchGridStepDays, run.settings.gridExpansionLimit,
       modeled.kind === "modeled" ? modeled.calendar : null);
+    search = { ...search, ranking: "interrupted" };
     while (true) {
       const next = grid.next();
       if (next.done) {

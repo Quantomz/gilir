@@ -3,7 +3,7 @@ import type { CandidateCalendar, DateInterval } from "@/contracts/engine";
 import type { FarmInput, HistoryEntry } from "@/contracts/input";
 import type { CropProfile, RotationRule } from "@/contracts/registry";
 import type { BaselineComparison } from "@/contracts/result";
-import { calendarProblems, compareText, compileCalendar, dateAt, ordinal, shiftYear, supportsHistory } from "./calendar";
+import { calendarProblems, compareText, compileConstraints, dateAt, ordinal, shiftYear, supportsHistory } from "./calendar";
 
 const entryStart = (entry: HistoryEntry) => entry.kind === "crop" ? entry.planted : entry.start;
 const entryEnd = (entry: HistoryEntry) => entry.kind === "crop" ? ordinal(entry.harvested) + 1 : ordinal(entry.endExclusive);
@@ -63,8 +63,8 @@ export function modelBaseline(input: FarmInput, horizon: DateInterval, profiles:
     const calendar: CandidateCalendar = { origin: "baseline", horizon, occurrences };
     const historicalIds = [...new Set(occurrences.map(item => item.cropPurposeId))];
     if (historicalIds.length) {
-      const context = compileCalendar({ horizon, cropPurposeIds: historicalIds, profiles, hardConstraints: rules,
-        initialPredecessor: initialPredecessor(input), eligibleBaseline: null, expansionLimit: 0 });
+      const context = compileConstraints({ horizon, cropPurposeIds: historicalIds, profiles, hardConstraints: rules,
+        initialPredecessor: initialPredecessor(input) });
       const problems = calendarProblems(calendar, context, true);
       if (problems.length) { lastReason = problems[0]; continue; }
     }
@@ -80,8 +80,8 @@ export function modelBaseline(input: FarmInput, horizon: DateInterval, profiles:
       cursor = finish;
     }
     if (cursor < end) { lastReason = "The translated history contains unknown coverage; explicit fallow is required for a numeric comparison."; continue; }
-    const domain = compileCalendar({ horizon, cropPurposeIds: input.cropPurposeIds, profiles, hardConstraints: rules,
-      initialPredecessor: initialPredecessor(input), eligibleBaseline: null, expansionLimit: 0 });
+    const domain = compileConstraints({ horizon, cropPurposeIds: input.cropPurposeIds, profiles, hardConstraints: rules,
+      initialPredecessor: initialPredecessor(input) });
     return { kind: "modeled", calendar, approximate, eligible: calendarProblems(calendar, domain).length === 0 };
   }
   return unavailable(lastReason);

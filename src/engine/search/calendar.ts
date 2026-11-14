@@ -40,7 +40,7 @@ export function canFollow(previous: CropPurposeId | null, next: CropPurposeId, r
     && rule.predicate.successorCropPurposeIds.includes(next));
 }
 
-export interface CalendarDomain {
+export interface CalendarConstraints {
   readonly horizon: DateInterval;
   readonly start: number;
   readonly days: number;
@@ -51,16 +51,18 @@ export interface CalendarDomain {
   readonly edges: readonly (readonly number[])[];
   readonly occupied: readonly number[];
   readonly spans: readonly number[];
+}
+
+export interface CalendarDomain extends CalendarConstraints {
   readonly lowerBound: Float64Array;
   readonly fullMask: number;
 }
 
-export function compileCalendar(input: CalendarSearchInput): CalendarDomain {
-  if (!Number.isSafeInteger(input.expansionLimit) || input.expansionLimit < 0) throw new Error("Invalid structural budget.");
+export function compileConstraints(input: Pick<CalendarSearchInput, "horizon" | "cropPurposeIds" | "profiles" | "hardConstraints" | "initialPredecessor">): CalendarConstraints {
   const days = dayCount(input.horizon);
   if (!Number.isSafeInteger(days) || days < 1 || days > 366) throw new Error("Invalid calendar horizon.");
   const ids = [...input.cropPurposeIds].sort(compareText);
-  if (!ids.length || ids.length > 12 || new Set(ids).size !== ids.length) throw new Error("Invalid selected crops.");
+  if (!ids.length || new Set(ids).size !== ids.length) throw new Error("Invalid calendar crops.");
   const profiles = ids.map(id => {
     const matches = input.profiles.filter(profile => profile.cropPurposeId === id);
     if (matches.length !== 1) throw new Error("Expected one resolved profile per selected crop.");
@@ -84,23 +86,31 @@ export function compileCalendar(input: CalendarSearchInput): CalendarDomain {
   const occupied = profiles.map(profile => duration(profile.timing.generatedStageDays));
   const spans = profiles.map((profile, index) => occupied[index] + profile.timing.turnaround.days);
   if (spans.some(span => !Number.isSafeInteger(span) || span <= 0)) throw new Error("Invalid crop duration.");
+  return { horizon: input.horizon, start, days, profiles, rules: input.hardConstraints,
+    initialPredecessor: input.initialPredecessor, allowed, edges, occupied, spans };
+}
+
+export function compileCalendar(input: CalendarSearchInput): CalendarDomain {
+  if (!Number.isSafeInteger(input.expansionLimit) || input.expansionLimit < 0) throw new Error("Invalid structural budget.");
+  if (input.cropPurposeIds.length > 12) throw new Error("Invalid selected crops.");
+  const constraints = compileConstraints(input);
+  const { profiles, spans } = constraints;
   const fullMask = (1 << profiles.length) - 1;
   const lowerBound = new Float64Array(fullMask + 1);
   for (let mask = 0; mask <= fullMask; mask++) {
     lowerBound[mask] = spans.reduce((sum, span, index) => sum + (mask & (1 << index) ? 0 : span), 0);
   }
-  return { horizon: input.horizon, start, days, profiles, rules: input.hardConstraints,
-    initialPredecessor: input.initialPredecessor, allowed, edges, occupied, spans, lowerBound, fullMask };
+  return { ...constraints, lowerBound, fullMask };
 }
 
-export function occurrenceAt(domain: CalendarDomain, crop: number, day: number): CalendarOccurrence {
+export function occurrenceAt(domain: CalendarConstraints, crop: number, day: number): CalendarOccurrence {
   const profile = domain.profiles[crop];
   return { cropPurposeId: profile.cropPurposeId, profileId: profile.id, profileVersion: profile.version,
     planted: dateAt(domain.start + day), lastOccupied: dateAt(domain.start + day + domain.occupied[crop] - 1),
     fieldAvailable: dateAt(domain.start + day + domain.spans[crop]) };
 }
 
-export function calendarProblems(calendar: CandidateCalendar, domain: CalendarDomain, contextual = false): string[] {
+export function calendarProblems(calendar: CandidateCalendar, domain: CalendarConstraints, contextual = false): string[] {
   const problems = new Set<string>();
   if (calendar.horizon.start !== domain.horizon.start || calendar.horizon.endExclusive !== domain.horizon.endExclusive) {
     problems.add("The calendar horizon differs from the run.");

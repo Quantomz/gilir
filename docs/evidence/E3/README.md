@@ -92,7 +92,5 @@ The source commits are `aef137a` for calendar proof and ranking, then `f9a0222` 
 
 ## Unresolved integration limits
 
-- The current `MetricInput` receives field lookup latitude and the first frozen snapshot's elevation. `ClimateCohort` has no E2-selected elevation field. Snapshot order is not a sufficient public selection policy. Root must add an E2-owned selected-elevation port and forward it before claiming real E2 integration.
-- `SearchCoverage.ranking` has no interrupted status. When required evidence or processing fails during ranking, the result accurately returns `insufficient_data` or `service_error` and retains the operation counts. The current status remains `not_started` until the traversal has a complete or limit outcome. Root must resolve this label before shipping.
 - Real crop publication, scientific metric validation, NASA acceptance, I1/I2/I3 assembled acceptance, and browser/PDF behavior are not established by these E3 fixtures.
 - This candidate does not self-approve. The independent blind acceptance and exact-commit review remain with root. All configured arena models belong to GPT; no cross-family judge is configured.

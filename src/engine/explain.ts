@@ -1,7 +1,8 @@
 import type { ExplanationInput, RankingDecision } from "@/contracts/engine";
 import { rankingMetricIds } from "@/contracts/result";
-import type { BaselineComparison, CalendarOccurrence, ResultDetails, ResultWarning } from "@/contracts/result";
+import type { BaselineComparison, CalendarOccurrence, EvidenceGap, ResultDetails, ResultWarning } from "@/contracts/result";
 import { calendarKey, compareText } from "./search/calendar";
+import { initialPredecessor } from "./search/baseline";
 
 function rankingReason(decision: RankingDecision | null): string {
   if (!decision) return "The calendar was assessed under the fixed water-first ranking.";
@@ -67,6 +68,8 @@ export function explainResult(input: ExplanationInput): ResultDetails {
   if (input.run.input.water === "unsure") warnings.push({ code: "water_context",
     message: "Water availability is uncertain. Every calculation assumes rainfall alone.", cropPurposeIds: [], ruleIds: [], metricIds: [] });
   const history = input.run.input.history;
+  const boundaryRules = initialPredecessor(input.run.input) === null ? input.rules.filter(rule =>
+    rule.predicate.successorCropPurposeIds.some(id => input.run.input.cropPurposeIds.includes(id))) : [];
   if (history.kind === "recorded" && history.entries.some(entry => entry.kind === "crop" && (entry.plantedPrecision === "approximate" || entry.harvestedPrecision === "approximate"))) {
     warnings.push({ code: "approximate_history", message: "Historical dates are estimates. Any historical comparison retains that uncertainty.", cropPurposeIds: [], ruleIds: [], metricIds: [] });
   }
@@ -105,9 +108,15 @@ export function explainResult(input: ExplanationInput): ResultDetails {
     assumptions.push(...profile.applicability.managementAssumptions, ...profile.kc.assumptions);
     if (profile.timing.turnaround.basis === "scheduling_assumption") assumptions.push(profile.timing.turnaround.assumption);
   }
+  const unassessedChecks: EvidenceGap[] = [...(input.selected?.assessment.unassessedChecks ?? []),
+    ...(input.outcome.state === "insufficient_data" ? input.outcome.missing : [])];
+  if (boundaryRules.length) unassessedChecks.push({ code: "history",
+    reason: "The initial predecessor is unknown, so applicable successor prohibitions could not be assessed at the planning boundary.",
+    cropPurposeIds: [...new Set(boundaryRules.flatMap(rule => rule.predicate.successorCropPurposeIds)
+      .filter(id => input.run.input.cropPurposeIds.includes(id)))].sort(compareText),
+    sourceIds: [...new Set(boundaryRules.flatMap(rule => rule.sourceIds))].sort(compareText) });
   return { explanation, insights: input.insights, metrics: input.selected?.assessment.metrics ?? [],
-    seasonMetrics: input.selected?.assessment.seasonMetrics ?? [], warnings,
-    unassessedChecks: [...(input.selected?.assessment.unassessedChecks ?? []), ...(input.outcome.state === "insufficient_data" ? input.outcome.missing : [])],
+    seasonMetrics: input.selected?.assessment.seasonMetrics ?? [], warnings, unassessedChecks,
     cohort: input.cohort, baseline, preparation, search: input.search, provenance: input.provenance,
     assumptions: [...new Set(assumptions)] };
 }
