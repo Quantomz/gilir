@@ -36,7 +36,7 @@ At hour 2, every lane runs its first component with its fixture. At hour 4, each
 
 All agreed application behavior stays in the core cards, including globe selection, editable history, one deterministic plan, warnings and missing-data states, baseline comparison, local save, and PDF. The first data release targets three published crop profiles from the specification's candidate list. E1 targets maize, common bean as a dry grain crop, and wheat because FAO tables are available. Applicable timing and management assumptions must be recorded. Other profiles remain unavailable until reviewed. This changes the initial curation order, not the worldwide geography requirement.
 
-Worldwide selection does not mean every crop-location-priority combination has evidence. Pest and weed results remain unavailable where no reviewed target-specific rules exist. Do not fabricate a matrix to claim full coverage. A no-evidence demonstration alone does not satisfy the live-plan integration gate.
+Worldwide selection does not mean every crop-location combination has evidence. The farmer-selected priority and the pest and weed rule registry were removed from the MVP in spec 1.1. Every run uses one fixed water-first ranking. Do not fabricate a pest matrix or crop-family proxy. A no-evidence demonstration alone does not satisfy the live-plan integration gate.
 
 Optional soil-moisture imagery and vegetation overlays are not required by spec.md and are outside the core build. Future crop expansion and additional rule coverage are overflow. Fertilizer, costs, accounts, multiple recommended plans, and an LLM remain outside scope.
 
