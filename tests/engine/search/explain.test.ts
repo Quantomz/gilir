@@ -115,12 +115,11 @@ describe("deterministic result explanations", () => {
     const p = profile();
     const result = calculate({ ...value, settings: { ...value.settings, gridExpansionLimit: 100, scoredCandidateLimit: 1 } }, registry([p]), options(input =>
       assessment(input.calendar, input.calendar.origin === "baseline" ? [0.5, 0.2, 30, 10] : [0.1, 0.1, 20, 10])));
-    expect(result.details.baseline).toMatchObject({ kind: "assessed", recommendation: "changed", approximateDates: true,
+    expect(result.details.baseline).toMatchObject({ kind: "assessed", recommendation: "changed", approximateDates: true, changes: [],
       deltas: [{ metricId: "mean_frequency", difference: { kind: "available", value: -0.4 } },
         { metricId: "mean_mismatch", difference: { kind: "available", value: -0.1 } },
         { metricId: "unplanted_days", difference: { kind: "available", value: -10 } },
         { metricId: "longest_unplanted_gap", difference: { kind: "available", value: 0 } }] });
     expect(result.details.warnings.some(warning => warning.code === "approximate_history")).toBe(true);
-    expect(result.details.baseline.kind === "assessed" && result.details.baseline.changes.some(change => change.kind === "added")).toBe(true);
   });
 });

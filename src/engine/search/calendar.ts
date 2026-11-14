@@ -149,3 +149,7 @@ export function calendarKey(calendar: CandidateCalendar): string {
   return JSON.stringify(calendar.occurrences.map(item => [item.cropPurposeId, item.profileId, item.profileVersion,
     item.planted, item.lastOccupied, item.fieldAvailable]));
 }
+
+export function assessmentKey(calendar: CandidateCalendar): string {
+  return JSON.stringify([calendar.origin, calendarKey(calendar)]);
+}

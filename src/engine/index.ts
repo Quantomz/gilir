@@ -8,7 +8,7 @@ import type { BaselineComparison, EvidenceGap, PlanResult, SearchCoverage } from
 import { assessClimate, buildClimateCohort } from "./metrics";
 import { findCalendar } from "./search";
 import { explainResult } from "./explain";
-import { calendarKey, calendarProblems, compileCalendar, horizonFor } from "./search/calendar";
+import { assessmentKey, calendarProblems, compileCalendar, horizonFor } from "./search/calendar";
 import { initialPredecessor, modelBaseline } from "./search/baseline";
 import type { ModeledBaseline } from "./search/baseline";
 import { enumerateGrid } from "./search/grid";
@@ -132,7 +132,7 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
         const baselineCandidate = assess(modeled.calendar);
         baseline = { kind: "assessed", recommendation: "no_recommendation", eligible: modeled.eligible, approximateDates: modeled.approximate,
           occurrences: baselineCandidate.assessment.occurrences, metrics: baselineCandidate.assessment.metrics, deltas: [], changes: [] };
-        if (modeled.eligible) { ranking.add(baselineCandidate); seen.add(calendarKey(modeled.calendar)); }
+        if (modeled.eligible) { ranking.add(baselineCandidate); seen.add(assessmentKey(modeled.calendar)); }
       } catch (error) {
         if (!(error instanceof MissingRankingEvidence)) throw error;
         baseline = { kind: "not_assessable", reasons: ["Required evidence for the historical comparison is unavailable."] };
@@ -143,7 +143,7 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     search = { ...search, structural: structural.kind, structuralExpandedStates: structural.expandedStates };
     if (structural.kind === "proved_impossible") return finish({ state: "no_calendar_fit", proof: structural.proof });
     if (structural.kind === "limit_reached") return finish({ state: "search_incomplete" });
-    const witnessKey = calendarKey(structural.calendar);
+    const witnessKey = assessmentKey(structural.calendar);
     if (!seen.has(witnessKey)) {
       ranking.add(assess(structural.calendar));
       seen.add(witnessKey);
@@ -159,7 +159,7 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
       }
       search = { ...search, gridExpandedStates: next.value.expandedStates };
       const calendar = next.value.calendar;
-      const key = calendarKey(calendar);
+      const key = assessmentKey(calendar);
       if (seen.has(key)) continue;
       if (search.scoredCandidates === run.settings.scoredCandidateLimit) { search = { ...search, ranking: "limit_reached" }; break; }
       search = { ...search, scoredCandidates: search.scoredCandidates + 1 };
