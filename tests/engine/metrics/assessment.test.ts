@@ -102,13 +102,16 @@ describe("fail closed: missing water evidence gives insufficient_data", () => {
     return result;
   };
 
-  it("zero crop demand everywhere (Kc 0) is not a perfect score", () => {
+  const rankingGap = (result: ReturnType<typeof assessClimate>) =>
+    result.kind === "insufficient_data" && result.missing.some(g => g.code === "ranking_metric" && g.cropPurposeIds.length > 0);
+
+  it("zero crop demand everywhere (Kc 0) is not a perfect score; it reports a ranking_metric gap", () => {
     const zero = profile({ id: "zero-kc", kc: { initial: 0, middle: 0, end: 0 } });
-    insufficient(metricInput({ horizonDays: 365, profiles: [zero], occurrences: [occurrence(zero, "2026-07-01")], cohort: seasons(3, 4, () => DRY) }));
+    expect(rankingGap(insufficient(metricInput({ horizonDays: 365, profiles: [zero], occurrences: [occurrence(zero, "2026-07-01")], cohort: seasons(3, 4, () => DRY) })))).toBe(true);
   });
 
-  it("missing rain across a crop's only window is not read as 0 mm", () => {
-    insufficient(plan([season("2025-07-01", 7, (_d, i) => (i === 3 ? { rainMm: missing() } : {}))]));
+  it("missing rain across a crop's only window is not read as 0 mm; it reports a ranking_metric gap", () => {
+    expect(rankingGap(insufficient(plan([season("2025-07-01", 7, (_d, i) => (i === 3 ? { rainMm: missing() } : {}))])))).toBe(true);
   });
 
   it("one crop without valid windows in one season blocks the assessment even if others are fine", () => {
@@ -140,10 +143,6 @@ describe("rain-only invariance", () => {
   it("the farmer's backup-water answer changes nothing (rain only)", () => {
     const withBackup = { ...baseline, water: "rain_plus_backup" } as MetricInput;
     expect(assessClimate(withBackup)).toEqual(assessClimate(baseline));
-  });
-
-  it.each(["water", "soil", "bad_year", "pests_weeds"] as const)("the retired priority field (%s) changes nothing", priority => {
-    expect(assessClimate({ ...baseline, priority })).toEqual(assessClimate(baseline));
   });
 
   it("recorded vs skipped field history does not change any metric", () => {

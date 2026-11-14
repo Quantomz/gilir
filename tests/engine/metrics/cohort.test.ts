@@ -154,3 +154,43 @@ describe("lookback days", () => {
     expect(starts(cohort)).not.toContain("2020-03-15");
   });
 });
+
+describe("annual applicability climate", () => {
+  // Rain 1 mm and mean temperature 20 degC every day; 365-day plan from 1 Mar gives 25 replay years of 365 days.
+  const steady = history("1990-01-01", "2027-01-01", () => ({ rainMm: 1, meanC: 20 }));
+  const yearPlan = { cutoff: "2027-01-01", horizonStart: "2027-03-01", horizonDays: 365 };
+
+  it("averages replay-year rain totals and daily mean temperature over the usable seasons", () => {
+    const { applicabilityClimate } = buildClimateCohort(cohortInput({ days: steady, ...yearPlan }));
+    expect(applicabilityClimate.meanAnnualPrecipitationMm).toEqual({ kind: "available", value: 365 });
+    expect(applicabilityClimate.meanAnnualTemperatureC.kind).toBe("available");
+    if (applicabilityClimate.meanAnnualTemperatureC.kind === "available") expect(applicabilityClimate.meanAnnualTemperatureC.value).toBeCloseTo(20, 10);
+  });
+
+  it("uses only usable seasons: an excluded wet year does not move the annual rain", () => {
+    const days = steady.map(d => (d.date === "2010-06-01" ? { ...d, rainMm: { kind: "available" as const, value: 5_000 }, solarMjM2Day: missing() } : d));
+    const { applicabilityClimate } = buildClimateCohort(cohortInput({ days, ...yearPlan }));
+    expect(applicabilityClimate.meanAnnualPrecipitationMm).toEqual({ kind: "available", value: 365 });
+  });
+
+  it("is unavailable, with a reason, when replay seasons are shorter than a year", () => {
+    const { applicabilityClimate } = buildClimateCohort(cohortInput({ days: steady, cutoff: "2027-01-01", horizonStart: "2027-03-15", horizonDays: 30 }));
+    for (const value of [applicabilityClimate.meanAnnualPrecipitationMm, applicabilityClimate.meanAnnualTemperatureC]) {
+      expect(value.kind).toBe("unavailable");
+      if (value.kind === "unavailable") expect(value.reason.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("is unavailable when fewer than the minimum usable seasons remain", () => {
+    const short = history("2017-01-01", "2027-01-01", () => ({ rainMm: 1, meanC: 20 }));
+    const { applicabilityClimate } = buildClimateCohort(cohortInput({ days: short, ...yearPlan }));
+    expect(applicabilityClimate.meanAnnualPrecipitationMm.kind).toBe("unavailable");
+    expect(applicabilityClimate.meanAnnualTemperatureC.kind).toBe("unavailable");
+  });
+
+  it("records the annual aggregation method in the cohort method version", () => {
+    const cohort = buildClimateCohort(cohortInput({ days: steady, ...yearPlan }));
+    if (cohort.coverage.kind !== "available") throw new Error("coverage unavailable");
+    expect(cohort.coverage.value.methodVersion).toMatch(/annual/i);
+  });
+});

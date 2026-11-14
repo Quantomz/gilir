@@ -67,8 +67,7 @@ function roundedMean(list: readonly EvidenceValue<number>[], places: number): Ev
   const gap = list.find(v => v.kind === "unavailable");
   if (gap) return gap;
   const values = valuesOf(list);
-  const scale = 10 ** places;
-  return available(Math.round((values.reduce((a, b) => a + b, 0) / values.length) * scale) / scale);
+  return available(Number((values.reduce((a, b) => a + b, 0) / values.length).toFixed(places)));
 }
 
 const quantile = (values: readonly number[], p: number, none: string): EvidenceValue<number> => {
@@ -188,7 +187,7 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
     ...profileGaps,
     ...(seasons === 0 ? [{ code: "climate" as const, reason: "No usable replay season.", cropPurposeIds: [], sourceIds: [] }] : []),
     ...(noWindows.length > 0 ? [{
-      code: "climate" as const,
+      code: "ranking_metric" as const,
       reason: "A crop has a replay season with no rolling window of complete rain and positive estimated demand.",
       cropPurposeIds: noWindows, sourceIds: [],
     }] : []),
@@ -196,6 +195,6 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
   return {
     ...evidence,
     kind: "insufficient_data",
-    missing: missing.length > 0 ? missing : [{ code: "climate", reason: "Rain-demand metrics are unavailable.", cropPurposeIds: [], sourceIds: [] }],
+    missing: missing.length > 0 ? missing : [{ code: "ranking_metric", reason: "Rain-demand ranking metrics are unavailable.", cropPurposeIds: [], sourceIds: [] }],
   };
 }
