@@ -1,5 +1,7 @@
 # E1 release `fao56-vegetables-2026-11-15`
 
+> Superseded draft evidence. This document preserves the original E1 curation and review narrative. It does not establish acceptance of the corrected release. The four draft identities are retired; see [current remediation](remediation.md).
+
 This release adds 23 annual vegetables and annual fruiting crops (41 profiles) to the 19 field crops of `fao56-temperature-2026-11-14`. The total is now 42 crops and 86 profiles. All earlier releases are still served unchanged; a JSON comparison against the committed versions confirmed they are byte-for-byte identical. The 45 earlier profiles are carried into this release unchanged (tested).
 
 **Spec 1.1 update (2026-11-15).** After main merged the spec 1.1 contract (#26), every release record dropped its empty `coverage` field to pass the strict schema. All other data in every release is unchanged, and catalogue and rule versions are kept.

@@ -29,3 +29,17 @@ export const places = {
   bhopalIndia: [77.4, 23.3],
   puertoMonttChile: [-72.9, -41.5],
 } as const satisfies Record<string, LngLat>;
+
+export const withheldProfileIds: readonly string[] = [
+  "maize-grain-fao56-nigeria-humid-jun",
+  "maize-grain-fao56-east-africa-highland-apr",
+  "maize-grain-fao56-india-dry-cool-oct",
+  "wheat-grain-fao56-california-winter-dec",
+  "wheat-grain-fao56-mediterranean-winter-nov",
+  "groundnut-fao56-west-africa-dry-season",
+  "sweet-potato-fao56-tropics-rainy-season",
+  "faba-bean-dry-fao56-mediterranean-mar-apr",
+  "faba-bean-dry-fao56-europe-may",
+  "sweet-pepper-fao56-europe-mediterranean-apr-jun",
+  "sweet-maize-fao56-idaho-apr",
+];

@@ -1,6 +1,6 @@
 import type { Catalogue, ReleasedRegistry } from "@/contracts/registry";
 import { buildCatalogueEntries, buildProfiles } from "./profiles";
-import { fao56Release1Sources, release3Sources, release4Sources, releasedSources } from "./sources";
+import { fao56Sources } from "./sources";
 import { assertValidRelease } from "./validate";
 
 export { resolveRegistry } from "./resolve";
@@ -23,53 +23,37 @@ const emptyV1 = {
   rules: [],
 };
 
-const fao56Release1 = {
+const profiles = buildProfiles();
+const reviewedRelease = {
   kind: "released",
-  identity: { catalogueVersion: "fao56-2026-11-14", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-2026-11-14", entries: buildCatalogueEntries(1) },
-  sources: fao56Release1Sources,
-  profiles: buildProfiles(1),
+  identity: { catalogueVersion: "fao56-reviewed-2026-11-15", ruleVersion: "no-rules-2026-11-14" },
+  catalogue: { version: "fao56-reviewed-2026-11-15", entries: buildCatalogueEntries(profiles) },
+  sources: fao56Sources,
+  profiles,
   rules: [],
 };
 
-const fao56Release2 = {
-  kind: "released",
-  identity: { catalogueVersion: "fao56-temperature-2026-11-14", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-temperature-2026-11-14", entries: buildCatalogueEntries(2) },
-  sources: releasedSources,
-  profiles: buildProfiles(2),
-  rules: [],
-};
-
-const fao56Release3 = {
-  kind: "released",
-  identity: { catalogueVersion: "fao56-vegetables-2026-11-15", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-vegetables-2026-11-15", entries: buildCatalogueEntries(3) },
-  sources: release3Sources,
-  profiles: buildProfiles(3),
-  rules: [],
-};
-
-const fao56Release4 = {
-  kind: "released",
-  identity: { catalogueVersion: "fao56-temperature-rules-2026-11-15", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-temperature-rules-2026-11-15", entries: buildCatalogueEntries(4) },
-  sources: release4Sources,
-  profiles: buildProfiles(4),
-  rules: [],
-};
+const retiredVersions = new Set([
+  "fao56-2026-11-14",
+  "fao56-temperature-2026-11-14",
+  "fao56-vegetables-2026-11-15",
+  "fao56-temperature-rules-2026-11-15",
+]);
 
 const releases: ReadonlyMap<string, ReleasedRegistry> = new Map(
-  [emptyV1, fao56Release1, fao56Release2, fao56Release3, fao56Release4].map(raw => {
+  [emptyV1, reviewedRelease].map(raw => {
     const release = deepFreeze(assertValidRelease(raw));
     return [release.identity.catalogueVersion, release] as const;
   }),
 );
 
 export const releasedVersions: readonly string[] = Object.freeze([...releases.keys()]);
-export const latestReleaseVersion = fao56Release4.identity.catalogueVersion;
+export const latestReleaseVersion = reviewedRelease.identity.catalogueVersion;
 
 export function readRegistryRelease(version: string = latestReleaseVersion): ReleasedRegistry {
+  if (retiredVersions.has(version)) {
+    throw new RangeError(`Retired catalogue release ${version}. Draft jobs cannot resume through ${latestReleaseVersion}.`);
+  }
   const release = releases.get(version);
   if (release === undefined) throw new RangeError(`Unknown catalogue release ${version}.`);
   return release;

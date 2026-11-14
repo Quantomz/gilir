@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { parseCropPurposeId } from "@/contracts/common";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import { assertValidRelease, InvalidReleaseError, validateRelease } from "@/registry";
 import { editableLatestRelease } from "./support";
@@ -13,7 +14,6 @@ const profileId = (id: string) => (release: ReturnType<typeof editableLatestRele
   if (profile === undefined) throw new Error(`missing ${id}`);
   return profile;
 };
-const nigeriaMaize = profileId("maize-grain-fao56-nigeria-humid-jun");
 const idahoMaize = profileId("maize-grain-fao56-idaho-apr");
 
 describe("E1 release validation", () => {
@@ -23,13 +23,13 @@ describe("E1 release validation", () => {
 
   it("rejects Kc values outside the dimensionless range", () => {
     const release = editableLatestRelease();
-    nigeriaMaize(release).kc.middle = 12;
+    idahoMaize(release).kc.middle = 12;
     expect(issuesOf(release)).toContainEqual(expect.stringMatching(/Kc middle 12 is outside/));
   });
 
   it("rejects a temperature threshold that is not plausible in degrees C", () => {
     const release = editableLatestRelease();
-    nigeriaMaize(release).temperatureRules.push({
+    idahoMaize(release).temperatureRules.push({
       id: "heat-in-kelvin", scope: { kind: "whole_occurrence" }, period: "daily", variable: "max_c",
       predicate: "above", thresholdC: 308, sourceIds: ["fao56-table12"], limitations: ["test"],
     });
@@ -38,21 +38,21 @@ describe("E1 release validation", () => {
 
   it("rejects reversed region bounds", () => {
     const release = editableLatestRelease();
-    const scope = nigeriaMaize(release).applicability.scope;
+    const scope = idahoMaize(release).applicability.scope;
     if (scope.kind !== "regional") throw new Error("expected regional scope");
-    scope.bounds[0].southDeg = 20;
-    expect(issuesOf(release)).toContainEqual(expect.stringMatching(/region south 20 is north of 13.9/));
+    scope.bounds[0].southDeg = 50;
+    expect(issuesOf(release)).toContainEqual(expect.stringMatching(/region south 50 is north of 49/));
   });
 
   it("rejects stage totals that disagree with the published duration", () => {
     const release = editableLatestRelease();
-    nigeriaMaize(release).timing.generatedStageDays.late += 5;
-    expect(issuesOf(release)).toContainEqual(expect.stringMatching(/stage total 130 days is outside the published duration 125-125/));
+    idahoMaize(release).timing.generatedStageDays.late += 5;
+    expect(issuesOf(release)).toContainEqual(expect.stringMatching(/stage total 175 days is outside the published duration 170-170/));
   });
 
   it("rejects missing source references", () => {
     const release = editableLatestRelease();
-    nigeriaMaize(release).kc.sourceIds = ["fao56-table99"];
+    idahoMaize(release).kc.sourceIds = ["fao56-table99"];
     expect(issuesOf(release)).toContainEqual(expect.stringMatching(/kc: unknown source reference fao56-table99/));
   });
 
@@ -60,7 +60,7 @@ describe("E1 release validation", () => {
     expect(issuesOf(syntheticRegistryFixture).length).toBeGreaterThan(0);
 
     const syntheticStatus = editableLatestRelease();
-    (nigeriaMaize(syntheticStatus) as { status: string }).status = "synthetic";
+    (idahoMaize(syntheticStatus) as { status: string }).status = "synthetic";
     expect(issuesOf(syntheticStatus)).toContainEqual(expect.stringMatching(/^schema profiles\.\d+\.status/));
 
     const syntheticSource = editableLatestRelease();
@@ -70,7 +70,7 @@ describe("E1 release validation", () => {
 
   it("rejects released profiles without a review record", () => {
     const release = editableLatestRelease();
-    delete (nigeriaMaize(release) as { review?: unknown }).review;
+    delete (idahoMaize(release) as { review?: unknown }).review;
     expect(issuesOf(release)).toContainEqual(expect.stringMatching(/^schema profiles\.\d+\.review/));
   });
 
@@ -84,8 +84,8 @@ describe("E1 release validation", () => {
 
   it("rejects catalogue entries without profiles and profiles outside the catalogue", () => {
     const release = editableLatestRelease();
-    release.catalogue.entries.push({ id: "teff-grain" as never, label: "Teff (grain)", purpose: "food" });
-    nigeriaMaize(release).cropPurposeId = "maize-silage" as never;
+    release.catalogue.entries.push({ id: parseCropPurposeId("teff-grain"), label: "Teff (grain)", purpose: "food" });
+    idahoMaize(release).cropPurposeId = parseCropPurposeId("maize-silage");
     const issues = issuesOf(release);
     expect(issues).toContainEqual("catalogue teff-grain: no released profile with this crop-purpose");
     expect(issues).toContainEqual(expect.stringMatching(/crop-purpose maize-silage is not in the catalogue/));
@@ -108,8 +108,8 @@ describe("E1 release validation", () => {
 
   it("throws a named error listing every issue", () => {
     const release = editableLatestRelease();
-    nigeriaMaize(release).kc.middle = 12;
-    nigeriaMaize(release).kc.sourceIds = ["missing"];
+    idahoMaize(release).kc.middle = 12;
+    idahoMaize(release).kc.sourceIds = ["missing"];
     expect(() => assertValidRelease(release)).toThrow(InvalidReleaseError);
     try {
       assertValidRelease(release);

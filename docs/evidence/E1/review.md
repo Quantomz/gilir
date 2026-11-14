@@ -1,5 +1,7 @@
 # E1 independent source review
 
+> Superseded draft evidence. This document preserves the original E1 curation and review narrative. It does not establish acceptance of the corrected release. The four draft identities are retired; see [current remediation](remediation.md).
+
 **Reviewer:** a separate Claude agent, run on 2026-11-14. It was given only the profile file, the region file and the FAO-56 URL, not the author's conclusions, and was told to distrust the transcription. It re-downloaded the raw FAO-56 Chapter 6 HTML, parsed it independently, and checked ROWSPAN attributes to confirm which crop each unlabelled Table 11 row belongs to.
 
 **Not a human review.** The card asks for "a second person or independent review". This agent check is the independent review recorded in each profile's `review.reviewer` field. The PR asks a human teammate to confirm before merge. This is not a cross-family review.

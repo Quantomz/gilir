@@ -1,5 +1,7 @@
 # E1 release `fao56-temperature-2026-11-14`
 
+> Superseded draft evidence. This document preserves the original E1 curation and review narrative. It does not establish acceptance of the corrected release. The four draft identities are retired; see [current remediation](remediation.md).
+
 This release adds daily temperature rules for maize, common bean and wheat, and 16 more crops from FAO-56. The earlier release `fao56-2026-11-14` is still served unchanged for frozen-job retries. A byte-for-byte JSON comparison against the committed version confirmed this. The research behind the choices is in the local report "Crop temperature limits and parameters" (git-ignored `reports/`), produced from peer-reviewed and FAO sources only.
 
 **Spec 1.1 update (2026-11-15).** After main merged the spec 1.1 contract (#26), every release record dropped its empty `coverage` field to pass the strict schema. All other data in every release is unchanged, and catalogue and rule versions are kept.

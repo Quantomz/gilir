@@ -1,5 +1,7 @@
 # E1 source comparison: FAO-56 release `fao56-2026-11-14`
 
+> Superseded draft evidence. This document preserves the original E1 curation and review narrative. It does not establish acceptance of the corrected release. The four draft identities are retired; see [current remediation](remediation.md).
+
 Source page: [FAO-56 Chapter 6](https://www.fao.org/4/x0490e/x0490e0b.htm), extracted 2026-11-14 from the raw HTML (not a summary). Registry source IDs: `fao56-table11` (stage lengths) and `fao56-table12` (crop coefficients).
 
 All values are FAO-56 **examples for the stated region and planting period** under standard (non-stressed, well-managed) conditions. They are not local observations or a validation for any farm.
