@@ -194,7 +194,6 @@ describe("E1 registry releases", () => {
       expect(profile.preparation).toEqual([]);
     }
     expect(release.rules).toEqual([]);
-    expect(release.coverage).toEqual([]);
   });
 
   it("flags paddy rice water losses and omits unconfirmed groundnut planting months", () => {

@@ -91,16 +91,19 @@ describe("E1 release validation", () => {
     expect(issues).toContainEqual(expect.stringMatching(/crop-purpose maize-silage is not in the catalogue/));
   });
 
-  it("rejects pest and weed rules and coverage manifests, which spec 1.1 removed", () => {
-    const release = editableLatestRelease();
-    release.rules.push({
-      status: "released", review: { reviewer: "test", reviewedOn: "2026-11-14" as never },
+  it("rejects coverage manifests and pest rules, which the spec 1.1 contract removed", () => {
+    const withCoverage = { ...editableLatestRelease(), coverage: [] };
+    expect(issuesOf(withCoverage)).toContainEqual(expect.stringMatching(/^schema \(root\)/));
+
+    const withPestRule = editableLatestRelease();
+    (withPestRule.rules as unknown[]).push({
+      status: "released", review: { reviewer: "test", reviewedOn: "2026-11-14" },
       id: "pest-break", version: "1", target: "Example pest", category: "pest",
       applicability: { scope: { kind: "broad" }, exclusions: [], managementAssumptions: [] },
-      predicate: { kind: "minimum_host_free_break", hostCropPurposeIds: ["maize-grain" as never], nonHostCropPurposeIds: [], requiredBreakDays: 30 },
+      predicate: { kind: "prohibit_successor", predecessorCropPurposeIds: ["maize-grain"], successorCropPurposeIds: ["maize-grain"] },
       limitations: [], preparation: [], sourceIds: ["fao56-table11"],
     });
-    expect(issuesOf(release)).toContainEqual(expect.stringMatching(/rule pest-break: pest and weed rules are outside the MVP/));
+    expect(issuesOf(withPestRule)).toContainEqual(expect.stringMatching(/^schema rules\.0\.category/));
   });
 
   it("throws a named error listing every issue", () => {

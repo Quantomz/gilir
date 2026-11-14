@@ -58,4 +58,4 @@ Footnote 1 applies to every Kc ini: the values are general, and frequent wetting
 | Scientific names | *Zea mays*, *Phaseolus vulgaris*, *Triticum* spp. | FAO-56 uses common names only. Mapping "Beans (dry)" to *Phaseolus vulgaris* is an assumption. |
 | Temperature rules | None released | FAO-56 Tables 11-12 give no daily heat or cold limits. Temperature checks stay unassessed. |
 | Preparation text | None released | The cited sources contain no preparation steps. |
-| Pest/weed rules and coverage | None | Removed from the MVP (spec 1.1, section 3.4). `pestCoverage` is always unavailable. |
+| Pest/weed rules and coverage | None | Removed from the MVP (spec 1.1, section 3.4). Pest/weed rules, coverage manifests and `pestCoverage` are not part of the contract (spec 1.1, #26). |

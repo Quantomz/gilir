@@ -69,10 +69,8 @@ describe("E1 registry resolution with the FAO-56 release", () => {
     expect(bean.temperatureRules.map(rule => [rule.variable, rule.thresholdC])).toEqual([["max_c", 30], ["min_c", 20]]);
   });
 
-  it("always reports pest coverage as unavailable and releases no rotation rules", () => {
-    const resolution = resolveAt(["maize-grain"], places.ibadanNigeria);
-    expect(resolution.pestCoverage.kind).toBe("unavailable");
-    expect(resolution.rules).toEqual([]);
+  it("releases no rotation rules", () => {
+    expect(resolveAt(["maize-grain"], places.ibadanNigeria).rules).toEqual([]);
   });
 });
 

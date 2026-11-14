@@ -21,7 +21,6 @@ const emptyV1 = {
   sources: [],
   profiles: [],
   rules: [],
-  coverage: [],
 };
 
 const fao56Release1 = {
@@ -31,7 +30,6 @@ const fao56Release1 = {
   sources: fao56Release1Sources,
   profiles: buildProfiles(1),
   rules: [],
-  coverage: [],
 };
 
 const fao56Release2 = {
@@ -41,7 +39,6 @@ const fao56Release2 = {
   sources: releasedSources,
   profiles: buildProfiles(2),
   rules: [],
-  coverage: [],
 };
 
 const fao56Release3 = {
@@ -51,7 +48,6 @@ const fao56Release3 = {
   sources: release3Sources,
   profiles: buildProfiles(3),
   rules: [],
-  coverage: [],
 };
 
 const fao56Release4 = {
@@ -61,7 +57,6 @@ const fao56Release4 = {
   sources: release4Sources,
   profiles: buildProfiles(4),
   rules: [],
-  coverage: [],
 };
 
 const releases: ReadonlyMap<string, ReleasedRegistry> = new Map(

@@ -3,11 +3,6 @@ import type { CropProfile, RegistryLookup, RegistryRelease, RegistryResolution, 
 import type { EvidenceGap } from "@/contracts/result";
 import { isApplicable, scopeLevel } from "./applicability";
 
-export const pestCoverageUnavailable = {
-  kind: "unavailable",
-  reason: "Pest and weed assessment is outside the MVP (spec 1.1, section 3.4).",
-} as const;
-
 function gap(cropPurposeId: CropPurposeId, reason: string): EvidenceGap {
   return { code: "crop_profile", reason, cropPurposeIds: [cropPurposeId], sourceIds: [] };
 }
@@ -44,9 +39,7 @@ function selectProfile(cropPurposeId: CropPurposeId, lookup: RegistryLookup, reg
 }
 
 function ruleCrops(rule: RotationRule): readonly string[] {
-  return rule.predicate.kind === "minimum_host_free_break"
-    ? [...rule.predicate.hostCropPurposeIds, ...rule.predicate.nonHostCropPurposeIds]
-    : [...rule.predicate.predecessorCropPurposeIds, ...rule.predicate.successorCropPurposeIds];
+  return [...rule.predicate.predecessorCropPurposeIds, ...rule.predicate.successorCropPurposeIds];
 }
 
 export function resolveRegistry(lookup: RegistryLookup, registry: RegistryRelease): RegistryResolution {
@@ -60,9 +53,8 @@ export function resolveRegistry(lookup: RegistryLookup, registry: RegistryReleas
   }
   const selectedIds = new Set<string>(selected);
   const rules = registry.rules
-    .filter(rule => rule.category !== "pest" && rule.category !== "weed")
     .filter(rule => ruleCrops(rule).some(id => selectedIds.has(id)))
     .filter(rule => isApplicable(rule.applicability, lookup) === "inside")
     .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
-  return { profiles, gaps, rules, pestCoverage: pestCoverageUnavailable };
+  return { profiles, gaps, rules };
 }

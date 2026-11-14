@@ -122,9 +122,7 @@ function checkRules(release: ReleasedRegistry): string[] {
   for (const rule of release.rules) {
     if (seen.has(rule.id)) issues.push(`rule ${rule.id}: duplicate id`);
     seen.add(rule.id);
-    if (rule.category === "pest" || rule.category === "weed") issues.push(`rule ${rule.id}: pest and weed rules are outside the MVP (spec 1.1, section 3.4)`);
   }
-  if (release.coverage.length > 0) issues.push("coverage manifests are outside the MVP (spec 1.1, section 3.4)");
   return issues;
 }
 

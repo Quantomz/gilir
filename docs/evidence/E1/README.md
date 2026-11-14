@@ -37,7 +37,7 @@ Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8
 **Both releases**
 - **Turnaround:** 7 days, labelled as a Gilir scheduling assumption.
 - **Not released:** preparation text and rotation rules. The cited sources contain none.
-- **Pest/weed coverage:** none. `pestCoverage` is always unavailable (spec 1.1).
+- **Pest/weed coverage:** none. Pest/weed rules, coverage manifests and `pestCoverage` are not part of the contract (spec 1.1, #26).
 
 ## Verification (2026-11-15, latest release)
 
@@ -45,10 +45,10 @@ Node: the repo requires Node >= 24. This machine has no Node 24, so the checks r
 
 | Command | Result |
 |---|---|
-| `npx vitest run tests/engine/registry` | 5 files, 51 tests passed |
-| `npm run check` | typecheck passed; 15 files / 115 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
+| `npx vitest run tests/engine/registry` | 6 files, 61 tests passed |
+| `npm run check` | typecheck passed; 39 files / 490 tests passed, 5 files / 29 tests skipped (live suites, unchanged by E1); module boundaries passed |
 | `npm run build` | passed |
-| JSON comparison of all four earlier releases against the committed versions | byte-for-byte identical |
+| Earlier releases | unchanged except the empty `coverage` field removed to match the spec 1.1 contract |
 
 E1 tests use the real release data, plus labelled synthetic fixtures (`syntheticRegistryFixture`) for resolution-rule edge cases. Fixture tests are component evidence only; a live plan from this data belongs to I2.
 
