@@ -121,6 +121,8 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
         if (!response.missing.some(required)) throw new Error("An insufficient assessment did not identify missing required evidence.");
         throw new MissingRankingEvidence(response.missing);
       }
+      const missing = response.unassessedChecks.filter(required);
+      if (missing.length) throw new MissingRankingEvidence(missing);
       const candidate = { calendar, assessment: response };
       rankingTuple(candidate, run.settings.rankingDecimalPlaces);
       return candidate;

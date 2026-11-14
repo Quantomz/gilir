@@ -130,6 +130,46 @@ describe("accepted E3 corrections", () => {
     if (result.state === "insufficient_data") expect(result.missing).toContainEqual(gap);
   });
 
+  it.each<EvidenceGap["code"]>(["climate", "crop_profile", "ranking_metric", "rotation_rule"])(
+    "withholds a plan when an assessed response leaves required %s evidence unassessed", code => {
+      const p = profile("crop-a", 365);
+      const gap: EvidenceGap = { code, reason: "Synthetic required evidence remains unassessed.", cropPurposeIds: [p.cropPurposeId], sourceIds: [] };
+      const result = calculate(run([p]), registry([p]), options(input => ({ ...assessment(input.calendar), unassessedChecks: [gap] })));
+      expect(result.state).toBe("insufficient_data");
+      if (result.state === "insufficient_data") expect(result.missing).toEqual([gap]);
+      expect("plan" in result).toBe(false);
+      expect(parsePlanResult(result)).toEqual(result);
+    });
+
+  it.each<EvidenceGap["code"]>(["temperature_rule", "history"])("preserves optional assessed %s gaps with a plan", code => {
+    const p = profile("crop-a", 365);
+    const gap: EvidenceGap = { code, reason: "Synthetic optional evidence remains unassessed.", cropPurposeIds: [p.cropPurposeId], sourceIds: [] };
+    const result = calculate(run([p]), registry([p]), options(input => ({ ...assessment(input.calendar), unassessedChecks: [gap] })));
+    expect(result.state).toBe("plan");
+    expect(result.details.unassessedChecks).toContainEqual(gap);
+  });
+
+  it.each(["first", "later", "both"])("limits an unknown predecessor gap to the selected first crop when rules target %s crops", target => {
+    const a = profile("crop-a", 180);
+    const b = profile("crop-b", 180);
+    const successors = target === "first" ? [a.cropPurposeId] : target === "later" ? [b.cropPurposeId] : [a.cropPurposeId, b.cropPurposeId];
+    const result = calculate(run([a, b]), registry([a, b], [prohibition(["old-context"], successors)]), options());
+    expect(result.state).toBe("plan");
+    if (result.state !== "plan") return;
+    expect(result.plan.occurrences.map(item => item.cropPurposeId)).toEqual([a.cropPurposeId, b.cropPurposeId]);
+    const gaps = result.details.unassessedChecks.filter(item => item.code === "history");
+    expect(gaps).toHaveLength(target === "later" ? 0 : 1);
+    if (target !== "later") expect(gaps[0].cropPurposeIds).toEqual([a.cropPurposeId]);
+  });
+
+  it("discloses selected-crop predecessor uncertainty when no plan was selected", () => {
+    const a = profile("crop-a", 180);
+    const b = profile("crop-b", 180);
+    const result = calculate(run([a, b], { structuralExpansionLimit: 0 }), registry([a, b], [prohibition(["old-context"], [b.cropPurposeId])]), options());
+    expect(result.state).toBe("search_incomplete");
+    expect(result.details.unassessedChecks).toContainEqual(expect.objectContaining({ code: "history", cropPurposeIds: [b.cropPurposeId] }));
+  });
+
   it.each(["skipped", "uncovered_tail", "unsupported", "known_fallow"])("discloses unknown successor checks at the initial boundary for %s history", mode => {
     const p = profile();
     const value = historyRun(p);

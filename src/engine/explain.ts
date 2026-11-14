@@ -68,8 +68,10 @@ export function explainResult(input: ExplanationInput): ResultDetails {
   if (input.run.input.water === "unsure") warnings.push({ code: "water_context",
     message: "Water availability is uncertain. Every calculation assumes rainfall alone.", cropPurposeIds: [], ruleIds: [], metricIds: [] });
   const history = input.run.input.history;
+  const boundaryCropIds = input.selected ? input.selected.calendar.occurrences.slice(0, 1).map(occurrence => occurrence.cropPurposeId)
+    : input.run.input.cropPurposeIds;
   const boundaryRules = initialPredecessor(input.run.input) === null ? input.rules.filter(rule =>
-    rule.predicate.successorCropPurposeIds.some(id => input.run.input.cropPurposeIds.includes(id))) : [];
+    rule.predicate.successorCropPurposeIds.some(id => boundaryCropIds.includes(id))) : [];
   if (history.kind === "recorded" && history.entries.some(entry => entry.kind === "crop" && (entry.plantedPrecision === "approximate" || entry.harvestedPrecision === "approximate"))) {
     warnings.push({ code: "approximate_history", message: "Historical dates are estimates. Any historical comparison retains that uncertainty.", cropPurposeIds: [], ruleIds: [], metricIds: [] });
   }
@@ -113,7 +115,7 @@ export function explainResult(input: ExplanationInput): ResultDetails {
   if (boundaryRules.length) unassessedChecks.push({ code: "history",
     reason: "The initial predecessor is unknown, so applicable successor prohibitions could not be assessed at the planning boundary.",
     cropPurposeIds: [...new Set(boundaryRules.flatMap(rule => rule.predicate.successorCropPurposeIds)
-      .filter(id => input.run.input.cropPurposeIds.includes(id)))].sort(compareText),
+      .filter(id => boundaryCropIds.includes(id)))].sort(compareText),
     sourceIds: [...new Set(boundaryRules.flatMap(rule => rule.sourceIds))].sort(compareText) });
   return { explanation, insights: input.insights, metrics: input.selected?.assessment.metrics ?? [],
     seasonMetrics: input.selected?.assessment.seasonMetrics ?? [], warnings, unassessedChecks,
