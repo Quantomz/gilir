@@ -1,0 +1,8 @@
+ts	phase	decision	why	evidence	result
+2026-11-14T11:30:00Z	design	Use a direct parameterized SQL adapter behind JobStore	The frozen port already owns the job lifecycle and callers need one factory	src/server/jobs/index.ts	coordinator approved
+2026-11-14T11:38:39Z	verification	Keep completion timestamps in ISO UTC form	Real PostgreSQL reformatted a shared timestamp parameter and snapshot parsing rejected it	tests/backend/jobs/store.test.ts	fixed and verified
+2026-11-14T11:39:50Z	verification	Exercise restart with separate Node processes	A new pool alone does not prove submitted state survives process exit	tests/backend/jobs/restart-process.ts	passed on PostgreSQL 18
+2026-11-14T11:44:44Z	configuration	Make singleton methods reject asynchronously	Missing configuration must obey the promised async port	tests/backend/api/configuration.test.ts	fixed and verified
+2026-11-14T11:46:31Z	persistence	Require the completed result manifest to match the frozen run	A result must identify the same immutable run that was calculated	tests/backend/jobs/store.test.ts	coordinator approved and tests passed
+2026-11-14T11:47:39Z	verification	Run the exact B1 card test command against local PostgreSQL and HTTP	Fixtures alone do not establish durable-store or transport behavior	docs/evidence/B1/README.md	21 tests passed with no skips
+2026-11-14T11:49:38Z	audit	The preceding entries were recorded retrospectively; their timestamps identify nearby verification runs	The design timestamp was not measured and must not be treated as an exact event time	docs/evidence/B1/decisions.tsv	design timing unverified; verification results unchanged
