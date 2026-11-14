@@ -1,0 +1,6 @@
+ts	phase	decision	why	evidence	result
+2026-11-14T11:42:18Z	design	Keep FrozenRun unchanged and calculate ready and unavailable snapshots	Replay must preserve the same scientific inputs and result semantics	docs/contracts.md	Engine owns scientific completeness on initial run and retry
+2026-11-14T11:38:31Z	lease	Run production calculation in a thread and renew before completion	Synchronous calculation blocks parent-thread timers	tests/backend/worker/runtime.test.ts	Blocking calculation and expired-owner tests pass
+2026-11-14T11:39:13Z	cache	Store immutable snapshots separately from native-cell cache pointers	A cache refresh must preserve prior snapshot identity	tests/backend/worker/cache.test.ts	PostgreSQL persistence and snapshot-conflict tests pass
+2026-11-14T11:40:36Z	process	Start separate child processes for crash and shutdown checks	B3 lifecycle acceptance must run before B1 integration	tests/backend/worker/process.test.ts	Process restart replay and SIGTERM drain pass
+2026-11-14T11:47:48Z	provenance	Reject engine output without the exact frozen run manifest	Completion must bind the result to the claimed immutable inputs	tests/backend/worker/runtime.test.ts	Synthetic and unavailable or mismatched provenance are rejected
