@@ -24,12 +24,12 @@ The process suite starts a child worker, exits it immediately after the freeze f
 
 The required `npm run check` and `npm run build` passed. The check run reported 36 passing tests and four PostgreSQL tests skipped because that separate command omitted `B3_TEST_DATABASE_URL`. The explicitly configured worker-suite command ran all four PostgreSQL cases successfully.
 
-`git diff --check` passed. A deslop pass reviewed the runtime, scripts, SQL, tests, and documentation before the implementation commit. Independent no-comments and correctness review are coordinated on the exact committed change.
+`git diff --check` passed. A deslop pass reviewed the runtime, scripts, SQL, tests, and documentation before the implementation commit. Independent correctness and no-comments review passed at `d63694aeea6d91217922b0429b5944e4c7e73b47`. The reviewer independently ran all 28 worker tests, including the four PostgreSQL cases, and the production build.
 
 ## Integration evidence
 
-Real B1 durable-job composition, worker readiness against the complete migrated schema, cleanup retention, HTTP delivery, and real NASA plus engine behavior belong to I1 and I2. The baseline contains explicit unimplemented B1, B2, and engine entrypoints. B3 introduces no production fixture import.
+Real B1 durable-job composition, worker readiness against the complete migrated schema, cleanup retention, HTTP delivery, and real NASA plus engine behavior belong to I1 and I2. B1 and B2 are now merged into main and included in this branch. The teammate engine entrypoints remain unimplemented. B3 introduces no production fixture import.
 
-The coordinator adds the root `worker`, `worker:check`, and `cleanup` package scripts after the B3 implementation commit. The operations commands use those agreed names. The B1 migration runner supplies the migration command.
+The root package scripts include `worker`, `worker:check`, and `cleanup`. The operations commands use those agreed names. The B1 migration runner supplies the migration command.
 
 The coordinator verifies GitHub CI, independent review, and merge status on the final PR head. This record contains the local component evidence.

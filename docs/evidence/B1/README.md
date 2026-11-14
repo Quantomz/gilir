@@ -62,10 +62,10 @@ The initial missing-adapter test failed before implementation. Real PostgreSQL t
 
 ## Review and remaining gates
 
-The implementation was inspected with the pstack deslop criteria. The source scan found no added comments, TypeScript suppressions, or casts. The coordinator owns the independent exact-commit review and no-comments review. They had not run when this evidence record was written.
+The implementation was inspected with the pstack deslop criteria. Independent GPT-6 Astra review passed the implementation at `aeac4a732f78e5b3c3c2b4f48772f12a3595fd10`. It reran all 21 B1 tests, all 33 repository tests, typechecking, boundaries and the production build. Additional real-database probes covered twenty concurrent job claims, exact lease expiry, competing terminal writes and completed-result expiry. A fresh comment and suppression audit found no actionable findings. A minor stale migration-command status was corrected in this completion update.
 
 The pstack skill was `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, using the Feature playbook. The frozen contracts and direct parameterized SQL adapter were approved by the coordinator. No architect arena or cross-family review is claimed. The available configured reviewers are all from the GPT family.
 
-The root npm migration script, independent review, PR, CI, and merge remain coordinator gates. B1 does not establish assembled worker behavior, live NASA retrieval, released crop coverage, or any I1, I2, or I3 completion. No deployment, paid service, or hackathon submission occurred.
+The root npm migration script passed against PostgreSQL 18. [PR #19](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/19) records final CI and merge status. CI now runs the database cases against a PostgreSQL 18 service. B1 does not establish assembled worker behavior, live NASA retrieval, released crop coverage, or any I1, I2, or I3 completion. No deployment, paid service, or hackathon submission occurred.
 
 The SQL locking choice follows the [PostgreSQL 18 SELECT documentation](https://www.postgresql.org/docs/18/sql-select.html). The persistent volume path follows the [official PostgreSQL Docker image documentation](https://hub.docker.com/_/postgres). Parameter binding and migration transactions follow [node-postgres query documentation](https://node-postgres.com/features/queries) and [transaction documentation](https://node-postgres.com/features/transactions).
