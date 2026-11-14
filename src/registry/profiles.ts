@@ -1,4 +1,9 @@
-import { fao56Table11, fao56Table12, gourdji2013, luo2011, qin2020, silva2020, teixeira2013, vargas2021 } from "./sources";
+import {
+  alharbi2021, aloni2001, bishop2016, brooking1976, darnell2012, djanaguiraman2018, fao56Table11, fao56Table12, frederiks2015,
+  gautam2024, gourdji2013, hnilickova2017, karniAloni2002, kaya2025, kimLee2019, konsens1991, leskovar1999, luo2011,
+  patelHall1990, prasad2006, prasad2015, pressman2002, priya2019, qin2020, rosen2018, sato2002, sato2006, seppanen2001, silva2020,
+  sita2017, tao2026, teixeira2013, vargas2021,
+} from "./sources";
 import { regionBoxNote, regions } from "./regions";
 import type { RegionBounds } from "./regions";
 
@@ -14,6 +19,11 @@ export const reviewRecordRelease2 = {
 
 export const reviewRecordRelease3 = {
   reviewer: "Independent source check by a separate Claude agent against FAO-56 Tables 11-12, Luo 2011 and Qin et al. 2020 (docs/evidence/E1/review.md, release 3); human peer confirmation pending",
+  reviewedOn: "2026-11-15",
+} as const;
+
+export const reviewRecordRelease4 = {
+  reviewer: "Independent source check by a separate Claude agent of the release-4 temperature rules against their cited papers (docs/evidence/E1/review.md, release 4); human peer confirmation pending",
   reviewedOn: "2026-11-15",
 } as const;
 
@@ -38,12 +48,16 @@ const airTemperature = "Uses screen air temperature from weather data, not canop
 const gourdjiVariable =
   "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.";
 
+type StageName = "initial" | "development" | "middle" | "late";
+type Predicate = "above" | "below" | "at_or_above" | "at_or_below";
+type Variable = "max_c" | "mean_c" | "min_c";
+
 type TemperatureRule = {
   readonly id: string;
-  readonly scope: { readonly kind: "stage"; readonly stage: "middle" } | { readonly kind: "whole_occurrence" };
+  readonly scope: { readonly kind: "stage"; readonly stage: StageName } | { readonly kind: "whole_occurrence" };
   readonly period: "daily";
-  readonly variable: "max_c" | "min_c";
-  readonly predicate: "above" | "at_or_below";
+  readonly variable: Variable;
+  readonly predicate: Predicate;
   readonly thresholdC: number;
   readonly sourceIds: readonly string[];
   readonly limitations: readonly string[];
@@ -361,6 +375,143 @@ const crops = {
 } as const satisfies Record<string, Crop>;
 
 type CropKey = keyof typeof crops;
+
+const rule = (id: string, scope: StageName | "whole_occurrence", variable: Variable, predicate: Predicate, thresholdC: number, sourceIds: readonly string[], limitations: readonly string[]): TemperatureRule =>
+  ({ id, scope: scope === "whole_occurrence" ? { kind: "whole_occurrence" } : { kind: "stage", stage: scope }, period: "daily", variable, predicate, thresholdC, sourceIds, limitations });
+
+const canopyFrost =
+  "Canopy air temperature after head emergence, from a review; on radiant-frost nights the canopy runs colder than the weather screen and the source gives no screen-to-canopy offset, so a screen minimum at this value under-warns.";
+
+const release4Rules: Partial<Record<CropKey, readonly TemperatureRule[]>> = {
+  wheat: [
+    rule("wheat-frost-mid-tmin-minus3.5", "middle", "min_c", "at_or_below", -3.5, [frederiks2015.id], [
+      "Frederiks et al. 2015: at crop canopy air temperatures of -3.5 to -4.5 °C and below, post-head-emergence wheat can suffer damage; the warmer end is used.",
+      canopyFrost, "One night can cause damage. The FAO-56 mid-season stage can begin before head emergence.", airTemperature,
+    ]),
+  ],
+  barley: [
+    rule("barley-frost-whole-tmin-minus12.9", "whole_occurrence", "min_c", "at_or_below", -12.9, [luo2011.id, frederiks2015.id], [
+      "Lethal temperature (LT50) of cold-hardened winter barley in freezing tests across 20 cultivars (Luo 2011 Table 2, from Prasil et al. 2007; range -17.3 to -12.9 °C, warmest endpoint used).",
+      "Measured on hardened plants in freezing tests, not screen air. Spring-sown or dehardened barley dies at warmer temperatures, so this rule under-warns for those crops.",
+    ]),
+    rule("barley-frost-mid-tmin-minus4", "middle", "min_c", "at_or_below", -4, [frederiks2015.id], [
+      "Frederiks et al. 2015: barley after head emergence suffers significant damage at crop canopy temperatures of about -4 to -5 °C; the warmer end is used.",
+      canopyFrost, "One night can cause damage. The FAO-56 mid-season stage can begin before head emergence.", airTemperature,
+    ]),
+  ],
+  sorghum: [
+    rule("sorghum-heat-mid-tmean-31", "middle", "mean_c", "at_or_above", 31, [prasad2015.id, prasad2006.id, djanaguiraman2018.id], [
+      "Lowest damaging chamber regime (36/26 °C, daily mean 31 °C) in three studies; the fitted curve gives about 73% floret fertility at a 31 °C mean after 10 days from panicle emergence.",
+      "Chamber diurnal range was 10 °C. The sensitive window (about 10 days before to 5 days after anthesis) is shorter than the mid-season stage.",
+      "Genotypes differ; in one study, field heat-tent decreases in pollen viability were smaller than chamber decreases (Djanaguiraman et al. 2018).",
+    ]),
+    rule("sorghum-heat-mid-tmean-35", "middle", "mean_c", "at_or_above", 35, [luo2011.id, prasad2015.id], [
+      "Failure point (Tfp) of a season-long 40/30 °C chamber regime for grain yield, harvest index, pollen viability and seed set (mean 35 °C; Luo 2011 Table 2, from Prasad et al. 2006).",
+      "Prasad et al. 2006 report that 40/30 °C inhibited panicle emergence; a 10-day episode at a 35 °C mean cut floret fertility by about two-thirds (Prasad et al. 2015). The regime-to-mean mapping is arithmetic.",
+    ]),
+    rule("sorghum-cold-mid-tmin-10", "middle", "min_c", "at_or_below", 10, [brooking1976.id], [
+      "Five 10 °C nights at the pollen-mother-cell stage caused male sterility in one hybrid in a controlled environment (Brooking 1976); one treatment only, so the onset temperature is not located.",
+      "Booting is mapped to the mid-season stage by inference and may fall in late development. The rule also fires on cool nights in grain fill, when this mechanism no longer applies.",
+    ]),
+  ],
+  groundnut: [
+    rule("groundnut-heat-mid-tmax-37", "middle", "max_c", "above", 37, [luo2011.id], [
+      "Luo 2011 section 3 (Vara Prasad et al. 2000): fruit set was not affected by air temperature below 37 °C and declined rapidly above it, with no fruit set at 44 °C.",
+      "The primary study (Vara Prasad et al. 2000, one cultivar, not cited here) used 2-6 day day-temperature episodes; fruit set fell with floral-bud temperatures above 36 °C in morning or whole-day heat, not afternoon-only.",
+      "So a daily-maximum rule can over-warn. Each flower is sensitive from 6 days before to 1 day after opening (Prasad et al. 2001, via Luo).",
+      "Luo also gives a yield failure point of 40 °C and an optimum below 31 °C for pollen viability and seed set (Prasad et al. 2003); season-long moderate warmth is not captured by this rule.",
+    ]),
+  ],
+  lentil: [
+    rule("lentil-heat-mid-tmax-32", "middle", "max_c", "above", 32, [sita2017.id], [
+      "Field threshold stated as max/min above 32/20 °C (7-day means) during flowering and pod filling; only the maximum is encoded.",
+      "The 32/20 °C figure originates in a conference paper (Delahunty et al. 2015). In the chamber, 35/25 °C cut pods by 29-52%. Genotypes differ.",
+    ]),
+  ],
+  faba: [
+    rule("faba-bean-heat-mid-tmax-28", "middle", "max_c", "at_or_above", 28, [bishop2016.id], [
+      "Bishop et al. 2016: t50 about 28 °C for the yield of flowers present during 5 days of chamber stress at floral development and anthesis; pollen germination halves at about 31.7 °C.",
+      "Day temperature with nights 8 °C lower; whole-plant yield partly compensated at higher nodes. Field nights are usually cooler, so the rule over-warns.",
+    ]),
+    rule("faba-bean-frost-mid-tmin-minus4", "middle", "min_c", "at_or_below", -4, [alharbi2021.id], [
+      "Two field frost events (a windy -4.19 °C frost aborted all tagged flowers; an airport-station minimum of -3.9 °C with 8 h below freezing damaged stems and pods), not a fitted threshold; damage may begin at warmer temperatures.",
+      "Alharbi et al. describe flowering as the most frost-sensitive stage, so the rule is limited to mid-season; seedling-stage frost damage was also observed, so it may under-warn before flowering.", airTemperature,
+    ]),
+  ],
+  mungBean: [
+    rule("mung-bean-heat-mid-tmax-36", "middle", "max_c", "above", 36, [priya2019.id], [
+      "Literature threshold of above 36/28 °C at the reproductive stage (flower loss, poor pod set), cited by Priya et al. 2019 from Kaur et al. 2015, which was not read; only the day value is encoded.",
+      "The cited optimum is about 35/25 °C. In Priya et al.'s chamber study (one genotype), 45/30 °C from the reproductive stage to maturity cut pod set from 76.4% to 36.2%.",
+    ]),
+  ],
+  cowpea: [
+    rule("cowpea-heat-mid-tmin-24", "middle", "min_c", "at_or_above", 24, [patelHall1990.id, luo2011.id], [
+      "Mean daily minimum at a field site (mean max/min 41/24 °C) where heat-susceptible genotypes aborted floral buds; confounded with the 41 °C maximum and long photoperiods.",
+      "Damage may begin at cooler nights, so this rule can fire late. The most sensitive window is 7-9 days before anthesis (Ahmed et al. 1992, via Luo 2011); heat-tolerant genotypes differ.",
+    ]),
+  ],
+  sunflower: [
+    rule("sunflower-frost-whole-tmin-minus4", "whole_occurrence", "min_c", "at_or_below", -4, [kaya2025.id, hnilickova2017.id], [
+      "Chamber frost of -4 °C for 4 hours killed on average 4.1% (two leaves) and 19.4% (four leaves) of seedlings across 14 hybrids, up to 80.7% in the most sensitive hybrid; -3 °C for 10 hours caused only recoverable injury.",
+      "Mortality rose with leaf stage and no reproductive-stage value exists, so later frosts probably damage at warmer temperatures.", airTemperature,
+    ]),
+  ],
+  potato: [
+    rule("potato-frost-whole-tmin-minus2.5", "whole_occurrence", "min_c", "at_or_below", -2.5, [seppanen2001.id], [
+      "Lethal temperature of cultivated potato foliage (Seppänen et al. 2001, range -2.5 to -3.0 °C; warmer endpoint used); the canopy is destroyed below -4 °C.",
+      "Shoots still in the soil before emergence are protected, so the rule over-warns early in the initial stage.", airTemperature,
+    ]),
+    rule("potato-night-heat-development-tmin-18", "development", "min_c", "above", 18, [kimLee2019.id, gautam2024.id], [
+      "Gautam et al. 2024 state (introduction, uncited) that night temperatures above 18 °C reduce tuberization; field warming of mean night temperature from 17.8 to 21.7 °C for 14 days at tuber initiation cut yield 17% (Kim & Lee 2019).",
+      "Daily minimum sits below the night mean, so the rule fires late. Mapping tuber initiation to the development stage is an inference.",
+    ]),
+  ],
+  cauliflower: [
+    rule("cauliflower-curd-development-tmean-20", "development", "mean_c", "above", 20, [rosen2018.id], [
+      "Rosen et al. 2018: temperatures above 20 °C delay or inhibit curd induction (optimum about 15 °C for many summer cultivars).",
+      "The effect is delay or failure of curd induction, not tissue damage. Primary sources were not read. Curd induction spans late development and early mid-season.",
+    ]),
+  ],
+  spinach: [
+    rule("spinach-germination-initial-tmean-20", "initial", "mean_c", "above", 20, [leskovar1999.id], [
+      "Laboratory seed thermoinhibition at constant temperature: inhibition began above 20 °C and germination was suppressed at 35 °C; alternating 30/15 °C germinated better, so a daily-mean rule over-warns.",
+      "The relevant temperature is seed-zone soil, not air. Applies only to direct-seeded crops in the first days of the initial stage. Genotypes differ.",
+    ]),
+  ],
+  sweetPepper: [
+    rule("sweet-pepper-heat-mid-tmax-32", "middle", "max_c", "at_or_above", 32, [aloni2001.id, karniAloni2002.id], [
+      "Chamber regime of 32/26 °C for 8 days before anthesis greatly reduced pollen germination and seeds per fruit; only the day value is encoded.",
+      "Field nights are usually cooler, so the rule over-warns.",
+    ]),
+    rule("sweet-pepper-cold-mid-tmin-12", "middle", "min_c", "at_or_below", 12, [darnell2012.id], [
+      "Low night temperature favours ovary swelling and malformed fruit (12 vs 20 °C nights); a quality defect, not chilling injury.",
+      "Single chamber contrast, so the onset temperature is not located; the effect was strongest on non-fruiting plants.",
+    ]),
+  ],
+  tomato: [
+    rule("tomato-heat-mid-tmean-29", "middle", "mean_c", "at_or_above", 29, [pressman2002.id, sato2006.id, sato2002.id], [
+      "Daily mean 29 vs 25 °C markedly decreased fruit and seed number (Peet et al. 1997, cited by Pressman et al. 2002); equivalent to the 32/26 °C chamber regime.",
+      "Chronic multi-day exposure: fruit set failed unless relieved for more than 5 days before anthesis. The sensitive window, 7-15 days before anthesis, is narrower than the mid-season stage.",
+    ]),
+    rule("tomato-heat-mid-tmax-40", "middle", "max_c", "above", 40, [pressman2002.id, sato2006.id], [
+      "Almost all pollen grains were abnormal after a few hours above 40 °C when microspore mother cells were in meiosis, 8-9 days before anthesis (Iwahori 1965, cited by Pressman et al. 2002).",
+      "Sato et al. 2006 cite the same work for loss of pollen viability after 40 °C for 3 h on two consecutive days. A daily maximum above 40 °C does not guarantee hours above it.",
+      "Captures hot, dry days whose daily mean stays below 29 °C.",
+    ]),
+  ],
+  watermelon: [
+    rule("watermelon-heat-mid-tmax-32", "middle", "max_c", "at_or_above", 32, [tao2026.id], [
+      "Daytime 32 vs 27 °C inhibited female flower development (Tao et al. 2026, citing Manzano et al. 2014 and Rudich & Peles 1976); a shift in sex expression, with the yield effect not quantified.",
+      "The primary source was not read, and the onset between 27 and 32 °C is not located.",
+    ]),
+  ],
+  greenBean: [
+    rule("green-bean-night-heat-mid-tmin-27", "middle", "min_c", "at_or_above", 27, [konsens1991.id], [
+      "Snap bean controlled-environment night treatment: raising night temperature from 17 to 27 °C strongly reduced pod production, and 32/27 °C increased abscission of buds, flowers and young pods.",
+      "Night temperature had larger and more consistent effects than day temperature. Single contrast with a 17 °C control, so the onset is not located.",
+    ]),
+  ],
+};
 type Stages = readonly [initial: number, development: number, middle: number, late: number];
 type Window = { readonly startMonthDay: string; readonly endMonthDayInclusive: string };
 
@@ -822,7 +973,7 @@ function vegetableRows(): Row[] {
   ];
 }
 
-export type ReleaseNumber = 1 | 2 | 3;
+export type ReleaseNumber = 1 | 2 | 3 | 4;
 
 function profileOf(row: Row, release: ReleaseNumber) {
   const crop: Crop = crops[row.crop];
@@ -830,13 +981,14 @@ function profileOf(row: Row, release: ReleaseNumber) {
   const [initial, development, middle, late] = row.stages;
   const total = initial + development + middle + late;
   const stageDays = { initial, development, middle, late };
-  const temperatureRules = release >= 2 ? crop.temperatureRules : [];
+  const addedRules = release >= 4 ? release4Rules[row.crop] ?? [] : [];
+  const temperatureRules = release >= 2 ? [...crop.temperatureRules, ...addedRules] : [];
   const temperatureSources = [...new Set(temperatureRules.flatMap(rule => rule.sourceIds))];
   return {
     status: "released",
-    review: release === 1 ? reviewRecord : crop.firstRelease === 3 ? reviewRecordRelease3 : reviewRecordRelease2,
+    review: release === 1 ? reviewRecord : addedRules.length > 0 ? reviewRecordRelease4 : crop.firstRelease === 3 ? reviewRecordRelease3 : reviewRecordRelease2,
     id: `${crop.cropPurposeId}-fao56-${row.slug}`,
-    version: release >= 2 && crop.firstRelease === 1 ? "2" : "1",
+    version: String((release >= 2 && crop.firstRelease === 1 ? 2 : 1) + (addedRules.length > 0 ? 1 : 0)),
     cropPurposeId: crop.cropPurposeId,
     commonName: crop.commonName,
     scientificName: crop.scientificName,

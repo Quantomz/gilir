@@ -1,10 +1,11 @@
 # E1 evidence
 
-Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Latest release: `fao56-vegetables-2026-11-15` (42 crops, 86 profiles: 19 field crops plus 23 annual vegetables and fruits). Earlier releases `fao56-temperature-2026-11-14`, `fao56-2026-11-14` and `v1-empty` stay readable and unchanged.
+Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8). Latest release: `fao56-temperature-rules-2026-11-15` (42 crops, 86 profiles; temperature rules on 22 crops). Earlier releases `fao56-vegetables-2026-11-15`, `fao56-temperature-2026-11-14`, `fao56-2026-11-14` and `v1-empty` stay readable and unchanged.
 
 | File | Contents |
 |---|---|
-| `release-3-vegetables.md` | Latest release: the 23 vegetables and annual fruits, first-listed row choices, broccoli and lettuce temperature rules, skipped rows, Pereira 2021 vegetable alternatives |
+| `release-4-temperature-rules.md` | Latest release `fao56-temperature-rules-2026-11-15`: 23 crop-specific temperature rules for 16 crops, sources and caveats, and the 20 crops still not assessed |
+| `release-3-vegetables.md` | Release `fao56-vegetables-2026-11-15`: the 23 vegetables and annual fruits, first-listed row choices, broccoli and lettuce temperature rules, skipped rows, Pereira 2021 vegetable alternatives |
 | `release-2-temperature-and-crops.md` | Release `fao56-temperature-2026-11-14`: temperature rules with sources and caveats, the 16 added crops, Kc range choices, skipped rows, Pereira 2021 alternative values |
 | `source-comparison.md` | Release `fao56-2026-11-14`: every number next to the FAO-56 Table 11/12 cell it came from; omitted rows; assumptions not from the source |
 | `review.md` | Independent source check (separate Claude agent) and follow-ups |
@@ -12,7 +13,10 @@ Card: E1, [issue #8](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/8
 
 ## What the release contains
 
-**`fao56-vegetables-2026-11-15` (latest, default)**
+**`fao56-temperature-rules-2026-11-15` (latest, default)**
+- Same crops and profiles as `fao56-vegetables-2026-11-15`, plus 23 crop-specific temperature rules for 16 crops (32 rules on 22 crops in total). See `release-4-temperature-rules.md`.
+
+**`fao56-vegetables-2026-11-15`**
 - Everything in `fao56-temperature-2026-11-14`, plus 23 annual vegetables and fruits (41 profiles). Broccoli frost and heat rules and a lettuce bolting rule. See `release-3-vegetables.md`.
 
 **`fao56-temperature-2026-11-14`**
@@ -41,10 +45,10 @@ Node: the repo requires Node >= 24. This machine has no Node 24, so the checks r
 
 | Command | Result |
 |---|---|
-| `npx vitest run tests/engine/registry` | 4 files, 47 tests passed |
-| `npm run check` | typecheck passed; 14 files / 111 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
+| `npx vitest run tests/engine/registry` | 5 files, 51 tests passed |
+| `npm run check` | typecheck passed; 15 files / 115 tests passed, 28 skipped (live PostgreSQL/NASA suites, unchanged by E1); module boundaries passed |
 | `npm run build` | passed |
-| JSON comparison of `v1-empty`, `fao56-2026-11-14` and `fao56-temperature-2026-11-14` against the committed versions | byte-for-byte identical |
+| JSON comparison of all four earlier releases against the committed versions | byte-for-byte identical |
 
 E1 tests use the real release data, plus labelled synthetic fixtures (`syntheticRegistryFixture`) for resolution-rule edge cases. Fixture tests are component evidence only; a live plan from this data belongs to I2.
 

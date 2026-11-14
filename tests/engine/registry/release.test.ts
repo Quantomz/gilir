@@ -102,9 +102,9 @@ const stagesOf = (profile: ReturnType<typeof readRegistryRelease>["profiles"][nu
 };
 
 describe("E1 registry releases", () => {
-  it("serves the vegetables release by default and every release passes validation", () => {
+  it("serves the temperature-rules release by default and every release passes validation", () => {
     expect(readRegistryRelease().identity.catalogueVersion).toBe(latestReleaseVersion);
-    expect(latestReleaseVersion).toBe("fao56-vegetables-2026-11-15");
+    expect(latestReleaseVersion).toBe("fao56-temperature-rules-2026-11-15");
     for (const version of releasedVersions) {
       const release = readRegistryRelease(version);
       expect(validateRelease(release)).toEqual({ ok: true, release });
@@ -112,7 +112,7 @@ describe("E1 registry releases", () => {
   });
 
   it("keeps earlier releases readable and unchanged for frozen-job retries", () => {
-    expect(releasedVersions).toEqual(["v1-empty", release1, release2, latestReleaseVersion]);
+    expect(releasedVersions).toEqual(["v1-empty", release1, release2, "fao56-vegetables-2026-11-15", latestReleaseVersion]);
     expect(readCatalogue("v1-empty")).toEqual({ version: "v1-empty", entries: [] });
     const first = readRegistryRelease(release1);
     expect(first.catalogue.entries.map(entry => entry.id)).toEqual(["common-bean-dry", "maize-grain", "wheat-grain"]);

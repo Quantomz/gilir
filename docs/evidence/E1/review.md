@@ -130,3 +130,48 @@ The broccoli (−9 to −7 °C field lethal minimum; 35 °C failure point) and l
 ## Still needed
 
 - Human peer confirmation.
+
+---
+
+# Release `fao56-temperature-rules-2026-11-15`: independent source review
+
+**Reviewer:** a separate Claude agent, run on 2026-11-15, with no access to the author's conclusions.
+
+**What it read:**
+- Full text: Europe PMC or PMC XML for 12 papers, and open PDFs of Frederiks 2015, Luo 2011 and Hniličková 2017.
+- PMC web pages through a summarising tool: Pressman 2002 and Sato 2006.
+- Abstracts only: the rest. Prasad 2006 came from a third-party abstract mirror, the weakest access.
+
+**Not a human review.**
+
+## Result
+
+Every threshold value and direction was confirmed against a source. Examples include:
+- the Frederiks canopy-frost sentences for wheat (−3.5 to −4.5 °C) and barley (about −4 to −5 °C)
+- Luo's barley LT50 range, sorghum 40/30 °C and groundnut 37 °C
+- the Prasad 2015 fitted curve (73.4% fertility at a 31 °C mean)
+- Kaya 2025 Table 1, Bishop 2016 t50, Alharbi 2021 frosts, Sita 2017 32/20 °C, Kim & Lee 2019 night temperatures
+- every abstract-level value
+
+## Findings and how they were handled
+
+| Finding | Action |
+|---|---|
+| **Safflower −7 °C: not supported for spring types** (the passage concerns winter-type germplasm; spring types survived worse at −4.4 °C) | **Rule removed**; safflower stays not assessed. |
+| Sorghum 35 °C: an uncited draft-assessment remark, and "zero grain yield" not stated | Reworded to Luo's failure point (yield, harvest index, pollen viability, seed set) and Prasad 2006's panicle-emergence inhibition. |
+| Groundnut: the 2–6-day exposure came from the uncited primary paper; floral-bud vs air; afternoon heat had no effect; "32/22 °C season-long" claim unsupported | Reworded per the reviewer, including the 40 °C yield failure point and < 31 °C optimum. |
+| Potato night heat: Gautam is an experimental paper and its 18 °C sentence is uncited; "another gives 20 °C" was the same paragraph | Reworded. The Gautam source section now says "Introduction (no citation given)". |
+| Cauliflower: "tropical cultivar groups…" not in Rosen | Removed. |
+| Mung bean: "some genotypes set seed at 45 °C" not supported | Replaced with Priya's one-genotype 76.4% → 36.2% pod-set result. |
+| Cowpea: the 7–9-day window comes from Luo; the 16.5–20 °C nights claim is unsourced | `luo2011` added to `sourceIds`; unsourced clause removed. |
+| Faba frost: "vegetative winter-hardiness is far greater" not in Alharbi | Replaced with Alharbi's "flowering is the most frost-sensitive stage"; seedling damage noted; event details added. |
+| Sunflower: means only | Worst hybrid (80.7% dead at V4) added. |
+| Tomato 40 °C: Iwahori is in Pressman's Discussion and applies to meiosis 8–9 days before anthesis | Reworded, with Sato 2006's 40 °C for 3 h on two days. |
+| Watermelon: "greenhouse" belongs to another clause; joint citation | Reworded, citing Manzano 2014 and Rudich & Peles 1976 via Tao. |
+| Sorghum 31 °C: "field responses weaker" too general | Narrowed to Djanaguiraman 2018's heat-tent pollen result. |
+| Luo, Pressman, Gautam and Tao source sections | Corrected (Luo §2.1, §2.2, §3.2; Pressman Discussion; Gautam uncited; Tao joint citation). |
+| Barley "snow cover insulates" and canopy "no offset is published" | Unsourced clause removed; wording made exact. |
+
+## Still needed
+
+- Human peer confirmation.
