@@ -1,0 +1,858 @@
+{
+  "auditId": "X1-temperature-b",
+  "result": "ISSUES",
+  "subject": {
+    "repository": "Quantomz/nefalos_nasa_hackathon",
+    "pr": 33,
+    "commit": "090626a6b172fb05901a5e4fafa15be497bcae7e",
+    "branchAndTreeObservation": "git rev-parse HEAD matched; only untracked node_modules observed. No subject files edited.",
+    "inspectedOn": "2026-11-15"
+  },
+  "workflow": {
+    "pstackSkill": "/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md",
+    "playbook": "Investigation",
+    "partition": "swarm worker temperature-b; no nested agents",
+    "throughputCheckpoint": "n/a, read-only investigation",
+    "ownedOutputs": [
+      ".audit/gilir/x1-temperature-b.json",
+      ".audit/gilir/x1-temperature-b.md"
+    ]
+  },
+  "method": "Read source definitions and temperature rules at exact subject SHA. Treat inventory only as subject data, not oracle. Independently open journal full text, primary publisher abstracts and author repository copies. Compare number, operator, measured variable/location, exposure duration, sensitive stage and applicability against spec 3.3 and 5.3. Search snippets guided access attempts but were not sole proof. No test, full check or build was run. No profile edit or remote comment was made.",
+  "interpretation": "unsupported means the accessed evidence does not support the complete encoded daily operational mapping under spec 5.3. It does not mean that the crop has no heat/frost response or that every cited numeric statement is false. Exact-mapping support cannot be supplied by an implementation limitation admitting a proxy.",
+  "summary": {
+    "cropPurposeCount": 9,
+    "uniqueRuleCount": 13,
+    "match": 0,
+    "qualified": 0,
+    "unsupported": 13,
+    "unverified": 0,
+    "accessGapsRemain": true,
+    "approvalClaim": "No human or agronomist approval was sought or claimed."
+  },
+  "records": [
+    {
+      "ruleId": "potato-frost-whole-tmin-minus2.5",
+      "cropPurposeId": "potato",
+      "subject": {
+        "scope": {
+          "kind": "whole_occurrence"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -2.5,
+        "sourceIds": [
+          "seppanen2001"
+        ],
+        "limitations": [
+          "Lethal temperature of cultivated potato foliage (Sepp\u00e4nen et al. 2001, range -2.5 to -3.0 \u00b0C; warmer endpoint used); the canopy is destroyed below -4 \u00b0C.",
+          "Shoots still in the soil before emergence are protected, so the rule over-warns early in the initial stage.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "The abstract contains -2.5 to -3.0 C. Table 1 instead reports cultivar LT50 values -2.4, -2.5, -2.6 and -3.0 C, so -2.5 is not the warmest endpoint in the table.",
+      "sourcefacts": [
+        {
+          "sourceId": "seppanen2001",
+          "citationURL": "https://jukuri.luke.fi/server/api/core/bitstreams/4f896264-3ad3-4add-91bd-98e97ae29696/content",
+          "section": "pp.153, 155-158; Methods Freezing tolerance; Table 1; Table 2",
+          "observedPrimaryAccess": "Full journal PDF read from Finnish research repository",
+          "actual": {
+            "variable": "Cellular leaf freezing LT50 from ion leakage, plus separately measured field canopy, ground and 2 m air temperature",
+            "period": "Controlled freezing protocols; field frost episodes. LT50 is not a daily 2 m air-temperature statistic.",
+            "stage": "Exposed foliage of cultivated potato; no support for underground pre-emergence shoots",
+            "operator": "Cultivar LT50 estimates, not an independently fitted daily air Tmin <= -2.5 C boundary",
+            "cultivarsAndRegion": "Nicola, Pito, Puikula and Timo; Finnish material and Lapland field experiments"
+          },
+          "accessOrApplicabilityLimits": [
+            "Abstract summary differs from Table 1 warmer endpoint. Field canopy minimum can differ materially from 2 m minimum."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full journal PDF read from Finnish research repository"
+      ],
+      "outcome": "unsupported",
+      "reason": "The numeric abstract statement is real, but a cellular leaf LT50 is converted into daily screen-air Tmin for the entire crop occurrence. The source distinguishes the temperature locations rather than validating that conversion.",
+      "operationalMismatches": [
+        "Tissue LT50 is not daily screen-air Tmin.",
+        "Whole occurrence includes protected pre-emergence periods.",
+        "The selected boundary is a summarized LT50 endpoint rather than a demonstrated universal daily frost limit."
+      ],
+      "unverifiedOrInaccessibleOriginals": []
+    },
+    {
+      "ruleId": "potato-night-heat-development-tmin-18",
+      "cropPurposeId": "potato",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "development"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "above",
+        "thresholdC": 18,
+        "sourceIds": [
+          "kimlee2019",
+          "gautam2024"
+        ],
+        "limitations": [
+          "Gautam et al. 2024 state (introduction, uncited) that night temperatures above 18 \u00b0C reduce tuberization; field warming of mean night temperature from 17.8 to 21.7 \u00b0C for 14 days at tuber initiation cut yield 17% (Kim & Lee 2019).",
+          "Daily minimum sits below the night mean, so the rule fires late. Mapping tuber initiation to the development stage is an inference."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Gautam states night temperature above 18 C. Kim and Lee Table 2 reports 17.8 versus 21.7 C mean night temperature, not a measured 18 C onset.",
+      "sourcefacts": [
+        {
+          "sourceId": "gautam2024",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2024.1364244/full",
+          "section": "Introduction, paragraph beginning Potato is a cool season crop",
+          "observedPrimaryAccess": "Full primary research journal HTML read",
+          "actual": {
+            "variable": "Night temperature in introductory statement",
+            "period": "No averaging duration specified for the 18 C statement",
+            "stage": "Tuberization; initiation and bulking discussed as critical stages",
+            "operator": "Above 18 C is stated, not established by this paper as a daily Tmin boundary",
+            "cultivarsAndRegion": "Its experiments compare clones in stressful Texas field sites and greenhouses"
+          },
+          "accessOrApplicabilityLimits": [
+            "Bushnell 1925 appears with the later 25 C statement; no original experimental derivation of an 18 C daily threshold was recovered."
+          ]
+        },
+        {
+          "sourceId": "kimlee2019",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2019.00300/full",
+          "section": "Methods Experimental Design and Temperature Control; Table 2; Results Tuber Yield",
+          "observedPrimaryAccess": "Full primary journal HTML and tables read",
+          "actual": {
+            "variable": "Mean canopy-height air temperature during night 19:00-07:00",
+            "period": "14-day warming at tuber initiation or bulking; Table 2 summarizes daily night means",
+            "stage": "Initiation treatment 18-32 days after emergence; bulking 33-47 days",
+            "operator": "Treatment contrast 17.8 versus 21.7 C at initiation; 17.2 percent yield decrease, not threshold identification",
+            "cultivarsAndRegion": "Early maturing Superior; Suwon, South Korea; early harvest and irrigated covered plots"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary research journal HTML read",
+        "Full primary journal HTML and tables read"
+      ],
+      "outcome": "unsupported",
+      "reason": "Night mean over a 14-day episode and an introductory night-temperature statement do not support single-day Tmin >18 C in the FAO development stage.",
+      "operationalMismatches": [
+        "Night mean replaced by daily minimum.",
+        "Multi-day exposure replaced by individual days.",
+        "Tuber initiation replaced by FAO development without source validation."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Original experiment underlying the introductory 18 C claim was not identified or read."
+      ]
+    },
+    {
+      "ruleId": "broccoli-frost-tmin-minus7",
+      "cropPurposeId": "broccoli",
+      "subject": {
+        "scope": {
+          "kind": "whole_occurrence"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -7,
+        "sourceIds": [
+          "luo2011"
+        ],
+        "limitations": [
+          "Luo 2011 Table 2 gives a lethal minimum of -9 to -7 \u00b0C for field-grown broccoli (-5 to -3 \u00b0C in pots), from freezing experiments by Tan et al. 1999; -7 \u00b0C is the warmer end of the field range.",
+          "The source measures short sub-zero exposures; a daily minimum at or below the value is the closest daily-weather equivalent.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Luo Table 2 and Tan primary journal summary both give field lethality between -7 and -9 C.",
+      "sourcefacts": [
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Section 2.2 p.587; Table 2 p.589",
+          "observedPrimaryAccess": "Full cited review PDF read from academic-hosted copy",
+          "actual": {
+            "variable": "Lethal minimum in controlled freezing regimes for field-grown versus potted plants",
+            "period": "Short sub-zero treatments, not an established daily weather statistic",
+            "stage": "Developmental stages differ in sensitivity",
+            "operator": "Warmer endpoint of a lethal range, not injury onset",
+            "cultivarsAndRegion": "Field versus pot acclimation is material"
+          },
+          "accessOrApplicabilityLimits": []
+        },
+        {
+          "sourceId": "tan1999-original",
+          "citationURL": "https://connectsci.au/an/article-abstract/39/6/771/144822/Freeze-induced-reduction-of-broccoli-yield-and?redirectedFrom=fulltext",
+          "section": "Primary journal Summary, DOI 10.1071/EA99037",
+          "observedPrimaryAccess": "Primary journal summary read; full article paywalled",
+          "actual": {
+            "variable": "Whole plants subjected to sub-zero regimes; extracellular ice induced by cooling at -2 C per hour",
+            "period": "Short exposure; exact hold duration not recovered",
+            "stage": "Floral initiation has yield reductions at -1 and -3 C; buttoning differs; shoot-apex survival differs",
+            "operator": "Field lethality -7 to -9 C; not a general daily-air cold injury onset",
+            "cultivarsAndRegion": "Field and pot lethal ranges differ, attributed to cold acclimation"
+          },
+          "accessOrApplicabilityLimits": [
+            "Full methods unavailable, including exact measurement position and hold duration."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full cited review PDF read from academic-hosted copy",
+        "Primary journal summary read; full article paywalled"
+      ],
+      "outcome": "unsupported",
+      "reason": "The lethal range is traceable. The accessed evidence does not establish whole-season daily screen-air Tmin <= -7 C as the exact variable, period and stage used by the source; artificial freezing and acclimation matter.",
+      "operationalMismatches": [
+        "Controlled freezing minimum treated as daily screen-air minimum.",
+        "Exposure duration and measurement position remain unverified.",
+        "Whole-occurrence rule removes source stage and acclimation distinctions."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Tan full text, DOI 10.1071/EA99037, remained paywalled; its summary was read."
+      ]
+    },
+    {
+      "ruleId": "broccoli-heat-mid-tmax-35",
+      "cropPurposeId": "broccoli",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 35,
+        "sourceIds": [
+          "luo2011"
+        ],
+        "limitations": [
+          "Luo 2011 Table 2 gives 35 \u00b0C maximum temperature as the failure point during inflorescence production and floral initiation (Bj\u00f6rkman & Pearson 1998).",
+          "The source exposure was about one week at 35 \u00b0C; shorter exposures produced little injury and longer ones were lethal, so a single day above 35 \u00b0C is a much milder event.",
+          "Placing floral initiation in the FAO-56 mid-season stage is a Gilir assumption; it can fall in the development stage, before the head is visible.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Luo gives 35 C as a treatment value; the treatment includes 35 itself, whereas the subject predicate excludes it.",
+      "sourcefacts": [
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Table 2 p.589 and Section 3.3 pp.593-594",
+          "observedPrimaryAccess": "Full cited review PDF read",
+          "actual": {
+            "variable": "Day heat treatment summarized in Table 2 as maxT",
+            "period": "One week at 35 C; shorter exposures caused little injury and longer exposures were lethal",
+            "stage": "Inflorescence production and floral initiation",
+            "operator": "Treatment at 35 C, not proven onset above 35 C",
+            "cultivarsAndRegion": "Galaxy cultivar in Bjorkman and Pearson 1998"
+          },
+          "accessOrApplicabilityLimits": [
+            "The source is a review; the original OUP paper was inaccessible in this session."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full cited review PDF read"
+      ],
+      "outcome": "unsupported",
+      "reason": "A one-week 35 C treatment during a specific meristem transition is converted into daily Tmax >35 C throughout FAO mid-season. The rule does not preserve period, stage, or equality at the studied treatment.",
+      "operationalMismatches": [
+        "Day treatment replaced by one daily maximum.",
+        "One-week episode replaced by independent days.",
+        "Floral initiation replaced by mid-season.",
+        "Above 35 excludes the experimental 35 C value."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Bjorkman and Pearson 1998 original OUP article 49(318):101-106 failed to load; secondary review full text was read."
+      ]
+    },
+    {
+      "ruleId": "cauliflower-curd-development-tmean-20",
+      "cropPurposeId": "cauliflower",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "development"
+        },
+        "period": "daily",
+        "variable": "mean_c",
+        "predicate": "above",
+        "thresholdC": 20,
+        "sourceIds": [
+          "rosen2018"
+        ],
+        "limitations": [
+          "Rosen et al. 2018: temperatures above 20 \u00b0C delay or inhibit curd induction (optimum about 15 \u00b0C for many summer cultivars).",
+          "The effect is delay or failure of curd induction, not tissue damage. Primary sources were not read. Curd induction spans late development and early mid-season."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Rosen introduction states above 20 C delays or inhibits curd induction, mainly discussing summer cultivars.",
+      "sourcefacts": [
+        {
+          "sourceId": "rosen2018",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2018.00078/pdf",
+          "section": "p.1 Introduction; pp.2-4 phenology model and constant-temperature trials",
+          "observedPrimaryAccess": "Full primary journal PDF read",
+          "actual": {
+            "variable": "Constant experimental temperature and daily mean air temperature in a genotype-specific cumulative phenology model",
+            "period": "Development from juvenile transition to visible curd induction; accumulated rates, not a one-day damage boundary",
+            "stage": "Adult vegetative/vernalization phase. Model treats juvenile phase as temperature-insensitive.",
+            "operator": "Introductory >20 C statement; own model is continuous rather than binary",
+            "cultivarsAndRegion": "Summer-cultivar context; 180 doubled haploid lines and test hybrids, European greenhouse/field trials"
+          },
+          "accessOrApplicabilityLimits": [
+            "The introduction cites Wiebe 1980; that original was not read."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary journal PDF read"
+      ],
+      "outcome": "unsupported",
+      "reason": "Daily mean air is used in the paper, but not as a binary >20 C daily warning over the FAO development stage. The source supports genotype-specific cumulative induction response after juvenility.",
+      "operationalMismatches": [
+        "A cumulative development-rate model is replaced by daily exceedance.",
+        "Sensitive physiological phase is replaced by FAO development.",
+        "Summer-cultivar limitations are not an independently validated universal crop threshold."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Wiebe 1980 underlying induction statement was not read."
+      ]
+    },
+    {
+      "ruleId": "lettuce-bolting-tmax-30",
+      "cropPurposeId": "lettuce",
+      "subject": {
+        "scope": {
+          "kind": "whole_occurrence"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 30,
+        "sourceIds": [
+          "qin2020"
+        ],
+        "limitations": [
+          "Early bolting above 30 \u00b0C, a statement in Qin et al. 2020 citing Jenni & Yan 2009, which was not read.",
+          "Qin's own experiment induced bolting with sustained 33/25 \u00b0C day/night from the sixth true leaf; a single day above 30 \u00b0C is a much milder event.",
+          "Applying the rule to the whole season is a Gilir assumption; the sources do not define the sensitive window.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "The >30 C statement appears in Qin introduction. Qin experiment used 33/25 C versus 20/13 C.",
+      "sourcefacts": [
+        {
+          "sourceId": "qin2020",
+          "citationURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0244198",
+          "section": "Introduction; Materials and methods Plant materials and treatment",
+          "observedPrimaryAccess": "Full primary journal HTML read",
+          "actual": {
+            "variable": "Controlled greenhouse day/night temperatures",
+            "period": "Sustained treatments after sixth true leaf, samples through day 32",
+            "stage": "Sixth true leaf onward, easy-bolting GB-30",
+            "operator": ">30 C is cited background; own experiment does not locate a 30 C onset",
+            "cultivarsAndRegion": "GB-30 easy-bolting cultivar; Beijing greenhouse"
+          },
+          "accessOrApplicabilityLimits": []
+        },
+        {
+          "sourceId": "jenniYan2009-original",
+          "citationURL": "https://onlinelibrary.wiley.com/doi/10.1111/j.1439-0523.2009.01657.x",
+          "section": "Abstract",
+          "observedPrimaryAccess": "Primary journal abstract read; full text unavailable",
+          "actual": {
+            "variable": "Field high-temperature and long-day environments",
+            "period": "Two plantings in each of four growing seasons at two Quebec sites",
+            "stage": "Market-quality and premature-bolting observations",
+            "operator": "Abstract does not specify a >30 C daily Tmax threshold",
+            "cultivarsAndRegion": "Ten crisphead varieties; strong environment and genotype effects"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary journal HTML read",
+        "Primary journal abstract read; full text unavailable"
+      ],
+      "outcome": "unsupported",
+      "reason": "The operational whole-season daily Tmax >30 C rule is not established by Qin own sustained day/night contrast or the accessed Jenni and Yan field abstract.",
+      "operationalMismatches": [
+        "Unspecified background temperature replaced by daily Tmax.",
+        "Sustained heat replaced by single-day exceedance.",
+        "Sixth-leaf experimental entry replaced by whole season."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Jenni and Yan 2009 full text was unavailable; abstract was read."
+      ]
+    },
+    {
+      "ruleId": "spinach-germination-initial-tmean-20",
+      "cropPurposeId": "spinach",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "initial"
+        },
+        "period": "daily",
+        "variable": "mean_c",
+        "predicate": "above",
+        "thresholdC": 20,
+        "sourceIds": [
+          "leskovar1999"
+        ],
+        "limitations": [
+          "Laboratory seed thermoinhibition at constant temperature: inhibition began above 20 \u00b0C and germination was suppressed at 35 \u00b0C; alternating 30/15 \u00b0C germinated better, so a daily-mean rule over-warns.",
+          "The relevant temperature is seed-zone soil, not air. Applies only to direct-seeded crops in the first days of the initial stage. Genotypes differ."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "The >20 C onset is accurate for Cascade and ACX 5044 under constant incubation; Fall Green onset is above 23 C.",
+      "sourcefacts": [
+        {
+          "sourceId": "leskovar1999",
+          "citationURL": "https://journals.ashs.org/downloadpdf/view/journals/jashs/124/3/article-p301.pdf?inlineView=true&pdfJsInlineViewToken=1817361258",
+          "section": "pp.301-303, Methods Germination at constant and alternating temperatures; Results same heading; Fig.2/Table1",
+          "observedPrimaryAccess": "Full primary journal PDF read",
+          "actual": {
+            "variable": "Seed incubation on moist filter paper in Petri dishes on a thermogradient table, not measured air or field soil",
+            "period": "Two-week constant 10,15,20,22,23,25,30,35 C incubation and separate 12h/12h alternating treatments",
+            "stage": "Germination before emergence, not entire initial crop stage",
+            "operator": "Inhibition above 20 C in Cascade/ACX5044; above 23 C in Fall Green",
+            "cultivarsAndRegion": "Four genotypes; alternating regimes and seedcoat treatments change response"
+          },
+          "accessOrApplicabilityLimits": [
+            "Field seed-zone soil is relevant agronomically, but this experiment itself is controlled seed incubation, not a field soil calibration."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary journal PDF read"
+      ],
+      "outcome": "unsupported",
+      "reason": "A two-week constant seed-incubation response becomes daily mean screen-air >20 C for the full initial stage. The source does not validate either the air conversion or averaging fluctuating temperature into a thresholded daily mean.",
+      "operationalMismatches": [
+        "Laboratory seed temperature replaced by screen-air mean.",
+        "Constant two-week incubation replaced by single daily mean.",
+        "Germination replaced by whole FAO initial stage.",
+        "Genotype-specific onset generalized."
+      ],
+      "unverifiedOrInaccessibleOriginals": []
+    },
+    {
+      "ruleId": "sweet-pepper-heat-mid-tmax-32",
+      "cropPurposeId": "sweet-pepper",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "at_or_above",
+        "thresholdC": 32,
+        "sourceIds": [
+          "aloni2001",
+          "karnialoni2002"
+        ],
+        "limitations": [
+          "Chamber regime of 32/26 \u00b0C for 8 days before anthesis greatly reduced pollen germination and seeds per fruit; only the day value is encoded.",
+          "Field nights are usually cooler, so the rule over-warns."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "32 C is the day setpoint in the damaging 32/26 C contrast, not an independently located Tmax onset.",
+      "sourcefacts": [
+        {
+          "sourceId": "aloni2001",
+          "citationURL": "https://onlinelibrary.wiley.com/doi/abs/10.1034/j.1399-3054.2001.1120407.x",
+          "section": "Abstract",
+          "observedPrimaryAccess": "Primary journal abstract read; full text unavailable",
+          "actual": {
+            "variable": "Controlled day/night 32/26 versus 28/22 C",
+            "period": "Eight days before anthesis",
+            "stage": "Developing pollen before flower opening",
+            "operator": "Treatment contrast, not fitted >=32 C boundary",
+            "cultivarsAndRegion": "Bell pepper Mazurka; controlled treatment; high CO2 partly restored germination"
+          },
+          "accessOrApplicabilityLimits": []
+        },
+        {
+          "sourceId": "karnialoni2002",
+          "citationURL": "https://academic.oup.com/aob/article-abstract/90/5/607/205151",
+          "section": "Abstract",
+          "observedPrimaryAccess": "Primary journal abstract read; PMC full text challenge and OUP full text inaccessible",
+          "actual": {
+            "variable": "32/26 versus 26/22 C day/night treatment",
+            "period": "Duration not recovered from accessible abstract",
+            "stage": "Pollen and anther development",
+            "operator": "Contrast, no daily Tmax onset",
+            "cultivarsAndRegion": "Controlled pepper physiology study; atmospheric CO2 modifies response"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Primary journal abstract read; full text unavailable",
+        "Primary journal abstract read; PMC full text challenge and OUP full text inaccessible"
+      ],
+      "outcome": "unsupported",
+      "reason": "The rule retains only the day setpoint of a combined day/night multi-day treatment and applies it as a daily maximum across FAO mid-season.",
+      "operationalMismatches": [
+        "Day setpoint replaced by daily maximum.",
+        "26 C night treatment omitted.",
+        "Eight-day pre-anthesis exposure replaced by independent days and broad mid-season.",
+        "Treatment contrast treated as >= threshold."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Aloni 2001 and Karni and Aloni 2002 full texts inaccessible; primary publisher abstracts were read."
+      ]
+    },
+    {
+      "ruleId": "sweet-pepper-cold-mid-tmin-12",
+      "cropPurposeId": "sweet-pepper",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": 12,
+        "sourceIds": [
+          "darnell2012"
+        ],
+        "limitations": [
+          "Low night temperature favours ovary swelling and malformed fruit (12 vs 20 \u00b0C nights); a quality defect, not chilling injury.",
+          "Single chamber contrast, so the onset temperature is not located; the effect was strongest on non-fruiting plants."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "12 C is a night treatment contrasted with 20 C; it is not a located <=12 C onset.",
+      "sourcefacts": [
+        {
+          "sourceId": "darnell2012",
+          "citationURL": "https://academic.oup.com/aob/article/110/5/987/171134",
+          "section": "Abstract Methods, Key Results and Conclusions",
+          "observedPrimaryAccess": "Primary publisher abstract read; PMC full text challenge and publisher paywall",
+          "actual": {
+            "variable": "Controlled night temperatures 12 versus 20 C, crossed with fruiting/source-sink treatments",
+            "period": "Responses compared after 18 and 40 days",
+            "stage": "Ovary growth to anthesis",
+            "operator": "Two night treatment levels, not fitted <=12 C daily Tmin onset",
+            "cultivarsAndRegion": "Bell pepper, controlled chambers; non-fruiting plants at low night temperature have strongest swelling"
+          },
+          "accessOrApplicabilityLimits": [
+            "Cultivar and complete chamber timing were not recovered from full methods."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Primary publisher abstract read; PMC full text challenge and publisher paywall"
+      ],
+      "outcome": "unsupported",
+      "reason": "A chronic night setpoint and source-sink interaction are represented as a one-day Tmin <=12 C rule for all mid-season. A single treatment contrast cannot locate this onset.",
+      "operationalMismatches": [
+        "Chamber night setpoint replaced by daily minimum.",
+        "18/40-day treatment context removed.",
+        "Source-sink dependence and anthesis window replaced by broad stage.",
+        "Two treatments treated as universal onset."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Darnell 2012 full text inaccessible; publisher abstract was read."
+      ]
+    },
+    {
+      "ruleId": "tomato-heat-mid-tmean-29",
+      "cropPurposeId": "tomato",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "mean_c",
+        "predicate": "at_or_above",
+        "thresholdC": 29,
+        "sourceIds": [
+          "pressman2002",
+          "sato2006",
+          "sato2002"
+        ],
+        "limitations": [
+          "Daily mean 29 vs 25 \u00b0C markedly decreased fruit and seed number (Peet et al. 1997, cited by Pressman et al. 2002); equivalent to the 32/26 \u00b0C chamber regime.",
+          "Chronic multi-day exposure: fruit set failed unless relieved for more than 5 days before anthesis. The sensitive window, 7-15 days before anthesis, is narrower than the mid-season stage."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Pressman introduction reports Peet 1997 daily mean 29 versus 25 C; own experiment is chronic 32/26 versus 28/22 C.",
+      "sourcefacts": [
+        {
+          "sourceId": "pressman2002",
+          "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4240456/",
+          "section": "Introduction; Materials and methods Plant material",
+          "observedPrimaryAccess": "Full primary article read in PMC",
+          "actual": {
+            "variable": "Daily mean in cited Peet comparison; 12h day/night chamber regimes in own experiment",
+            "period": "Continuous treatment; pollen sampled 12 days after transfer, flowers produced for four months",
+            "stage": "Anther/pollen development, about 10 days before anthesis",
+            "operator": "29 versus 25 C contrast, not a one-day >=29 C onset",
+            "cultivarsAndRegion": "Tomato Trust; NCSU phytotron"
+          },
+          "accessOrApplicabilityLimits": []
+        },
+        {
+          "sourceId": "sato2002",
+          "citationURL": "https://pubmed.ncbi.nlm.nih.gov/11971929/",
+          "section": "Abstract",
+          "observedPrimaryAccess": "Original article abstract read in PubMed; OUP full text/PDF inaccessible",
+          "actual": {
+            "variable": "32/26 versus 28/22 C day/night regimes",
+            "period": "Transfer experiments 0-15 days before anthesis; >5 days relief needed in initially hot-grown plants",
+            "stage": "Most sensitive 7-15 days before anthesis",
+            "operator": "Treatment and relief contrasts, not single-day mean threshold",
+            "cultivarsAndRegion": "NC 8288 in controlled conditions"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary article read in PMC",
+        "Original article abstract read in PubMed; OUP full text/PDF inaccessible"
+      ],
+      "outcome": "unsupported",
+      "reason": "Daily mean is a real source variable, but the relevant exposure is chronic and flower-stage-specific. Counting individual daily means >=29 C over FAO middle does not preserve the supported period or window.",
+      "operationalMismatches": [
+        "Chronic heat replaced by independent daily exceedance.",
+        "Pre-anthesis physiological window replaced by FAO middle.",
+        "A 29 versus 25 C contrast is promoted to an onset boundary."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Peet et al. 1997 original not read. Sato et al. 2006 OUP/PMC full text inaccessible; its claims were not independently used. Sato et al. 2002 full text inaccessible; abstract read."
+      ]
+    },
+    {
+      "ruleId": "tomato-heat-mid-tmax-40",
+      "cropPurposeId": "tomato",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 40,
+        "sourceIds": [
+          "pressman2002",
+          "sato2006"
+        ],
+        "limitations": [
+          "Almost all pollen grains were abnormal after a few hours above 40 \u00b0C when microspore mother cells were in meiosis, 8-9 days before anthesis (Iwahori 1965, cited by Pressman et al. 2002).",
+          "Sato et al. 2006 cite the same work for loss of pollen viability after 40 \u00b0C for 3 h on two consecutive days. A daily maximum above 40 \u00b0C does not guarantee hours above it.",
+          "Captures hot, dry days whose daily mean stays below 29 \u00b0C."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Pressman secondary description says above 40 C. Iwahori original used exactly 40 C, so subject >40 excludes the studied treatment.",
+      "sourcefacts": [
+        {
+          "sourceId": "pressman2002",
+          "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC4240456/",
+          "section": "Discussion paragraph citing Iwahori 1965",
+          "observedPrimaryAccess": "Full primary article read in PMC",
+          "actual": {
+            "variable": "Secondary account of heat exposure affecting microspore mother cells",
+            "period": "A few hours",
+            "stage": "Meiosis 8-9 days before anthesis",
+            "operator": "Secondary wording above 40 C",
+            "cultivarsAndRegion": "Own experiment Trust; 40 C statement refers to Iwahori rather than its own data"
+          },
+          "accessOrApplicabilityLimits": []
+        },
+        {
+          "sourceId": "iwahori1965-original",
+          "citationURL": "https://www.jstage.jst.go.jp/article/jjshs1925/34/1/34_1_33/_article",
+          "section": "Abstract; original PDF accessible through Download PDF link",
+          "observedPrimaryAccess": "Original journal abstract read; linked nine-page PDF accessed via J-STAGE",
+          "actual": {
+            "variable": "Controlled 40 C heat treatment of flower buds/plants",
+            "period": "Three hours on each of two days",
+            "stage": "Treatments at 10 to 1 days before anthesis; strongest pollen abnormalities around meiosis",
+            "operator": "Exactly 40 C treatment, not a proven >40 C onset",
+            "cultivarsAndRegion": "Fukuju No.2, greenhouse in Tokyo; May treatments"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full primary article read in PMC",
+        "Original journal abstract read; linked nine-page PDF accessed via J-STAGE"
+      ],
+      "outcome": "unsupported",
+      "reason": "The primary experiment requires hours and two treatment days, plus a flower-stage window. Any single daily Tmax >40 C cannot reproduce those conditions; the strict inequality also excludes the original treatment value.",
+      "operationalMismatches": [
+        "Daily extreme does not establish 3h exposure.",
+        "Two treatment days replaced by independent daily events.",
+        "Meiosis window replaced by FAO mid-season.",
+        "Above 40 differs from original exact 40 C treatment."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Sato et al. 2006 full text remained inaccessible; Iwahori original was read instead."
+      ]
+    },
+    {
+      "ruleId": "watermelon-heat-mid-tmax-32",
+      "cropPurposeId": "watermelon",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "at_or_above",
+        "thresholdC": 32,
+        "sourceIds": [
+          "tao2026"
+        ],
+        "limitations": [
+          "Daytime 32 vs 27 \u00b0C inhibited female flower development (Tao et al. 2026, citing Manzano et al. 2014 and Rudich & Peles 1976); a shift in sex expression, with the yield effect not quantified.",
+          "The primary source was not read, and the onset between 27 and 32 \u00b0C is not located."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Tao full text explicitly reports daytime 32 versus 27 C; DOI and publication are authentic. It does not identify a daily Tmax onset.",
+      "sourcefacts": [
+        {
+          "sourceId": "tao2026",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2026.1902742/full",
+          "section": "Publication metadata; Section 3.1 paragraph beginning Comparable temperature responses; Section 6.4",
+          "observedPrimaryAccess": "Full cited journal review HTML read; published 26 August 2026, DOI 10.3389/fpls.2026.1902742",
+          "actual": {
+            "variable": "Daytime treatment, 32 versus 27 C, via Rudich and Peles 1976 and Manzano et al. 2014",
+            "period": "Specific original treatment duration not supplied in the cited paragraph",
+            "stage": "Female flower development and sex expression, early reproductive development",
+            "operator": "Treatment contrast, not a fitted >=32 C daily extreme threshold",
+            "cultivarsAndRegion": "Review explicitly requires attention to intensity, duration, developmental timing and genotype"
+          },
+          "accessOrApplicabilityLimits": [
+            "Both original papers were inaccessible in this session. Search snippets were not used as proof of original methods."
+          ]
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Full cited journal review HTML read; published 26 August 2026, DOI 10.3389/fpls.2026.1902742"
+      ],
+      "outcome": "unsupported",
+      "reason": "The real review supports a temperature-associated female-flower response. It does not supply the period, exact stage mapping, or threshold onset needed for daily Tmax >=32 C over FAO middle.",
+      "operationalMismatches": [
+        "Daytime treatment replaced by daily maximum.",
+        "Duration absent from accessible source paragraph.",
+        "Female-flower initiation/development replaced by broad mid-season.",
+        "32 versus 27 C contrast treated as >= onset."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Rudich and Peles 1976, DOI 10.1016/0304-4238(76)90129-1, original inaccessible. Manzano et al. 2014, DOI 10.1016/j.plaphy.2014.11.004, original inaccessible."
+      ]
+    },
+    {
+      "ruleId": "green-bean-night-heat-mid-tmin-27",
+      "cropPurposeId": "green-bean",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_above",
+        "thresholdC": 27,
+        "sourceIds": [
+          "konsens1991"
+        ],
+        "limitations": [
+          "Snap bean controlled-environment night treatment: raising night temperature from 17 to 27 \u00b0C strongly reduced pod production, and 32/27 \u00b0C increased abscission of buds, flowers and young pods.",
+          "Night temperature had larger and more consistent effects than day temperature. Single contrast with a 17 \u00b0C control, so the onset is not located."
+        ]
+      },
+      "subjectReleaseVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "numericMatch": "Konsens primary author-repository abstract confirms 17 versus 27 C nights and 32/27 C day/night effects.",
+      "sourcefacts": [
+        {
+          "sourceId": "konsens1991",
+          "citationURL": "https://cris.huji.ac.il/en/publications/the-effect-of-temperature-on-the-production-and-abscission-of-flo/",
+          "section": "Abstract",
+          "observedPrimaryAccess": "Primary authors university repository abstract read; journal full text inaccessible",
+          "actual": {
+            "variable": "Controlled night temperatures 17 versus 27 C; also day temperatures 22-32 C",
+            "period": "Whole treatment duration not recovered from abstract",
+            "stage": "Onset of anthesis and pod development most sensitive; flowers and young pods abscised",
+            "operator": "Contrasted night treatments, not fitted >=27 C daily Tmin onset",
+            "cultivarsAndRegion": "Determinate snap bean Tenderette; controlled conditions, including continuous irrigation/misting"
+          },
+          "accessOrApplicabilityLimits": []
+        }
+      ],
+      "observedPrimaryAccess": [
+        "Primary authors university repository abstract read; journal full text inaccessible"
+      ],
+      "outcome": "unsupported",
+      "reason": "The night setpoint treatment is converted into a daily minimum >=27 C and broad FAO middle-stage rule. The read source does not establish onset or a single-day exposure response.",
+      "operationalMismatches": [
+        "Night setpoint replaced by daily minimum.",
+        "Treatment duration not available or encoded.",
+        "Anthesis/early pod sensitivity replaced by broad middle stage.",
+        "17 versus 27 C contrast treated as an onset threshold."
+      ],
+      "unverifiedOrInaccessibleOriginals": [
+        "Konsens et al. 1991 full text, DOI 10.1093/oxfordjournals.aob.a088155, inaccessible; author repository abstract was read."
+      ]
+    }
+  ]
+}

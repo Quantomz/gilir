@@ -1,0 +1,506 @@
+{
+  "subjectCommit": "090626a6b172fb05901a5e4fafa15be497bcae7e",
+  "evidenceKind": "synthetic applicability probe through real released registry",
+  "release": {
+    "catalogueVersion": "fao56-temperature-rules-2026-11-15",
+    "ruleVersion": "no-rules-2026-11-14"
+  },
+  "rows": [
+    {
+      "label": "nigeria-rectangle",
+      "lookup": [
+        8,
+        12
+      ],
+      "cropPurposeId": "maize-grain",
+      "runs": [
+        {
+          "climateLabel": "unavailable",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-nigeria-humid-jun",
+              "cultivarGroup": "Grain maize, humid Nigeria example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 2.6,
+                    "eastDeg": 14.7,
+                    "southDeg": 4.2,
+                    "northDeg": 13.9
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "06-01",
+                    "endMonthDayInclusive": "06-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes humid Nigeria; drier northern areas inside the region rectangle are not distinguished."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "coldDry",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-nigeria-humid-jun",
+              "cultivarGroup": "Grain maize, humid Nigeria example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 2.6,
+                    "eastDeg": 14.7,
+                    "southDeg": 4.2,
+                    "northDeg": 13.9
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "06-01",
+                    "endMonthDayInclusive": "06-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes humid Nigeria; drier northern areas inside the region rectangle are not distinguished."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "hotWet",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-nigeria-humid-jun",
+              "cultivarGroup": "Grain maize, humid Nigeria example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 2.6,
+                    "eastDeg": 14.7,
+                    "southDeg": 4.2,
+                    "northDeg": 13.9
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "06-01",
+                    "endMonthDayInclusive": "06-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes humid Nigeria; drier northern areas inside the region rectangle are not distinguished."
+              ]
+            }
+          ],
+          "gaps": []
+        }
+      ]
+    },
+    {
+      "label": "east-africa-rectangle",
+      "lookup": [
+        45,
+        5
+      ],
+      "cropPurposeId": "maize-grain",
+      "runs": [
+        {
+          "climateLabel": "unavailable",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-east-africa-highland-apr",
+              "cultivarGroup": "Grain maize, East African highland example (180-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 28.8,
+                    "eastDeg": 48,
+                    "southDeg": -11.8,
+                    "northDeg": 15
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "04-01",
+                    "endMonthDayInclusive": "04-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row is for East African highland (altitude) maize; this profile does not check field elevation."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "coldDry",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-east-africa-highland-apr",
+              "cultivarGroup": "Grain maize, East African highland example (180-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 28.8,
+                    "eastDeg": 48,
+                    "southDeg": -11.8,
+                    "northDeg": 15
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "04-01",
+                    "endMonthDayInclusive": "04-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row is for East African highland (altitude) maize; this profile does not check field elevation."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "hotWet",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-east-africa-highland-apr",
+              "cultivarGroup": "Grain maize, East African highland example (180-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 28.8,
+                    "eastDeg": 48,
+                    "southDeg": -11.8,
+                    "northDeg": 15
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "04-01",
+                    "endMonthDayInclusive": "04-30"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row is for East African highland (altitude) maize; this profile does not check field elevation."
+              ]
+            }
+          ],
+          "gaps": []
+        }
+      ]
+    },
+    {
+      "label": "india-rectangle",
+      "lookup": [
+        80,
+        20
+      ],
+      "cropPurposeId": "maize-grain",
+      "runs": [
+        {
+          "climateLabel": "unavailable",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-india-dry-cool-oct",
+              "cultivarGroup": "Grain maize, Indian dry cool-season example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 68.1,
+                    "eastDeg": 97.4,
+                    "southDeg": 6.7,
+                    "northDeg": 35.5
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "10-01",
+                    "endMonthDayInclusive": "10-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes the dry, cool season in India; other Indian seasons are not represented."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "coldDry",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-india-dry-cool-oct",
+              "cultivarGroup": "Grain maize, Indian dry cool-season example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 68.1,
+                    "eastDeg": 97.4,
+                    "southDeg": 6.7,
+                    "northDeg": 35.5
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "10-01",
+                    "endMonthDayInclusive": "10-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes the dry, cool season in India; other Indian seasons are not represented."
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "hotWet",
+          "selected": [
+            {
+              "id": "maize-grain-fao56-india-dry-cool-oct",
+              "cultivarGroup": "Grain maize, Indian dry cool-season example (125-day season)",
+              "kcInitial": 0.3,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": 68.1,
+                    "eastDeg": 97.4,
+                    "southDeg": 6.7,
+                    "northDeg": 35.5
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "10-01",
+                    "endMonthDayInclusive": "10-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": [
+                "The FAO-56 row describes the dry, cool season in India; other Indian seasons are not represented."
+              ]
+            }
+          ],
+          "gaps": []
+        }
+      ]
+    },
+    {
+      "label": "california-rectangle",
+      "lookup": [
+        -119,
+        36
+      ],
+      "cropPurposeId": "wheat-grain",
+      "runs": [
+        {
+          "climateLabel": "unavailable",
+          "selected": [
+            {
+              "id": "wheat-grain-fao56-california-winter-dec",
+              "cultivarGroup": "Winter wheat, California example (180-day season)",
+              "kcInitial": 0.7,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": -124.5,
+                    "eastDeg": -114.1,
+                    "southDeg": 32.5,
+                    "northDeg": 42
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "12-01",
+                    "endMonthDayInclusive": "12-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": []
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "coldDry",
+          "selected": [
+            {
+              "id": "wheat-grain-fao56-california-winter-dec",
+              "cultivarGroup": "Winter wheat, California example (180-day season)",
+              "kcInitial": 0.7,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": -124.5,
+                    "eastDeg": -114.1,
+                    "southDeg": 32.5,
+                    "northDeg": 42
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "12-01",
+                    "endMonthDayInclusive": "12-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": []
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "climateLabel": "hotWet",
+          "selected": [
+            {
+              "id": "wheat-grain-fao56-california-winter-dec",
+              "cultivarGroup": "Winter wheat, California example (180-day season)",
+              "kcInitial": 0.7,
+              "scope": {
+                "kind": "regional",
+                "bounds": [
+                  {
+                    "westDeg": -124.5,
+                    "eastDeg": -114.1,
+                    "southDeg": 32.5,
+                    "northDeg": 42
+                  }
+                ]
+              },
+              "exclusions": [],
+              "plantingWindows": [
+                {
+                  "window": {
+                    "startMonthDay": "12-01",
+                    "endMonthDayInclusive": "12-31"
+                  },
+                  "basis": "recommendation",
+                  "sourceIds": [
+                    "fao56-table11"
+                  ]
+                }
+              ],
+              "warnings": []
+            }
+          ],
+          "gaps": []
+        }
+      ]
+    }
+  ],
+  "inputDefinitions": {
+    "unavailable": "Both annual climate evidence values unavailable, with explicit synthetic-probe reason.",
+    "coldDry": "Synthetic mean annual temperature -20 C and annual precipitation 0 mm.",
+    "hotWet": "Synthetic mean annual temperature 45 C and annual precipitation 10000 mm."
+  },
+  "limits": "Illustrative coordinates and artificial annual climates. No NASA retrieval or field suitability evidence. No planting date, elevation, cultivar or soil state is passed to RegistryLookup."
+}
