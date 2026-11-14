@@ -29,7 +29,7 @@ This observed result completes I1's runtime gate. It does not establish that win
 
 ## Verification
 
-All commands used Node 24.22.3. Database suites used the dedicated disposable PostgreSQL 18 database. [Coordinator verification](coordinator-verification.json) binds the evidence hashes and tested code.
+All commands used Node 24.22.3. Database suites used the dedicated disposable PostgreSQL 18 database. [Coordinator verification](coordinator-verification.json) binds the evidence hashes and tested code. Terminal logs normalize carriage returns and trailing whitespace; original and normalized hashes are recorded. Test outcomes are unchanged.
 
 | Command | Result |
 | --- | --- |
