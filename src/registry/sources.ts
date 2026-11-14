@@ -26,7 +26,7 @@ export const gourdji2013 = {
   id: "gourdji2013",
   title: "Gourdji, Sibley & Lobell 2013, Global crop exposure to critical high temperatures in the reproductive period: historical trends and future projections, Environmental Research Letters 8:024041",
   url: "https://doi.org/10.1088/1748-9326/8/2/024041",
-  section: "Methods: critical temperatures (34 °C wheat, 35 °C maize, 36 °C rice, 39 °C soybean) over a 30-day reproductive period",
+  section: "Methods: critical temperatures 34 °C wheat, 35 °C maize, 36 °C rice, 39 °C soybean (taken from the review of Hatfield et al. 2011, ref. 14), counted as days over Tcrit in a 30-day reproductive period",
   publishedOn: yearOnly(2013),
   extractedOn,
 } as const;

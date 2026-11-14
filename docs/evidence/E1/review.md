@@ -75,7 +75,18 @@ The readings of ambiguous cells were confirmed as reasonable and disclosed:
 | Japan box covered Korea, northeast China and the Russian Far East | Split into two rectangles around Japan's main islands. |
 | USA box covers northern Mexico and southern Canada; California desert box includes Yuma and Mexicali | Warnings added to the affected profiles. |
 
+## Gourdji et al. 2013 full-text check (2026-11-15)
+
+The card owner supplied the published PDF (IOP, open access). Its text was extracted and decoded locally. Findings:
+
+- **Confirmed verbatim:** "For T crit, we use values taken from the review of [14]: 34 °C for wheat, 35 °C for maize, 36 °C for rice and 39 °C for soybean."
+  - Reference [14] is Hatfield et al. 2011, Agronomy Journal 103:351-370.
+- **Confirmed verbatim:** "The reproductive period was assumed to last 30 days for all crops, and was centered around 5 days prior to a critical crop-specific event (i.e. heading for wheat and rice, pod-setting for soybean, and silking for maize)."
+- **Daily variable:** not stated. The paper calculates "the number of days in the reproductive period over T crit" from weather "generated ... by interpolating daily minimum and maximum temperature data". It never says which of the two is compared. The rule caveat says so.
+- **Additional caveats in the paper:** the critical temperatures "not only vary by crop species, but also, to some extent, by crop variety", and "canopy temperatures ... differ from the air temperatures". Both are now in the rule limitations (variety) or were already there (air vs canopy).
+
+No threshold value changed.
+
 ## Still needed
 
 - Human peer confirmation.
-- A browser read of Gourdji et al. 2013's methods to confirm which daily temperature variable it compares.

@@ -31,7 +31,7 @@ const reproductiveWindow =
   "The source uses a 30-day reproductive window; this rule covers the whole FAO-56 mid-season stage, so it can count days outside that window and miss window days falling before mid-season.";
 const airTemperature = "Uses screen air temperature from weather data, not canopy or plant tissue temperature.";
 const gourdjiVariable =
-  "Gourdji et al. 2013 count days above the critical temperature from daily station temperature data; the paper does not state verbatim that daily maximum is used.";
+  "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.";
 
 type TemperatureRule = {
   readonly id: string;

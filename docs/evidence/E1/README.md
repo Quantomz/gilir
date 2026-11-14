@@ -47,7 +47,7 @@ E1 tests use the real release data, plus labelled synthetic fixtures (`synthetic
 ## Not verified here
 
 - Human peer review of both releases.
-- A browser read of Gourdji et al. 2013's methods; the variable it compares is not confirmed verbatim.
+- Gourdji et al. 2013 full text checked (values, window and source confirmed); it does not state whether daily maximum or minimum is compared (see review.md).
 - That NASA POWER returns 15 or more complete seasons at the I2 hand-off point (B2/I2).
 - Checks on Node 24 specifically.
 - pstack: `AGENTS.md` asks for pstack's poteto-mode workflow, but pstack is not installed in this environment, so it did not run.
