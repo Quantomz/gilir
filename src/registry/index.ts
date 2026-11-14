@@ -10,7 +10,6 @@ const release = releasedRegistrySchema.parse({
   sources: [],
   profiles: [],
   rules: [],
-  coverage: [],
 });
 
 export function readRegistryRelease(version = identity.catalogueVersion): ReleasedRegistry {

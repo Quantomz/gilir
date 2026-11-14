@@ -61,7 +61,6 @@ export const syntheticRegistryFixture = syntheticRegistrySchema.parse({
     sourceIds: syntheticSourceIds,
   }],
   rules: [],
-  coverage: [],
 });
 
 function available(value: number): EvidenceValue<number> { return { kind: "available", value }; }
@@ -118,7 +117,6 @@ export const frozenRunFixture = {
 
 export const metricInputFixture = {
   history: inputFixture.history,
-  pestCoverage: { kind: "unavailable", reason: "No synthetic pest-host coverage is asserted." },
   calendar: {
     origin: "generated",
     horizon: { start: inputFixture.planningStart, endExclusive: parseIsoDate("2027-07-01") },
@@ -133,12 +131,10 @@ export const metricInputFixture = {
   settings: frozenRunFixture.settings,
   latitudeDeg: climateSnapshotFixture.latitudeDeg,
   elevationM: climateSnapshotFixture.elevationM,
-  priority: inputFixture.priority,
 } satisfies MetricInput;
 
 export const registryResolutionFixture = {
   profiles: syntheticRegistryFixture.profiles,
   rules: syntheticRegistryFixture.rules,
   gaps: [],
-  pestCoverage: { kind: "unavailable", reason: "No synthetic pest-host coverage is asserted." },
 } satisfies import("@/contracts").RegistryResolution;

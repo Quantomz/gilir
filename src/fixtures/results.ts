@@ -31,11 +31,12 @@ const occurrence = {
 const plan = {
   horizon,
   occurrences: [occurrence],
-  priorityTuple: {
-    priority: "water",
+  rankingTuple: {
     components: [
       { metricId: "mean_frequency", value: 0, unit: "fraction" },
       { metricId: "mean_mismatch", value: 0, unit: "fraction" },
+      { metricId: "unplanted_days", value: 361, unit: "days" },
+      { metricId: "longest_unplanted_gap", value: 361, unit: "days" },
     ],
   },
 } satisfies Plan;
@@ -87,9 +88,11 @@ const warningMetric = { ...metric, value: { kind: "available", value: 0.5 } } sa
 const warningPlan = {
   ...plan,
   occurrences: [{ ...occurrence, seasonMetrics: [{ replayStart: replaySeasonFixture.interval.start, metrics: [warningMetric] }] }],
-  priorityTuple: {
-    priority: "water",
-    components: [{ ...plan.priorityTuple.components[0], value: 0.5 }, { ...plan.priorityTuple.components[1], value: 0.25 }],
+  rankingTuple: {
+    components: [
+      { ...plan.rankingTuple.components[0], value: 0.5 }, { ...plan.rankingTuple.components[1], value: 0.25 },
+      plan.rankingTuple.components[2], plan.rankingTuple.components[3],
+    ],
   },
 } satisfies Plan;
 export const resultFixtures = {
