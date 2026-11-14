@@ -2,7 +2,7 @@
 
 I1 remains **BLOCKED**. The production catalogue is empty, and the actual calculation thread returns `service_error` with `not_implemented`. The strict live test fails on this outcome. This evidence does not close issue #11.
 
-The tested code commit is `58d33f4bc3a1630498acd2731a2e4d639943869c`. Its assembled component baseline is `1caf3590cd88460b1087cc5cf57019367ff28997`. These are local worktree results. They do not establish deployment behavior.
+The tested code commit is `58d33f4bc3a1630498acd2731a2e4d639943869c`. Its assembled component baseline is `1caf3590cd88460b1087cc5cf57019367ff28997`. These are local worktree results. They do not establish deployment behavior. The coordinator subsequently merged main and enabled the real adapter suite in GitHub CI. CI uses the disposable `gilir_i1` database and keeps the live provider gate explicitly opt-in. Final review and CI results are recorded on the PR.
 
 ## Recorded results
 
