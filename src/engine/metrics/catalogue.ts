@@ -12,18 +12,29 @@ interface MetricSpec {
   readonly assumptions: readonly string[];
 }
 
-const WATER_METHOD = "rain-demand-7day-v1";
+const WATER_METHOD = "rain-demand-window-v2";
 const WATER_ASSUMPTIONS = [
   "Screening indicator: rainfall only, no soil-water storage, runoff, groundwater or backup water.",
   "Crop demand is FAO-56 ETc = Kc x ET0 with ea = RHmean/100 x es.",
+  "FAO-56 radiation uses lookup latitude, UTC day of year, meanC-owner elevation, daily extrema in kelvin, albedo 0.23 and daily soil heat flux G = 0.",
+  "Longwave cloudiness uses Rs/Rso capped at 1. When clear-sky radiation is zero, including polar night, the ratio is 1 for clear sky.",
+  "Generated calendars use generated stages. Baselines use one distinct matching historical stage allocation.",
+  "Aggregate means retain raw arithmetic precision. Ranking comparison applies its own rounding.",
   "Windows with missing data or zero demand are excluded.",
 ];
-const TEMPERATURE_METHOD = "daily-temperature-rule-v1";
-const TEMPERATURE_ASSUMPTIONS = ["Only released daily temperature rules are assessed; crops without a rule are unassessed, not safe."];
+const TEMPERATURE_METHOD = "daily-temperature-rule-v2";
+const TEMPERATURE_ASSUMPTIONS = [
+  "Only released daily temperature rules are assessed; crops without a rule are unassessed, not safe.",
+  "Generated calendars use generated stages. Baselines use one distinct matching historical stage allocation.",
+];
 const SCHEDULE_METHOD = "schedule-occupancy-v1";
 const SCHEDULE_ASSUMPTIONS = ["Scheduled crop occupancy, not measured ground cover; turnaround days count as days without a planned crop."];
-const INSIGHT_METHOD = "climate-insight-v1";
-const MONTH_ASSUMPTIONS = ["Only calendar months wholly inside a complete replay season are counted.", "Quantiles use the nearest rank."];
+const INSIGHT_METHOD = "climate-insight-v2";
+const MONTH_ASSUMPTIONS = [
+  "Actual UTC dates are deduplicated across targeted replay intervals, including months spanning adjacent intervals.",
+  "Rainfall and mean temperature each require complete calendar months for that variable. Their denominators and periods report contributing samples.",
+  "Quantiles use the nearest rank.",
+];
 
 const water = (label: string): MetricSpec => ({ label, unit: "fraction", basis: "estimated", methodVersion: WATER_METHOD, assumptions: WATER_ASSUMPTIONS });
 const temperature = (label: string): MetricSpec => ({ label, unit: "fraction", basis: "rule_derived", methodVersion: TEMPERATURE_METHOD, assumptions: TEMPERATURE_ASSUMPTIONS });
@@ -48,12 +59,12 @@ const catalogue = {
   monthly_mean_temperature: insight("Mean daily temperature for the month", "degC"),
   wet_day_frequency: insight("Historical share of wet days (rain at or above the wet-day threshold); not a forecast", "fraction"),
   longest_dry_spell: insight("Longest run of dry days (rain below the dry-day threshold) in the replay season", "days",
-    ["Dry day: rain below the dry-day threshold, default 1 mm."]),
+    ["Dry day: rain below the dry-day threshold, default 1 mm.", "Only replay intervals with complete precipitation are counted. Eligibility depends on precipitation completeness."]),
 } satisfies Record<string, MetricSpec>;
 
 export type MetricId = keyof typeof catalogue;
 
-export function metric(id: MetricId, value: EvidenceValue<number>, count: number, unit: DenominatorUnit): AssessmentMetric {
+export function metric(id: MetricId, value: EvidenceValue<number>, count: number, unit: DenominatorUnit, mismatchWindowDays?: number): AssessmentMetric {
   const spec: MetricSpec = catalogue[id];
   return {
     id,
@@ -64,6 +75,9 @@ export function metric(id: MetricId, value: EvidenceValue<number>, count: number
     methodVersion: spec.methodVersion,
     sourceIds: [],
     denominator: count >= 1 ? available({ count, unit }) : unavailable("No observations to count."),
-    assumptions: spec.assumptions,
+    assumptions: mismatchWindowDays === undefined ? spec.assumptions : [
+      ...spec.assumptions,
+      `Frozen mismatchWindowDays is ${mismatchWindowDays}. Crops shorter than this window use their whole occupied interval.`,
+    ],
   };
 }

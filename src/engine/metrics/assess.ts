@@ -1,5 +1,5 @@
 import type { EvidenceValue } from "@/contracts/common";
-import type { ClimateAssessment, MetricInput, ReplaySeason } from "@/contracts/engine";
+import type { CandidateCalendar, ClimateAssessment, MetricInput, ReplaySeason } from "@/contracts/engine";
 import type { CropProfile } from "@/contracts/registry";
 import type { AssessmentMetric, CalendarOccurrence, EvidenceGap, ResultWarning } from "@/contracts/result";
 import { metric } from "./catalogue";
@@ -39,13 +39,16 @@ const valuesOf = (list: readonly EvidenceValue<number>[]): number[] => list.flat
 const field = (w: EvidenceValue<WaterResult>, key: "frequency" | "mismatch"): EvidenceValue<number> =>
   w.kind === "available" ? available(w.value[key]) : w;
 
-function resolve(o: CalendarOccurrence, profiles: readonly CropProfile[], horizonStart: string): Resolved | EvidenceGap {
+function resolve(o: CalendarOccurrence, profiles: readonly CropProfile[], horizonStart: string, origin: CandidateCalendar["origin"]): Resolved | EvidenceGap {
   const gap = (reason: string): EvidenceGap => ({ code: "crop_profile", reason, cropPurposeIds: [o.cropPurposeId], sourceIds: [] });
   const profile = profiles.find(p => p.id === o.profileId && p.version === o.profileVersion);
   if (!profile) return gap(`Crop profile ${o.profileId} (${o.profileVersion}) was not supplied.`);
   const length = daysBetween(o.planted, o.lastOccupied) + 1;
-  const stages = [profile.timing.generatedStageDays, ...profile.timing.historicalStageAllocations].find(s => totalStageDays(s) === length);
-  if (!stages) return gap(`Occupancy of ${length} days matches no stage allocation in profile ${profile.id}.`);
+  const allocations = origin === "generated" ? [profile.timing.generatedStageDays]
+    : [...new Map(profile.timing.historicalStageAllocations.map(s => [`${s.initial}/${s.development}/${s.middle}/${s.late}`, s])).values()];
+  const matching = allocations.filter(s => totalStageDays(s) === length);
+  if (matching.length !== 1) return gap(`Occupancy of ${length} days matches ${matching.length} distinct ${origin} stage allocations in profile ${profile.id}.`);
+  const stages = matching[0];
   return { profile, stages, kc: dailyKc(profile.kc, stages), offset: daysBetween(horizonStart, o.planted) };
 }
 
@@ -62,12 +65,12 @@ function worst(list: readonly EvidenceValue<number>[]): EvidenceValue<number> {
   return list.find(v => v.kind === "unavailable") ?? available(Math.max(...valuesOf(list)));
 }
 
-function roundedMean(list: readonly EvidenceValue<number>[], places: number): EvidenceValue<number> {
+function mean(list: readonly EvidenceValue<number>[]): EvidenceValue<number> {
   if (list.length === 0) return unavailable("No replay season to assess.");
   const gap = list.find(v => v.kind === "unavailable");
   if (gap) return gap;
   const values = valuesOf(list);
-  return available(Number((values.reduce((a, b) => a + b, 0) / values.length).toFixed(places)));
+  return available(values.reduce((a, b) => a + b, 0) / values.length);
 }
 
 const quantile = (values: readonly number[], p: number, none: string): EvidenceValue<number> => {
@@ -75,12 +78,12 @@ const quantile = (values: readonly number[], p: number, none: string): EvidenceV
   return q === null ? unavailable(none) : available(q);
 };
 
-function occurrenceSeasonMetrics(s: SeasonResult): AssessmentMetric[] {
+function occurrenceSeasonMetrics(s: SeasonResult, windowDays: number): AssessmentMetric[] {
   const windows = s.water.kind === "available" ? s.water.value.validWindows : 0;
   const exposure = s.exposure ?? unavailable<Exposure>("No temperature rule for this crop; exposure is unassessed.");
   return [
-    metric("frequency", field(s.water, "frequency"), windows, "windows"),
-    metric("mismatch", field(s.water, "mismatch"), windows, "windows"),
+    metric("frequency", field(s.water, "frequency"), windows, "windows", windowDays),
+    metric("mismatch", field(s.water, "mismatch"), windows, "windows", windowDays),
     metric("temperature_exposure", exposure.kind === "available" ? available(exposure.value.fraction) : exposure,
       exposure.kind === "available" ? exposure.value.validDays : 0, "days"),
   ];
@@ -93,7 +96,7 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
 
   const profileGaps: EvidenceGap[] = [];
   const results: OccurrenceResult[] = calendar.occurrences.map(occurrence => {
-    const resolution = resolve(occurrence, input.profiles, calendar.horizon.start);
+    const resolution = resolve(occurrence, input.profiles, calendar.horizon.start, calendar.origin);
     if ("code" in resolution) {
       profileGaps.push(resolution);
       const missing = unavailable<never>(resolution.reason);
@@ -127,14 +130,14 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
   const mismatchValues = valuesOf(seasonRows.map(r => r.mismatch));
   const exposureValues = valuesOf(seasonRows.map(r => r.exposure));
 
-  const meanFrequency = roundedMean(seasonRows.map(r => r.frequency), settings.rankingDecimalPlaces);
-  const meanMismatch = roundedMean(seasonRows.map(r => r.mismatch), settings.rankingDecimalPlaces);
+  const meanFrequency = mean(seasonRows.map(r => r.frequency));
+  const meanMismatch = mean(seasonRows.map(r => r.mismatch));
   const metrics = [
-    metric("mean_frequency", meanFrequency, seasons, "seasons"),
-    metric("mean_mismatch", meanMismatch, seasons, "seasons"),
+    metric("mean_frequency", meanFrequency, seasons, "seasons", settings.mismatchWindowDays),
+    metric("mean_mismatch", meanMismatch, seasons, "seasons", settings.mismatchWindowDays),
     metric("unplanted_days", available(schedule.days), schedule.length, "days"),
     metric("longest_unplanted_gap", available(schedule.longestGap), schedule.length, "days"),
-    metric("q90_mismatch", quantile(mismatchValues, settings.adverseQuantile, "No season has a mismatch value."), mismatchValues.length, "seasons"),
+    metric("q90_mismatch", quantile(mismatchValues, settings.adverseQuantile, "No season has a mismatch value."), mismatchValues.length, "seasons", settings.mismatchWindowDays),
     metric("q90_temperature_exposure", quantile(exposureValues, settings.adverseQuantile, "No crop has an assessable temperature rule."), exposureValues.length, "seasons"),
     metric("crop_family_count", descriptive(uniq(profilesUsed.map(p => p.family)).length), n, "occurrences"),
     metric("legume_crop_count", descriptive(profilesUsed.filter(p => p.isLegume).length), n, "occurrences"),
@@ -143,8 +146,8 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
   const seasonMetrics = seasonRows.map(r => ({
     replayStart: r.season.interval.start,
     metrics: [
-      metric("frequency", r.frequency, n, "occurrences"),
-      metric("mismatch", r.mismatch, n, "occurrences"),
+      metric("frequency", r.frequency, n, "occurrences", settings.mismatchWindowDays),
+      metric("mismatch", r.mismatch, n, "occurrences", settings.mismatchWindowDays),
       metric("temperature_exposure", r.exposure, r.exposureCount, "occurrences"),
     ],
   }));
@@ -177,7 +180,7 @@ export function assessClimate(input: MetricInput): ClimateAssessment {
     return {
       ...evidence,
       kind: "assessed",
-      occurrences: results.map(r => ({ ...r.occurrence, seasonMetrics: r.seasons.map((s, y) => ({ replayStart: cohort[y].interval.start, metrics: occurrenceSeasonMetrics(s) })) })),
+      occurrences: results.map(r => ({ ...r.occurrence, seasonMetrics: r.seasons.map((s, y) => ({ replayStart: cohort[y].interval.start, metrics: occurrenceSeasonMetrics(s, settings.mismatchWindowDays) })) })),
       flagged: shortfallCrops.length > 0 || exposedCrops.length > 0,
     };
   }

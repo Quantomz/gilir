@@ -240,8 +240,15 @@ describe("calendar-origin stage allocation", () => {
     expect(water.assumptions.join(" ")).toMatch(/historical.*generated|generated.*historical/i);
     expect(temperature.assumptions.join(" ")).toMatch(/historical.*generated|generated.*historical/i);
     expect(water.assumptions.join(" ")).toMatch(/raw|unrounded/i);
-    expect(water.assumptions.join(" ")).toContain("mismatchWindowDays");
+    expect(water.assumptions.join(" ")).toContain("Frozen mismatchWindowDays is 7.");
     expect(water.assumptions.join(" ")).toMatch(/radiation.*latitude|latitude.*radiation/i);
+    const configured = assessed(assessClimate({ ...baselineInput, settings: { ...baselineInput.settings, mismatchWindowDays: 1 } }));
+    const waterMetrics = [
+      ...configured.metrics, ...configured.seasonMetrics.flatMap(season => season.metrics),
+      ...configured.occurrences.flatMap(occurrence => occurrence.seasonMetrics.flatMap(season => season.metrics)),
+    ].filter(metric => metric.methodVersion === "rain-demand-window-v2");
+    expect(waterMetrics.length).toBeGreaterThan(0);
+    expect(waterMetrics.every(metric => metric.assumptions.join(" ").includes("Frozen mismatchWindowDays is 1."))).toBe(true);
   });
 });
 
