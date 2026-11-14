@@ -146,13 +146,9 @@ describe("E1 registry releases", () => {
     };
     for (const profile of profiles) {
       const total = stagesOf(profile).reduce((a, b) => a + b, 0);
+      expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, total] });
       const printed = printedTotalsThatDisagree[profile.id];
-      if (printed === undefined) {
-        expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, total] });
-      } else {
-        expect(profile.timing.publishedDurationDays).toEqual({ kind: "available", value: [total, printed] });
-        expect(profile.warnings.join(" ")).toContain(`prints a ${printed}-day total`);
-      }
+      if (printed !== undefined) expect(profile.warnings.join(" ")).toContain(`prints a ${printed}-day total, which is not used`);
     }
   });
 

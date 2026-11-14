@@ -80,10 +80,10 @@ Found on 2026-11-15 when listing the release; both independent reviews missed it
 
 | Row | Stage sum | Printed total | Released |
 |---|---|---|---|
-| Sorghum 20 \| 35 \| 40 \| 30 \| 130 \| May/June \| USA, Pakis., Med. | 125 | 130 | Stages as printed (125 days). `publishedDurationDays` is [125, 130], with a warning naming both values. |
-| Green gram, cowpeas 20 \| 30 \| 30 \| 20 \| 110 \| March \| Mediterranean | 100 | 110 | Stages as printed (100 days). `publishedDurationDays` is [100, 110] on both the mung bean and cowpea profiles, with the same warning. |
+| Sorghum 20 \| 35 \| 40 \| 30 \| 130 \| May/June \| USA, Pakis., Med. | 125 | 130 | Stages as printed; season length 125 days (the stage sum). A warning notes the unused printed 130. |
+| Green gram, cowpeas 20 \| 30 \| 30 \| 20 \| 110 \| March \| Mediterranean | 100 | 110 | Stages as printed; season length 100 days (the stage sum) on both the mung bean and cowpea profiles. A warning notes the unused printed 110. |
 
-No stage length was changed to force the totals to agree, because the source does not say which number is wrong.
+Decision (card owner, 2026-11-15): use the summed stage days as the season length. No stage length was changed.
 
 ### Table 11 rows not released
 

@@ -510,7 +510,7 @@ function profileOf(row: Row, release: ReleaseNumber) {
     timing: {
       generatedStageDays: stageDays,
       historicalStageAllocations: [stageDays],
-      publishedDurationDays: { kind: "available", value: [Math.min(total, row.printedTotal ?? total), Math.max(total, row.printedTotal ?? total)] },
+      publishedDurationDays: { kind: "available", value: [total, total] },
       plantingWindows: row.plantingWindow === null ? [] : [{ window: row.plantingWindow, basis: "recommendation", sourceIds: table11 }],
       turnaround: turnaroundAssumption,
     },
@@ -529,7 +529,7 @@ function profileOf(row: Row, release: ReleaseNumber) {
       ...crop.warnings,
       ...(row.warnings ?? []),
       ...(row.printedTotal === undefined || row.printedTotal === total ? [] :
-        [`FAO-56 Table 11 prints a ${row.printedTotal}-day total for this row, but its stage lengths add up to ${total} days; the stage lengths are used and both values are kept as the published range.`]),
+        [`Season length is the sum of the FAO-56 Table 11 stage lengths (${total} days); the same row prints a ${row.printedTotal}-day total, which is not used.`]),
     ],
     sourceIds: [...table11, ...table12, ...temperatureSources],
   } as const;
