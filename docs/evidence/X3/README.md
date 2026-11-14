@@ -59,7 +59,7 @@ Verification used Node 24 and the existing disposable local PostgreSQL database.
 | Check | Observed outcome |
 | --- | --- |
 | X3 Vitest filter | 3 reference tests passed; zero engine comparisons |
-| `npm run check` | 294 passed, 1 intentional live-climate skip; typecheck and import boundaries passed |
+| `npm run check` | 294 passed, 1 intentional I1 live-pipeline skip; typecheck and import boundaries passed |
 | `npm run build` | Passed |
 | Main public audit | Exit 1; 0 passed, 29 unimplemented-entrypoint failures |
 | Exact E2 PR28 public audit | Exit 1; 25 passed, 4 raw-mean precision failures |
@@ -75,4 +75,4 @@ All changed files belong to `tests/overflow/metric-audit/` or `docs/evidence/X3/
 
 This work uses `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, the Feature playbook, and separate architecture and implementation candidates. Model the Domain gives the fixtures public typed inputs. Test Behavior, Not Implementation keeps comparisons on `assessClimate`. Separate Before Serializing Shared State gives candidates isolated worktrees. Prove It Works requires the actual pinned E2 execution, including its failures.
 
-The operator configured no cross-family judge, so no cross-family review is claimed. The dedicated Comment Sicko agent type is unavailable in this host. A fresh independent reviewer checks comments, suppressions, code, and evidence instead. Final review evidence is recorded separately before merge.
+The operator configured no cross-family judge, so no cross-family review is claimed. The dedicated Comment Sicko agent type is unavailable in this host. A fresh independent reviewer checks comments, suppressions, code, and evidence instead. The independent reviewer approved source and tests at `51471c281292a6ad4c5b6747bc13affb36b20c06`. The final documentation commit preserves those files unchanged. [The review record](review.md) records the verdict and reruns.
