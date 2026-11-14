@@ -88,6 +88,8 @@ Without a cultivar question, the backend selects an applicable released crop pro
 | Soil moisture | SMAP or GLDAS with product metadata | Optional recent regional wetness context | Optional. Does not initialize an invented farm water balance |
 | Vegetation | MODIS, VIIRS, or Landsat with quality masks | Optional historical greenness context | Optional. Does not identify the farmer's crops without a validated classifier |
 
+E2 selects provider-elevation evidence across the frozen product snapshots and returns it as `ClimateCohort.elevationM`. E2 owns unavailable reasons and the selection method version recorded in cohort metadata. E3 forwards this evidence unchanged to assessment and supplies latitude from the frozen field lookup coordinate.
+
 POWER products have different native grids. Meteorology is commonly 0.5 by 0.625 degrees, solar radiation 1 degree, and IMERG 0.1 degree. These angular grids do not imply a fixed kilometre size everywhere. A precise field boundary does not improve the native climate resolution. The result records each product's cell and resolution. [POWER methodology](https://power.larc.nasa.gov/docs/methodology/)
 
 All weather requests explicitly use UTC. Adapters validate provider units, missing-value markers, time coverage, and parameter availability. Cache keys include the native cell, product version, fields, dates, and time standard. Provider limits apply to retrieval batches. [POWER daily API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/)
@@ -303,6 +305,8 @@ Search coverage reports `structuralExpandedStates`, `gridExpandedStates`, and `s
 An exhausted finite structural search can prove that no arrangement fits under the released profiles and generated-duration settings. A simple summed-duration lower bound can also prove impossibility. These proofs describe the supported model, not every cultivar or possible farming practice. Exhausting only the weekly ranking grid cannot prove this. If a budget ends before proof or a witness and no eligible baseline exists, return `search_incomplete` and allow retry.
 
 If a valid assessed candidate exists when either ranking budget ends with work remaining, return the best assessed candidate with `search.ranking = limit_reached`. The result says that the search was limited. Completion of the declared grid sets `search.ranking = grid_complete`.
+
+If missing required evidence or a dependency or processing failure stops a started ranking traversal, set `search.ranking = interrupted`. Preserve the actual grid and scoring counters. These interruptions normally accompany `insufficient_data` or `service_error` within the six existing result states. Reserve `limit_reached` and `search_limit` warnings for an actual operation-budget stop with pending work.
 
 There is no random sampling, unseeded heuristic, LLM call, or wall-clock-dependent selection. Repeated runs over the same immutable input and data versions produce the same semantic result. Operational timestamps are outside that equality contract.
 

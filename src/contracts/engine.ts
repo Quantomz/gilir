@@ -40,6 +40,7 @@ export interface CohortInput {
 export interface ClimateCohort {
   readonly coverage: ResultDetails["cohort"];
   readonly applicabilityClimate: RegistryLookup["climate"];
+  readonly elevationM: EvidenceValue<number>;
   readonly usable: readonly ReplaySeason[];
   readonly insights: ResultDetails["insights"];
   readonly gaps: readonly EvidenceGap[];
