@@ -1,61 +1,73 @@
 # X2 climate coverage evidence
 
-This candidate adds a bounded coverage sweep for four public locations. It reuses B2 normalization and E2 cohort construction. No live NASA requests were made for this candidate. Its tests use explicitly synthetic POWER-shaped responses. X2 remains open pending live evidence, integration checks, independent review, and merge.
+The live sweep retrieved all three NASA POWER products for Cordoba, Berlin, Quito, and Taveuni. Each location has 25 complete replay seasons and no missing required weather values in the requested period. The saved responses reproduce the same normalized snapshots and coverage summaries offline.
 
-## Run the sweep
+These results establish climate coverage at the recorded points and dates. They do not validate crop suitability, ET0, ranking, or worldwide recommendations. No natural gaps or provider failures occurred in this sweep. The gap and failure checks below use synthetic responses.
 
-Use Node 24 and the installed repository dependencies. The output directory must not exist. Its parent must exist.
+## Live results
+
+The [live report](live-2026-11-14/report.json) and four compressed response bundles were captured from November 14, 2026 at 18:47:54.904 through 18:48:20.069 UTC, November 15 in Bangkok. All 12 requests returned HTTP 200 on their first attempt. All locations returned 9,498 daily observations for every owned field, covering June 30, 2000 through July 1, 2026 inclusive.
+
+The public lookups and actual returned native centers below use longitude, latitude order.
+
+| Location | Public lookup | Meteorology center | Solar center | IMERG center | Usable seasons |
+| --- | --- | --- | --- | --- | --- |
+| Cordoba, southern hemisphere | -64.19, -31.42 | -64.375, -31.5 | -64.5, -31.5 | -64.15, -31.45 | 25 of 25 |
+| Berlin, temperate | 13.4, 52.52 | 13.125, 52.5 | 13.5, 52.5 | 13.45, 52.55 | 25 of 25 |
+| Quito, equatorial | -78.5, -0.2 | -78.75, 0 | -78.5, -0.5 | -78.45, -0.15 | 25 of 25 |
+| Taveuni, dateline adjacent | 179.9, -16.8 | -180, -17 | 179.5, -16.5 | 179.95, -16.75 | 25 of 25 |
+
+The planning start is July 1, 2027, with a 366-day horizon that includes February 2028. The frozen cutoff is November 14, 2026. B2 derives the request interval with its 366-day retrieval lookback. E2 checks 25 seasons with a minimum of 15 and zero crop lookback days. The report preserves the full settings and every season interval.
+
+The native grid sizes are 0.5 by 0.625 degrees for meteorology, 1 by 1 degree for solar, and 0.1 by 0.1 degree for IMERG. All values use UTC. NASA reports POWER API version 2.10.3, MERRA2/POWER meteorology, SRB/SYN1DEG solar, and IMERG rain. The source stream and underlying release version remain explicitly unavailable because POWER does not supply them. Native-cell elevation is available at all four points; it is not a field survey.
+
+| Fields | Provider unit | Canonical unit |
+| --- | --- | --- |
+| Mean, minimum, and maximum temperature | C | degC |
+| Relative humidity | % | % |
+| Wind at two meters | m/s | m/s |
+| Surface pressure | kPa | kPa |
+| Solar radiation | MJ/m^2/day | MJ/m²/day |
+| IMERG precipitation | mm/day | mm/day |
+
+## Run or replay the sweep
+
+Use Node 24 and the installed dependencies from the repository root. The output directory must be new, and its parent must exist.
 
 ```sh
-node --import tsx scripts/check-global-coverage.ts --mode live --output docs/evidence/X2/live-2026-11-15
-node --import tsx scripts/check-global-coverage.ts --mode replay --input docs/evidence/X2/live-2026-11-15 --output /tmp/gilir-x2-replay
+node --import tsx scripts/check-global-coverage.ts --mode live --output /tmp/gilir-x2-new-live
+node --import tsx scripts/check-global-coverage.ts --mode replay --input docs/evidence/X2/live-2026-11-14 --output /tmp/gilir-x2-new-replay
 ```
 
-The live command accepts `--planning-start` and `--cutoff`. Replay uses the saved dates and rejects overrides. The CLI exposes no synthetic-provider option. Tests call the exported `checkGlobalCoverage` operation with a required fixture label and injected provider.
+Live mode accepts `--planning-start` and `--cutoff`; their defaults match this capture. Replay uses the saved dates and rejects overrides. Tests inject a provider through the exported `checkGlobalCoverage` operation and must supply a fixture label. The CLI exposes only live and replay modes.
 
-| Public location | Category | Longitude | Latitude |
-| --- | --- | --- | --- |
-| Cordoba | Southern hemisphere | -64.19 | -31.42 |
-| Berlin | Temperate | 13.4 | 52.52 |
-| Quito | Equatorial | -78.5 | -0.2 |
-| Taveuni | Dateline adjacent | 179.9 | -16.8 |
+Each location has one `.json.gz` bundle with ordered attempts, URLs, timestamps, HTTP status, Retry-After, raw successful text and SHA-256, errors, and adapter clock reads. Non-OK response bodies stay unread, matching B2. Each completed location is saved before the next begins. The report records preparation status separately from usable seasons, elevation availability, and replay integrity. Actual observation bounds remain distinct from normalized date rows.
 
-The default planning start is July 1, 2027. Its anniversary horizon contains February 2028 and lasts 366 days. The cutoff is November 14, 2026. Existing B2 date helpers derive June 30, 2000 through July 1, 2026 inclusive, containing 9,498 requested days. The recorded engine settings request 25 seasons and require 15 usable seasons. E2 receives zero lookback days for this coverage check. B2's retrieval allowance still includes 366 lookback days.
-
-## Read the artifacts
-
-Each location has one `.json.gz` bundle. `report.json` records the context and all completed locations after each location finishes. An unfinished or corrupt execution remains `incomplete`.
-
-Bundles preserve exact request order, URL, capture time, HTTP status, Retry-After, raw successful text and SHA-256, transport or body-read errors, and adapter clock reads. Non-OK bodies stay unread, matching B2. Each bundle contains its expected coverage summary. The report contains a SHA-256 of the compressed bundle bytes. There is no new retry policy. B2 retains its three-attempt limit per product, with at most nine attempts per location.
-
-Each summary records requested native cells, returned centers, native grids, field units and conversions, unavailable source-version evidence, snapshot identities and hashes, normalized date rows, actual observation bounds, missingness, preparation outcome, and unattempted products. E2 records usable and excluded seasons, reasons, gaps, annual applicability evidence, and elevation availability. A `ready` preparation is distinct from meeting E2's minimum usable-season count. Available zero rainfall remains an observation.
-
-Replay validates the saved policy and location, body and bundle hashes, exact ordered URLs, clock positions, complete consumption, and the regenerated summary. It performs no provider requests. A replay retains its original `live` or `fixture` source label. A reproduced provider outage can pass replay integrity while its coverage remains failed. Capture hashes detect accidental changes. They do not authenticate the provider or the capture author.
+Replay validates the saved context, compressed bundle and body hashes, ordered requests, clock positions, complete consumption, and regenerated summaries. It never falls through to the network. Replays preserve the original live or fixture source label. Hashes detect accidental changes; they do not authenticate the provider or capture author.
 
 | Exit code | Meaning |
 | --- | --- |
-| 0 | Execution completed and all four rows are ready with the minimum usable seasons. |
-| 1 | Execution completed but at least one row failed retrieval, was unavailable, or lacked the minimum seasons. |
-| 2 | Invalid arguments, capture corruption, incomplete execution, or an output error. |
+| 0 | All four rows are ready and meet the minimum season count. |
+| 1 | The sweep completed, but a row failed retrieval, was unavailable, or lacked enough complete seasons. |
+| 2 | Arguments, capture integrity, output, or execution failed. |
 
-These results establish coverage only at the recorded locations and dates. They do not validate ET0, crop suitability, ranking, or worldwide recommendations. The script builds a coverage-only `FrozenRun` with explicit unused registry versions. It does not import the science fixture or calculate a crop plan.
+## Verification
 
-## Candidate verification
+The source and captures were tested with Node 24. Full database checks used local PostgreSQL 18.
 
-Commands ran on Node 24 with the existing dependency installation.
-
-| Command or evidence | Observed result |
+| Command or check | Result |
 | --- | --- |
-| `npx vitest run tests/overflow/global-coverage` | Passed 18 tests. The final functional run took 17.25 seconds. Synthetic data only. |
-| `npx tsc --noEmit --incremental false` | Passed. |
-| CLI subprocess checks | Passed offline replay, failed-coverage exit code, explicit-mode checks, rejected overrides and overwrite, and inert module import. |
-| Live NASA sweep | NOT RUN by this candidate. |
-| `npm run check` | NOT RUN by this candidate. Root owns the full integration check. |
-| `npm run build` | NOT RUN by this candidate. Root owns the production build. |
-| Independent review | NOT RUN by this candidate. Root reviews the exact selected change. |
+| Live CLI command | Passed: 12 HTTP 200 responses, four ready locations, no missing owned fields, 25 usable seasons each. |
+| Replay CLI command | Passed offline: all four integrity checks verified and every saved summary reproduced. |
+| `npx vitest run tests/overflow/global-coverage` | 19 checks passed: 18 synthetic behavior checks and one regression against the four saved live captures. |
+| `npm run check` | 476 passed, one opt-in live I1 test skipped; type checking and module boundaries passed. |
+| `npm run build` | Passed. |
+| Independent review | In progress. |
 
-The tests exercise zero rainfall, one missing rain day, all-missing rain, unavailable elevation, exhausted HTTP 503 retries, permanent HTTP 422, corrupt HTTP 200 JSON, network failures, interrupted successful bodies, preserved earlier snapshots, and continuation to later locations. Corruption scenarios cover modified bodies, wrong or reordered URLs, missing and extra attempts or clocks, mismatched clock positions or values, altered summaries, changed contexts, missing bundles, and incomplete sources.
+Synthetic checks cover zero rain, one missing rain day, all-missing rain, unavailable elevation, HTTP 503 retries, permanent HTTP 422, corrupt HTTP 200, transport and body-read failures, partial snapshot preservation, and continuation. Replay checks reject changed bodies, bundles, URLs, attempts, clocks, summaries, contexts, missing files, and incomplete sources. Subprocess checks cover the actual CLI, exit codes, overwrite rejection, date overrides, and import without execution.
 
-The workflow uses `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md` and its Feature playbook. Root supplied the completed subsystem investigation and architecture decision. This isolated candidate owns only the X2 script, overflow tests, and evidence directory. The blocking design preceded implementation. One worker owns the coupled CLI and tests. Provider operations serialize through one B2 preparer with fresh per-location caches. Filesystem writes occur after provider execution. Root handles the independent arena comparison and review.
+## Workflow
 
-Model the Domain informed the attempt outcome union and explicit execution status. Boundary Discipline placed capture parsing and replay checks at the file boundary. Laziness Protocol kept one exported operation and one location bundle instead of introducing a reusable capture framework. Test Behavior, Not Implementation led to tests through the public operation and actual subprocess CLI. A local deslop pass found no comments, suppressions, copied science calculations, or out-of-scope edits. The configured arena has no cross-family judge pool, so no cross-family review is claimed.
+This card used `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md` and the Feature, Opening a PR, and Shipping playbooks. Independent design and implementation candidates ran in separate worktrees. The selected implementation keeps one operation and one bundle per location. The other candidate shared this shape but lacked distinct coverage-failure exits and actual observation bounds. No graft was needed.
+
+The throughput checkpoint kept design before implementation, isolated competing writes, serialized NASA requests through one B2 preparer with fresh caches, and assigned final evidence and GitHub operations to root. Build the Lever produced a repeatable CLI; Prove It Works required live retrieval and exact offline replay. An independent no-comments audit found zero comments or suppressions. The configured reviewers are GPT models, and the host supplies local collaboration agents. No cross-family or Cursor cloud review is claimed.
