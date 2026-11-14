@@ -45,8 +45,9 @@ export const calculate: Calculate = (run, registry) => {
         : { kind: "not_assessable", reasons: ["No assessment was performed."] },
       preparation: [],
       search: {
-        structural: "not_started", ranking: "not_started", structuralExpandedStates: 0, scoredCandidates: 0,
+        structural: "not_started", ranking: "not_started", structuralExpandedStates: 0, gridExpandedStates: 0, scoredCandidates: 0,
         structuralExpansionLimit: run.settings.structuralExpansionLimit,
+        gridExpansionLimit: run.settings.gridExpansionLimit,
         scoredCandidateLimit: run.settings.scoredCandidateLimit,
         gridStepDays: run.settings.searchGridStepDays,
       },

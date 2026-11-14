@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { EvidenceValue, IsoDate } from "./common";
 
 export interface DailyWeather {
@@ -66,11 +67,14 @@ export interface ClimateCache {
   put(key: ClimateCacheKey, snapshot: ClimateSnapshot): Promise<void>;
 }
 
+export const rankingDecimalPlacesSchema = z.number().int().min(0).max(12);
+
 export const defaultEngineSettings = {
-  version: "v1",
+  version: "v2",
   targetSeasons: 25,
   minimumUsableSeasons: 15,
   structuralExpansionLimit: 2_000_000,
+  gridExpansionLimit: 2_000_000,
   scoredCandidateLimit: 100_000,
   searchGridStepDays: 7,
   mismatchWindowDays: 7,
@@ -84,6 +88,7 @@ export interface EngineSettings {
   readonly targetSeasons: number;
   readonly minimumUsableSeasons: number;
   readonly structuralExpansionLimit: number;
+  readonly gridExpansionLimit: number;
   readonly scoredCandidateLimit: number;
   readonly searchGridStepDays: number;
   readonly mismatchWindowDays: number;

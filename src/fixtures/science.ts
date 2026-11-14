@@ -2,7 +2,7 @@ import { defaultEngineSettings } from "@/contracts/climate";
 import type { ClimateSnapshot, DailyWeather } from "@/contracts/climate";
 import { parseIsoDate } from "@/contracts/common";
 import type { EvidenceValue } from "@/contracts/common";
-import type { FrozenRun, MetricInput, ReplaySeason } from "@/contracts/engine";
+import type { ClimateCohort, FrozenRun, MetricInput, ReplaySeason } from "@/contracts/engine";
 import { syntheticRegistrySchema } from "@/contracts/registry";
 import { inputFixture } from "./input";
 
@@ -98,6 +98,23 @@ export const replaySeasonFixture = {
   lookbackDays: [],
   days: weatherDays.slice(0, 4),
 } satisfies ReplaySeason;
+
+export const climateCohortFixture = {
+  coverage: {
+    kind: "available",
+    value: {
+      targetSeasons: 1, minimumUsableSeasons: 1, methodVersion: "synthetic-cohort-v1",
+      seasons: [{ status: "usable", interval: replaySeasonFixture.interval }],
+    },
+  },
+  applicabilityClimate: {
+    meanAnnualTemperatureC: { kind: "unavailable", reason: "Synthetic replay has no complete annual temperature evidence." },
+    meanAnnualPrecipitationMm: { kind: "unavailable", reason: "Synthetic replay has no complete annual precipitation evidence." },
+  },
+  usable: [replaySeasonFixture],
+  insights: [],
+  gaps: [],
+} satisfies ClimateCohort;
 
 export const frozenRunFixture = {
   input: inputFixture,

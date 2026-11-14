@@ -175,8 +175,10 @@ const search = z.strictObject({
   structural: z.enum(["not_started", "witness", "proved_impossible", "limit_reached"]),
   ranking: z.enum(["not_started", "grid_complete", "limit_reached"]),
   structuralExpandedStates: count,
+  gridExpandedStates: count,
   scoredCandidates: count,
   structuralExpansionLimit: count,
+  gridExpansionLimit: count,
   scoredCandidateLimit: count,
   gridStepDays: positiveDays,
 }).readonly();
