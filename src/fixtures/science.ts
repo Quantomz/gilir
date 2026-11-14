@@ -111,6 +111,7 @@ export const climateCohortFixture = {
     meanAnnualTemperatureC: { kind: "unavailable", reason: "Synthetic replay has no complete annual temperature evidence." },
     meanAnnualPrecipitationMm: { kind: "unavailable", reason: "Synthetic replay has no complete annual precipitation evidence." },
   },
+  elevationM: climateSnapshotFixture.elevationM,
   usable: [replaySeasonFixture],
   insights: [],
   gaps: [],
@@ -146,8 +147,8 @@ export const metricInputFixture = {
   rules: syntheticRegistryFixture.rules,
   cohort: [replaySeasonFixture],
   settings: frozenRunFixture.settings,
-  latitudeDeg: climateSnapshotFixture.latitudeDeg,
-  elevationM: climateSnapshotFixture.elevationM,
+  latitudeDeg: frozenRunFixture.input.field.lookup[1],
+  elevationM: climateCohortFixture.elevationM,
 } satisfies MetricInput;
 
 export const registryResolutionFixture = {

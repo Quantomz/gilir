@@ -42,6 +42,8 @@ Global package changes and contract amendments belong to kyusuku. Card-specific 
 
 `ClimateCohort.applicabilityClimate` is required and has exactly the `RegistryLookup["climate"]` type. E2 owns the annual aggregation definition, its version in the cohort method metadata, and explicit unavailable evidence with reasons. E3 forwards this evidence unchanged to E1 for profile applicability.
 
+`ClimateCohort.elevationM` is required and uses `EvidenceValue<number>`. E2 selects the provider-elevation evidence across the frozen product snapshots and owns unavailable reasons and the selection method version in cohort metadata. E3 forwards this evidence unchanged to `MetricInput.elevationM` and supplies `MetricInput.latitudeDeg` from the frozen field lookup latitude, as specified in section 3.2. The shared interface leaves the elevation selection algorithm to E2. The synthetic single-snapshot fixture uses its snapshot's elevation evidence.
+
 `CalendarSearchInput.initialPredecessor` is required. A crop-purpose ID records the last known crop. Null records an unknown predecessor. Waiting and recorded fallow retain a known predecessor for successor constraints.
 
 `RankingInput.rankingDecimalPlaces` is required. `rankingDecimalPlacesSchema` validates an integer from 0 through 12. E3 compares each metric using `Number(value.toFixed(rankingDecimalPlaces))` under the frozen setting and runtime. Raw assessment metrics remain available for display and audit.
@@ -64,6 +66,8 @@ The canonical key serializes ordered crop-purpose IDs, profile IDs and versions,
 Default `EngineSettings.version` is `v2`. Independent limits are `structuralExpansionLimit = 2_000_000`, `gridExpansionLimit = 2_000_000`, and `scoredCandidateLimit = 100_000`. `SearchCoverage` requires `gridExpandedStates` and `gridExpansionLimit` alongside the existing structural and scoring fields. Every opened ranking prefix counts once, including prefixes yielding no complete calendar. Each additional unique complete assessment counts once, including an insufficient-data response. Independently assessed baseline and witness seeds consume neither additional ranking budget.
 
 The grid prefix limit is a deterministic safety bound whose performance has yet to be benchmarked. Exhaustion exactly at a limit is complete when no work remains. A limit with pending work is `limit_reached`. Zero structural budget preserves an eligible baseline. Zero grid or scoring budgets preserve assessed eligible seeds. This pre-release correction adds required search fields to strict saved-result parsing while retaining `schemaVersion: 1`.
+
+`SearchCoverage.ranking = "interrupted"` records a started ranking traversal stopped by missing required evidence or a dependency or processing failure. Preserve the actual grid and scoring counters. These interruptions normally accompany `insufficient_data` or `service_error` within the six existing result states. Reserve `limit_reached` and `search_limit` warnings for an actual operation-budget stop with pending work.
 
 ## HTTP wire format
 
