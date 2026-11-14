@@ -1,24 +1,9 @@
 # I1 verification status
 
-I1 remains incomplete. The acceptance runner is prepared against the frozen client and lifecycle ports in `tests/integration/runtime/acceptance.ts`.
+I1 remains **BLOCKED**. See [the acceptance evidence](README.md) for commands, source identity, results, and owners. The actual production catalogue has no released selectable entries, and the actual calculation thread returns `service_error` with `not_implemented` in the tested baseline.
 
-## Required evidence
+The isolated real PostgreSQL and HTTP checks pass with controlled scientific calculations and saved real NASA responses. They cover separate worker death and replay, web restart, authorization, stale leases, terminal expiry, persistent-cache concurrency, distinct cutoff identities, injected provider failures, and process-log privacy. These checks are operational evidence. They do not satisfy the source-backed live-plan gate.
 
-| Check | Current result | Dependency |
-| --- | --- | --- |
-| Real HTTP submission through PostgreSQL, NASA and the engine | NOT RUN | B1, B2, B3, E1, E2, E3 |
-| Kill a separate worker after freeze and compare the resumed manifest and snapshot digest | NOT RUN | B1 and B3 |
-| Restart the web process and read the same result | NOT RUN | B1 and the assembled pipeline |
-| Reject wrong tokens for reads and deletes | NOT RUN | B1 HTTP adapter |
-| Provider outage produces a service failure | NOT RUN | B2 and B3 |
-| Missing scientific coverage produces insufficient_data | NOT RUN | E1, E2, E3 |
-| Terminal expiry and stale-worker fencing | NOT RUN | B1 and B3 |
-| Logs omit capabilities, geometry and history | NOT RUN | Assembled HTTP and worker processes |
-| Independent review of final I1 changes | NOT RUN | Final candidate |
-| Required remote checks | BLOCKED | Repository owner billing lock |
+[The live preflight](live-preflight.json) records fresh actual NASA retrievals and the production blockers. The strict live test was executed separately and failed because the report is `BLOCKED`. A successful default test run skips that opt-in live test and does not close issue #11.
 
-The published starter at `6e36a76af91464d22399e7ca04ed0847164ac82d` has an empty released catalogue and an unimplemented engine. The repository currently has no E1, E2 or E3 branch or PR. Those modules remain owned by yslee1106.
-
-The starter's required GitHub check was retried during this goal. [Job 132433601624](https://github.com/Quantomz/nefalos_nasa_hackathon/actions/runs/43589258315/job/132433601624) did not start because the repository owner account is locked due to a billing issue. The owner must resolve billing and rerun CI. Local checks do not waive this gate.
-
-No fixture-backed or failed-engine execution counts as I1 completion. The runner requires a declared expected result, real provider snapshots and run provenance. It compares the entire frozen manifest and digest before and after restart.
+Independent review and merge remain with the root owner. CI and deployment are separate evidence layers. This worktree did not deploy, change board status, create a PR, or merge.

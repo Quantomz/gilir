@@ -1,0 +1,38 @@
+
+ RUN  v5.1.0 /Users/kyusuku/Hackathons/gilir-i1
+
+Applied 001-jobs.sql
+Applied 002-climate-cache.sql
+ ❯ tests/integration/runtime/live.test.ts (1 test | 1 failed) 8072ms
+   × I1 strict live production pipeline reaches a scientific terminal state after restart 8071ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/runtime/live.test.ts > I1 strict live production pipeline reaches a scientific terminal state after restart
+AssertionError: {"status":"BLOCKED","evidence":"Actual production catalogue/API, PostgreSQL, live NASA, and production calculation thread. No fixture supplies a production result.","checks":{"catalogue":{"version":"v1-empty","entries":0},"postgresAndWorkerReadiness":"PASSED","httpSubmission":{"kind":"invalid","issues":[{"path":["cropPurposeIds",0],"message":"Select a crop from the current catalogue."}]},"liveNASA":{"kind":"ready","snapshots":[{"id":"power-f3440794f59674f41525180290b99c70c7ad66fadb777662933420bd6843554c","kind":"provider","contentHash":"773a49dc98bb7d27b7d949c4d48f87bd4707fac15f5a2203139ae93b9705078f","retrievedAt":"2026-11-14T12:11:54.541Z","cutoff":"2026-11-14","days":9497,"firstDate":"2000-06-30","lastDate":"2026-06-30","products":[{"product":"POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3","version":{"kind":"unavailable","reason":"POWER reports its API version but omits the underlying source release version."},"stream":{"kind":"unavailable","reason":"POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."},"cellId":"POWER_METEOROLOGY:lat208:lon449","timeStandard":"UTC","sourceUrl":"https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_MAX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=100.625&latitude=14&start=20000630&end=20260630&format=JSON&time-standard=UTC"}]},{"id":"power-b254ff693be7a4e71033efc64cc1b9b2432e9d83fb8c9dee50f32c71fbe20b5e","kind":"provider","contentHash":"cd2e84a54c60472b7e9d0c21a886f1d497e0ba2e0af595d64514e3829d6960c2","retrievedAt":"2026-11-14T12:11:56.470Z","cutoff":"2026-11-14","days":9497,"firstDate":"2000-06-30","lastDate":"2026-06-30","products":[{"product":"POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3","version":{"kind":"unavailable","reason":"POWER reports its API version but omits the underlying source release version."},"stream":{"kind":"unavailable","reason":"POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."},"cellId":"POWER_SOLAR:lat103:lon280","timeStandard":"UTC","sourceUrl":"https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&community=AG&longitude=100.5&latitude=13.5&start=20000630&end=20260630&format=JSON&time-standard=UTC"}]},{"id":"power-21505a0cc265495dee979ab7410042d0c474ca86ff815540046d638deebca4f8","kind":"provider","contentHash":"f6996b86422cf6f6e3b593784c0a2b3590cc2628fb5810013c36c0accedcb114","retrievedAt":"2026-11-14T12:11:59.254Z","cutoff":"2026-11-14","days":9497,"firstDate":"2000-06-30","lastDate":"2026-06-30","products":[{"product":"POWER_IMERG [IMERG] via POWER Daily API v2.10.3","version":{"kind":"unavailable","reason":"POWER reports its API version but omits the underlying source release version."},"stream":{"kind":"unavailable","reason":"POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."},"cellId":"POWER_IMERG:lat1037:lon2805","timeStandard":"UTC","sourceUrl":"https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community=AG&longitude=100.55&latitude=13.75&start=20000630&end=20260630&format=JSON&time-standard=UTC"}]}]},"productionWorker":{"event":"tick","kind":"idle"},"productionEngineDiagnostic":{"state":"service_error","error":{"code":"not_implemented","message":"The planning engine is not implemented.","retryable":false},"evidence":"Direct diagnostic only. This was not a production-accepted HTTP job."},"liveRestartAcceptance":"NOT RUN. A production-accepted request and implemented scientific outcome are required.","processLogPrivacy":"PASSED. Database URL, field label, exact lookup, polygon, and full input are absent from captured child logs."},"blockers":[{"owner":"E1 / yslee1106","reason":"The actual released catalogue is empty. The production HTTP API rejects a selected crop before any live job can be accepted."},{"owner":"E2/E3 / yslee1106","reason":"The actual calculation thread returns service_error. A service_error is rejected by the strict I1 acceptance runner."}]}: expected { status: 'BLOCKED', …(3) } to match object { status: 'PASSED' }
+(11 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "status": "PASSED",
++   "status": "BLOCKED",
+  }
+
+ ❯ tests/integration/runtime/live.test.ts:6:42
+      4| it.skipIf(process.env.I1_LIVE !== "1")("I1 strict live production pipe…
+      5|   const report = await runLiveAcceptance();
+      6|   expect(report, JSON.stringify(report)).toMatchObject({ status: "PASS…
+       |                                          ^
+      7| }, 600000);
+      8|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  19:11:51
+   Duration  8.21s (tests 99%, import 1%)
+
