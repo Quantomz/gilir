@@ -1,6 +1,6 @@
 # Gilir MVP specification
 
-Version 1.0. Written 14 November 2026.
+Version 1.1. Written 14 November 2026. Revised the same day to remove the farmer-selected priority and the pest and weed rule registry. Every run now uses one fixed ranking.
 
 This document records the completed requirements interview and defines the first implementation. It supersedes the earlier posters where they describe an LLM, three suggested plans, a Java-only scope, or a multiyear transition roadmap.
 
@@ -8,7 +8,7 @@ The product decisions below are confirmed. Numerical search settings, data compl
 
 ## 1. Product contract
 
-Gilir gives a farmer one crop rotation plan for one year, focused on the farmer's chosen priority. It compares possible sequences and planting dates using historical climate data and source-backed crop parameters. Generation, scoring, selection, and explanations are deterministic. No runtime LLM is involved.
+Gilir gives a farmer one crop rotation plan for one year, ranked by one fixed comparison order that puts rainfall-demand mismatch first. It compares possible sequences and planting dates using historical climate data and source-backed crop parameters. Generation, scoring, selection, and explanations are deterministic. No runtime LLM is involved.
 
 | Requirement | Agreed behavior |
 | --- | --- |
@@ -16,7 +16,7 @@ Gilir gives a farmer one crop rotation plan for one year, focused on the farmer'
 | Crops | A defined catalogue of seasonal crops and seasonal cover crops. Every selected crop appears at least once. Suitable repeats are allowed. |
 | Field | The entire marked area follows one sequence. One crop occupies the field at a time. |
 | Horizon | One year from the farmer's chosen field-available date. All selected crops must fit inside that year. |
-| Result | One suggested plan focused on one selected priority. The existing rotation can win when eligible. |
+| Result | One suggested plan, ranked by the fixed water-first comparison in section 6.5. The farmer does not choose a priority. The existing rotation can win when eligible. |
 | Water | All plans use rainfall alone. Reported backup water provides additional protection but contributes no assumed supply to calculations. |
 | Known poor suitability | Return the best assessed calendar-valid arrangement with a prominent warning. |
 | Missing required evidence | Return available insights and the missing-data explanation, with no generated plan. |
@@ -28,7 +28,7 @@ Gilir gives a farmer one crop rotation plan for one year, focused on the farmer'
 
 The MVP excludes fertilizer quantities, costs, yield forecasts, price forecasts, irrigation scheduling, perennial crops, intercropping, simultaneous field subdivisions, and public farm-sharing links.
 
-The output is an estimated planning comparison. Historical replay is not a forecast of next season. A soil-related schedule indicator is not a soil test. A pest-rule score is not a prediction of pest incidence.
+The output is an estimated planning comparison. Historical replay is not a forecast of next season. A soil-related schedule indicator is not a soil test. The MVP makes no pest or weed assessment.
 
 ## 2. Farmer experience
 
@@ -39,10 +39,9 @@ Each onboarding page has one main task, a back control, and one continue action.
 | 1. Find your farm | Search for a place, rotate and zoom the globe, then mark the field. | One field polygon, a point inside it for climate lookup, and a location label. |
 | 2. Choose your crops | Select crops from the released catalogue. | Distinct crop-purpose IDs. All are mandatory in the result. |
 | 3. Water source | Choose one answer. | `rain_only`, `rain_plus_backup`, or `unsure`. |
-| 4. What matters most? | Choose one priority. | `water`, `soil`, `bad_year`, or `pests_weeds`. |
-| 5. Your rotation | Edit last year's crop bars or skip history. Choose when the field will be available for the new plan. | Historical crop intervals, date precision, history coverage, and planning start date. |
+| 4. Your rotation | Edit last year's crop bars or skip history. Choose when the field will be available for the new plan. | Historical crop intervals, date precision, history coverage, and planning start date. |
 
-Water labels are "Rain only", "Rain + water when it's dry", and "I'm not sure". Priority labels are "Running short of water less often", "Healthier soil", "A harvest in a bad year too", and "Fewer pests and weeds".
+Water labels are "Rain only", "Rain + water when it's dry", and "I'm not sure".
 
 The historical timeline supports adding, removing, moving, and resizing bars. Each bar has a crop name and planting and harvest dates. Tapping an endpoint exposes an accessible date control. Dragging is never the only way to operate the timeline. A short "Dates are approximate" control records uncertainty without adding another page.
 
@@ -53,9 +52,9 @@ The location page uses a rotating globe at low zoom and a usable map for field o
 The result page contains the following elements:
 
 - A prominent status and one suggested timeline when a plan can be assessed.
-- A plain explanation of why the plan ranked first for the selected priority.
+- A plain explanation of why the plan ranked first under the fixed ranking.
 - The actual historical period and number of usable seasons.
-- Priority indicators, water and temperature warnings, and unassessed checks.
+- Ranking indicators, water and temperature warnings, and unassessed checks.
 - A comparison with the existing rotation when a valid comparison is possible.
 - Preparation steps and changes in crop order and dates.
 - **View details**, **Change inputs**, **Download PDF**, and **Clear saved data**.
@@ -70,7 +69,7 @@ The backend combines three independent kinds of information. Climate records des
 
 ### 3.1 Required farmer data
 
-Required fields are the location, at least one selected crop, water answer, priority, and planning start date. Historical intervals are optional. There are no mandatory soil, fertilizer, irrigation-volume, price, or cultivar questionnaires.
+Required fields are the location, at least one selected crop, water answer, and planning start date. Historical intervals are optional. There are no mandatory soil, fertilizer, irrigation-volume, price, or cultivar questionnaires.
 
 Without a cultivar question, the backend selects an applicable released crop profile and shows that assumption. If no applicable profile exists, the engine reports missing data instead of guessing a cultivar or silently selecting the shortest duration.
 
@@ -123,15 +122,11 @@ Profile selection follows a stored precedence order. An applicable regional prof
 
 An LLM is not needed to obtain these records. The team can extract them manually from publications into reviewed structured data. An optional offline extraction tool cannot release a profile or substitute its output for the cited source.
 
-### 3.4 Pest and weed rules
+### 3.4 Rotation rules
 
-The pest priority requires a separate reviewed rule registry. Each rule names the pest or weed, affected crops, applicable region or conditions, required break or sequence, management assumptions, source, and confidence limitations.
+Pest and weed rules are outside the MVP. There is no pest-and-weed priority, no pest-host or weed rule registry, no coverage manifest, and no rule-breach or break-shortfall metric. Results make no claim about pest or weed effects. A shared crop family does not prove that two crops share a consequential pest, so no crop-family proxy is shown in place of the removed assessment. [FAO diversification guidance](https://www.fao.org/conservation-agriculture/in-practice/species-diversification/en/)
 
-A shared crop family alone does not prove that two crops share a consequential pest or that a rotation controls weeds. An absent rule is unknown, not a zero-risk relationship. General diversification guidance does not supply a complete global pest-host matrix. [FAO diversification guidance](https://www.fao.org/conservation-agriculture/in-practice/species-diversification/en/)
-
-For release, each pest-priority assessment has a coverage manifest defining which targets and crop relationships are assessable. Results name those targets. If the manifest does not cover the selected crops and location adequately for ranking, return `insufficient_data`. Do not silently replace the selected priority with water or a crop-family diversity score.
-
-Unknown pre-plan history is shown separately. Within-plan pest-rule comparisons can proceed when their evidence is complete. No conclusion is made about carryover from an unknown predecessor.
+The registry may release explicit physical or regulatory sequence rules, such as a documented prohibition on planting one crop directly after another. Each rule names the affected crops, applicable region or conditions, source, and review. These rules are hard structural constraints under section 6.1. They are not scores. No conclusion is made about an unknown predecessor.
 
 ## 4. Historical climate and data quality
 
@@ -229,7 +224,7 @@ H[y] = max over crop occurrences j of H[y,j]
 
 Cold exposure is calculated analogously using an applicable daily minimum rule. Where both exist, `X[y]` is the maximum of the assessed heat and cold fractions. Missing rules are recorded as unassessed. Annual mean-temperature bounds cannot be converted into daily damage thresholds.
 
-The bad-year priority requires comparable temperature-exposure coverage across all selected profiles, in addition to water coverage. The other priorities can run with temperature rules marked unavailable, provided their own required metrics exist. Results never describe an unassessed crop as heat-safe or frost-safe.
+Temperature exposure is a warning screen and a displayed indicator. It does not enter the ranking. A plan can be generated with temperature rules marked unassessed. Results never describe an unassessed crop as heat-safe or frost-safe.
 
 ### 5.4 Soil-related schedule indicators
 
@@ -247,17 +242,7 @@ A crop interval counts as scheduled occupancy, not measured ground cover. The re
 
 ### 5.5 Pest and weed rule indicators
 
-For a rule requiring a host-free interval `required_break_days`, measure the interval between the prior relevant host's field release and the next host's planting. A documented intermediate host resets the break. Unknown host status makes that rule unavailable.
-
-```text
-shortfall[rule,event] = max(0, required_break_days - observed_break_days)
-breach[rule,event] = 1 if the documented rule is violated, otherwise 0
-
-rule_breaches = sum of breach across distinct applicable rule events
-break_shortfall = sum of shortfall across applicable break rules
-```
-
-Other rule types must supply a deterministic predicate and a defined severity measure before release. Duplicate citations do not create duplicate rules or increase a score. The details panel lists each breach and source. The metric describes documented rotation-rule compliance, not expected pest or weed counts.
+Not part of the MVP. See section 3.4. No breach or shortfall metric is calculated or displayed.
 
 ### 5.6 Quantiles and numerical comparison
 
@@ -292,7 +277,7 @@ The initial model uses the released profile's fixed stage durations for new occu
 
 A profile must state turnaround days and their basis. If no biological minimum is established, the registry may declare an explicit scheduling assumption. That assumption is shown in the result and is not described as a published agronomic rule.
 
-Dates available to the priority search are every seventh day from the planning start, supplemented by baseline planting dates, released planting-window edges, and the earliest next available date after a previous occurrence. This is a search approximation. It does not establish daily optimality.
+Dates available to the ranking search are every seventh day from the planning start, supplemented by baseline planting dates, released planting-window edges, and the earliest next available date after a previous occurrence. This is a search approximation. It does not establish daily optimality.
 
 ### 6.3 Search procedure
 
@@ -327,24 +312,26 @@ This conservative zero-tolerance screen is a product disclosure policy. A flagge
 
 When assessed candidates without flags exist, rank that pool first. If every assessed candidate is flagged, rank all assessed candidates and return the winner as `plan_with_warnings`. This preserves the request to show a best available arrangement even when all arrangements fail the configured screens.
 
-Missing metrics needed for the chosen priority produce `insufficient_data`, not a low score and not a warning-plan workaround.
+A missing `mean(F[y])` or `mean(M[y])` produces `insufficient_data`, not a low score and not a warning-plan workaround. The schedule indicators are always computable from a valid calendar.
 
-### 6.5 Priority ranking
+### 6.5 Ranking
 
-Compare tuples lexicographically. The first different value decides the winner. All entries below are minimized. The tuples are transparent product policies, not published scientific equations for optimal farming.
+The farmer does not choose a priority. Every run uses one fixed comparison tuple. Compare tuples lexicographically. The first different value decides the winner. All entries are minimized. The tuple is a transparent product policy, not a published scientific equation for optimal farming.
 
-| Selected priority | Ordered comparison tuple | Main result wording |
+| Order | Metric | Main result wording |
 | --- | --- | --- |
-| Running short of water less often | `mean(F[y])`, then `mean(M[y])` | Lower frequency of rainfall falling below estimated crop demand in historical windows |
-| Healthier soil | `unplanted_days`, then `longest_unplanted_gap`, then `mean(F[y])`, then `mean(M[y])` | More days with a planned crop and shorter gaps, subject to the assessed environmental screens |
-| A harvest in a bad year too | `Q90(M[y])`, then `Q90(X[y])`, then `mean(F[y])` | Lower modeled exposure in adverse historical seasons. No harvest guarantee |
-| Fewer pests and weeds | `rule_breaches`, then `break_shortfall`, then `mean(F[y])`, then `mean(M[y])` | Fewer breaches of the named, documented rotation rules |
+| 1 | `mean(F[y])` | Lower frequency of rainfall falling below estimated crop demand in historical windows |
+| 2 | `mean(M[y])` | Smaller average relative shortfall in those windows |
+| 3 | `unplanted_days` | More days with a planned crop |
+| 4 | `longest_unplanted_gap` | Shorter longest gap without a planned crop |
+
+Water comes first because every plan relies on rainfall alone. The schedule indicators only break water ties. `Q90(M[y])` and temperature exposure `X[y]` are shown as bad-year indicators and warnings but do not enter the tuple.
 
 After equal tuples, prefer an eligible baseline, then fewer crop occurrences, then the lexicographically smallest canonical serialization of crop IDs, profile IDs, and dates.
 
-Temperature indicators remain visible even when they do not break a water or soil tie. A plan receives no benefit from an unassessed metric. Candidate comparison uses the same applicable rule coverage.
+Temperature indicators remain visible even though they do not enter the ranking. A plan receives no benefit from an unassessed metric.
 
-For example, suppose candidate A has a mean frequency of 0.20 and candidate B has 0.30. Under the water priority, A wins even if B has a smaller average mismatch. These invented values illustrate the policy only. They are not computed farm results.
+For example, suppose candidate A has a mean frequency of 0.20 and candidate B has 0.30. Because frequency comes first, A wins even if B has a smaller average mismatch. These invented values illustrate the policy only. They are not computed farm results.
 
 ## 7. Existing rotation and transition explanation
 
@@ -368,24 +355,24 @@ Result states are mutually exclusive. Search coverage and individual assessment 
 | --- | --- | --- |
 | `plan` | An assessed arrangement meets structural constraints and has no flags in the performed environmental screens | Yes |
 | `plan_with_warnings` | An assessed arrangement fits, but all assessed candidates have environmental flags | Yes, with prominent warnings |
-| `insufficient_data` | Required crop, climate, or priority evidence is missing | No. Available insights remain visible |
+| `insufficient_data` | Required crop or climate evidence, or a required ranking metric, is missing | No. Available insights remain visible |
 | `no_calendar_fit` | A complete structural search or valid proof establishes that all selected crops cannot fit | No. Explain the binding constraints |
 | `search_incomplete` | No assessed valid candidate is available and the bounded search has not proved impossibility | No. Explain the limit and allow retry |
 | `service_error` | Retrieval or processing failed before an assessment could finish | No new plan. A saved previous result remains labeled with its original date |
 
-Unknown, unavailable, measured, estimated, and rule-derived values are distinct. An omitted metric cannot serialize as numeric zero. A retry cannot change `insufficient_data` into a plan merely by dropping the selected priority.
+Unknown, unavailable, measured, estimated, and rule-derived values are distinct. An omitted metric cannot serialize as numeric zero. A retry cannot change `insufficient_data` into a plan without new evidence.
 
 The principal records are defined below. These are schema requirements, not an implemented API.
 
 | Record | Fields |
 | --- | --- |
-| `FarmInput` | Schema version, geometry, lookup point, selected crop-purpose IDs, water answer, priority, planning start, history status, historical intervals and precision |
+| `FarmInput` | Schema version, geometry, lookup point, selected crop-purpose IDs, water answer, planning start, history status, historical intervals and precision |
 | `CropProfile` | Identity, applicability, timing, coefficients, temperature rules, field-release rules, source references, review and version |
 | `Rule` | Stable ID, type, target, applicability, operands, predicate, units, source, review, and version |
 | `ClimateSnapshot` | Provider, product, native cell, grid, units, UTC dates, values, quality masks, retrieval date, cutoff, content hash |
 | `AssessmentMetric` | Value or unavailable reason, unit, method version, source references, denominator, and assumptions |
 | `PlanOccurrence` | Crop-purpose ID, profile version, planting date, last occupancy date, next field-available date, per-season metrics |
-| `PlanResult` | State, one plan or no plan, insights, priority tuple, warnings, unassessed checks, baseline comparison, preparation, search coverage, provenance |
+| `PlanResult` | State, one plan or no plan, insights, ranking tuple, warnings, unassessed checks, baseline comparison, preparation, search coverage, provenance |
 | `RunManifest` | Normalized-input hash, engine version, configuration version, catalogue version, rule version, immutable climate snapshot IDs, data cutoff |
 
 The canonical run hash uses sorted keys and normalized values from the manifest. A content hash does not authorize access. Local device storage keeps the full input and result snapshot so a previously saved plan remains readable after server job expiry.
@@ -394,7 +381,7 @@ The canonical run hash uses sorted keys and normalized values from the manifest.
 
 ```mermaid
 flowchart TD
-    A[Five onboarding pages] --> B[Validated anonymous request]
+    A[Four onboarding pages] --> B[Validated anonymous request]
     B --> C[PostgreSQL job queue]
     C --> D[Node calculation worker]
     E[Versioned climate cache] --> D
@@ -429,7 +416,7 @@ Anonymous job tokens contain at least 128 bits of cryptographic randomness. The 
 
 Inputs and completed snapshots save to IndexedDB on the current browser. A storage failure produces a visible message and preserves the PDF option. Clearing site storage removes the saved plan. No cross-device recovery or account sync is implied.
 
-PDF generation operates from the completed snapshot and does not call the planning engine again. It downloads an actual PDF file. The PDF contains the timeline, warnings, priority indicators, comparison if available, assumptions, source period, and method versions. It is readable without a live service or login. The PDF implementation must pass the export acceptance cases below before its library choice is finalized.
+PDF generation operates from the completed snapshot and does not call the planning engine again. It downloads an actual PDF file. The PDF contains the timeline, warnings, ranking indicators, comparison if available, assumptions, source period, and method versions. It is readable without a live service or login. The PDF implementation must pass the export acceptance cases below before its library choice is finalized.
 
 ## 10. Required behavior checks
 
@@ -443,13 +430,12 @@ These are implementation acceptance criteria. Writing this specification does no
 | Feasible daily arrangement absent from the initial weekly grid | Structural witness remains available. The engine does not claim impossibility |
 | Search budget ends before a witness or proof | `search_incomplete`, not `no_calendar_fit` |
 | Ranking budget ends after a valid candidate | One best assessed plan with search-limit disclosure |
-| All candidate calendars fit but all environmental screens flag risk | `plan_with_warnings` with the chosen priority's best assessed arrangement |
+| All candidate calendars fit but all environmental screens flag risk | `plan_with_warnings` with the best assessed arrangement under the fixed ranking |
 | Required climate data or crop parameters are absent | `insufficient_data` and available insights. No generated timeline |
-| Pest priority lacks relevant reviewed rules | `insufficient_data`. No crop-family proxy presented as pest assessment |
 | Backup-water answer changes and nothing else changes | Rainfall supply and candidate ranking are unchanged. Explanation acknowledges backup protection |
 | Historical rotation is skipped | A new plan can be generated. No baseline delta or invented predecessor is shown |
 | Historical year explicitly marked fallow | The record remains distinct from unknown history |
-| Eligible current rotation wins or ties all priority metrics | Recommend keeping it under the stated tie rule |
+| Eligible current rotation wins or ties all ranking metrics | Recommend keeping it under the stated tie rule |
 | Unsupported historical crop or duration | Historical bar remains visible. Unsupported numeric comparisons are omitted |
 | Missing rain marker, duplicate dates, or inconsistent units | Adapter rejects or marks missing data. No accidental zero rainfall or numerical score |
 | Solar units differ between provider responses | Unit-aware conversion produces the same physical input |
@@ -471,27 +457,26 @@ Scientific implementation checks include FAO reference calculations, unit conver
 
 The challenge resources provide environmental observations, models, and useful agricultural references. They do not form a ready-made global crop-rotation rules database. The resource list includes geographically limited sources such as United States soil and crop datasets. Those cannot silently fill worldwide coverage. [Official challenge resources](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/?tab=resources)
 
-The current project evidence includes a successful seven-day POWER retrieval at one illustrative location for five meteorological variables and IMERG precipitation. It does not yet include a validated worldwide 25-year ingestion pipeline, a released crop catalogue, a pest-rule registry, or a tested planning engine.
+The current project evidence includes a successful seven-day POWER retrieval at one illustrative location for five meteorological variables and IMERG precipitation. It does not yet include a validated worldwide 25-year ingestion pipeline, a released crop catalogue, or a tested planning engine.
 
 The team can divide implementation into these deliverables:
 
 | Deliverable | Completion evidence |
 | --- | --- |
 | Data and crop registry | Released profiles with citations, clear unsupported combinations, provider adapters, and a reproducible full-period climate fetch |
-| Deterministic engine | Calendar constraints, witness search, metric fixtures, priority ranking, all result states, and reproducibility tests |
-| Farmer interface | Five-page input flow, mobile globe and map fallback, editable history, one result, details, and regeneration |
+| Deterministic engine | Calendar constraints, witness search, metric fixtures, fixed ranking, all result states, and reproducibility tests |
+| Farmer interface | Four-page input flow, mobile globe and map fallback, editable history, one result, details, and regeneration |
 | Persistence and export | Anonymous job authorization, local recovery, expiry behavior, and inspected PDF outputs |
 | Scientific and product review | Correct source use, visible assumptions, representative global checks, and no unsupported output claims |
 
 The following dependencies remain before release:
 
 - Curate and review actual numeric crop profiles. The candidate crop list alone is insufficient.
-- Establish applicable pest and weed rule coverage. The corresponding priority cannot promise recommendations for unsupported combinations.
 - Validate full-period weather retrieval, including product versions, pressure or elevation, missingness, and representative locations in both hemispheres.
 - Configure the map, tile, geocoding, worker, and PostgreSQL services.
 - Measure the search budgets and adjust the versioned defaults when needed. No latency claim is established by this specification.
 - Validate the deployed interface and downloadable PDFs on phones and desktops.
 
-The agreed scope is worldwide access with evidence-aware results. A farmer can select any location. Some crop, location, and priority combinations will return available insights without a plan until the required profiles or rules exist. This behavior is part of the MVP contract.
+The agreed scope is worldwide access with evidence-aware results. A farmer can select any location. Some crop and location combinations will return available insights without a plan until the required profiles or rules exist. This behavior is part of the MVP contract.
 
 The project brief is the [NASA Space Apps challenge details page](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/?tab=details). Source-backed parameters, climate history, and deterministic selection are sufficient for this scoped comparison tool. An LLM is not a missing requirement.

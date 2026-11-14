@@ -44,7 +44,7 @@ The product has no runtime LLM. AI coding tools are allowed during development.
 
 Every returned plan includes all selected crop-purpose IDs, one at a time, within one calendar year from the chosen date. Repeats are allowed. Every calculation uses rainfall alone. Backup water changes explanation only.
 
-Known environmental mismatch produces a warning plan when a calendar fits. Missing evidence required by the chosen priority produces insights without a plan. A bounded search miss does not prove impossibility. Synthetic fixtures never become published crop evidence or production recommendations.
+Known environmental mismatch produces a warning plan when a calendar fits. Missing crop or climate evidence required by the fixed ranking produces insights without a plan. There is no farmer-selected priority and no pest or weed assessment. A bounded search miss does not prove impossibility. Synthetic fixtures never become published crop evidence or production recommendations.
 
 The current ten-hour target covers the application and a bounded reviewed catalogue. Worldwide location selection is preserved. Do not claim worldwide validated agronomic coverage, harvest probabilities, measured soil improvement, pest counts, fertilizer quantities, or costs.
 
