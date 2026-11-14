@@ -1,0 +1,1110 @@
+{
+  "schemaVersion": 1,
+  "status": "IMPLEMENTATION_CHECKS_PASSED_INDEPENDENT_REVIEW_PENDING",
+  "observedOn": "2026-11-15",
+  "subject": {
+    "identity": {
+      "catalogueVersion": "fao56-reviewed-2026-11-15",
+      "ruleVersion": "no-rules-2026-11-14"
+    },
+    "canonicalSha256": "608644417618b2b7d4fa5757d49b90fb4cafcb801ed8488f5fd07c3ffdee811b",
+    "profileVersion": "reviewed-2026-11-15.1"
+  },
+  "sourceObservationSubject": {
+    "repository": "Quantomz/nefalos_nasa_hackathon",
+    "pullRequest": 33,
+    "commit": "090626a6b172fb05901a5e4fafa15be497bcae7e",
+    "sourceReadOnly": true
+  },
+  "sourceObservationFile": "docs/evidence/X1/fao-source-comparison.json",
+  "sourceObservationFileSha256": "4f6f2b7432b84fdf3e4c4429c18bb97f4f4824922983e9acc44f23786cbc30fd",
+  "inventory": {
+    "readableVersions": [
+      "v1-empty",
+      "fao56-reviewed-2026-11-15"
+    ],
+    "profiles": 75,
+    "cropPurposes": 40,
+    "temperatureRules": 0,
+    "rotationRules": 0,
+    "sourceRows": 71,
+    "originalProfileMappings": 86,
+    "withheldProfiles": [
+      "maize-grain-fao56-nigeria-humid-jun",
+      "maize-grain-fao56-east-africa-highland-apr",
+      "maize-grain-fao56-india-dry-cool-oct",
+      "wheat-grain-fao56-california-winter-dec",
+      "wheat-grain-fao56-mediterranean-winter-nov",
+      "groundnut-fao56-west-africa-dry-season",
+      "faba-bean-dry-fao56-mediterranean-mar-apr",
+      "faba-bean-dry-fao56-europe-may",
+      "sweet-potato-fao56-tropics-rainy-season",
+      "sweet-pepper-fao56-europe-mediterranean-apr-jun",
+      "sweet-maize-fao56-idaho-apr"
+    ],
+    "unavailablePublishedDurations": 4
+  },
+  "preservationChecks": {
+    "profilesCompared": 75,
+    "stageComponentsCompared": 300,
+    "kcValuesCompared": 225,
+    "plantingWindowCollectionsCompared": 75,
+    "result": "MATCH_X1_SOURCE_OBSERVATIONS",
+    "scope": "Retained numeric selections and windows only; independent corrected-release source review pending."
+  },
+  "profiles": [
+    {
+      "profileId": "maize-grain-fao56-idaho-apr",
+      "table11RowId": "t11-r131",
+      "literalTotal": "170",
+      "derivedStageDays": 170,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          170,
+          170
+        ]
+      }
+    },
+    {
+      "profileId": "maize-grain-fao56-spain-california-apr",
+      "table11RowId": "t11-r130",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "common-bean-dry-fao56-idaho-jun",
+      "table11RowId": "t11-r77",
+      "literalTotal": "100",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          100,
+          100
+        ]
+      }
+    },
+    {
+      "profileId": "common-bean-dry-fao56-pakistan-california-jun",
+      "table11RowId": "t11-r76",
+      "literalTotal": "95",
+      "derivedStageDays": 95,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          95,
+          95
+        ]
+      }
+    },
+    {
+      "profileId": "wheat-grain-fao56-central-india-nov",
+      "table11RowId": "t11-r115",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "wheat-grain-fao56-east-africa-jul",
+      "table11RowId": "t11-r117",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "wheat-grain-fao56-lat35-45n-mar-apr",
+      "table11RowId": "t11-r116",
+      "literalTotal": "135",
+      "derivedStageDays": 135,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          135,
+          135
+        ]
+      }
+    },
+    {
+      "profileId": "rice-paddy-fao56-mediterranean-may",
+      "table11RowId": "t11-r141",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "rice-paddy-fao56-tropics-dec",
+      "table11RowId": "t11-r141",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "barley-grain-fao56-california-desert-dec",
+      "table11RowId": "t11-r120",
+      "literalTotal": "160",
+      "derivedStageDays": 160,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          160,
+          160
+        ]
+      }
+    },
+    {
+      "profileId": "barley-grain-fao56-central-india-nov",
+      "table11RowId": "t11-r115",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "barley-grain-fao56-east-africa-jul",
+      "table11RowId": "t11-r117",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "barley-grain-fao56-lat35-45n-mar-apr",
+      "table11RowId": "t11-r116",
+      "literalTotal": "135",
+      "derivedStageDays": 135,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          135,
+          135
+        ]
+      }
+    },
+    {
+      "profileId": "oats-grain-fao56-california-desert-dec",
+      "table11RowId": "t11-r120",
+      "literalTotal": "160",
+      "derivedStageDays": 160,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          160,
+          160
+        ]
+      }
+    },
+    {
+      "profileId": "oats-grain-fao56-central-india-nov",
+      "table11RowId": "t11-r115",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "oats-grain-fao56-east-africa-jul",
+      "table11RowId": "t11-r117",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "oats-grain-fao56-lat35-45n-mar-apr",
+      "table11RowId": "t11-r116",
+      "literalTotal": "135",
+      "derivedStageDays": 135,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          135,
+          135
+        ]
+      }
+    },
+    {
+      "profileId": "millet-grain-fao56-pakistan-jun",
+      "table11RowId": "t11-r137",
+      "literalTotal": "105",
+      "derivedStageDays": 105,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          105,
+          105
+        ]
+      }
+    },
+    {
+      "profileId": "millet-grain-fao56-central-usa-apr",
+      "table11RowId": "t11-r138",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "sorghum-grain-fao56-usa-pakistan-mediterranean-may-jun",
+      "table11RowId": "t11-r139",
+      "literalTotal": "130",
+      "derivedStageDays": 125,
+      "publishedDurationDays": {
+        "kind": "unavailable",
+        "reason": "FAO-56 Table 11 prints a 130-day total; the sourced stages sum to 125 days. The published duration is unresolved."
+      }
+    },
+    {
+      "profileId": "soybean-grain-fao56-japan-jun",
+      "table11RowId": "t11-r93",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "soybean-grain-fao56-central-usa-may",
+      "table11RowId": "t11-r92",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "soybean-grain-fao56-tropics-dec",
+      "table11RowId": "t11-r91",
+      "literalTotal": "85",
+      "derivedStageDays": 85,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          85,
+          85
+        ]
+      }
+    },
+    {
+      "profileId": "groundnut-fao56-mediterranean",
+      "table11RowId": "t11-r85",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "lentil-dry-fao56-europe-apr",
+      "table11RowId": "t11-r86",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "pea-dry-fao56-idaho-apr",
+      "table11RowId": "t11-r90",
+      "literalTotal": "110",
+      "derivedStageDays": 110,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          110,
+          110
+        ]
+      }
+    },
+    {
+      "profileId": "pea-dry-fao56-mediterranean-mar-apr",
+      "table11RowId": "t11-r89",
+      "literalTotal": "100",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          100,
+          100
+        ]
+      }
+    },
+    {
+      "profileId": "pea-dry-fao56-europe-may",
+      "table11RowId": "t11-r88",
+      "literalTotal": "90",
+      "derivedStageDays": 90,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          90,
+          90
+        ]
+      }
+    },
+    {
+      "profileId": "mung-bean-dry-fao56-mediterranean-mar",
+      "table11RowId": "t11-r82",
+      "literalTotal": "110",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "unavailable",
+        "reason": "FAO-56 Table 11 prints a 110-day total; the sourced stages sum to 100 days. The published duration is unresolved."
+      }
+    },
+    {
+      "profileId": "cowpea-dry-fao56-mediterranean-mar",
+      "table11RowId": "t11-r82",
+      "literalTotal": "110",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "unavailable",
+        "reason": "FAO-56 Table 11 prints a 110-day total; the sourced stages sum to 100 days. The published duration is unresolved."
+      }
+    },
+    {
+      "profileId": "sunflower-seed-fao56-mediterranean-california-apr-may",
+      "table11RowId": "t11-r113",
+      "literalTotal": "130",
+      "derivedStageDays": 130,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          130,
+          130
+        ]
+      }
+    },
+    {
+      "profileId": "safflower-seed-fao56-california-apr",
+      "table11RowId": "t11-r109",
+      "literalTotal": "125",
+      "derivedStageDays": 125,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          125,
+          125
+        ]
+      }
+    },
+    {
+      "profileId": "potato-fao56-california-desert-dec",
+      "table11RowId": "t11-r62",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "potato-fao56-idaho-apr-may",
+      "table11RowId": "t11-r61",
+      "literalTotal": "165",
+      "derivedStageDays": 165,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          165,
+          165
+        ]
+      }
+    },
+    {
+      "profileId": "potato-fao56-europe-apr",
+      "table11RowId": "t11-r60",
+      "literalTotal": "145",
+      "derivedStageDays": 145,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          145,
+          145
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-potato-fao56-mediterranean-apr",
+      "table11RowId": "t11-r63",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "broccoli-fao56-california-desert-sep",
+      "table11RowId": "t11-r2",
+      "literalTotal": "135",
+      "derivedStageDays": 135,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          135,
+          135
+        ]
+      }
+    },
+    {
+      "profileId": "broccoli-fao56-crucifers-mediterranean-apr",
+      "table11RowId": "t11-r11",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "profileId": "brussels-sprouts-fao56-crucifers-mediterranean-apr",
+      "table11RowId": "t11-r11",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "profileId": "cabbage-fao56-california-desert-sep",
+      "table11RowId": "t11-r3",
+      "literalTotal": "165",
+      "derivedStageDays": 165,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          165,
+          165
+        ]
+      }
+    },
+    {
+      "profileId": "cabbage-fao56-crucifers-mediterranean-apr",
+      "table11RowId": "t11-r11",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "profileId": "cauliflower-fao56-california-desert-sep",
+      "table11RowId": "t11-r7",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "cauliflower-fao56-crucifers-mediterranean-apr",
+      "table11RowId": "t11-r11",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "profileId": "carrot-fao56-california-desert-oct",
+      "table11RowId": "t11-r6",
+      "literalTotal": "200",
+      "derivedStageDays": 200,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          200,
+          200
+        ]
+      }
+    },
+    {
+      "profileId": "carrot-fao56-mediterranean-feb-mar",
+      "table11RowId": "t11-r5",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "celery-fao56-mediterranean-apr",
+      "table11RowId": "t11-r9",
+      "literalTotal": "125",
+      "derivedStageDays": 125,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          125,
+          125
+        ]
+      }
+    },
+    {
+      "profileId": "lettuce-fao56-mediterranean-apr",
+      "table11RowId": "t11-r14",
+      "literalTotal": "75",
+      "derivedStageDays": 75,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          75,
+          75
+        ]
+      }
+    },
+    {
+      "profileId": "onion-dry-fao56-california-jan",
+      "table11RowId": "t11-r19",
+      "literalTotal": "210",
+      "derivedStageDays": 210,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          210,
+          210
+        ]
+      }
+    },
+    {
+      "profileId": "onion-dry-fao56-mediterranean-apr",
+      "table11RowId": "t11-r18",
+      "literalTotal": "150",
+      "derivedStageDays": 150,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          150,
+          150
+        ]
+      }
+    },
+    {
+      "profileId": "onion-green-fao56-california-mar",
+      "table11RowId": "t11-r22",
+      "literalTotal": "180",
+      "derivedStageDays": 180,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          180,
+          180
+        ]
+      }
+    },
+    {
+      "profileId": "onion-green-fao56-mediterranean-apr-may",
+      "table11RowId": "t11-r20",
+      "literalTotal": "70",
+      "derivedStageDays": 70,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          70,
+          70
+        ]
+      }
+    },
+    {
+      "profileId": "spinach-fao56-mediterranean-apr",
+      "table11RowId": "t11-r24",
+      "literalTotal": "60/70",
+      "derivedStageDays": 60,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          60,
+          60
+        ]
+      }
+    },
+    {
+      "profileId": "radish-fao56-mediterranean-europe-mar-apr",
+      "table11RowId": "t11-r26",
+      "literalTotal": "35",
+      "derivedStageDays": 35,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          35,
+          35
+        ]
+      }
+    },
+    {
+      "profileId": "eggplant-fao56-mediterranean-may-jun",
+      "table11RowId": "t11-r30",
+      "literalTotal": "40",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "unavailable",
+        "reason": "FAO-56 Table 11 prints a 40-day total; the sourced stages sum to 140 days. The published duration is unresolved."
+      }
+    },
+    {
+      "profileId": "tomato-fao56-california-desert-jan",
+      "table11RowId": "t11-r35",
+      "literalTotal": "155",
+      "derivedStageDays": 155,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          155,
+          155
+        ]
+      }
+    },
+    {
+      "profileId": "tomato-fao56-california-apr-may",
+      "table11RowId": "t11-r34",
+      "literalTotal": "155",
+      "derivedStageDays": 155,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          155,
+          155
+        ]
+      }
+    },
+    {
+      "profileId": "tomato-fao56-mediterranean-apr-may",
+      "table11RowId": "t11-r37",
+      "literalTotal": "145",
+      "derivedStageDays": 145,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          145,
+          145
+        ]
+      }
+    },
+    {
+      "profileId": "cantaloupe-fao56-california-jan",
+      "table11RowId": "t11-r39",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "pumpkin-winter-squash-fao56-mediterranean-mar-aug",
+      "table11RowId": "t11-r43",
+      "literalTotal": "100",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          100,
+          100
+        ]
+      }
+    },
+    {
+      "profileId": "pumpkin-winter-squash-fao56-europe-jun",
+      "table11RowId": "t11-r44",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "squash-zucchini-fao56-mediterranean-apr",
+      "table11RowId": "t11-r45",
+      "literalTotal": "100",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          100,
+          100
+        ]
+      }
+    },
+    {
+      "profileId": "squash-zucchini-fao56-europe-may-jun",
+      "table11RowId": "t11-r46",
+      "literalTotal": "90",
+      "derivedStageDays": 90,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          90,
+          90
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-melon-fao56-california-desert-aug",
+      "table11RowId": "t11-r49",
+      "literalTotal": "135",
+      "derivedStageDays": 135,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          135,
+          135
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-melon-fao56-california-mar",
+      "table11RowId": "t11-r48",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-melon-fao56-mediterranean-may",
+      "table11RowId": "t11-r47",
+      "literalTotal": "120",
+      "derivedStageDays": 120,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          120,
+          120
+        ]
+      }
+    },
+    {
+      "profileId": "watermelon-fao56-italy-apr",
+      "table11RowId": "t11-r51",
+      "literalTotal": "110",
+      "derivedStageDays": 110,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          110,
+          110
+        ]
+      }
+    },
+    {
+      "profileId": "beet-table-fao56-mediterranean-apr-may",
+      "table11RowId": "t11-r54",
+      "literalTotal": "70",
+      "derivedStageDays": 70,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          70,
+          70
+        ]
+      }
+    },
+    {
+      "profileId": "green-bean-fao56-egypt-lebanon-aug-sep",
+      "table11RowId": "t11-r74",
+      "literalTotal": "75",
+      "derivedStageDays": 75,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          75,
+          75
+        ]
+      }
+    },
+    {
+      "profileId": "green-bean-fao56-california-mediterranean-feb-mar",
+      "table11RowId": "t11-r73",
+      "literalTotal": "90",
+      "derivedStageDays": 90,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          90,
+          90
+        ]
+      }
+    },
+    {
+      "profileId": "pea-green-fao56-idaho-apr",
+      "table11RowId": "t11-r90",
+      "literalTotal": "110",
+      "derivedStageDays": 110,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          110,
+          110
+        ]
+      }
+    },
+    {
+      "profileId": "pea-green-fao56-mediterranean-mar-apr",
+      "table11RowId": "t11-r89",
+      "literalTotal": "100",
+      "derivedStageDays": 100,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          100,
+          100
+        ]
+      }
+    },
+    {
+      "profileId": "pea-green-fao56-europe-may",
+      "table11RowId": "t11-r88",
+      "literalTotal": "90",
+      "derivedStageDays": 90,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          90,
+          90
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-maize-fao56-california-desert-jan",
+      "table11RowId": "t11-r136",
+      "literalTotal": "140",
+      "derivedStageDays": 140,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          140,
+          140
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-maize-fao56-philippines-mar",
+      "table11RowId": "t11-r132",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    },
+    {
+      "profileId": "sweet-maize-fao56-mediterranean-may-jun",
+      "table11RowId": "t11-r133",
+      "literalTotal": "80",
+      "derivedStageDays": 80,
+      "publishedDurationDays": {
+        "kind": "available",
+        "value": [
+          80,
+          80
+        ]
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "boise-bean",
+      "profiles": [
+        {
+          "id": "common-bean-dry-fao56-idaho-jun",
+          "version": "reviewed-2026-11-15.1",
+          "stageDays": {
+            "initial": 25,
+            "development": 25,
+            "middle": 30,
+            "late": 20
+          },
+          "publishedDurationDays": {
+            "kind": "available",
+            "value": [
+              100,
+              100
+            ]
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "boise-maize",
+      "profiles": [
+        {
+          "id": "maize-grain-fao56-idaho-apr",
+          "version": "reviewed-2026-11-15.1",
+          "stageDays": {
+            "initial": 30,
+            "development": 40,
+            "middle": 50,
+            "late": 50
+          },
+          "publishedDurationDays": {
+            "kind": "available",
+            "value": [
+              170,
+              170
+            ]
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "central-india-wheat",
+      "profiles": [
+        {
+          "id": "wheat-grain-fao56-central-india-nov",
+          "version": "reviewed-2026-11-15.1",
+          "stageDays": {
+            "initial": 15,
+            "development": 25,
+            "middle": 50,
+            "late": 30
+          },
+          "publishedDurationDays": {
+            "kind": "available",
+            "value": [
+              120,
+              120
+            ]
+          }
+        }
+      ],
+      "gaps": []
+    },
+    {
+      "id": "bangkok-bean-gap",
+      "profiles": [],
+      "gaps": [
+        {
+          "code": "crop_profile",
+          "reason": "No released common-bean-dry profile applies at this location.",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ],
+          "sourceIds": []
+        }
+      ]
+    }
+  ],
+  "notRun": [
+    "Independent exact-change review",
+    "Full npm run check and npm run build by implementation delegate",
+    "Live NASA, HTTP, PostgreSQL, worker restart, and returned-plan integration"
+  ]
+}
