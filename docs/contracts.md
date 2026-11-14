@@ -38,6 +38,12 @@ Global package changes and contract amendments belong to kyusuku. Card-specific 
 - `RegistryRelease` supports explicitly synthetic fixtures in tests. `ReleasedRegistry` is the production-only type. B3 accepts only released registry data and actual provider snapshots. Catalogue/profile publication still requires source review.
 - Immutable FrozenRun includes normalized input, data cutoff, climate snapshot IDs, registry versions, engine/config versions, and settings. A retry cannot switch those values silently.
 
+### E1 draft retirement
+
+The source review of E1 PR #33 retires four unmerged draft catalogue identities: `fao56-2026-11-14`, `fao56-temperature-2026-11-14`, `fao56-vegetables-2026-11-15`, and `fao56-temperature-rules-2026-11-15`. The corrected release uses `fao56-reviewed-2026-11-15` and new profile versions. `v1-empty` retains its original value.
+
+Lookup of a retired draft identity fails explicitly. A queued or frozen job that references one cannot resume through the replacement release. There is no alias, stored-data rewrite, or migration. This exception applies only to these named unpublished drafts. Future published releases must remain immutable and available for compatible frozen-job retries. The original draft curation and its source findings remain in Git history and the archived X1 evidence.
+
 ## E3 engine ports
 
 `ClimateCohort.applicabilityClimate` is required and has exactly the `RegistryLookup["climate"]` type. E2 owns the annual aggregation definition, its version in the cohort method metadata, and explicit unavailable evidence with reasons. E3 forwards this evidence unchanged to E1 for profile applicability.
