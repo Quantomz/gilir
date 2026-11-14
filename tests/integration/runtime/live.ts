@@ -13,7 +13,7 @@ import { addDays } from "@/server/climate/dates";
 import { hashNormalizedInput } from "@/server/jobs";
 import { executeInThread } from "../../../scripts/worker";
 import { verifyRestartedPipeline } from "./acceptance";
-import { cutoff, database, frozenEvidence, input, startProcess } from "./support";
+import { cutoff, database, freezeLeaseSeconds, frozenEvidence, input, startProcess } from "./support";
 
 export async function runLiveAcceptance(preflight = false) {
   const db = await database();
@@ -87,7 +87,7 @@ export async function runLiveAcceptance(preflight = false) {
           assert.equal(evidence.firstDate, period.start);
           assert.equal(evidence.lastDate, addDays(period.endExclusive, -1));
           await worker.stop("SIGKILL");
-          await delay(350);
+          await delay(freezeLeaseSeconds * 1000 + 100);
           return evidence;
         },
         finishAfterRestart: async capability => {

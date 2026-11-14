@@ -11,7 +11,7 @@ import { createPgJobStore, hashNormalizedInput } from "@/server/jobs";
 import { runWorkerOnce } from "@/server/runtime";
 import { verifyRestartedPipeline } from "./acceptance";
 import { calculate } from "./controlled-engine";
-import { controlledRegistry, cutoff, database, frozenEvidence, frozenRun, input, poolForSchema, savedPreparation, savedProviderFetcher, startProcess } from "./support";
+import { controlledRegistry, cutoff, database, freezeLeaseSeconds, frozenEvidence, frozenRun, input, poolForSchema, savedPreparation, savedProviderFetcher, startProcess } from "./support";
 
 describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with controlled scientific calculations", () => {
   let db: Awaited<ReturnType<typeof database>>;
@@ -52,7 +52,7 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
           expect(frozen.firstDate).toBe("2000-06-30");
           expect(frozen.lastDate).toBe("2026-06-30");
           expect(await worker.stop("SIGKILL")).toEqual({ code: null, signal: "SIGKILL" });
-          await delay(350);
+          await delay(freezeLeaseSeconds * 1000 + 100);
           return frozen;
         },
         finishAfterRestart: async capability => {

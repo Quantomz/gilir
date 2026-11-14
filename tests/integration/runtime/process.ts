@@ -10,7 +10,7 @@ import { createPlanApi } from "@/server/jobs/http";
 import { prepareClimate } from "@/server/climate";
 import { runWorkerOnce } from "@/server/runtime";
 import { executeInThread } from "../../../scripts/worker";
-import { controlledRegistry, cutoff, poolForSchema, savedPreparation } from "./support";
+import { controlledRegistry, cutoff, freezeLeaseSeconds, poolForSchema, replayLeaseSeconds, savedPreparation } from "./support";
 
 const config = z.object({ DATABASE_URL: z.url(), I1_SCHEMA: z.string().regex(/^i1_[a-z0-9_]+$/) }).parse(process.env);
 const mode = z.enum(["web-controlled", "web-live", "worker-freeze", "worker-replay", "worker-live", "worker-live-freeze", "worker-live-replay", "readiness"]).parse(process.argv[2]);
@@ -57,7 +57,7 @@ if (mode.startsWith("web-")) {
         readRegistryRelease: live ? readRegistryRelease : () => controlledRegistry,
         calculate,
         executeCalculation: live ? executeInThread : (run, registry) => executeInThread(run, registry, fileURLToPath(new URL("./controlled-engine.ts", import.meta.url))),
-        settings: defaultEngineSettings, workerId: "i1-" + mode, leaseSeconds: 0.3, now: () => new Date().toISOString(),
+        settings: defaultEngineSettings, workerId: "i1-" + mode, leaseSeconds: mode.endsWith("-freeze") ? freezeLeaseSeconds : replayLeaseSeconds, now: () => new Date().toISOString(),
       });
       event({ event: "tick", ...result });
     }
