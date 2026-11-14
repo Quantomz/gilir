@@ -28,6 +28,18 @@ describe("replay season selection", () => {
     expect(starts(cohort)).toEqual(years(2001, 2025, "03-15"));
   });
 
+  it("selects the newest complete seasons before cutoff for a backdated planning start", () => {
+    const cohort = buildClimateCohort(cohortInput({
+      days: fullHistory, cutoff: "2026-01-01", horizonStart: "2020-01-01", horizonDays: 366,
+      settings: { ...defaultEngineSettings, targetSeasons: 3, minimumUsableSeasons: 3 },
+    }));
+    expect(cohort.usable.map(season => season.interval)).toEqual([
+      { start: "2024-01-01", endExclusive: "2025-01-01" },
+      { start: "2023-01-01", endExclusive: "2024-01-02" },
+      { start: "2022-01-01", endExclusive: "2023-01-02" },
+    ]);
+  });
+
   it("each season holds the plan's length of real consecutive UTC dates starting on its anchor", () => {
     const cohort = buildClimateCohort(cohortInput({ days: fullHistory, cutoff: "2027-01-01", horizonStart: "2027-03-15", horizonDays: 30 }));
     for (const s of cohort.usable) {

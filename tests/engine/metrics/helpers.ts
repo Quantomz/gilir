@@ -172,6 +172,7 @@ export function cohortInput(options: {
 }): CohortInput {
   const run: FrozenRun = {
     ...frozenRunFixture,
+    manifest: { ...frozenRunFixture.manifest, dataCutoff: parseIsoDate(options.cutoff) },
     climate: [snapshot(options.days, options.cutoff)],
     settings: options.settings ?? defaultEngineSettings,
   };

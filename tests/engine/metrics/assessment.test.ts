@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { MetricInput } from "@/contracts/engine";
+import { parseFarmInput } from "@/contracts/input";
 import { assessmentMetricSchema, resultDetailsSchema } from "@/contracts/result";
-import { assessClimate } from "@/engine/metrics";
-import { metricInputFixture } from "@/fixtures/science";
+import { assessClimate, buildClimateCohort } from "@/engine/metrics";
+import { metricInputFixture, syntheticRegistryFixture } from "@/fixtures/science";
 import {
-  DRY, WET, assessed, metric, metricInput, missing, occurrence, profile, season, seasons, value,
+  DRY, WET, assessed, cohortInput, history, metric, metricInput, missing, occurrence, profile, season, seasons, value,
 } from "./helpers";
 
 const RANKING = [
@@ -37,10 +38,22 @@ describe("result packaging", () => {
     }
   });
 
-  it("rounds ranking metrics to 6 decimal places (1 dry season of 3 -> 0.333333)", () => {
+  it("retains the raw arithmetic mean for one dry season out of three", () => {
     const a = assessed(assessClimate(plan(seasons(3, 7, year => (year === 2025 ? DRY : WET)))));
-    expect(value(a.metrics, "mean_frequency")).toBe(0.333333);
-    expect(value(a.metrics, "mean_mismatch")).toBe(0.333333);
+    expect(value(a.metrics, "mean_frequency")).toBe(1 / 3);
+    expect(value(a.metrics, "mean_mismatch")).toBe(1 / 3);
+  });
+
+  it("returns identical raw assessment metrics at ranking precisions 0, 6 and 12", () => {
+    const input = plan(seasons(3, 7, year => year === 2025 ? WET : () => ({ rainMm: 2 })));
+    const assessments = [0, 6, 12].map(rankingDecimalPlaces => assessed(assessClimate({
+      ...input, settings: { ...input.settings, rankingDecimalPlaces },
+    })));
+    expect(assessments[0]).toEqual(assessments[1]);
+    expect(assessments[1]).toEqual(assessments[2]);
+    expect(value(assessments[0].metrics, "mean_frequency")).toBe(2 / 3);
+    const seasonMismatch = assessments[0].seasonMetrics.map(season => value(season.metrics, "mismatch"));
+    expect(value(assessments[0].metrics, "mean_mismatch")).toBe(seasonMismatch.reduce((sum, mismatch) => sum + mismatch, 0) / 3);
   });
 
   it("q90_mismatch is the nearest-rank 90th percentile of season mismatch", () => {
@@ -141,8 +154,24 @@ describe("rain-only invariance", () => {
   const baseline = plan(seasons(3, 7, year => (year === 2025 ? DRY : WET)));
 
   it("the farmer's backup-water answer changes nothing (rain only)", () => {
-    const withBackup = { ...baseline, water: "rain_plus_backup" } as MetricInput;
-    expect(assessClimate(withBackup)).toEqual(assessClimate(baseline));
+    const args = cohortInput({
+      days: history("2022-07-01", "2026-07-01", date => ({ rainMm: date.startsWith("2025") ? 0 : 100 })),
+      cutoff: "2026-07-01", horizonStart: "2026-07-01", horizonDays: 365,
+      settings: { ...baseline.settings, targetSeasons: 3, minimumUsableSeasons: 3 },
+    });
+    const results = ["rain_only", "rain_plus_backup", "unsure"].map(water => {
+      const run = { ...args.run, input: parseFarmInput({ ...args.run.input, water }) };
+      const cohort = buildClimateCohort({ ...args, run });
+      expect(cohort.usable).toHaveLength(3);
+      const assessment = assessed(assessClimate({
+        ...baseline, cohort: cohort.usable, elevationM: cohort.elevationM,
+        latitudeDeg: run.input.field.lookup[1], history: run.input.history, settings: run.settings,
+      }));
+      return { cohort, assessment };
+    });
+    expect(value(results[0].assessment.metrics, "mean_frequency")).toBeGreaterThan(0);
+    expect(results[1]).toEqual(results[0]);
+    expect(results[2]).toEqual(results[0]);
   });
 
   it("recorded vs skipped field history does not change any metric", () => {
@@ -150,6 +179,69 @@ describe("rain-only invariance", () => {
     const recorded = assessed(assessClimate(baseline));
     expect(skipped.metrics).toEqual(recorded.metrics);
     expect(skipped.seasonMetrics).toEqual(recorded.seasonMetrics);
+  });
+});
+
+describe("calendar-origin stage allocation", () => {
+  const generatedStages = { initial: 1, development: 1, middle: 5, late: 1 };
+  const historicalStages = { initial: 5, development: 1, middle: 1, late: 1 };
+  const base = profile({
+    id: "origin-stages", stageDays: generatedStages, kc: { initial: 0.1, middle: 2, end: 0.1 },
+    temperatureRules: syntheticRegistryFixture.profiles[0].temperatureRules,
+  });
+  const historicalProfile = { ...base, timing: { ...base.timing, historicalStageAllocations: [historicalStages] } };
+  const input = metricInput({
+    horizonDays: 365, profiles: [historicalProfile], occurrences: [occurrence(historicalProfile, "2026-07-01")],
+    cohort: [season("2025-07-01", 365, (_date, index) => ({ rainMm: 1, maxC: index === 2 ? 40 : 30 }))],
+  });
+  const baselineInput = { ...input, calendar: { ...input.calendar, origin: "baseline" as const } };
+
+  it("uses the historical Kc and sensitive-stage allocation for a same-duration baseline", () => {
+    const generated = assessed(assessClimate(input));
+    const historical = assessed(assessClimate(baselineInput));
+    expect(value(generated.occurrences[0].seasonMetrics[0].metrics, "mismatch")).toBeCloseTo(0.8769078910959509, 12);
+    expect(value(historical.occurrences[0].seasonMetrics[0].metrics, "mismatch")).toBeCloseTo(0.6581719067596703, 12);
+    expect(value(generated.occurrences[0].seasonMetrics[0].metrics, "temperature_exposure")).toBe(1 / 5);
+    expect(value(historical.occurrences[0].seasonMetrics[0].metrics, "temperature_exposure")).toBe(0);
+    expect(generated.warnings.some(warning => warning.code === "temperature_exposure")).toBe(true);
+    expect(historical.warnings.some(warning => warning.code === "temperature_exposure")).toBe(false);
+  });
+
+  it("accepts repeated identical historical allocations as one distinct allocation", () => {
+    const repeated = { ...historicalProfile, timing: { ...historicalProfile.timing, historicalStageAllocations: [historicalStages, { ...historicalStages }] } };
+    expect(assessClimate({ ...baselineInput, profiles: [repeated] })).toEqual(assessClimate(baselineInput));
+  });
+
+  it("returns a crop-profile gap when historical allocations are absent, mismatched or ambiguous", () => {
+    for (const historicalStageAllocations of [[], [{ initial: 1, development: 1, middle: 1, late: 1 }], [historicalStages, generatedStages]]) {
+      const p = { ...historicalProfile, timing: { ...historicalProfile.timing, historicalStageAllocations } };
+      const result = assessClimate({ ...baselineInput, profiles: [p] });
+      expect(result.kind).toBe("insufficient_data");
+      expect(metric(result.metrics, "mean_mismatch").value.kind).toBe("unavailable");
+      if (result.kind === "insufficient_data") expect(result.missing.some(gap => gap.code === "crop_profile")).toBe(true);
+      expect(assessClimate({ ...input, profiles: [p] }).kind).toBe("assessed");
+    }
+  });
+
+  it("requires generated occupancy to match the generated stages even when historical stages match", () => {
+    const shortGenerated = { ...historicalProfile, timing: { ...historicalProfile.timing, generatedStageDays: { initial: 1, development: 1, middle: 1, late: 1 } } };
+    const result = assessClimate({ ...input, profiles: [shortGenerated] });
+    expect(result.kind).toBe("insufficient_data");
+    if (result.kind === "insufficient_data") expect(result.missing.some(gap => gap.code === "crop_profile")).toBe(true);
+    expect(assessClimate({ ...baselineInput, profiles: [shortGenerated] }).kind).toBe("assessed");
+  });
+
+  it("versions corrected water and temperature methods with origin-specific stage assumptions", () => {
+    const result = assessed(assessClimate(baselineInput));
+    const water = metric(result.metrics, "mean_mismatch");
+    const temperature = metric(result.metrics, "q90_temperature_exposure");
+    expect(water.methodVersion).toBe("rain-demand-window-v2");
+    expect(temperature.methodVersion).toBe("daily-temperature-rule-v2");
+    expect(water.assumptions.join(" ")).toMatch(/historical.*generated|generated.*historical/i);
+    expect(temperature.assumptions.join(" ")).toMatch(/historical.*generated|generated.*historical/i);
+    expect(water.assumptions.join(" ")).toMatch(/raw|unrounded/i);
+    expect(water.assumptions.join(" ")).toContain("mismatchWindowDays");
+    expect(water.assumptions.join(" ")).toMatch(/radiation.*latitude|latitude.*radiation/i);
   });
 });
 

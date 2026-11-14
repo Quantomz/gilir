@@ -61,16 +61,16 @@ describe("monthly rainfall distribution", () => {
     expect(num(one(yearCohort(), "monthly_rain_median", 3))).toBe(0);
   });
 
-  it("an excluded season contributes nothing and shrinks the denominator", () => {
+  it("a solar gap excludes a ranking season while preserving available monthly rainfall", () => {
     const days = calendarYears.map(d => {
       if (d.date === "2002-07-01") return { ...d, rainMm: { kind: "available" as const, value: 99_999 } };
       if (d.date === "2002-05-05") return { ...d, solarMjM2Day: missing() };
       return d;
     });
     const c = buildClimateCohort(cohortInput({ days, ...base }));
-    expect(denom(one(c, "monthly_rain_median", 7))).toEqual({ count: 24, unit: "seasons" });
-    // 24 values 21.99..251.99; ceil(0.9*24) = 22nd = 231.99 and the 99,999 mm outlier never appears.
-    expect(num(one(c, "monthly_rain_p90", 7))).toBeCloseTo(231.99, 6);
+    expect(c.usable).toHaveLength(24);
+    expect(denom(one(c, "monthly_rain_median", 7))).toEqual({ count: 25, unit: "seasons" });
+    expect(num(one(c, "monthly_rain_p90", 7))).toBeCloseTo(241.99, 6);
   });
 });
 
@@ -89,7 +89,7 @@ describe("wet-day frequency", () => {
 });
 
 describe("longest dry spell", () => {
-  it("one value per usable season, period = that season, dry day < 1 mm", () => {
+  it("one value per complete precipitation replay period, dry day < 1 mm", () => {
     const cohort = yearCohort();
     const spells = find(cohort, "longest_dry_spell", null);
     expect(spells).toHaveLength(25);
