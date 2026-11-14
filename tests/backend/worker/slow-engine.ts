@@ -1,7 +1,8 @@
-import { resultFixtures } from "@/fixtures/results";
+import type { FrozenRun } from "@/contracts";
+import { resultForRun } from "./support";
 
-export function calculate() {
+export function calculate(run: FrozenRun) {
   const until = Date.now() + 450;
   while (Date.now() < until) Math.sqrt(1234567);
-  return resultFixtures.plan;
+  return resultForRun(run);
 }

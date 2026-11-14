@@ -3,10 +3,9 @@ import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
 import { farmInputSchema, runManifestSchema } from "@/contracts";
 import type { FrozenRun } from "@/contracts";
-import { resultFixtures } from "@/fixtures/results";
 import { providerSnapshotSchema } from "@/server/cache/schema";
 import { runWorkerLoop, runWorkerOnce } from "@/server/runtime";
-import { dependencies, MemoryJobs } from "./support";
+import { dependencies, MemoryJobs, resultForRun } from "./support";
 
 const storedRun: z.ZodType<FrozenRun> = z.strictObject({
   input: farmInputSchema,
@@ -36,7 +35,7 @@ if (mode === "replay") {
     prepareClimate: async () => { throw new Error("A replay must use frozen inputs."); },
     calculate: run => {
       if (run.manifest.climateSnapshotIds[0] !== "test-provider-shaped-snapshot") throw new Error("Frozen snapshot changed.");
-      return resultFixtures.plan;
+      return resultForRun(run);
     },
   });
   process.stdout.write(JSON.stringify({ kind: result.kind, state: jobs.state.state }) + "\n");
@@ -47,10 +46,10 @@ if (mode === "drain") {
   await runWorkerLoop({
     dependencies: {
       ...dependencies(jobs),
-      executeCalculation: async () => {
+      executeCalculation: async run => {
         process.stdout.write("calculation_started\n");
         await delay(250);
-        return resultFixtures.plan;
+        return resultForRun(run);
       },
     },
     signal: stopping.signal,

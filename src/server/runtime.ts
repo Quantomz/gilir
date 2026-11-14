@@ -134,6 +134,11 @@ export async function runWorkerOnce(dependencies: RuntimeDependencies): Promise<
     const result = parsePlanResult(await (dependencies.executeCalculation
       ? dependencies.executeCalculation(run, registry)
       : dependencies.calculate(run, registry)));
+    const provenance = result.details.provenance;
+    if (provenance.kind !== "run" || provenance.manifest.kind !== "available"
+      || sortedJson(provenance.manifest.value) !== sortedJson(run.manifest)) {
+      throw new Error("Calculation output does not identify the exact frozen run.");
+    }
     if (!await renew()) return lostResult;
     const accepted = await jobs.complete(lease, result, now());
     return accepted ? { kind: "completed", jobId: lease.jobId } : lostResult;

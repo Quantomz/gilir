@@ -17,6 +17,23 @@ export const snapshot: ClimateSnapshot = {
   days: [],
 };
 
+export function resultForRun(run: FrozenRun, result: PlanResult = resultFixtures.plan): PlanResult {
+  return {
+    ...result,
+    details: {
+      ...result.details,
+      provenance: {
+        kind: "run",
+        manifest: { kind: "available", value: run.manifest },
+        profiles: result.details.provenance.profiles,
+        rules: result.details.provenance.rules,
+        sources: result.details.provenance.sources,
+        climateProducts: result.details.provenance.climateProducts,
+      },
+    },
+  };
+}
+
 export class MemoryJobs implements JobStore {
   readonly capability = { jobId: "test-job", token: "test-capability" };
   readonly input = inputFixture;
@@ -77,7 +94,7 @@ export function dependencies(jobs = new MemoryJobs()): RuntimeDependencies {
     climateCache: { async read() { return null; }, async put() {} },
     prepareClimate: async () => ({ kind: "ready", snapshots: [snapshot] }),
     readRegistryRelease,
-    calculate: () => resultFixtures.plan,
+    calculate: run => resultForRun(run),
     settings: { version: "test-v1", targetSeasons: 25, minimumUsableSeasons: 15, structuralExpansionLimit: 10, scoredCandidateLimit: 10, searchGridStepDays: 7, mismatchWindowDays: 7, dryDayThresholdMm: 1, rankingDecimalPlaces: 6, adverseQuantile: 0.9 },
     workerId: "test-worker",
     leaseSeconds: 60,

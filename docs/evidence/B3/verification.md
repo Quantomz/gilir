@@ -10,19 +10,19 @@ The real PostgreSQL cases use the local PostgreSQL 18 acceptance database suppli
 
 ## Observed checks
 
-The worker suite passed with 24 tests across three files. The PostgreSQL cases ran with `B3_TEST_DATABASE_URL` set. The command ran with Node 24.22.3.
+The worker suite passed with 28 tests across three files. The PostgreSQL cases ran with `B3_TEST_DATABASE_URL` set. The command ran with Node 24.22.3.
 
 ```sh
 B3_TEST_DATABASE_URL="$B3_TEST_DATABASE_URL" npx vitest run tests/backend/worker
 ```
 
-The six result states arrive unchanged at `JobStore.complete`. Missing observations freeze and replay the same partial snapshot set. Provider failure reaches `JobStore.fail` without calculation. A simulated crash after freeze preserves snapshots, cutoff, registry identity, and settings while avoiding another climate retrieval. A removed registry release produces an explicit processing failure.
+The six result states arrive unchanged at `JobStore.complete`. Test calculators supply the actual frozen manifest with their synthetic result payloads. The runtime rejects synthetic provenance, an unavailable result manifest, and a manifest that differs from the frozen run. Missing observations freeze and replay the same partial snapshot set. Provider failure reaches `JobStore.fail` without calculation. A simulated crash after freeze preserves snapshots, cutoff, registry identity, and settings while avoiding another climate retrieval. A removed registry release or missing frozen snapshot produces an explicit processing failure.
 
 Lease tests reject publication after retrieval-time renewal failure, calculation-time renewal failure, and synchronous calculation that advances beyond lease expiry. The production calculation-thread adapter runs a 450-millisecond blocking test calculator while the parent continues lease renewals.
 
 The process suite starts a child worker, exits it immediately after the freeze file is durable, and starts a new process that completes from that frozen input. A second process receives `SIGTERM` during calculation, completes its claim, and exits with code 0.
 
-The required `npm run check` and `npm run build` passed. The check run reported 32 passing tests and four PostgreSQL tests skipped because that separate command omitted `B3_TEST_DATABASE_URL`. The explicitly configured worker-suite command ran all four PostgreSQL cases successfully.
+The required `npm run check` and `npm run build` passed. The check run reported 36 passing tests and four PostgreSQL tests skipped because that separate command omitted `B3_TEST_DATABASE_URL`. The explicitly configured worker-suite command ran all four PostgreSQL cases successfully.
 
 `git diff --check` passed. A deslop pass reviewed the runtime, scripts, SQL, tests, and documentation before the implementation commit. Independent no-comments and correctness review are coordinated on the exact committed change.
 

@@ -75,7 +75,7 @@ A provider `failed` response persists the supplied `ServiceFailure`. A genuine `
 
 After freezing, retries reuse the stored normalized input, cutoff, settings, climate snapshots, and registry identity. The worker fails explicitly when that registry release or compatible frozen data is unavailable. Cache entries can advance to another immutable snapshot without changing a frozen run.
 
-Calculation runs in a worker thread so the lease timer can renew during synchronous engine work. The runtime also renews immediately before completion. A failed renewal prevents completion or failure publication by that worker.
+Calculation runs in a worker thread so the lease timer can renew during synchronous engine work. The runtime requires run provenance with the exact frozen manifest and renews immediately before completion. A failed renewal prevents completion or failure publication by that worker.
 
 ## Reproduce B3 component evidence
 
