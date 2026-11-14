@@ -30,8 +30,8 @@ Honor operator-approved model choices supplied by the host or session. Keep mode
 
 ## Ownership and parallel work
 
-- `kyusuku` owns backend setup, PostgreSQL, API/client transport, NASA ingestion, runtime composition, root dependencies, lockfile, CI, and shared-contract maintenance after the baseline.
-- `yslee1106` owns reviewed crop and rule data, climate metrics, deterministic search, ranking, and explanations.
+- `kyusuku` owns backend setup, PostgreSQL, API/client transport, NASA ingestion, runtime composition, root dependencies, lockfile, CI, shared-contract maintenance after the baseline, and E3 deterministic search, ranking, and explanations after the 14 November handoff.
+- `yslee1106` owns E1 reviewed crop and rule data and E2 climate metrics.
 - `Quantomz` owns the frontend, globe/map interaction, editable input timeline, results, local persistence, and PDF.
 - The card's file list is narrower than the lane. An overflow card changes only its own files and is claimed before work starts. A helper takes an unstarted card or a distinct test/data fragment, never edits an active owner's files concurrently.
 - Each card has one short-lived branch and one PR to `main`. No permanent personal branch and no implementation commits directly to `main`.
