@@ -36,6 +36,7 @@ export const farm = {
 
 export const crops = {
   lead: "Every plan includes every crop you pick. Many fields fit 1 to 3 crops in a year, depending on how long they grow.",
+  coverage: "We have growing estimates for every crop listed. These estimates have not been checked for your area. Some crops may not fit into one year at your location.",
   purpose: { food: "Grown for food", cover: "Cover crop" },
   picked: "Picked",
   count: (n: number) => `${n} picked`,

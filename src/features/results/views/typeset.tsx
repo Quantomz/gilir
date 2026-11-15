@@ -21,7 +21,6 @@ export function HeadView(props: { readonly head: Head; readonly titleRef: RefObj
         {head.facts.map((fact, index) => <span key={index}>{fact}</span>)}
       </p>
       {head.synthetic === null ? null : <Synthetic text={head.synthetic} big={false} />}
-      {head.lead === null ? null : <p className="lead rs-intro" data-say="">{head.lead}</p>}
     </div>
   );
 }

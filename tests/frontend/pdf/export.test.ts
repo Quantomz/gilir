@@ -10,7 +10,7 @@ import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { readPdf } from "./support/read-pdf";
 import type { ReadPage, ReadPdf } from "./support/read-pdf";
-import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
+import { britishReader, frozen, printsItsMessage, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 const states = ["plan", "plan_with_warnings", "insufficient_data", "no_calendar_fit", "search_incomplete", "service_error"] as const;
 type State = (typeof states)[number];
@@ -189,18 +189,23 @@ describe("what each state prints", () => {
     }
   });
 
-  it("plan_with_warnings: What we flagged comes before When to plant and harvest, and every warning message follows its farmer head", async () => {
+  it("plan_with_warnings: What we flagged comes before When to plant and harvest, and every warning line follows its farmer head", async () => {
     const text = prose(await fixture("plan_with_warnings"));
     expect(text.indexOf("What we flagged")).toBeGreaterThan(-1);
     expect(text.indexOf("What we flagged")).toBeLessThan(text.indexOf("When to plant and harvest"));
     expect(text).toContain("What we flagged We flag a crop if, in any past season, even one week had less rain than it needs");
-    expect(text).toContain("• Rain fell short of what synthetic crop needs in past seasons Example rainfall warning.");
-    expect(text).toContain("Good to know • The search stopped at its limit Example search stopped at its scoring budget.");
+    expect(text).toContain("• Rain fell short of what synthetic crop needs in past seasons In some past seasons, at least one week had less rain than it needs.");
+    expect(text).toContain("Good to know • The search stopped at its limit We stopped at our search limit before everything was compared.");
 
     const many = await read(variant("manyWarnings"));
     const manyText = prose(many);
+    const codes = variant("manyWarnings").result.details.warnings.map(warning => warning.code);
     for (let n = 1; n <= 30; n++) {
       const message = `Synthetic warning ${n}: in the invented season from ${englishDay("2026-07-15")} to ${englishDay("2026-09-30")} an invented value crossed an invented limit, so this long message wraps across several lines of the page.`;
+      if (!printsItsMessage(codes[n - 1]!)) {
+        expect(occurrences(manyText, message), `warning ${n}`).toBe(0);
+        continue;
+      }
       expect(occurrences(manyText, message), `warning ${n}`).toBe(1);
       const page = many.pages.find(item => item.runs.some(run => run.text.startsWith(`Synthetic warning ${n}:`)))!;
       const index = page.runs.findIndex(run => run.text.startsWith(`Synthetic warning ${n}:`));
@@ -212,10 +217,10 @@ describe("what each state prints", () => {
 
   it("notes (profile_limitation, search_limit, water_context, approximate_history) print under Good to know in every state", async () => {
     const notes = [
-      ["profile_limitation", "About the growing details we used"],
-      ["search_limit", "The search stopped at its limit"],
-      ["water_context", "Your backup water isn’t counted"],
-      ["approximate_history", "Your dates for last year are estimates"],
+      ["profile_limitation", "About the growing details we used", "Synthetic note 1 for this layout test."],
+      ["search_limit", "The search stopped at its limit", "We stopped at our search limit before everything was compared."],
+      ["water_context", "Your backup water isn’t counted", "It may give extra protection. Every number here is worked out with rain alone."],
+      ["approximate_history", "Your dates for last year are estimates", "So any comparison with last year is approximate too."],
     ] as const;
     const added = notes.map(([code], index) => ({ code, message: `Synthetic note ${index + 1} for this layout test.`, cropPurposeIds: [], ruleIds: [], metricIds: [] }));
     for (const state of states) {
@@ -223,10 +228,9 @@ describe("what each state prints", () => {
       const text = prose(await read(edited(state, { input: { water: "rain_plus_backup" }, details: { warnings } })));
       const notesAt = text.indexOf("Good to know");
       expect(notesAt, state).toBeGreaterThan(-1);
-      notes.forEach(([, head], index) => {
-        const at = text.indexOf(`• ${head} Synthetic note ${index + 1} for this layout test.`);
-        expect(at, `${state} ${head}`).toBeGreaterThan(notesAt);
-      });
+      for (const [, head, line] of notes) {
+        expect(text.indexOf(`• ${head} ${line}`), `${state} ${head}`).toBeGreaterThan(notesAt);
+      }
       if (state !== "plan_with_warnings") expect(text, state).not.toContain("What we flagged");
     }
   });
@@ -413,15 +417,17 @@ describe("what each state prints", () => {
     expect([...at].sort((a, b) => a - b)).toEqual(at);
   });
 
-  it("no_calendar_fit: 366 days needed against 365 in the year and each crop's minimum; a structural proof lists its constraints", async () => {
+  it("no_calendar_fit: 366 days needed against 365 in the year and each crop's minimum; a structural proof names the planting times, with the engine's constraints under How this was worked out", async () => {
     const text = prose(await fixture("no_calendar_fit"));
     expect(text).toContain("No plan. Together they need at least 366 days; your year has 365. Why they don’t fit Each crop needs at least: • Synthetic crop: at least 366 days");
     const proof = prose(await read(variant("structuralProof")));
-    expect(proof).toContain("What stops them:");
+    expect(proof).not.toContain("What stops them:");
+    expect(proof).toContain("Why they don’t fit The time of year when your crop can be planted leaves no way to fit it into one year from your start date");
+    expect(proof.indexOf("• Synthetic crop must be planted")).toBeGreaterThan(proof.indexOf("How this was worked out"));
     expect(proof).toContain(`• Synthetic crop must be planted between ${englishDay("2026-11-01")} and ${englishDay("2026-11-30")} in this invented example.`);
     expect(proof).toContain("• Synthetic second crop cannot follow synthetic crop in this invented example.");
     expect(proof).toContain("• Each invented crop needs at least 200 days in the field.");
-    expect(proof).toContain("We checked 48,213 ways of placing them.");
+    expect(proof).toContain("We checked 48,213 ways of placing it.");
   });
 
   it("search_incomplete: where the search stopped in numbers, and A stopped search doesn’t show that your crops can’t fit.", async () => {
@@ -522,7 +528,7 @@ describe("crop names in the file", () => {
     for (const part of [
       "Crops: Synthetic bean (dry grain), Synthetic maize (grain) and Synthetic oats (grain) · Water: Rain only",
       "temperatures went outside the limits for Synthetic maize (grain) on about 20% of checked days",
-      "Rain fell short of what Synthetic bean (dry grain) needs in past seasons Synthetic rainfall warning for the first crop.",
+      "Rain fell short of what Synthetic bean (dry grain) needs in past seasons In some past seasons, at least one week had less rain than it needs.",
       "1. Synthetic bean (dry grain) Plant 1 Jul 2026 · Harvest 28 Sept 2026",
       "3. Synthetic maize (grain) Plant 16 Oct 2026 · Harvest 24 Dec 2026",
       "5. Synthetic oats (grain) Plant 6 Jan 2027 · Harvest 6 Mar 2027",

@@ -254,7 +254,7 @@ describe("every state renders", () => {
     open(warned, null);
     await settle();
     const risk = screen.getByText("Rain fell short of what synthetic crop needs in past seasons");
-    const warning = screen.getByText("Example rainfall warning.");
+    const warning = screen.getByText("In some past seasons, at least one week had less rain than it needs.");
     const timeline = screen.getByRole("heading", { level: 2, name: "When to plant and harvest" });
     expect(title().textContent).toBe("Your plan, with warnings");
     for (const words of [risk, warning]) {

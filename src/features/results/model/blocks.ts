@@ -11,8 +11,6 @@ export interface Head {
   /** The screen's one h1. */
   readonly title: string;
   readonly status: { readonly tone: Tone; readonly icon: IconName; readonly label: string; readonly text: string };
-  /** A no-plan result leads with the engine's explanation. Null for a plan, where it sits under the ranking. */
-  readonly lead: string | null;
   /** The "for" line: "Your year: …" (a plan) or "Field ready: …" (no plan), the crops, the water answer. */
   readonly facts: readonly string[];
   /** `provenance.label` when the result is synthetic, shown in bold on the result and on details. */

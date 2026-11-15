@@ -352,6 +352,24 @@ describe("page 2", () => {
     expect(screen.getByRole("region", { name: "Next step" }).textContent).toContain("1 picked: synthetic crop.");
   });
 
+  it("page 2 explains model coverage and local limits before the list, read by Listen; not while the list is loading or failed", async () => {
+    const coverage = "We have growing estimates for every crop listed. These estimates have not been checked for your area. Some crops may not fit into one year at your location.";
+    open();
+    await toCrops();
+    const list = await screen.findByRole("list", { name: "Crops" });
+    const note = screen.getByText(coverage);
+    expect(note.closest("[data-say]")).not.toBeNull();
+    expect(note.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    cleanup();
+
+    const client = scriptedClient({ catalogue });
+    vi.spyOn(client, "catalogue").mockRejectedValue(new Error("offline"));
+    open({ client });
+    await toCrops();
+    await screen.findByRole("alert");
+    expect(screen.queryByText(coverage)).toBeNull();
+  });
+
   it("[E2] a catalogue that rejects shows We couldn’t load the crop list and Try again; Try again loads it; other answers are kept", async () => {
     const client = scriptedClient({ catalogue });
     vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);

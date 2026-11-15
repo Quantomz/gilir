@@ -271,15 +271,32 @@ export const warningKinds: Record<ResultWarning["code"], "flag" | "context"> = {
 };
 
 /** `crops` is "" when the warning names none. */
-export const warningHeads: Record<ResultWarning["code"], (crops: string, several: boolean) => string> = {
+export const warningHeads: Record<ResultWarning["code"], (crops: string, several: boolean, water: WaterAnswer) => string> = {
   rainfall_mismatch: (crops, several) => `Rain fell short of what ${crops ? `${crops} ${several ? "need" : "needs"}` : "the crops need"} in past seasons`,
   temperature_exposure: crops => `Temperatures went outside the limits for ${crops || "a crop"}`,
   environmental_rule: crops => `A published rule about this place flagged ${crops || "the plan"}`,
   rotation_rule: crops => `A rule about which crop may follow which flagged ${crops || "the plan"}`,
-  profile_limitation: crops => (crops ? `A limit of the growing details for ${crops}` : "A limit of the growing details"),
+  profile_limitation: crops => (crops ? `About the growing details for ${crops}` : "About the growing details we used"),
   search_limit: () => "The search stopped at its limit",
-  water_context: () => "Your backup water isn’t counted",
+  water_context: (_crops, _several, water) => (water === "rain_plus_backup" ? "Your backup water isn’t counted" : "Only rain is counted"),
   approximate_history: () => "Your dates for last year are estimates",
+};
+
+/**
+ * F3's own line under a warning's head, for a code whose engine message is one fixed sentence written for developers.
+ * Each is true of that sentence. A code without a line here carries content of its own (a crop profile's note, a
+ * published rule), so its message shows as the engine wrote it.
+ */
+export const warningLines: Partial<Record<ResultWarning["code"], (crops: string, several: boolean, water: WaterAnswer) => string>> = {
+  rainfall_mismatch: (crops, several) =>
+    `In some past seasons, at least one week had less rain than ${crops === "" ? "the crops need" : several ? "they need" : "it needs"}.`,
+  temperature_exposure: (crops, several) =>
+    `In some past seasons, at least one day was hotter or colder than ${crops === "" ? "a crop’s" : several ? "their" : "its"} limit, at a time of growth when that matters.`,
+  search_limit: () => "We stopped at our search limit before everything was compared.",
+  water_context: (_crops, _several, water) => water === "rain_plus_backup"
+    ? "It may give extra protection. Every number here is worked out with rain alone."
+    : "Every number here is worked out with rain alone.",
+  approximate_history: () => "So any comparison with last year is approximate too.",
 };
 
 export const warningIcons: Record<ResultWarning["code"], IconName> = {
@@ -547,9 +564,21 @@ export const noPlan = {
   inYourYear: "days in your year",
   eachCrop: "Each crop needs at least:",
   perCrop: (crop: string, days: string) => `${crop}: ${days}`,
-  whatStops: "What stops them:",
-  checkedWays: (ways: string) => `We checked ${ways} of placing them.`,
-  noFitNext: "Choose fewer crops, or crops that grow faster, then make the plan again.",
+  checkedWays: (ways: string, one: boolean) => `We checked ${ways} of placing ${one ? "it" : "them"}.`,
+  /** For crops whose days together are longer than the year. */
+  noFitNext: (one: boolean) => (one
+    ? "Choose a crop that grows faster, then make the plan again."
+    : "Choose fewer crops, or crops that grow faster, then make the plan again."),
+  /**
+   * For the proof the engine tries only after the crops' days fit in the year: the planting times, or the follow rules
+   * when the run had any, are what stop them. It promises nothing about another date or crop.
+   */
+  noFitPlanting: (one: boolean, rules: boolean, start: string) =>
+    `${one ? "The time of year when your crop can be planted" : "The times of year when your crops can be planted"}`
+    + `${rules ? ", and the rules about which crop may follow which," : ""} leave${one && !rules ? "s" : ""} no way to fit `
+    + `${one ? "it" : "them all"} into one year from your start date, ${start}.`,
+  noFitPlantingNext: (one: boolean) =>
+    `Try ${one ? "another start date or another crop" : "another start date, other crops or fewer crops"}, then make the plan again.`,
   /** There is no retry port, so trying again is Change my answers, then Make my plan. */
   tryAgain: "To try again, tap Change my answers, then Make my plan on the last page. You don’t have to change anything.",
   failedNotRetryable: "Making the plan again may give the same result. You can change your answers and try.",
@@ -589,6 +618,7 @@ export const details = {
     versions: "Method versions",
     answers: "Your answers",
   },
+  calculationSaid: "The calculation’s own summary",
   tupleLead: "Plans were compared in one fixed order: the first number decides, and the next one only breaks a tie. Lower is better for all four.",
   noRanking: "No plan was ranked, so there is no ranking score.",
   noMetrics: "No other numbers are on record for this result.",

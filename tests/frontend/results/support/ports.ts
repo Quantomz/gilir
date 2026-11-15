@@ -120,7 +120,7 @@ export function textOf(page: ResultPage | DetailsPage): string {
 }
 
 function headText(head: Head): readonly (string | null)[] {
-  return [head.eyebrow, head.title, head.status.label, head.status.text, head.lead, ...head.facts, head.synthetic];
+  return [head.eyebrow, head.title, head.status.label, head.status.text, ...head.facts, head.synthetic];
 }
 
 function sectionText(section: Section): readonly (string | null)[] {

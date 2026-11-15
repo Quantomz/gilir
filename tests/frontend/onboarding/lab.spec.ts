@@ -81,7 +81,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expect(title(page, "Your rotation")).toBeFocused({ timeout: 10_000 });
       expect(await titlesSeen(page)).toEqual(["Opening Gilir…", ...pages.map(expected => expected.title), "Making your plan", "Your rotation"]);
       await expect(app(page).locator("#submit-fail")).toHaveCount(0);
-      await expect(page.getByRole("region", { name: "Results implementation slot" }).first()).toBeVisible();
+      await expect(page.getByRole("region", { name: "What you can do" }).first()).toBeVisible();
     });
 
     test("[M1][H4] resizes both crop endpoints by dragging: the harvest handle first (the 4-day fixture bar), then the planting handle; aria-valuenow changes", async ({ page }) => {
@@ -239,6 +239,8 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await button(page, "Next: water").click();
       await expect(app(page).getByRole("radio", { name: "I’m not sure" })).toBeChecked();
       await page.goBack();
+      // A second Back sent before the first is handled finds no guard entry yet and leaves the app.
+      await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
       await page.goBack();
       await expect(title(page, "Where is your farm?")).toBeVisible();
       await page.goBack();

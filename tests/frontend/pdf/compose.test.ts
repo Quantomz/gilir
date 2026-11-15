@@ -10,7 +10,7 @@ import { findCalendar } from "@/engine";
 import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { readRegistryRelease, resolveRegistry } from "@/registry";
-import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
+import { britishReader, frozen, printsItsMessage, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 function calendarOf(doc: PdfDocument): { readonly timeline: Timeline; readonly rows: readonly Item[] } {
   if (doc.kind !== "plan") throw new Error("a status report has no calendar");
@@ -100,17 +100,18 @@ describe("what each state says", () => {
     expect(heads.no_calendar_fit.status.text).toBe("Together they need at least 366 days; your year has 365.");
   });
 
-  it("every warning keeps its risk words: a flag sits under What we flagged before the calendar, a note under Good to know, each head followed by the snapshot's own message", () => {
+  it("every warning keeps its risk words: a flag sits under What we flagged before the calendar, a note under Good to know, each head followed by a plain line of the report's own", () => {
     const text = textOf(composed("plan_with_warnings"));
     const flagged = text.indexOf("What we flagged");
     const head = text.indexOf("Rain fell short of what synthetic crop needs in past seasons");
     expect(flagged).toBeGreaterThan(-1);
-    expect(text[head + 1]).toBe("Example rainfall warning.");
+    expect(text[head + 1]).toBe("In some past seasons, at least one week had less rain than it needs.");
     expect(head).toBeGreaterThan(flagged);
     expect(head).toBeLessThan(text.indexOf("When to plant and harvest"));
     const note = text.indexOf("The search stopped at its limit");
-    expect(text[note + 1]).toBe("Example search stopped at its scoring budget.");
+    expect(text[note + 1]).toBe("We stopped at our search limit before everything was compared.");
     expect(note).toBeGreaterThan(text.indexOf("Good to know"));
+    expect(text.join("\n")).not.toMatch(/Example rainfall warning|Example search stopped/);
   });
 
   it("the search limit is disclosed: a plan whose ranking stopped says it is not proven best, and a stopped search says it proves nothing", () => {
@@ -251,7 +252,7 @@ describe("the variants: what the fixtures can't show", () => {
     }
   });
 
-  it("manyWarnings: each of the 30 messages follows its farmer head with its dates in the reader's form; flags before the calendar, notes under Good to know", () => {
+  it("manyWarnings: each message a rule or a crop profile wrote follows its farmer head with its dates in the reader's form, every other warning prints the report's own line; flags before the calendar, notes under Good to know", () => {
     const snapshot = variant("manyWarnings");
     const text = textOf(compose(snapshot, britishReader));
     const flagged = text.indexOf("What we flagged");
@@ -262,12 +263,23 @@ describe("the variants: what the fixtures can't show", () => {
     snapshot.result.details.warnings.forEach((warning, index) => {
       const message = `Synthetic warning ${index + 1}: in the invented season from 15 Jul 2026 to 30 Sept 2026 an invented value crossed an invented limit, so this long message wraps across several lines of the page.`;
       const at = text.indexOf(message);
+      if (!printsItsMessage(warning.code)) {
+        expect(at, `warning ${index + 1}`).toBe(-1);
+        return;
+      }
       expect(at, `warning ${index + 1}`).toBeGreaterThan(-1);
       expect(text[at - 1].length, `warning ${index + 1} head`).toBeGreaterThan(10);
       const flag = ["rainfall_mismatch", "temperature_exposure", "environmental_rule", "rotation_rule"].includes(warning.code);
       expect(flag ? at > flagged && at < notes : at > notes && at < calendar, `warning ${index + 1} section`).toBe(true);
     });
     expect(text).toContain("Rain fell short of what synthetic crop, synthetic second crop and synthetic third crop need in past seasons");
+    const ownLines = (start: string) => text.filter(line => line.startsWith(start)).length;
+    const coded = (code: string) => snapshot.result.details.warnings.filter(warning => warning.code === code).length;
+    expect(ownLines("In some past seasons, at least one week had less rain than")).toBe(coded("rainfall_mismatch"));
+    expect(ownLines("In some past seasons, at least one day was hotter or colder than")).toBe(coded("temperature_exposure"));
+    expect(ownLines("We stopped at our search limit before everything was compared.")).toBe(coded("search_limit"));
+    expect(ownLines("Every number here is worked out with rain alone.")).toBe(coded("water_context"));
+    expect(ownLines("So any comparison with last year is approximate too.")).toBe(coded("approximate_history"));
     expect(compose(snapshot, britishReader).head.status.text).toBe("In past seasons, rain fell short of what the crops need in about 7 in 10 weeks, "
       + "temperatures went outside the limits for synthetic crop, synthetic second crop and synthetic third crop on about 82% of checked days in a bad year, "
       + "a published rule flagged synthetic crop, synthetic second crop and synthetic third crop and a crop order rule flagged the plan.");
@@ -287,11 +299,20 @@ describe("the variants: what the fixtures can't show", () => {
     expect(thai.slice(crop, crop + 3)).toEqual(["A crop not on our list", "Planted about 1 Jul 2025 · Harvested about 4 Jul 2025", "A crop name uses letters this file can’t show."]);
   });
 
-  it("no_calendar_fit by structural exhaustion lists its constraints as the engine wrote them, and how many ways were checked", () => {
+  it("no_calendar_fit by structural exhaustion says how many ways were checked under Why they don’t fit, and prints the engine's constraint sentences only under How this was worked out", () => {
     const text = textOf(compose(variant("structuralProof"), britishReader));
-    expect(text).toContain("Synthetic crop must be planted between 1 Nov 2026 and 30 Nov 2026 in this invented example.");
-    expect(text).toContain("Each invented crop needs at least 200 days in the field.");
-    expect(text).toContain("We checked 48,213 ways of placing them.");
+    const method = text.indexOf("How this was worked out");
+    for (const constraint of [
+      "Synthetic crop must be planted between 1 Nov 2026 and 30 Nov 2026 in this invented example.",
+      "Each invented crop needs at least 200 days in the field.",
+    ]) {
+      expect(text.indexOf(constraint), constraint).toBeGreaterThan(method);
+      expect(text.filter(line => line === constraint), constraint).toHaveLength(1);
+    }
+    expect(text).not.toContain("What stops them:");
+    const ways = text.indexOf("We checked 48,213 ways of placing it.");
+    expect(ways).toBeGreaterThan(text.indexOf("Why they don’t fit"));
+    expect(ways).toBeLessThan(method);
     expect(text).toContain(statusReport);
   });
 
@@ -419,14 +440,18 @@ describe("each sentence is true of the result it prints", () => {
   });
 
   it("the water note's head matches the farmer's answer: backup water isn’t counted, or only rain is counted for I’m not sure", () => {
-    const water = (answer: "rain_plus_backup" | "unsure", message: string) => {
+    const water = (answer: "rain_plus_backup" | "unsure", message: string, ownLine: string) => {
       const note = { code: "water_context", message, cropPurposeIds: [], ruleIds: [], metricIds: [] };
       const text = textOf(compose(withDetails(completedSnapshotsByState.plan, { warnings: [note] }, { water: answer }), britishReader));
-      return text[text.indexOf(message) - 1];
+      expect(text, answer).not.toContain(message);
+      return text[text.indexOf(ownLine) - 1];
     };
-    expect(water("rain_plus_backup", "Reported backup water may provide additional protection. No backup supply was assumed in calculations or ranking."))
-      .toBe("Your backup water isn’t counted");
-    expect(water("unsure", "Water availability is uncertain. Every calculation assumes rainfall alone.")).toBe("Only rain is counted");
+    expect(water(
+      "rain_plus_backup", "Reported backup water may provide additional protection. No backup supply was assumed in calculations or ranking.",
+      "It may give extra protection. Every number here is worked out with rain alone.",
+    )).toBe("Your backup water isn’t counted");
+    expect(water("unsure", "Water availability is uncertain. Every calculation assumes rainfall alone.", "Every number here is worked out with rain alone."))
+      .toBe("Only rain is counted");
   });
 
   it("a 29 February 2028 start ends the year on 27 Feb 2029 on each no-plan report, as the engine's year does", () => {

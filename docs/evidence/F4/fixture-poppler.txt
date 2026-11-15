@@ -176,7 +176,7 @@ Pages:           4
 Encrypted:       no
 Page size:       595.28 x 841.89 pts (A4)
 Page rot:        0
-File size:       6552 bytes
+File size:       6573 bytes
 Optimized:       no
 PDF version:     1.7
 --- pdffonts fixture-plan_with_warnings.pdf
@@ -209,7 +209,7 @@ We flag a crop if, in any past season, even one week had less rain than it needs
 or a temperature outside its limits. The check is strict, so most plans have
 warnings.
 •     Rain fell short of what synthetic crop needs in past seasons
-      Example rainfall warning.
+      In some past seasons, at least one week had less rain than it needs.
 A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It
 shows where past seasons fell short, so you know what to watch.
 
@@ -217,7 +217,7 @@ shows where past seasons fell short, so you know what to watch.
 
 Good to know
 •     The search stopped at its limit
-      Example search stopped at its scoring budget.
+      We stopped at our search limit before everything was compared.
 
 
 
@@ -463,7 +463,7 @@ Pages:           6
 Encrypted:       no
 Page size:       595.28 x 841.89 pts (A4)
 Page rot:        0
-File size:       8904 bytes
+File size:       8945 bytes
 Optimized:       no
 PDF version:     1.7
 --- pdffonts variant-frozenLabels.pdf
@@ -499,16 +499,17 @@ or a temperature outside its limits. The check is strict, so most plans have
 warnings.
 •     Rain fell short of what Synthetic bean (dry grain) needs in past
       seasons
-      Synthetic rainfall warning for the first crop.
+      In some past seasons, at least one week had less rain than it needs.
 •     Temperatures went outside the limits for Synthetic maize (grain)
-      Synthetic heat warning for the second crop.
+      In some past seasons, at least one day was hotter or colder than its limit, at
+      a time of growth when that matters.
 A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It
 shows where past seasons fell short, so you know what to watch.
 
 
 
 
-Gilir crop plan · Made 1 Jul 2026                                         Page 1 of 6
+Gilir crop plan · Made 1 Jul 2026                                          Page 1 of 6
 Synthetic test data only. Values are invented and are not farm advice.
 When to plant and harvest
 Jul     Aug      Sept    Oct      Nov     Dec    Jan    Feb   Mar        Apr   May     Jun

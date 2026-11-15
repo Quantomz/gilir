@@ -144,6 +144,12 @@ CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes i
 
 NOT RUN this round: `lab.spec.ts`, the other journey cases, and the rest of `evidence.spec.ts`. The videos, the other screenshots and the focus-order files are from f746505. No storage line is on them, so the compact line does not change them. The focus-order walks still hold no storage line.
 
+## A coverage sentence on page 2
+
+The crop list is one list for the whole world, while growing details are regional: a real run on 15 November 2026 found details for 2 of 40 crops in central Thailand and Java. Page 2 now says, above the list and read by Listen: "We have growing details for only some crops in some places. If a crop you pick has none for your field, we’ll tell you, and no plan is made." It shows only once the list has loaded. `ui/pages.test.tsx` has the case, which fails on the code before. Seen at 360 px on the production build.
+
+The browser specs still waited for the "Results implementation slot" stub, which F3 replaced with the real Results, so they now wait for Results' "What you can do". `lab.spec.ts` `[C1]` sent two Backs with no pause and failed 4 of 6 runs: the second Back arrived before the first was handled, found no guard entry and left the app (a known limit of the Back guard; the answers stay saved). It now waits for page 2 between them, as its first half does. After these changes `journey.spec.ts` and `lab.spec.ts` passed 46 of 46, with `[C1]` passing 6 of 6 repeats. `evidence.spec.ts` has the same one-line change and was **NOT RUN**.
+
 ## Not verified
 
 - **A field marked by hand.** Every run on `/` takes its field from the development seed.

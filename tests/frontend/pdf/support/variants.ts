@@ -29,6 +29,9 @@ export const variantNames: readonly VariantName[] = [
 
 export const britishReader = { locale: "en-GB", timeZone: "UTC" } as const;
 
+/** These codes carry content of their own, so the report prints their message. Every other code prints the report's own line. */
+export const printsItsMessage = (code: string): boolean => ["environmental_rule", "rotation_rule", "profile_limitation"].includes(code);
+
 export function variant(name: VariantName): CompletedSnapshot {
   return completedSnapshotSchema.parse(builders[name]());
 }

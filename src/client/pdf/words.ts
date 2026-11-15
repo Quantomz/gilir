@@ -101,6 +101,22 @@ export const warningHeads: Record<WarningCode, (who: string | null, many: boolea
   water_context: (_who, _many, water) => (water === "rain_plus_backup" ? "Your backup water isn’t counted" : "Only rain is counted"),
   approximate_history: () => "Your dates for last year are estimates",
 };
+/**
+ * The report's own line under a warning's head, for a code whose engine message is one fixed sentence written for
+ * developers. Each is true of that sentence, and reads as the result screen does. A code without a line here carries
+ * content of its own (a crop profile's note, a published rule), so its message prints as the engine wrote it.
+ */
+export const warningLines: Partial<Record<WarningCode, (who: string | null, many: boolean, water: WaterAnswer) => string>> = {
+  rainfall_mismatch: (who, many) =>
+    `In some past seasons, at least one week had less rain than ${who === null ? "the crops need" : many ? "they need" : "it needs"}.`,
+  temperature_exposure: (who, many) =>
+    `In some past seasons, at least one day was hotter or colder than ${who === null ? "a crop’s" : many ? "their" : "its"} limit, at a time of growth when that matters.`,
+  search_limit: () => "We stopped at our search limit before everything was compared.",
+  water_context: (_who, _many, water) => water === "rain_plus_backup"
+    ? "It may give extra protection. Every number here is worked out with rain alone."
+    : "Every number here is worked out with rain alone.",
+  approximate_history: () => "So any comparison with last year is approximate too.",
+};
 
 
 export const calendar = {
@@ -318,8 +334,7 @@ export const noPlan = {
   missingNext: "Making the plan again gives the same answer until new data is available. You can change your answers, for example to other crops.",
   fitEach: "Each crop needs at least:",
   fitMinimum: (crop: string, days: string) => `${crop}: at least ${days}`,
-  fitStops: "What stops them:",
-  fitTried: (ways: string) => `We checked ${ways} of placing them.`,
+  fitTried: (ways: string, one: boolean) => `We checked ${ways} of placing ${one ? "it" : "them"}.`,
   fitNext: (one: boolean) => (one
     ? "Choose a crop that grows faster, then make the plan again."
     : "Choose fewer crops, or crops that grow faster, then make the plan again."),

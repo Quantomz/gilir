@@ -62,13 +62,13 @@ function NoticeLine(props: { readonly c: Controller; readonly notice: Notice }):
   switch (notice.kind) {
     case "refused":
     case "saved_unusable":
-      return <p className="note note-warn fp-notice" role="alert"><Icon name="alert" /><span>{words}</span></p>;
+      return <p className="note note-warn fp-notice" role="alert"><Icon name="alert" /><span data-say="">{words}</span></p>;
     case "still_marked":
       return (
         <div className="note fp-notice">
           <Icon name="info" />
           <div className="stack-xs">
-            <p>{words}</p>
+            <p data-say="">{words}</p>
             <button className="btn btn-sub fp-self-start" type="button" onClick={() => c.send({ kind: "back" })}>{find.backToField}</button>
           </div>
         </div>
@@ -76,7 +76,7 @@ function NoticeLine(props: { readonly c: Controller; readonly notice: Notice }):
     case "no_key":
     case "no_globe":
     case "no_pictures":
-      return <p className="note fp-notice" role="status"><Icon name="alert" /><span>{words}</span></p>;
+      return <p className="note fp-notice" role="status"><Icon name="alert" /><span data-say="">{words}</span></p>;
   }
 }
 
