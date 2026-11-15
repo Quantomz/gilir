@@ -87,8 +87,8 @@ function MapButton(props: { readonly icon: "plus" | "minus"; readonly label: str
   );
 }
 
-function coveredBelow(map: HTMLElement, foot: HTMLElement | null): number {
-  return foot === null || foot.offsetHeight === 0 ? 0 : Math.max(0, map.getBoundingClientRect().bottom - foot.getBoundingClientRect().top);
+function coveredBelow(area: HTMLElement, foot: HTMLElement | null): number {
+  return foot === null || foot.offsetHeight === 0 ? 0 : Math.max(0, area.getBoundingClientRect().bottom - foot.getBoundingClientRect().top);
 }
 
 function prefersReducedMotion(): boolean {
