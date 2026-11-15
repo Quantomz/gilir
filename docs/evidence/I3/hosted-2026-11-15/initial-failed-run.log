@@ -1,0 +1,123 @@
+
+Running 17 tests using 1 worker
+
+(node:6257) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, phone 360x740 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year
+  1) ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, phone 360x740 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year 
+
+    Error: expect(received).toEqual(expected) // deep equality
+
+    - Expected  - 1
+    + Received  + 3
+
+    - Array []
+    + Array [
+    +   "console error: Failed to load resource: the server responded with a status of 404 ()",
+    + ]
+
+      136 |       await page.getByRole("button", { name: "Back to the result" }).first().click();
+      137 |       await expect(title(page, heading)).toBeVisible();
+    > 138 |       expect(errors).toEqual([]);
+          |                      ^
+      139 |     });
+      140 |
+      141 |     test("[I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off", async ({ page }) => {
+        at /Users/kyusuku/Hackathons/gilir-i3-release/tests/integration/browser/live.spec.ts:138:22
+
+    Error Context: test-results/live-live-phone-360x740-I3-e425a-e-comparison-with-last-year/error-context.md
+
+    Error Context: test-results/live-live-phone-360x740-I3-e425a-e-comparison-with-last-year/error-context.md
+
+
+(node:6500) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[2/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:141:5 › live, phone 360x740 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off
+[3/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:169:5 › live, phone 360x740 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan
+[4/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:207:5 › live, phone 360x740 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says
+[5/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, phone 360x740 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF
+  2) ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, phone 360x740 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator:  getByRole('textbox', { name: 'When is your field ready to plant?' })
+    Expected: "2027-05-06"
+    Received: "2027-06-05"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveValue" getByRole('textbox', { name: 'When is your field ready to plant?' }) with timeout 5000ms
+      - waiting for getByRole('textbox', { name: 'When is your field ready to plant?' })
+        14 × locator resolved to <input required="" type="date" id="ready-date" min="0001-01-01" max="9998-12-31" value="2027-06-05" aria-describedby="ready-hint"/>
+           - unexpected value "2027-06-05"
+
+
+      286 |       await tabTo(page, "textbox", "When is your field ready to plant?");
+      287 |       await page.keyboard.type("05062027");
+    > 288 |       await expect(page.getByRole("textbox", { name: "When is your field ready to plant?" })).toHaveValue(skippingLastYear.ready);
+          |                                                                                               ^
+      289 |       await tabTo(page, "button", /^I don’t remember/);
+      290 |       await page.keyboard.press("Enter");
+      291 |       await tabTo(page, "button", "Make my plan");
+        at /Users/kyusuku/Hackathons/gilir-i3-release/tests/integration/browser/live.spec.ts:288:95
+
+    Error Context: test-results/live-live-phone-360x740-I3-59e5c-tails-and-downloads-the-PDF/error-context.md
+
+    Error Context: test-results/live-live-phone-360x740-I3-59e5c-tails-and-downloads-the-PDF/error-context.md
+
+
+(node:7202) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[6/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:311:5 › live, phone 360x740 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result
+[7/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:335:5 › live, phone 360x740 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF
+[8/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:351:5 › live, phone 360x740 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back
+[9/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, desktop 1280x800 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year
+[10/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:141:5 › live, desktop 1280x800 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off
+[11/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:169:5 › live, desktop 1280x800 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan
+[12/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:207:5 › live, desktop 1280x800 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says
+[13/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, desktop 1280x800 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF
+  3) ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, desktop 1280x800 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF 
+
+    Error: expect(locator).toHaveValue(expected) failed
+
+    Locator:  getByRole('textbox', { name: 'When is your field ready to plant?' })
+    Expected: "2027-05-06"
+    Received: "2027-06-05"
+    Timeout:  5000ms
+
+    Call log:
+      - Expect "toHaveValue" getByRole('textbox', { name: 'When is your field ready to plant?' }) with timeout 5000ms
+      - waiting for getByRole('textbox', { name: 'When is your field ready to plant?' })
+        14 × locator resolved to <input required="" type="date" id="ready-date" min="0001-01-01" max="9998-12-31" value="2027-06-05" aria-describedby="ready-hint"/>
+           - unexpected value "2027-06-05"
+
+
+      286 |       await tabTo(page, "textbox", "When is your field ready to plant?");
+      287 |       await page.keyboard.type("05062027");
+    > 288 |       await expect(page.getByRole("textbox", { name: "When is your field ready to plant?" })).toHaveValue(skippingLastYear.ready);
+          |                                                                                               ^
+      289 |       await tabTo(page, "button", /^I don’t remember/);
+      290 |       await page.keyboard.press("Enter");
+      291 |       await tabTo(page, "button", "Make my plan");
+        at /Users/kyusuku/Hackathons/gilir-i3-release/tests/integration/browser/live.spec.ts:288:95
+
+    Error Context: test-results/live-live-desktop-1280x800-c2039-tails-and-downloads-the-PDF/error-context.md
+
+    Error Context: test-results/live-live-desktop-1280x800-c2039-tails-and-downloads-the-PDF/error-context.md
+
+
+(node:7763) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[14/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:311:5 › live, desktop 1280x800 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result
+[15/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:335:5 › live, desktop 1280x800 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF
+[16/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:351:5 › live, desktop 1280x800 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back
+[17/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:370:3 › live, a short recording of the real journey › [I3-demo] phone width: field, crop, water, rotation, the real result, details and the PDF
+  3 failed
+    ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, phone 360x740 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year 
+    ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, phone 360x740 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF 
+    ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, desktop 1280x800 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF 
+  14 passed (2.2m)

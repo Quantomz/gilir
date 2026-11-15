@@ -1,0 +1,220 @@
+{
+  "observedAt": "2026-11-15T14:02:36.121Z",
+  "projectId": "a110cf19-bdbc-45eb-9769-e4c98ffeee82",
+  "environmentId": "05626386-ac59-4759-9f42-2118d6941513",
+  "webDeployment": {
+    "id": "c9f29c50-5e98-44d6-8368-59a17b0f9bca",
+    "status": "SUCCESS",
+    "sha": "fe4728a0f31c40f8ee17e651f0405c6311661062",
+    "createdAt": "2026-11-15T14:00:12.319Z",
+    "updatedAt": "2026-11-15T14:01:38.580Z"
+  },
+  "applicationServices": [
+    {
+      "service": {
+        "id": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+        "name": "gilir-web"
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "fe4728a0f31c40f8ee17e651f0405c6311661062"
+      },
+      "staged": null
+    },
+    {
+      "service": {
+        "id": "1bcb4429-f681-49f1-abfc-c36922c2398e",
+        "name": "nefalos_nasa_hackathon Copy"
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+      },
+      "staged": null
+    },
+    {
+      "service": {
+        "id": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+        "name": "nefalos_nasa_hackathon Copy Copy"
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+      },
+      "staged": null
+    }
+  ],
+  "health": {
+    "environment": {
+      "id": "05626386-ac59-4759-9f42-2118d6941513",
+      "name": "production"
+    },
+    "services": [
+      {
+        "serviceId": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+        "serviceName": "gilir-web",
+        "state": "online",
+        "statusText": "Online",
+        "activeDeployments": [
+          {
+            "id": "c9f29c50-5e98-44d6-8368-59a17b0f9bca",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-15T14:00:12.319Z",
+            "statusUpdatedAt": "2026-11-15T14:01:38.578Z"
+          }
+        ],
+        "replicaStatus": {
+          "running": 1,
+          "crashed": 0,
+          "total": 1
+        },
+        "cronJob": null,
+        "issues": {
+          "warningCount": 0,
+          "criticalCount": 0
+        },
+        "recentFailures": 0,
+        "recentFailedDeployments": [],
+        "hasIssues": false,
+        "isCronJob": false,
+        "hasVolume": false
+      },
+      {
+        "serviceId": "1bcb4429-f681-49f1-abfc-c36922c2398e",
+        "serviceName": "nefalos_nasa_hackathon Copy",
+        "state": "online",
+        "statusText": "Online",
+        "activeDeployments": [
+          {
+            "id": "652ffd0e-a3a6-48e2-a294-52c6ce94af44",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-15T07:45:16.811Z",
+            "statusUpdatedAt": "2026-11-15T07:46:40.670Z"
+          }
+        ],
+        "replicaStatus": {
+          "running": 1,
+          "crashed": 0,
+          "total": 1
+        },
+        "cronJob": null,
+        "issues": {
+          "warningCount": 0,
+          "criticalCount": 0
+        },
+        "recentFailures": 0,
+        "recentFailedDeployments": [],
+        "hasIssues": false,
+        "isCronJob": false,
+        "hasVolume": false
+      },
+      {
+        "serviceId": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+        "serviceName": "nefalos_nasa_hackathon Copy Copy",
+        "state": "cronSucceeded",
+        "statusText": "Last run succeeded",
+        "activeDeployments": [
+          {
+            "id": "64f49c43-a106-40af-a8d8-dad4e0e448b8",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-15T07:45:16.809Z",
+            "statusUpdatedAt": "2026-11-15T08:05:34.556Z"
+          }
+        ],
+        "replicaStatus": {
+          "running": 0,
+          "crashed": 0,
+          "total": 1
+        },
+        "cronJob": {
+          "lastExecutionStatus": "succeeded",
+          "lastExecutionAt": "2026-11-15T14:01:20.112Z"
+        },
+        "issues": {
+          "warningCount": 0,
+          "criticalCount": 0
+        },
+        "recentFailures": 0,
+        "recentFailedDeployments": [],
+        "hasIssues": false,
+        "isCronJob": true,
+        "hasVolume": false
+      },
+      {
+        "serviceId": "cc47e8e9-8f7f-4c00-b889-a05ae72f583a",
+        "serviceName": "Postgres",
+        "state": "online",
+        "statusText": "Online",
+        "activeDeployments": [
+          {
+            "id": "67dd7e71-45de-4770-801e-aaff7d030f10",
+            "status": "SUCCESS",
+            "createdAt": "2026-11-14T13:37:06.925Z",
+            "statusUpdatedAt": "2026-11-14T13:38:24.583Z"
+          }
+        ],
+        "replicaStatus": {
+          "running": 1,
+          "crashed": 0,
+          "total": 1
+        },
+        "cronJob": null,
+        "issues": {
+          "warningCount": 0,
+          "criticalCount": 0
+        },
+        "recentFailures": 0,
+        "recentFailedDeployments": [],
+        "hasIssues": false,
+        "isCronJob": false,
+        "hasVolume": true
+      }
+    ],
+    "pendingWork": [],
+    "summary": {
+      "totalServices": 4,
+      "servicesWithIssues": 0,
+      "totalFailures": 0
+    }
+  },
+  "webStartup": [
+    {
+      "timestamp": "2026-11-15T14:01:27.596124120Z",
+      "message": "Starting Container",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.690523437Z",
+      "message": "▲ Next.js 16.4.6",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.690527896Z",
+      "message": "- Local:         http://localhost:8080",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.690530996Z",
+      "message": "- Network:       http://0.0.0.0:8080",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.690536626Z",
+      "message": "✓ Ready in 73ms",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.690540036Z",
+      "message": "✓ Running next.config.ts took 18ms",
+      "severity": "info"
+    },
+    {
+      "timestamp": "2026-11-15T14:01:35.740779392Z",
+      "message": "Starting Container",
+      "severity": "info"
+    }
+  ]
+}

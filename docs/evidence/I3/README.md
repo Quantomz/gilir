@@ -1,5 +1,7 @@
 # I3 browser evidence: the assembled journey
 
+The later [hosted acceptance](hosted.md) verifies the final public release. This file preserves the original local run and its limitations.
+
 Card I3 asks for the farmer's journey on the assembled application, with a real result through the API, restored work and an inspected PDF, at phone and desktop widths.
 
 Two phases are recorded here and they are different kinds of evidence:
