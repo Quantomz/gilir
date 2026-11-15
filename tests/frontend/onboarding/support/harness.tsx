@@ -13,7 +13,7 @@ import type { LocalPlans, LocalState } from "@/client/storage";
 import { parseCropPurposeId } from "@/contracts";
 import type { Catalogue, FarmInput, JobCapability, JobState, PlannerClient, ServiceFailure, Submission } from "@/contracts";
 import type { FieldPickerProps, ResultsProps } from "@/features/ports";
-import { jobFixtures } from "@/fixtures/results";
+import { completedSnapshotFixture, jobFixtures } from "@/fixtures/results";
 
 /** A capability whose jobId is a UUID, like the real server's. */
 export const capability: JobCapability = { jobId: "8b0f6a3e-2f8e-4b51-9a57-1f0c1b7c2d10", token: "t".repeat(43) };
@@ -22,7 +22,7 @@ export const capability: JobCapability = { jobId: "8b0f6a3e-2f8e-4b51-9a57-1f0c1
  * A PlannerClient that plays a script and records every call. The fixture client cannot step through states, reject,
  * or return `invalid`, so polling, failure and rejected-submission tests use this.
  *  read items: a JobState["state"] name (uses jobFixtures), a JobState, { reject: ServiceFailure | Error } or "hang".
- *  The last item repeats.
+ *  The last item repeats. "completed" carries the last submitted input, as the server's snapshot does.
  */
 export interface ScriptedClient extends PlannerClient {
   readonly submitted: FarmInput[];
@@ -69,6 +69,8 @@ export function scriptedClient(script: {
     read(capability) {
       reads.push(capability);
       const item = take(script.read, "read");
+      const input = submitted.at(-1);
+      if (item === "completed" && input !== undefined) return play<JobState>({ state: "completed", snapshot: { ...completedSnapshotFixture, input } });
       return play<JobState>(typeof item === "string" && item !== "hang" ? jobFixtures[item] : item);
     },
     async remove(capability) {

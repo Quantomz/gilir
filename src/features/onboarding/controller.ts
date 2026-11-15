@@ -10,8 +10,8 @@ import { checkDraft } from "./model/check";
 import type { PageIssue } from "./model/check";
 import { recordedEntries, windowOf } from "./model/draft";
 import type { DraftEdit, EditNote } from "./model/draft";
-import { activeJobOf, backOf, domIdOf, issuesFor, openingFlow, persistedOf, readyCatalogue, update } from "./model/flow";
-import type { FocusTarget, Flow, Msg, Notices, Sheet, Step } from "./model/flow";
+import { activeJobOf, backOf, domIdOf, issuesFor, openingFlow, persistedOf, readyCatalogue, stepOf, update } from "./model/flow";
+import type { FocusTarget, Flow, Msg, Notices, Sheet, Shown, Step } from "./model/flow";
 import { policy } from "./model/policy";
 import { stepEntry } from "./model/timeline";
 import type { End } from "./model/timeline";
@@ -143,6 +143,14 @@ function dropped(state: State, drop: Drop): State {
  */
 const handedOver = new Set<string>();
 
+/** Results unmounts Onboarding, so the answers it showed at the last hand-off live here until the next open takes them. */
+let shownAtHandOff: Shown | null = null;
+
+function handOver(flow: Flow, snapshot: CompletedSnapshot, onCompleted: (snapshot: CompletedSnapshot) => void): void {
+  shownAtHandOff = { draft: flow.editor.draft, step: stepOf(flow) };
+  onCompleted(snapshot);
+}
+
 function undoOf(note: EditNote): DraftEdit | null {
   return "undo" in note ? note.undo : null;
 }
@@ -157,7 +165,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
   const sending = useRef(false);
   const loadingCatalogue = useRef(false);
   const lastWritten = useRef<ReturnType<typeof persistedOf>>(null);
-  const onCompleted = useEffectEvent((snapshot: CompletedSnapshot) => props.onCompleted(snapshot));
+  const onCompleted = useEffectEvent((snapshot: CompletedSnapshot) => handOver(flow, snapshot, props.onCompleted));
 
   useEffect(() => {
     const unsubscribe = saved.onHealth(health => dispatch({ kind: "storage", health }));
@@ -171,10 +179,11 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     void saved.open().then(stored => {
       if (!live) return;
       // Only Results hands back an initialInput within a page load.
-      const shown = initialInput !== null && stored !== null && stored.activeJob !== null && handedOver.has(stored.activeJob.jobId);
-      if (shown) saved.write({ activeJob: null }, "now");
-      const opened = stored !== null && shown ? { ...stored, activeJob: null } : stored;
-      dispatch({ kind: "opened", saved: opened, initialInput, focusTitle: document.activeElement?.id === domIdOf({ kind: "title" }) });
+      const shown = initialInput === null ? null : shownAtHandOff;
+      shownAtHandOff = null;
+      const handed = initialInput !== null && stored !== null && stored.activeJob !== null && handedOver.has(stored.activeJob.jobId);
+      const opened = stored !== null && handed ? { ...stored, activeJob: null } : stored;
+      dispatch({ kind: "opened", saved: opened, initialInput, shown, focusTitle: document.activeElement?.id === domIdOf({ kind: "title" }) });
     });
     return () => {
       live = false;
@@ -199,7 +208,12 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     if (persisted === null) return;
     const last = lastWritten.current;
     lastWritten.current = persisted;
-    if (last === null) return;
+    // Change inputs can open answers that storage does not hold (after a refused save, or beside a draft from before a
+    // failed open). Writing them at once keeps a reload from bringing the stale ones back.
+    if (last === null) {
+      if (initialInput !== null) saved.write(persisted, "now");
+      return;
+    }
     const urgent = last.step !== persisted.step || last.activeJob !== persisted.activeJob;
     if (urgent || last.draft !== persisted.draft) saved.write(persisted, urgent ? "now" : "soon");
     // The three fields are the whole value; `persisted` itself is a new object on every render.
@@ -328,7 +342,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     changeAnswers: () => dispatch({ kind: "changeAnswers" }),
     showMaking: () => dispatch({ kind: "showMaking" }),
     openEarlierPlan() {
-      if (flow.earlierPlan !== null) props.onCompleted(flow.earlierPlan);
+      if (flow.earlierPlan !== null) handOver(flow, flow.earlierPlan, props.onCompleted);
     },
     retryCatalogue: () => loadCatalogue(true),
     undo: () => dispatch({ kind: "undo" }),

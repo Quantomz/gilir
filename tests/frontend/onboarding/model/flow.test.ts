@@ -77,23 +77,24 @@ describe("openFlow: the entry rule", () => {
     expect(flow.notices.keptNewer).toBe(false);
   });
 
-  it("[C6] a saved draft that differs from initialInput wins at its saved step and sets notices.keptNewer", () => {
-    const newer: Partial<FarmInput> = { ...inputFixture, planningStart: parseIsoDate("2027-02-01") };
-    const { flow, handOff } = openFlow(saved({ draft: newer, step: 4, snapshot: completedSnapshotFixture }), inputFixture);
+  it("[C6] answers shown at the hand-off that differ from initialInput win at their step and set notices.keptNewer", () => {
+    const newer = draftOf({ ...inputFixture, planningStart: parseIsoDate("2027-02-01") });
+    const { flow, handOff } = openFlow(saved({ draft: inputFixture, step: 1, snapshot: completedSnapshotFixture }), inputFixture, { draft: newer, step: 4 });
     expect(handOff).toBeNull();
     expect(stepOf(flow)).toBe(4);
     expect(flow.editor.draft.planningStart).toBe("2027-02-01");
     expect(flow.notices.keptNewer).toBe(true);
   });
 
-  it("[C6] a different saved draft with no saved plan, or an older one, is not newer than the plan: step 1 with draftOf(initialInput), no notice", () => {
+  it("[C6] a different saved draft is never newer by itself: with no answers shown, or shown answers equal to initialInput, step 1 with draftOf(initialInput) and no notice", () => {
     const older: Partial<FarmInput> = { ...inputFixture, water: "unsure" };
-    const otherPlan: CompletedSnapshot = { ...completedSnapshotFixture, input: { ...inputFixture, water: "rain_plus_backup" } };
-    for (const snapshot of [null, otherPlan]) {
-      const { flow } = openFlow(saved({ draft: older, step: 3, snapshot }), inputFixture);
-      expect(stepOf(flow)).toBe(1);
-      expect(flow.editor.draft).toEqual(answers);
-      expect(flow.notices.keptNewer).toBe(false);
+    for (const shown of [null, { draft: answers, step: 4 as const }]) {
+      for (const snapshot of [null, completedSnapshotFixture]) {
+        const { flow } = openFlow(saved({ draft: older, step: 3, snapshot }), inputFixture, shown);
+        expect(stepOf(flow)).toBe(1);
+        expect(flow.editor.draft).toEqual(answers);
+        expect(flow.notices.keptNewer).toBe(false);
+      }
     }
   });
 
@@ -162,15 +163,15 @@ describe("openFlow: the entry rule", () => {
 
 describe("update", () => {
   it("opened outside the opening mode returns the same flow (Strict Mode runs the open effect twice)", () => {
-    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture, focusTitle: false });
-    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null, focusTitle: false });
+    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture, shown: null, focusTitle: false });
+    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null, shown: null, focusTitle: false });
     expect(second.flow).toBe(first.flow);
     expect(second.handOff).toBeNull();
   });
 
   it("opened keeps a storage failure and a crop list that arrived while opening", () => {
     const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" }, retried: false });
-    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null, focusTitle: false });
+    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null, shown: null, focusTitle: false });
     expect(opened.flow.notices.storageFailing).toBe(true);
     expect(opened.flow.catalogue).toEqual({ status: "loading" });
     expect(opened.focus).toBeNull();

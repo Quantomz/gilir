@@ -11,7 +11,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LocalPlans, LocalState } from "@/client/storage";
 import type { CompletedSnapshot, JobState, PlannerClient } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
-import { completedSnapshotFixture } from "@/fixtures/results";
+import { completedSnapshotFixture, completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import Page from "@/app/page";
 import { Onboarding } from "@/features/onboarding";
@@ -103,7 +103,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
   });
 
   it("the first render equals the prerendered HTML, even with initialInput and a saved draft", async () => {
-    setUp(memoryPlans(saved({ draft: { water: "unsure" }, step: 3, snapshot: completedSnapshotFixture })));
+    setUp(memoryPlans(saved({ draft: { water: "unsure" }, step: 3 })));
     const element = <Onboarding client={scriptedClient({ catalogue })} initialInput={inputFixture} onCompleted={() => undefined} />;
     const container = document.createElement("div");
     container.innerHTML = renderToString(element);
@@ -112,7 +112,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
     const mismatches: unknown[] = [];
     const root = await act(async () => hydrateRoot(container, element, { onRecoverableError: error => mismatches.push(error) }));
     expect(mismatches).toEqual([]);
-    expect(await within(container).findByRole("heading", { level: 1, name: "Where does your water come from?" })).toBeTruthy();
+    expect(await within(container).findByRole("heading", { level: 1, name: "Where is your farm?" })).toBeTruthy();
     act(() => root.unmount());
     container.remove();
   });
@@ -240,6 +240,52 @@ describe("Results and Change inputs", () => {
     await title("Where is your farm?");
     expect(screen.queryByText("We kept the answers you changed after that plan was made.")).toBeNull();
     expect(screen.getByText("Marked: Synthetic example field")).toBeTruthy();
+  });
+
+  it("[C6] answers changed while the job ran are kept after Change inputs, also when a service_error kept the earlier plan", async () => {
+    const earlier: CompletedSnapshot = { ...completedSnapshotFixture, id: "earlier-plan", input: { ...inputFixture, water: "rain_plus_backup" } };
+    const error = completedSnapshotsByState.service_error;
+    const { plans } = setUp(memoryPlans(saved({ draft: answers, step: 4, activeJob: capability, snapshot: earlier })), ["queued", { state: "completed", snapshot: error }]);
+    render(<Page />);
+    await title("Making your plan");
+    await userEvent.click(screen.getAllByRole("button", { name: "Back" })[0]);
+    await title("Your rotation");
+    await userEvent.click(screen.getAllByRole("button", { name: "Back" })[0]);
+    await title("Where does your water come from?");
+    await userEvent.click(screen.getByRole("radio", { name: "I’m not sure" }));
+    await userEvent.click(screen.getByRole("button", { name: "Next: your rotation" }));
+    await userEvent.click(await screen.findByRole("button", { name: "See how it’s going" }));
+    await screen.findByRole("heading", { name: `Plan ${error.id}` }, { timeout: 8000 });
+    expect(plans.latest()?.snapshot?.id).toBe("earlier-plan");
+    await userEvent.click(screen.getByRole("button", { name: "Change inputs" }));
+    await title("Your rotation");
+    expect(screen.getByText("We kept the answers you changed after that plan was made.")).toBeTruthy();
+    await userEvent.click(screen.getAllByRole("button", { name: "Back" })[0]);
+    expect((screen.getByRole("radio", { name: "I’m not sure" }) as HTMLInputElement).checked).toBe(true);
+  }, 15_000);
+
+  it("[C6] a plan saved later beside answers from before a visit whose open failed does not make those answers newer, and a reload keeps it so", async () => {
+    const inner = memoryPlans(saved({ draft: { water: "unsure" }, step: 3 }));
+    let failing = true;
+    const { client } = setUp({ ...inner, load: () => (failing ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
+    render(<Page />);
+    await fillFourPages({ water: "Rain + water when it’s dry", start: "2027-03-01", history: "skip" });
+    await userEvent.click(screen.getByRole("button", { name: "Make my plan" }));
+    await screen.findByRole("heading", { name: "Plan synthetic-plan" });
+    failing = false;
+    const { schemaVersion: _sent, ...made } = client.submitted[0];
+    const stored = await inner.load();
+    await inner.save({ ...(stored ?? saved({})), snapshot: { ...completedSnapshotFixture, input: client.submitted[0] } });
+    const kept = "We kept the answers you changed after that plan was made.";
+    await userEvent.click(screen.getByRole("button", { name: "Change inputs" }));
+    await title("Where is your farm?");
+    expect(screen.queryByText(kept)).toBeNull();
+    await waitFor(() => expect(inner.latest()).toMatchObject({ draft: made, step: 1 }));
+    cleanup();
+    render(<Page />);
+    await userEvent.click(await screen.findByRole("button", { name: "Change inputs" }));
+    await title("Where is your farm?");
+    expect(screen.queryByText(kept)).toBeNull();
   });
 
   it("[C6] after Change inputs, a newer different saved draft is kept at its page instead of the snapshot's input", async () => {

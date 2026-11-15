@@ -58,7 +58,7 @@ export type CatalogueEntry = Catalogue["entries"][number];
 export interface Notices {
   /** A load or save failed this visit. */
   readonly storageFailing: boolean;
-  /** Change inputs found newer, different answers saved, and kept them. */
+  /** Change inputs found answers changed after that plan was made, and kept them. */
   readonly keptNewer: boolean;
 }
 
@@ -68,6 +68,12 @@ export type Sheet =
   | { readonly kind: "dates"; readonly entryId: string; readonly end: "planted" | "harvested"; readonly returnTo: FocusTarget }
   | { readonly kind: "gap"; readonly gap: Span }                                      // Not sure: {range}
   | { readonly kind: "empty"; readonly entryId: string };                             // Empty: {range}
+
+/** The answers on screen when this page load last handed a plan to Results. Only these can be newer than that plan. */
+export interface Shown {
+  readonly draft: Draft;
+  readonly step: Step;
+}
 
 /** Every control focus can be sent to. One list. Views take their DOM ids from `domIdOf`. */
 export type FocusTarget =
@@ -104,7 +110,7 @@ export interface Flow {
 
 export type Msg =
   // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
-  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly focusTitle: boolean }
+  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly shown: Shown | null; readonly focusTitle: boolean }
   | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean }
   | { readonly kind: "storage"; readonly health: "working" | "failing" }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
@@ -159,14 +165,14 @@ const previousStep: Record<2 | 3 | 4, Step> = { 2: 1, 3: 2, 4: 3 };
  *  2. saved.snapshot && initialInput === null  -> handOff = snapshot (the controller calls onCompleted once), except
  *       a service_error with a saved draft that has answers -> that draft at its saved step, to try again
  *  3. initialInput !== null (Change inputs, the fixture lab):
- *       a saved draft with answers that differ, saved with the plan being changed -> that draft at its saved step,
- *                                                                                    notices.keptNewer
- *       otherwise                               -> step 1 with draftOf(initialInput)
+ *       `shown` with answers that differ        -> those answers at their step, notices.keptNewer
+ *       otherwise                               -> step 1 with draftOf(initialInput). The saved draft is never
+ *                                                  newer: it can predate a visit whose writes were skipped.
  *  4. a saved draft with answers               -> that draft at clampStep(saved.step)
  *  5. otherwise (nothing saved, or load threw) -> step 1, empty
  * earlierPlan is saved.snapshot in every row, unless it is a service_error, which is no plan.
  */
-export function openFlow(saved: LocalState | null, initialInput: FarmInput | null): {
+export function openFlow(saved: LocalState | null, initialInput: FarmInput | null, shown: Shown | null = null): {
   readonly flow: Flow;
   readonly handOff: CompletedSnapshot | null;
 } {
@@ -187,10 +193,8 @@ export function openFlow(saved: LocalState | null, initialInput: FarmInput | nul
   }
   if (initialInput !== null) {
     const seeded = draftOf(initialInput);
-    // F1 saves the plan together with the draft of that moment, so only a draft saved beside this plan can be newer.
-    const withThisPlan = saved?.snapshot ? sameAnswers(draftOf(saved.snapshot.input), seeded) : false;
-    const newer = withThisPlan && hasAnswers(savedDraft) && !sameAnswers(savedDraft, seeded);
-    return { flow: newer ? editing(savedDraft, savedStep, true) : editing(seeded, 1), handOff: null };
+    const newer = shown !== null && hasAnswers(shown.draft) && !sameAnswers(shown.draft, seeded);
+    return { flow: newer ? editing(shown.draft, shown.step, true) : editing(seeded, 1), handOff: null };
   }
   return { flow: hasAnswers(savedDraft) ? editing(savedDraft, savedStep) : editing({}, 1), handOff: null };
 }
@@ -212,7 +216,7 @@ export function update(flow: Flow, msg: Msg): Update {
   switch (msg.kind) {
     case "opened": {
       if (mode.kind !== "opening") return same;
-      const opened = openFlow(msg.saved, msg.initialInput);
+      const opened = openFlow(msg.saved, msg.initialInput, msg.shown);
       const notices = { ...opened.flow.notices, storageFailing: flow.notices.storageFailing };
       return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, msg.focusTitle ? title : null, quiet, opened.handOff);
     }
