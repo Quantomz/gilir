@@ -70,7 +70,7 @@ export function usePicker({ value, onChange }: FieldPickerProps): Controller {
     }
     // A browser centres a focused heading that was out of view, which leaves the map under F1's dock on a phone.
     element?.focus({ preventScroll: true });
-    mapRef.current?.scrollIntoView?.({ block: "nearest" });
+    mapRef.current?.scrollIntoView({ block: "nearest" });
   }, [picker]);
 
   const idOf = useCallback((part: Part) => `${base}-${part}`, [base]);

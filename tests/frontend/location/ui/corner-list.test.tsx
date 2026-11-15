@@ -13,10 +13,14 @@ import type { Scene } from "@/features/location/picker";
 import { inputFixture } from "@/fixtures/input";
 import { FieldPicker } from "@/features/location";
 import { startGlobe } from "@/features/location/globe";
+import { stubBrowser, unstubBrowser } from "../support/browser";
 import { bad, circle, fieldIssues, good, policy, strictlyInside } from "../support/shapes";
 
 type Field = FarmInput["field"];
 type User = ReturnType<typeof userEvent.setup>;
+
+// Each case types its corners key by key through the whole slot, which takes seconds on a loaded machine.
+vi.setConfig({ testTimeout: 20_000 });
 
 vi.mock("@/features/location/globe", async importOriginal => {
   const real = await importOriginal<typeof import("@/features/location/globe")>();
@@ -30,14 +34,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => {
     throw new TypeError("no network in this test");
   }));
-  vi.stubGlobal("ResizeObserver", class {
-    observe(): void {}
-    unobserve(): void {}
-    disconnect(): void {}
-  });
-  vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
-  // jsdom has no canvas, as a phone with no WebGL2 has none; returning null keeps its "not implemented" noise out of the run.
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  stubBrowser();
 });
 
 afterEach(() => {
@@ -46,6 +43,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  unstubBrowser();
 });
 
 function mount(value: Field | null = null) {
@@ -193,7 +191,7 @@ describe("the shape", () => {
     const field = emitted(onChange);
     expect(field.ring).toHaveLength(9);
     expect(strictlyInside(field.lookup, good.u)).toBe(true);
-  }, 20_000);
+  });
 
   it("[R11] the Fiji corners (179.99 and -179.99) are accepted; the emitted ring keeps longitudes in [-180, 180]; the drawing shows one small rectangle; 'About 237 hectares'", async () => {
     const user = userEvent.setup();
@@ -324,7 +322,7 @@ describe("adding and removing", () => {
     expect(rows()).toBe(256);
     expect(within(list).getByText("A field can have up to 256 corners.")).toBeTruthy();
     expect(onChange).not.toHaveBeenCalled();
-  }, 20_000);
+  });
 });
 
 describe("in step with the picker", () => {

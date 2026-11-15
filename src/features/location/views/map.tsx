@@ -82,7 +82,7 @@ function MapButton(props: { readonly icon: "plus" | "minus"; readonly label: str
 }
 
 function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 const fallbackSize = { width: 400, height: 300 } as const;
@@ -98,7 +98,6 @@ function useSize(element: RefObject<HTMLElement | null>): { readonly width: numb
       if (width > 0 && height > 0) setSize(old => (old.width === width && old.height === height ? old : { width, height }));
     };
     measure();
-    if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(target);
     return () => observer.disconnect();

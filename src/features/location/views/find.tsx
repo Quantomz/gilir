@@ -307,13 +307,13 @@ export function PlaceCard(props: { readonly c: Controller }): ReactElement | nul
   useEffect(() => {
     if (!chosen || !button.current) return;
     if (chosen.kind === "tapped") {
-      button.current.scrollIntoView?.({ block: "nearest" });
+      button.current.scrollIntoView({ block: "nearest" });
       return;
     }
     if (chosen.kind !== "found" && chosen.kind !== "position") return;
     button.current.focus({ preventScroll: true });
     // Aligned to the bottom, just above F1's dock, the map and its pin stay in view above the button.
-    button.current.scrollIntoView?.({ block: "end" });
+    button.current.scrollIntoView({ block: "end" });
   }, [chosen]);
   if (candidate === null) return null;
   const [name, where] = candidate.kind === "found" ? [candidate.name, candidate.where]

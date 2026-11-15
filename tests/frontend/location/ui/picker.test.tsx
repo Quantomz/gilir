@@ -11,9 +11,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FarmInput } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
 import { FieldPicker } from "@/features/location";
+import { stubBrowser, unstubBrowser } from "../support/browser";
 import { bad, fieldIssues, strictlyInside } from "../support/shapes";
 
 type Field = FarmInput["field"];
+
+// Each case drives the whole slot key by key, which takes seconds on a loaded machine.
+vi.setConfig({ testTimeout: 20_000 });
 
 const fetchCalls = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>();
 
@@ -22,14 +26,7 @@ beforeEach(() => {
   fetchCalls.mockReset();
   fetchCalls.mockRejectedValue(new TypeError("no network in this test"));
   vi.stubGlobal("fetch", fetchCalls);
-  vi.stubGlobal("ResizeObserver", class {
-    observe(): void {}
-    unobserve(): void {}
-    disconnect(): void {}
-  });
-  vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
-  // jsdom has no canvas, as a phone with no WebGL2 has none; returning null keeps its "not implemented" noise out of the run.
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  stubBrowser();
 });
 
 afterEach(() => {
@@ -38,7 +35,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   Reflect.deleteProperty(navigator, "geolocation");
-  Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+  unstubBrowser();
 });
 
 function mount(value: Field | null = null) {
