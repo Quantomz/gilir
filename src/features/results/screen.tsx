@@ -74,7 +74,11 @@ export function ResultScreen(props: ResultScreenProps): ReactElement {
   }, [detailsOpen]);
 
   function closeDetails(): void {
-    if (onDetailsEntry()) history.back();
+    const state: unknown = history.state;
+    if (typeof state === "object" && state !== null && Reflect.get(state, detailsEntry) === true) {
+      history.replaceState({ ...state, [detailsEntry]: false }, "");
+      history.back();
+    }
     dispatch({ kind: "closed_details" });
   }
 
@@ -163,8 +167,3 @@ export function ResultScreen(props: ResultScreenProps): ReactElement {
 }
 
 const detailsEntry = "gilirResultsDetails";
-
-function onDetailsEntry(): boolean {
-  const state: unknown = history.state;
-  return typeof state === "object" && state !== null && Reflect.get(state, detailsEntry) === true;
-}
