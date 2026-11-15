@@ -1,0 +1,9 @@
+
+Running 2 tests using 1 worker
+
+(node:39898) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/2] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 360px
+[2/2] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 1280px
+  2 passed (3.0s)

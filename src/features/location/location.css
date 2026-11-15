@@ -20,7 +20,7 @@
     .fp { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); grid-template-rows: repeat(6, auto) 1fr; column-gap: var(--s6); row-gap: 0; }
     .fp > * { grid-column: 1; margin-bottom: var(--s4); }
     .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); }
-    .fp .fp-map { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
+    .fp .fp-map, .fp .fp-plan { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
   }
 
   .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
@@ -62,8 +62,9 @@
   .fp .fp-go:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
 
   /* A fixed height leaves a thumb room to scroll the page beside the map, and keeps the map clear of F1's sticky dock. */
-  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; height: min(55svh, 28rem); min-height: 15rem; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
-  .big-text .fp-map { min-height: 18rem; }
+  .fp-map, .fp-plan { height: min(55svh, 28rem); min-height: 15rem; }
+  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+  .big-text .fp-map, .big-text .fp-plan { min-height: 18rem; }
   .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
   [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
   [data-contrast="high"] .fp-map { border: 2px solid var(--ink); }
@@ -75,9 +76,12 @@
   .fp-map-btn-c svg { width: 1.5rem; height: 1.5rem; }
   .fp-map-btn-t { padding: .05rem .55rem; border-radius: 999px; background: var(--raised); box-shadow: var(--shadow), var(--card-edge); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; white-space: nowrap; }
   @container fp-map (min-width: 36rem) { .fp-map-btn-c { width: var(--tap-s); height: var(--tap-s); } }
-  /* Messages on the map: a refused edit, the drawing's tag, the loading line. They never take a tap from the map. */
   .fp-map-foot { position: absolute; inset: auto 8px 8px; z-index: 5; display: grid; gap: 4px; justify-items: start; pointer-events: none; }
+  .fp[data-surface="plan"] .fp-map { display: grid; height: auto; background: var(--sunk); }
+  .fp[data-surface="plan"] .fp-map-foot { position: static; padding: 0 8px 8px; }
   .fp-map-foot .fp-notice { box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-provider-logo { display: inline-flex; align-items: center; justify-content: center; min-width: var(--tap-min); min-height: var(--tap-min); padding: 6px 10px; border-radius: var(--r-s); background: var(--night); box-shadow: var(--shadow-pop), var(--card-edge); pointer-events: auto; }
+  .fp-provider-logo img { display: block; width: 100px; height: auto; }
   .fp-loading { display: flex; gap: .5rem; align-items: center; padding: .3rem .8rem; border-radius: var(--r-s); background: var(--raised); font-size: var(--fs-s); font-weight: 700; }
   .fp-pin { width: 48px; height: 62px; color: var(--pin); transform-origin: 50% 100%; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)); pointer-events: none; }
 
@@ -86,7 +90,7 @@
   .fp-handle::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--mint-pill); box-shadow: 0 0 0 2px var(--night); }
   .fp-handle[data-selected]::before { width: 22px; height: 22px; box-shadow: 0 0 0 3px var(--night); }
 
-  .fp-plan { position: absolute; inset: 0; background: var(--sunk); }
+  .fp-plan { position: relative; background: var(--sunk); }
   .fp-plan svg { display: block; }
   .fp-plan-grid { stroke: var(--line); stroke-width: 1; }
   .fp-plan-under { fill: none; stroke: var(--night); stroke-width: 7; stroke-linejoin: round; }

@@ -148,15 +148,19 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expectFieldOnPage(root, good.south);
     });
 
-    test("[R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's logo rule is checked against its terms", async ({ page, request }, testInfo) => {
+    test("[R19][R5] the provider credits and linked MapTiler logo are visible", async ({ page, request }, testInfo) => {
       const root = await openLab(page);
-      const tileJson = (await satelliteTileJson(request)).body as { attribution?: string; logo?: string };
+      const tileJson = (await satelliteTileJson(request)).body as { attribution?: string };
       const names = [...(tileJson.attribution ?? "").replace(/<[^>]+>/g, "\n").replace(/&copy;/g, "©").split("\n")].map(name => name.trim()).filter(Boolean);
       expect(names.length).toBeGreaterThan(0);
       const credits = root.locator(".fp-credits");
       for (const name of names) await expect(credits).toContainText(name);
-      await shoot(page, testInfo, `live-credits-${w}`);
-      testInfo.annotations.push({ type: "logo", description: tileJson.logo ? "the TileJSON names a logo: check MapTiler's terms for the free plan by hand" : "the TileJSON names no logo" });
+      const logo = root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+      await expect(logo).toBeVisible();
+      await expect(logo).toHaveAttribute("href", "https://www.maptiler.com");
+      const image = logo.getByRole("img", { name: "MapTiler logo" });
+      await expect.poll(() => image.evaluate(element => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+      await shoot(page, testInfo, `live-credits-${w}`, root.locator(".fp-map-wrap"));
     });
 
     test("[R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses", async ({ request }) => {
@@ -196,6 +200,6 @@ test.describe("live, no WebGL2", () => {
     await typeCorners(root, good.north);
     await expect.poll(() => lookupOf(root)).not.toEqual(field.lookup);
     await expectFieldOnPage(root, good.north);
-    await shoot(page, testInfo, "live-no-webgl-360");
+    await shoot(page, testInfo, "live-no-webgl-360", root.locator(".fp-map-wrap"));
   });
 });
