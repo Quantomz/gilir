@@ -157,7 +157,7 @@ function undoOf(note: EditNote): DraftEdit | null {
 
 export function useOnboardingController(props: OnboardingProps): Controller {
   const { client } = props;
-  const [saved] = useState(() => createSavedPlans(f4Storage, storageLine));
+  const [saved] = useState(() => createSavedPlans(f4Storage, policy.save.debounceMs, storageLine));
   const [initialInput] = useState(props.initialInput);
   const [state, dispatch] = useReducer(reduce, opening);
   const { flow, outbox } = state;

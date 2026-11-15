@@ -117,7 +117,12 @@ export interface SavedPlans {
   flush(): Promise<void>;
 }
 
-export function createSavedPlans(port: StoragePort, line: StorageLineStore, debounceMs: number = policy.save.debounceMs): SavedPlans {
+/** `readNotice` is optional so a caller with plain LocalPlans, such as F3's keeper test, gets no set-aside notice. */
+export function createSavedPlans(
+  port: LocalPlans & Partial<Pick<StoragePort, "readNotice">>,
+  debounceMs: number = policy.save.debounceMs,
+  line: StorageLineStore = createStorageLine(),
+): SavedPlans {
   let pending: Pending | null = null;
   let queue: Promise<void> = Promise.resolve();
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -187,7 +192,7 @@ export function createSavedPlans(port: StoragePort, line: StorageLineStore, debo
         async state => {
           if (call === opens) unread = null;
           // The page opens once the notice is read, so it paints with its line instead of jumping down under it.
-          await line.readSetAside(() => port.readNotice());
+          await line.readSetAside(() => port.readNotice?.() ?? Promise.resolve(null));
           return state;
         },
         (error: unknown) => {

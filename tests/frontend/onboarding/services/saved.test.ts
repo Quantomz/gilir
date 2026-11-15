@@ -22,7 +22,7 @@ const lines = new WeakMap<SavedPlans, StorageLineStore>();
 /** The door over `port`, with a storage line of its own, as one page load has. */
 function door(port: StoragePort, debounceMs?: number): SavedPlans {
   const line = createStorageLine();
-  const saved = createSavedPlans(port, line, debounceMs);
+  const saved = createSavedPlans(port, debounceMs, line);
   lines.set(saved, line);
   return saved;
 }
@@ -377,8 +377,8 @@ describe("[F4-D1] storage words", () => {
   it("the set-aside notice is read through the port once per line, and Got it dismisses it through F4", async () => {
     const plans = memoryPlans(state({ draft: { water: "unsure" } }), "ok", "Some answers were left out.");
     const line = createStorageLine();
-    await createSavedPlans(plans, line).open();
-    await createSavedPlans(plans, line).open();
+    await createSavedPlans(plans, undefined, line).open();
+    await createSavedPlans(plans, undefined, line).open();
     expect(plans.noticeReads).toBe(1);
     expect(line.current().setAside?.text).toBe("Some answers were left out.");
     line.dismiss();
@@ -393,7 +393,7 @@ describe("[F4-D1] storage words", () => {
       release = resolve;
     });
     const line = createStorageLine();
-    const saved = createSavedPlans({ ...plans, readNotice: () => held.then(() => plans.readNotice()) }, line);
+    const saved = createSavedPlans({ ...plans, readNotice: () => held.then(() => plans.readNotice()) }, undefined, line);
     let opened = false;
     const open = saved.open().then(() => {
       opened = true;
