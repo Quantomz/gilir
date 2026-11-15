@@ -219,7 +219,8 @@ describe("what each state prints", () => {
     ] as const;
     const added = notes.map(([code], index) => ({ code, message: `Synthetic note ${index + 1} for this layout test.`, cropPurposeIds: [], ruleIds: [], metricIds: [] }));
     for (const state of states) {
-      const text = prose(await read(edited(state, { details: { warnings: [...completedSnapshotsByState[state].result.details.warnings, ...added] } })));
+      const warnings = [...completedSnapshotsByState[state].result.details.warnings, ...added];
+      const text = prose(await read(edited(state, { input: { water: "rain_plus_backup" }, details: { warnings } })));
       const notesAt = text.indexOf("Good to know");
       expect(notesAt, state).toBeGreaterThan(-1);
       notes.forEach(([, head], index) => {
@@ -334,7 +335,7 @@ describe("what each state prints", () => {
     expect(noPlan).not.toContain("Synthetic step");
   });
 
-  it("the cohort line with usable and excluded seasons, the data cutoff, the manifest versions, or Method versions: not recorded with its reason", async () => {
+  it("the cohort line with usable and excluded seasons, the data cutoff, the manifest versions, or Engine and data versions: not recorded with its reason", async () => {
     const plan = prose(await fixture("plan"));
     expect(plan).toContain("Sources, period and versions Checked against 1 past season, Jul 2000. Past seasons chosen with method synthetic-v1.");
     expect(plan).toContain("Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules synthetic-rules, records before 1 Jan 2026.");
@@ -343,7 +344,7 @@ describe("what each state prints", () => {
     expect(excluded).toContain("Not used: Jul 2002 to Jun 2003. Synthetic gap: 12 days of rain records are missing in this invented season.");
     expect(excluded).toContain("Not used: Jul 2005 to Jun 2006. Synthetic gap: the invented temperature records stop early.");
     const missing = prose(await read(variant("manifestUnavailable")));
-    expect(missing).toContain("Method versions: not recorded. Synthetic example: the run manifest was not recorded.");
+    expect(missing).toContain("Engine and data versions: not recorded. Synthetic example: the run manifest was not recorded.");
     expect(missing).not.toContain("records before");
     expect(prose(await fixture("insufficient_data"))).toContain("Past seasons: A complete cohort was not assessed in this example.");
   });
@@ -412,7 +413,7 @@ describe("what each state prints", () => {
 
   it("no_calendar_fit: 366 days needed against 365 in the year and each crop's minimum; a structural proof lists its constraints", async () => {
     const text = prose(await fixture("no_calendar_fit"));
-    expect(text).toContain("Why they don’t fit Together they need at least 366 days; your year has 365. Each crop needs at least: • Synthetic crop: at least 366 days");
+    expect(text).toContain("No plan. Together they need at least 366 days; your year has 365. Why they don’t fit Each crop needs at least: • Synthetic crop: at least 366 days");
     const proof = prose(await read(variant("structuralProof")));
     expect(proof).toContain("What stops them:");
     expect(proof).toContain(`• Synthetic crop must be planted between ${englishDay("2026-11-01")} and ${englishDay("2026-11-30")} in this invented example.`);
@@ -429,7 +430,7 @@ describe("what each state prints", () => {
 
   it("service_error: the error message and No new plan was made.; no failure code such as retrieval_failed anywhere in the file", async () => {
     const pdf = await fixture("service_error");
-    expect(prose(pdf)).toContain("What happened Example source did not respond. No new plan was made.");
+    expect(prose(pdf)).toContain("No new plan. Example source did not respond. What happened No new plan was made.");
     expect(pdf.pages.map(page => page.text).join("\n")).not.toMatch(/retrieval_failed|retryable/);
     expect([pdf.title, pdf.subject].join(" ")).not.toContain("retrieval_failed");
   });

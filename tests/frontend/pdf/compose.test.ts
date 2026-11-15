@@ -318,7 +318,7 @@ describe("the variants: what the fixtures can't show", () => {
     expect(text).toContain("Not used: Jul 2002 to Jun 2003. Synthetic gap: 12 days of rain records are missing in this invented season.");
     expect(text).toContain("Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules synthetic-rules, records before 1 Jan 2026.");
     expect(textOf(compose(variant("manifestUnavailable"), britishReader)))
-      .toContain("Method versions: not recorded. Synthetic example: the run manifest was not recorded.");
+      .toContain("Engine and data versions: not recorded. Synthetic example: the run manifest was not recorded.");
   });
 
   it("manySources: every source title, section and URL, every climate cell and every weather record ID, as text", () => {
@@ -358,5 +358,109 @@ describe("the variants: what the fixtures can't show", () => {
       kind: "list", marker: "bullet",
       items: [{ head: "Heat and cold limits for pumpkin and winter squash and sweet maize sweet corn", lines: ["No synthetic temperature rule applies to these invented crops."] }],
     }]);
+  });
+});
+
+type Snapshot = typeof completedSnapshotsByState.plan;
+type Recommendation = "kept" | "changed" | "no_recommendation";
+
+function withDetails(snapshot: Snapshot, details: object, input: object = {}): Snapshot {
+  return completedSnapshotSchema.parse({
+    ...snapshot,
+    input: { ...snapshot.input, ...input },
+    result: { ...snapshot.result, details: { ...snapshot.result.details, ...details } },
+  });
+}
+
+const assessedPlanBaseline = completedSnapshotsByState.plan.result.details.baseline;
+function withVerdict(snapshot: Snapshot, recommendation: Recommendation, eligible: boolean): Snapshot {
+  const own = snapshot.result.details.baseline;
+  const baseline = own.kind === "assessed" ? own : { ...assessedPlanBaseline, deltas: [], changes: [] };
+  return withDetails(snapshot, { baseline: { ...baseline, recommendation, eligible } });
+}
+
+const sourcesOf = (doc: PdfDocument) => {
+  const section = doc.sections.find(candidate => candidate.heading === "Sources, period and versions");
+  return section?.blocks.flatMap(block => (block.kind === "text" ? [block.text] : [])) ?? [];
+};
+
+describe("each sentence is true of the result it prints", () => {
+  const comparisonOnly = "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.";
+  const noNewPlan = "Last year’s rotation is shown for comparison only. No new plan was made to compare it with.";
+
+  it("a last-year rotation the engine never ranked (eligible false, changed) is shown for comparison only, never as outranked", () => {
+    const unranked = textOf(compose(withVerdict(variant("changedBaseline"), "changed", false), britishReader));
+    expect(unranked).toContain(comparisonOnly);
+    expect(unranked.join(" ")).not.toContain("ranked ahead");
+    expect(textOf(compose(variant("changedBaseline"), britishReader))).toContain("The new plan ranked ahead of last year’s rotation.");
+  });
+
+  it("in each of the four no-plan states an eligible rotation is shown because no plan was made, and an ineligible one because it doesn’t meet every rule", () => {
+    for (const state of noPlanStates) {
+      const eligible = textOf(compose(withVerdict(completedSnapshotsByState[state], "no_recommendation", true), britishReader));
+      expect(eligible, state).toContain(noNewPlan);
+      expect(eligible.join(" "), state).not.toContain("doesn’t meet every rule");
+      const ineligible = textOf(compose(withVerdict(completedSnapshotsByState[state], "no_recommendation", false), britishReader));
+      expect(ineligible, state).toContain(comparisonOnly);
+    }
+  });
+
+  it("the water note's head matches the farmer's answer: backup water isn’t counted, or only rain is counted for I’m not sure", () => {
+    const water = (answer: "rain_plus_backup" | "unsure", message: string) => {
+      const note = { code: "water_context", message, cropPurposeIds: [], ruleIds: [], metricIds: [] };
+      const text = textOf(compose(withDetails(completedSnapshotsByState.plan, { warnings: [note] }, { water: answer }), britishReader));
+      return text[text.indexOf(message) - 1];
+    };
+    expect(water("rain_plus_backup", "Reported backup water may provide additional protection. No backup supply was assumed in calculations or ranking."))
+      .toBe("Your backup water isn’t counted");
+    expect(water("unsure", "Water availability is uncertain. Every calculation assumes rainfall alone.")).toBe("Only rain is counted");
+  });
+
+  it("a 29 February 2028 start ends the year on 27 Feb 2029 on a no-plan report, as the engine's year does", () => {
+    for (const state of ["no_calendar_fit", "insufficient_data"] as const) {
+      const doc = compose(withDetails(completedSnapshotsByState[state], {}, { planningStart: "2028-02-29" }), britishReader);
+      expect(doc.head.lines[1], state).toBe("Made 1 Jul 2026 · Your year: 29 Feb 2028 to 27 Feb 2029");
+    }
+    const ordinary = compose(withDetails(completedSnapshotsByState.no_calendar_fit, {}, { planningStart: "2027-03-01" }), britishReader);
+    expect(ordinary.head.lines[1]).toBe("Made 1 Jul 2026 · Your year: 1 Mar 2027 to 29 Feb 2028");
+  });
+
+  it("a mean temperature of -0.3 °C prints as 0 in the month table, never -0", () => {
+    const source = variant("monthlyInsights");
+    const insights = source.result.details.insights.map(insight =>
+      insight.month === 7 && insight.metric.id === "monthly_mean_temperature"
+        ? { ...insight, metric: { ...insight.metric, value: { kind: "available", value: -0.3 } } } : insight);
+    const doc = compose(withDetails(source, { insights }), britishReader);
+    const table = doc.sections.flatMap(section => section.blocks).find(block => block.kind === "table");
+    if (table?.kind !== "table") throw new Error("no month table");
+    expect(table.rows[0]).toEqual(["Jul", "125", "47", "235", "0"]);
+  });
+
+  it("page 1 says why there is no plan once: the status box's sentence is not repeated by the section under it", () => {
+    for (const snapshot of [completedSnapshotsByState.no_calendar_fit, variant("structuralProof"), completedSnapshotsByState.service_error]) {
+      const doc = compose(snapshot, britishReader);
+      expect(textOf(doc).filter(line => line === doc.head.status.text), snapshot.id).toHaveLength(1);
+    }
+    const fit = compose(completedSnapshotsByState.no_calendar_fit, britishReader);
+    expect(fit.head.status.text).toBe("Together they need at least 366 days; your year has 365.");
+    expect(textOf(fit)).toContain("Synthetic crop: at least 366 days");
+    const failed = compose(completedSnapshotsByState.service_error, britishReader);
+    expect(failed.head.status.text).toBe("Example source did not respond.");
+    expect(textOf(failed)).toContain("No new plan was made. It wasn’t anything you did.");
+  });
+
+  it("Sources, period and versions names each calculation method once: the metrics' methods, and in a status report the month table's too", () => {
+    const metric = (id: string, methodVersion: string) => ({ ...completedSnapshotsByState.plan.result.details.metrics[0], id, methodVersion });
+    const plan = withDetails(completedSnapshotsByState.plan, {
+      metrics: [metric("mean_frequency", "rain-demand-window-v2"), metric("unplanted_days", "schedule-occupancy-v1"), metric("q90_mismatch", "rain-demand-window-v2")],
+      insights: [{ ...completedSnapshotsByState.plan.result.details.insights[0], metric: metric("monthly_rain_median", "climate-insight-v2") }],
+    });
+    expect(sourcesOf(compose(plan, britishReader))).toContain("Calculation methods: rain-demand-window-v2; schedule-occupancy-v1.");
+    const source = variant("monthlyInsights");
+    const report = withDetails(source, {
+      insights: source.result.details.insights.map(insight => ({ ...insight, metric: { ...insight.metric, methodVersion: "climate-insight-v2" } })),
+    });
+    expect(sourcesOf(compose(report, britishReader))).toContain("Calculation methods: synthetic-v1; climate-insight-v2.");
+    expect(sourcesOf(compose(completedSnapshotsByState.plan, britishReader))).toContain("Calculation methods: synthetic-v1.");
   });
 });

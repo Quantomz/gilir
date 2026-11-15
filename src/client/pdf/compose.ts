@@ -62,7 +62,7 @@ function planDocument(ctx: Context, result: ResultOf<PlanState>): PlanDocument {
     couldNotCheck(result, ctx),
     method(details, ctx),
     assumptions(details, ctx),
-    sources(details, ctx),
+    sources(details, ctx, details.metrics),
   ].filter(present);
   return { kind: "plan", ...frame(ctx, "plan"), sections };
 }
@@ -81,22 +81,21 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
     farm(details, ctx),
     repeatsMessage ? null : method(details, ctx),
     assumptions(details, ctx),
-    sources(details, ctx),
+    sources(details, ctx, [...details.metrics, ...monthlyInsights(details).map(insight => insight.metric)]),
   ].filter(present);
   return { kind: "status_report", ...frame(ctx, "status_report"), sections };
 }
 
+/** The status box above already holds the proof line or the service's message, so these start after it. */
 const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>) => readonly Block[] } = {
   insufficient_data: (ctx, result) => [gapList(result.missing, ctx), paragraph(t(words.noPlan.missingNext))],
   no_calendar_fit: (ctx, { proof }) => proof.kind === "duration_lower_bound"
     ? [
-      paragraph(t(words.proofLine.duration(words.days(proof.mandatoryMinimumDays), words.whole(proof.horizonDays)))),
       paragraph(t(words.noPlan.fitEach)),
       list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(cropName(crop.cropPurposeId), words.days(crop.minimumDays)))] }))),
       paragraph(t(words.noPlan.fitNext)),
     ]
     : [
-      paragraph(t(words.proofLine.structural)),
       paragraph(t(words.noPlan.fitStops)),
       list("bullet", proof.constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] }))),
       ...(proof.expandedStates > 0 ? [paragraph(t(words.noPlan.fitTried(words.count(proof.expandedStates, "way"))), "small")] : []),
@@ -110,7 +109,7 @@ const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>
         : words.noPlan.stoppedOther)),
     paragraph(t(words.noPlan.stoppedIsNotProof)),
   ],
-  service_error: (ctx, { error }) => [paragraph(engineText(error.message, ctx.say)), paragraph(t(words.noPlan.noNewPlan))],
+  service_error: () => [paragraph(t(words.noPlan.noNewPlan))],
 };
 
 function whyNoPlan<S extends NoPlanState>(ctx: Context, state: S, result: ResultOf<S>): readonly Block[] {
@@ -197,6 +196,8 @@ function yearOf(ctx: Context): { readonly start: IsoDate; readonly endExclusive:
   if (result.state === "plan" || result.state === "plan_with_warnings") return result.plan.horizon;
   const end = utcDay(input.planningStart);
   end.setUTCFullYear(end.getUTCFullYear() + 1);
+  // 29 February rolls over to 1 March in a common year; the engine ends that year on 28 February instead.
+  if (end.getUTCDate() !== utcDay(input.planningStart).getUTCDate()) end.setUTCDate(0);
   return { start: input.planningStart, endExclusive: isoDate(end) };
 }
 
@@ -215,7 +216,7 @@ function warnings(all: readonly ResultWarning[], flagsAllowed: boolean, ctx: Con
   const flagCodes = new Set<string>(words.flagCodes);
   const isFlag = (warning: ResultWarning) => flagsAllowed && flagCodes.has(warning.code);
   const item = (warning: ResultWarning): Item => ({
-    head: t(words.warningHeads[warning.code](cropList(warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1)),
+    head: t(words.warningHeads[warning.code](cropList(warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1, ctx.snapshot.input.water)),
     lines: [engineText(warning.message, ctx.say)],
   });
   const flags = all.filter(isFlag);
@@ -444,7 +445,7 @@ function compared(ctx: Context): Section<Block> | null {
       return {
         heading,
         blocks: [
-          paragraph(t(words.recommendations[baseline.recommendation])),
+          paragraph(t(words.verdict(baseline))),
           ...(baseline.approximateDates ? [paragraph(t(words.compare.estimatesAssessed))] : []),
           paragraph(t(words.compare.howTheyCompare), "strong"),
           deltas.length
@@ -551,9 +552,13 @@ function gapList(gaps: ResultDetails["unassessedChecks"], ctx: Context): Block {
   })));
 }
 
-function farm(details: ResultDetails, ctx: Context): Section<Block> | null {
+function monthlyInsights(details: ResultDetails): ResultDetails["insights"] {
   const columns: readonly string[] = words.insightColumns;
-  const monthly = details.insights.filter(insight => insight.month !== null && columns.includes(insight.metric.id));
+  return details.insights.filter(insight => insight.month !== null && columns.includes(insight.metric.id));
+}
+
+function farm(details: ResultDetails, ctx: Context): Section<Block> | null {
+  const monthly = monthlyInsights(details);
   if (!monthly.length) return null;
   const firstMonth = Number(ctx.snapshot.input.planningStart.slice(5, 7));
   const cell = (month: number, id: string) => {
@@ -599,7 +604,8 @@ function cohortLine(details: ResultDetails, ctx: Context): string {
     monthRange(ctx, usable[0].interval.start, addDays(usable[usable.length - 1].interval.endExclusive, -1)));
 }
 
-function sources(details: ResultDetails, ctx: Context): Section<Block> {
+/** `metrics` are the ones behind the numbers this document prints. */
+function sources(details: ResultDetails, ctx: Context, metrics: readonly AssessmentMetric[]): Section<Block> {
   const { say } = ctx;
   const { provenance, cohort } = details;
   const lines: string[] = [cohortLine(details, ctx)];
@@ -611,6 +617,8 @@ function sources(details: ResultDetails, ctx: Context): Section<Block> {
       }
     }
   }
+  const methods = unique(metrics.map(metric => metric.methodVersion));
+  if (methods.length) lines.push(words.sources.methods(methods.join("; ")));
   for (const source of provenance.sources) lines.push(words.sources.source(source.title, source.section, source.url));
   for (const product of provenance.climateProducts) {
     const version = product.version.kind === "available"
