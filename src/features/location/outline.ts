@@ -1,15 +1,10 @@
-// The field outline. Pure: no React, no MapLibre, no network. Everything F2 knows about "what is a field" is here.
-//
-// Two spaces, one crossing point:
-//   drawing space  `Corners`: an OPEN list of [lng, lat] whose longitudes run on from corner to corner, so a field
-//                  across 180° reads 179.99, 180.01 (never 179.99, -179.99). MapLibre, Turf and the flat plan read only
-//                  this. A wrapped ring draws as a line round the world and gives Turf 42,611 km² instead of 2.37
-//                  (grounding G5 and section 2.6).
-//   wire space     `Marked.ring` and `Marked.lookup`: the contract's own shapes (src/contracts/input.ts:43-49), a CLOSED
-//                  ring with every longitude in [-180, 180] and a lookup strictly inside.
-// `Marked` holds both for one outline, and only `markOutline` and `markSaved` make one. Both end with the contract's own
-// parser, so a `Marked` can always be drawn and sent. Nothing else in the folder wraps, unwraps, closes or validates a
-// ring, and nothing in the folder copies the contract's schema.
+// Two spaces for one outline:
+//   drawing space  `Corners`: an open list whose longitudes run on from corner to corner, so a field across 180° reads
+//                  179.99, 180.01. MapLibre, Turf and the flat plan read only this, because a wrapped ring draws as a
+//                  line round the world and Turf measures it the long way round.
+//   wire space     `Marked.ring` and `Marked.lookup`: the contract's shapes, every longitude in [-180, 180], the ring
+//                  closed with the identical first tuple, the lookup strictly inside.
+// Only `markOutline` and `markSaved` make a `Marked`, and both end with the contract's own parser.
 import area from "@turf/area";
 import booleanPointInPolygon from "@turf/boolean-point-in-polygon";
 import { farmInputSchema, inputLimits } from "@/contracts";
@@ -23,169 +18,145 @@ export type Corner = readonly [lng: number, lat: number];
 
 declare const cornersBrand: unique symbol;
 /**
- * The corners being drawn. The functions in this file keep these rules, and the brand stops a list built by hand:
- *  - open: no closing copy of the first corner;
- *  - corner 0's longitude is in [-180, 180], and every next one is within 180° of the corner before it;
- *  - every number is rounded to 6 decimals (about 0.1 m).
- * The count is not part of the brand: `markOutline` judges it.
+ * Open (no closing copy of the first corner), corner 0's longitude in [-180, 180], every next one within 180° of the
+ * corner before it, every number rounded to 6 decimals. Only this file makes one. The count is judged by `markOutline`.
  */
 export type Corners = readonly Corner[] & { readonly [cornersBrand]: true };
 
-/** Every number F2 chooses about a shape. The corner cap is the contract's (inputLimits.polygonVertices). */
 export const limits = {
   corners: inputLimits.polygonVertices,
   minCorners: 3,
-  /** Under this the corners "don’t make a field" (prototype cornersField). Policy: never applied to a saved value. */
+  /** Policy for a farmer's edit only, never for a saved value. */
   minAreaM2: 25,
-  /** The furthest two corners may be apart (prototype: 20 km). The contract has no limit. Policy, open decision 5. */
+  /** Policy for a farmer's edit only. The contract has no limit. */
   maxSpanM: 20_000,
-  /** MapLibre's Mercator stops at 85.05°, and the server refuses a corner at a pole (src/server/jobs/http.ts:38). */
+  /** MapLibre's Mercator stops at 85.05°, and the server refuses a corner at a pole. */
   maxLatitude: 85,
   decimals: 6,
-  /** "Field near <place>" only when the lookup is this close to the place (prototype fieldLabel). */
+  /** "Field near <place>" only when the lookup is this close to the place. */
   nearPlaceM: 30_000,
 } as const;
 
-/** The prototype's box sizes in hectares (app.js SIZES). The starting box is 1 ha. Smaller and Bigger step through them. */
 export const boxSizes = [0.1, 0.25, 0.5, 1, 2, 3, 5, 10, 20, 50] as const;
 export type BoxSize = (typeof boxSizes)[number];
 
 /**
- * Why some corners are not a field. One list for typed corners, a dragged corner and a saved value.
- * `markOutline` and `markSaved` return the first six: "this cannot be drawn or sent". `withinPolicy` returns the last
- * two: F2's own taste for a farmer's edit. A saved value is never refused for those two.
+ * `markOutline` and `markSaved` return the first six: the outline cannot be drawn or sent. `withinPolicy` returns the
+ * last two, for a farmer's edit only.
  */
 export type ShapeProblem =
-  | "too_few"     // fewer than 3 corners
-  | "too_many"    // more than limits.corners
-  | "pole"        // a corner beyond ±limits.maxLatitude
-  | "repeated"    // two corners in a row on the same spot
-  | "crossing"    // two sides cross or touch, or a side doubles back (the server's "unsupported geometry")
-  | "no_inside"   // no point strictly inside that the contract also accepts
-  | "too_far"     // a side half the world long (not sendable), or, as policy, corners more than limits.maxSpanM apart
-  | "tiny";       // policy: under limits.minAreaM2
+  | "too_few"
+  | "too_many"
+  | "pole"
+  | "repeated"
+  /** Two sides cross or touch, or a side doubles back. */
+  | "crossing"
+  /** No point strictly inside that the contract also accepts. */
+  | "no_inside"
+  /** A side half the world long, or, as policy, corners more than limits.maxSpanM apart. */
+  | "too_far"
+  | "tiny";
 
 declare const markedBrand: unique symbol;
 /**
- * A field outline that can be drawn and sent. Holding one proves: 3 to 256 corners, every corner within ±85°, no
- * repeated corner, no crossing, touching or doubled-back side, and a ring and lookup that the contract's own parser
- * accepts, with the lookup strictly inside (never on a side: the contract's boundary test is exact float equality).
+ * An outline that can be drawn and sent: 3 to 256 corners within ±85°, no repeated corner, no crossing, touching or
+ * doubled-back side, and a ring and lookup the contract's parser accepts. The lookup is strictly inside, never on a side,
+ * because the contract's boundary test is exact float equality and a rounded point on a side often fails it.
  */
 export interface Marked {
   readonly [markedBrand]: true;
-  /** Drawing space. What the globe, the flat plan and Turf read. */
   readonly corners: Corners;
-  /** Wire space: the corners wrapped into [-180, 180] and closed with the identical first point. */
   readonly ring: Field["ring"];
-  /** Wire space, strictly inside. */
   readonly lookup: Field["lookup"];
-  /** Geodesic area from @turf/area on the drawing-space ring. Only ever shown rounded ("About 1 hectare"). */
+  /** Geodesic, from @turf/area on the drawing-space ring. Only ever shown rounded. */
   readonly areaM2: number;
-  /** How far apart the furthest two corners are, in metres. Drives the zoom fit and "100 m across". */
+  /** How far apart the furthest two corners are. */
   readonly spanM: number;
 }
 
 export type MarkResult =
   | { readonly ok: true; readonly marked: Marked }
-  /** `corner`: the corner to point at (0-based) when the problem belongs to one. */
+  /** `corner`: the 0-based corner the problem belongs to, for pole and repeated. */
   | { readonly ok: false; readonly problem: ShapeProblem; readonly corner: number | null };
 
-/** Where the lookup comes from when the farmer makes or changes an outline. */
 export type LookupRule =
-  /** Typed corners: the area centroid when strictly inside, else the middle of the widest inside span. */
   | { readonly kind: "choose" }
   /** A box on a place, or an edit of one corner: keep this point while it stays strictly inside, else choose. */
   | { readonly kind: "keep"; readonly at: LngLat };
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Numbers
-// ---------------------------------------------------------------------------------------------------------------------
+const metresPerDegree = { lat: 110_540, lng: 111_320 } as const;
+const radians = (degrees: number) => (degrees * Math.PI) / 180;
 
 /** Into [-180, 180]. A longitude already in range is returned as it is, so a typed 180 stays 180. */
 export function wrapLng(lng: number): number {
   return lng > 180 || lng < -180 ? ((lng + 540) % 360 + 360) % 360 - 180 : lng;
 }
 
-/** Round to limits.decimals. Also removes MapLibre's 180.00000000000182 (grounding G6). */
+/** Also removes MapLibre's 180.00000000000182 at the dateline. */
 export function round6(value: number): number {
   return Math.round(value * 1e6) / 1e6;
 }
 
-/** Metres between two points the short way round (longitude difference wrapped), on a local flat grid. A few percent under 30 km. */
+const unwrapNear = (lng: number, near: number) => lng + 360 * Math.round((near - lng) / 360);
+
+/** The short way round, on a local flat grid: within a few percent up to 30 km. */
 export function metresBetween(a: LngLat, b: LngLat): number {
-  throw new Error("not implemented");
-  // TODO: dLng = wrapLng(b[0] - a[0]); x = dLng * 111_320 * cos(midLat); y = (b[1] - a[1]) * 110_540; hypot(x, y)
+  const east = wrapLng(b[0] - a[0]) * metresPerDegree.lng * Math.cos(radians((a[1] + b[1]) / 2));
+  return Math.hypot(east, (b[1] - a[1]) * metresPerDegree.lat);
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Into drawing space
-// ---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Any open list of points (typed corners, points off the map) into drawing space: corner 0's longitude wrapped, each
- * next one moved by a multiple of 360 to within 180° of the one before, every number rounded. Judges nothing.
- */
+/** Any open list of points into drawing space. Judges nothing. */
 export function cornersFrom(points: readonly LngLat[]): Corners {
-  throw new Error("not implemented");
-  // TODO: let previous = wrapLng(points[0][0]);
-  //       map [lng, lat] -> x = lng + 360 * Math.round((previous - lng) / 360); previous = x; [round6(x), round6(lat)]
+  const corners: Corner[] = [];
+  for (const [lng, lat] of points) {
+    const previous = corners.at(-1)?.[0] ?? wrapLng(lng);
+    corners.push([round6(unwrapNear(lng, previous)), round6(lat)]);
+  }
+  return corners as readonly Corner[] as Corners;
 }
 
-/** A wire ring into drawing space: drop the closing point, then unwrap as `cornersFrom` does. */
 export function cornersOfRing(ring: Field["ring"]): Corners {
-  throw new Error("not implemented");
+  return cornersFrom(ring.slice(0, -1));
 }
 
-/**
- * The prototype's starting box (contract.js boxRing): a square of `hectares` around `at`, counter-clockwise from the
- * south-west corner. Metres to degrees with 110,540 m per degree of latitude and 111,320 × cos(lat) per degree of
- * longitude (cos floored at 0.01). Near a pole the box fails `markOutline` with "pole" instead of degenerating.
- */
+/** A square of `hectares` around `at`, counter-clockwise from the south-west corner. Near a pole it marks as "pole". */
 export function boxAround(at: LngLat, hectares: BoxSize): Corners {
-  throw new Error("not implemented");
+  const half = Math.sqrt(hectares * 10_000) / 2;
+  const north = half / metresPerDegree.lat;
+  const east = half / (metresPerDegree.lng * Math.max(0.01, Math.cos(radians(at[1]))));
+  const [lng, lat] = at;
+  return cornersFrom([[lng - east, lat - north], [lng + east, lat - north], [lng + east, lat + north], [lng - east, lat + north]]);
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// The two makers of a Marked
-// ---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Judge corners the farmer made (a box, a drag, a typed list) and, when they make a field, build every value once.
- * Order, first failure wins:
- *  1. count: < 3 too_few, > limits.corners too_many
- *  2. a corner beyond ±limits.maxLatitude -> pole (that corner)
- *  3. ring = each corner [round6(wrapLng(lng)), lat], then the identical first tuple again, so closure is exact
- *  4. two points in a row of `ring` equal -> repeated (that corner). Before step 5, because the server's loop meets a
- *     repeated corner as a touching side and would call it crossing (candidate 2's probe).
- *  5. serverRefuses(ring): the server's rule (src/server/jobs/http.ts:33-57) ported line for line and run on the wire
- *     ring, so both sides do the same float arithmetic. too_far for a half-world side or a ring that does not return;
- *     crossing for a doubled-back side or two non-neighbour sides that cross or touch.
- *     tests/frontend/location/server-parity.test.ts asks the real handler on the same corpus.
- *  6. areaM2 = area() of the closed drawing-space corners; spanM = the largest corner-to-corner metresBetween
- *  7. lookup: for each candidate in order (rule.at when "keep", then insideCandidates(corners)): wrap and round it, and
- *     take the first that is strictly inside in drawing space AND that the contract accepts in `fieldIssues` with this
- *     ring. None -> no_inside. The contract has the last word on every emitted lookup.
- * Size is not judged here: see `withinPolicy`.
- */
+/** Judge corners the farmer made (a box, a drag, a typed list). Size is not judged here: see `withinPolicy`. */
 export function markOutline(corners: Corners, rule: LookupRule): MarkResult {
-  throw new Error("not implemented");
-  // TODO: uses area() and booleanPointInPolygon(..., { ignoreBoundary: true }) on drawing-space coordinates only.
+  const wire = corners.map(([lng, lat]): LngLat => [round6(wrapLng(lng)), lat]);
+  const ring: Field["ring"] = [...wire, ...wire.slice(0, 1)];
+  const problem = judge(corners, ring);
+  if (problem) return problem;
+  const polygon = polygonOf(corners);
+  const kept = rule.kind === "keep" ? [rule.at] : [];
+  for (const [lng, lat] of [...kept, ...insideCandidates(corners)]) {
+    const lookup: LngLat = [round6(wrapLng(lng)), round6(lat)];
+    const drawn = [unwrapNear(lookup[0], corners[0][0]), lookup[1]];
+    if (!booleanPointInPolygon(drawn, polygon, { ignoreBoundary: true })) continue;
+    if (fieldIssues({ ring, lookup, label: "Field" }).length === 0) return markedOf(corners, ring, lookup);
+  }
+  return refused("no_inside");
 }
 
 /**
  * Judge a saved field (the `value` prop). Its ring, lookup and label are kept exactly as given, so the picker holds the
- * same field as its parent and adopting it never needs an emit (G12). Corners are derived for drawing only.
- * Steps 1, 2, 4 and 5 of `markOutline` on the given ring, then `fieldIssues(field)` with the real label must be empty
- * (else no_inside). `withinPolicy` is never applied: a field the contract and the server accept is always drawn.
+ * same field as its parent and adopting it never needs an emit. `withinPolicy` is never applied to it.
  */
 export function markSaved(field: Field): MarkResult {
-  throw new Error("not implemented");
+  const corners = cornersOfRing(field.ring);
+  const problem = judge(corners, field.ring);
+  if (problem) return problem;
+  if (fieldIssues(field).length > 0) return refused("no_inside");
+  return markedOf(corners, field.ring, field.lookup);
 }
 
-/**
- * F2's own limits for an outline the farmer is making: spanM > limits.maxSpanM -> too_far, areaM2 < limits.minAreaM2
- * -> tiny, else null. The picker applies it to every farmer edit and never to a saved value.
- */
 export function withinPolicy(marked: Marked): ShapeProblem | null {
   if (marked.spanM > limits.maxSpanM) return "too_far";
   if (marked.areaM2 < limits.minAreaM2) return "tiny";
@@ -200,65 +171,76 @@ export function sameField(a: Field | null, b: Field | null): boolean {
   return same(a.lookup, b.lookup) && a.ring.every((point, index) => same(point, b.ring[index]));
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Edits. Each returns new Corners and judges nothing: the picker passes the result to markOutline.
-// ---------------------------------------------------------------------------------------------------------------------
-
-/**
- * Move one corner. `to` may arrive wrapped or not (a marker dropped across 180° reports -179.995 beside 179.99): it is
- * placed within 180° of that corner's old longitude. Latitude is clamped to ±limits.maxLatitude.
- */
+/** `to` may arrive wrapped or not: a marker dropped across 180° reports -179.995 beside 179.99. */
 export function moveCorner(corners: Corners, index: number, to: LngLat): Corners {
-  throw new Error("not implemented");
+  const lat = Math.min(limits.maxLatitude, Math.max(-limits.maxLatitude, to[1]));
+  return cornersFrom(corners.map((corner, i) => (i === index ? [unwrapNear(to[0], corner[0]), lat] : corner)));
 }
 
 /**
- * Add a corner in the middle of a side: the side after `after`, or the longest side when `after` is null. Returns the
- * new corner's index so the picker can choose it. The new corner sits on the old side, so the shape does not change
- * until the farmer drags it; the server accepts a straight extra corner (grounding 2.5).
+ * Add a corner in the middle of the side after `after`, or of the longest side. It sits on the old side, so the shape
+ * does not change until the farmer drags it, and the server accepts a straight extra corner.
  */
 export function insertCorner(corners: Corners, after: number | null): { readonly corners: Corners; readonly index: number } {
-  throw new Error("not implemented");
+  const side = after ?? longestSide(corners);
+  const [a, b] = [corners[side], corners[(side + 1) % corners.length]];
+  const middle: Corner = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  return { corners: cornersFrom([...corners.slice(0, side + 1), middle, ...corners.slice(side + 1)]), index: side + 1 };
 }
 
-/** Remove one corner. Fewer than 3 left is judged by markOutline (too_few). */
 export function removeCorner(corners: Corners, index: number): Corners {
-  throw new Error("not implemented");
+  return cornersFrom(corners.filter((_, i) => i !== index));
 }
 
-/** The next smaller (-1) or bigger (+1) box size, or null at an end of boxSizes. */
 export function stepSize(size: BoxSize, step: -1 | 1): BoxSize | null {
   return boxSizes[boxSizes.indexOf(size) + step] ?? null;
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// The flat plan (the 2D fallback when WebGL2 is missing)
-// ---------------------------------------------------------------------------------------------------------------------
-
-/** The plan's drawing: north up, equal scale both ways, fitted inside width × height with a margin for the corner marks. */
+/** The flat plan's drawing: north up, equal scale both ways, fitted inside width × height with room for the corner marks. */
 export interface Plan {
-  /** SVG path "M x y L … Z" of the outline. */
+  /** SVG path "M x y L … Z". */
   readonly path: string;
   readonly corners: readonly { readonly x: number; readonly y: number }[];
   readonly lookup: { readonly x: number; readonly y: number };
-  /** A round scale bar: barM metres drawn barPx pixels long (10, 20, 50, 100 … m). */
+  /** A round scale bar: barM metres drawn barPx pixels long. */
   readonly barM: number;
   readonly barPx: number;
 }
 
-/** Project an outline for the flat plan, in metres east and north of its middle. Pure, so jsdom and node can check it. */
+const planMarginPx = 40;
+
 export function planOf(marked: Marked, width: number, height: number): Plan {
-  throw new Error("not implemented");
+  const xs = marked.corners.map(([x]) => x);
+  const ys = marked.corners.map(([, y]) => y);
+  const [west, east, south, north] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  const middle = [(west + east) / 2, (south + north) / 2] as const;
+  const eastPerDegree = metresPerDegree.lng * Math.cos(radians(middle[1]));
+  const margin = Math.min(planMarginPx, width / 4, height / 4);
+  const scale = Math.min((width - 2 * margin) / ((east - west) * eastPerDegree), (height - 2 * margin) / ((north - south) * metresPerDegree.lat));
+  const project = ([lng, lat]: LngLat) => ({
+    x: width / 2 + (lng - middle[0]) * eastPerDegree * scale,
+    y: height / 2 - (lat - middle[1]) * metresPerDegree.lat * scale,
+  });
+  const corners = marked.corners.map(project);
+  const barM = roundMetresAtMost((0.4 * width) / scale);
+  return {
+    path: `${corners.map(({ x, y }, i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ")} Z`,
+    corners,
+    lookup: project([unwrapNear(marked.lookup[0], middle[0]), marked.lookup[1]]),
+    barM,
+    barPx: barM * scale,
+  };
 }
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------------------------------------------------
+/** 1, 2 or 5 times a power of ten, at most `most`. */
+function roundMetresAtMost(most: number): number {
+  let decade = 10 ** Math.floor(Math.log10(most));
+  if (decade > most) decade /= 10;
+  const step = most >= 5 * decade ? 5 : most >= 2 * decade ? 2 : 1;
+  return step * decade;
+}
 
-/**
- * The contract's own field rules with no copied schema (grounding 2.4): parse a whole FarmInput with placeholder
- * answers and keep the issues under "field". Empty means the shared parser accepts this field.
- */
+/** The contract's own field rules without copying its schema: parse a whole FarmInput around the field. */
 function fieldIssues(field: Field): readonly string[] {
   const parsed = farmInputSchema.safeParse({
     schemaVersion: 1,
@@ -271,20 +253,113 @@ function fieldIssues(field: Field): readonly string[] {
   return parsed.success ? [] : parsed.error.issues.filter(issue => issue.path[0] === "field").map(issue => issue.message);
 }
 
-/** The server's unsupportedGeometry (src/server/jobs/http.ts:33-57), ported line for line, on the wire ring. */
-function serverRefuses(ring: Field["ring"]): "too_far" | "crossing" | null {
-  throw new Error("not implemented");
-  // TODO: the reference port in design/probe/outline-probe.test.ts `serverRefuses` passed against createPlanApi.
+type Refused = Extract<MarkResult, { ok: false }>;
+
+const refused = (problem: ShapeProblem, corner: number | null = null): Refused => ({ ok: false, problem, corner });
+
+/**
+ * Repeated corners are caught before the server's rule, which meets them as touching sides and would call them
+ * crossing. `ring` is the wire ring, so the server's rule does the same float arithmetic as on the server.
+ */
+function judge(corners: Corners, ring: Field["ring"]): Refused | null {
+  if (corners.length < limits.minCorners) return refused("too_few");
+  if (corners.length > limits.corners) return refused("too_many");
+  const pole = corners.findIndex(([, lat]) => Math.abs(lat) > limits.maxLatitude);
+  if (pole >= 0) return refused("pole", pole);
+  const repeated = ring.findIndex(([lng, lat], index) => index > 0 && ring[index - 1][0] === lng && ring[index - 1][1] === lat);
+  if (repeated > 0) return refused("repeated", repeated % corners.length);
+  const server = serverRefuses(ring);
+  return server && refused(server);
 }
 
 /**
- * Points strictly inside, best first, in drawing space (candidate 1's rule; @turf/point-on-feature returns a corner
- * for concave fields and the far side of the planet for a wrapped dateline ring, so it is not used):
- *  1. the area centroid (shoelace), when strictly inside: a box and any convex field get their middle;
- *  2. for each latitude halfway between two neighbouring distinct corner latitudes, the inside spans of that line
- *     (crossings with every side, sorted, paired); the middles of all spans, widest first. A line between corner
- *     latitudes never passes through a corner, so each middle is strictly inside. L, U and C fields included.
+ * The server's simple-shape rule (unsupportedGeometry in src/server/jobs/http.ts), ported line for line. A browser
+ * module may not import src/server, so tests/frontend/location/server-parity.test.ts holds the two equal.
+ */
+function serverRefuses(ring: Field["ring"]): "too_far" | "pole" | "repeated" | "crossing" | null {
+  const points: [number, number][] = [];
+  for (const [lng, lat] of ring) {
+    const previous = points.at(-1)?.[0] ?? lng;
+    const x = lng + 360 * Math.round((previous - lng) / 360);
+    if (Math.abs(x - previous) >= 180) return "too_far";
+    if (Math.abs(lat) === 90) return "pole";
+    points.push([x, lat]);
+  }
+  if (points.at(-1)?.[0] !== points[0][0]) return "too_far";
+  const count = points.length - 1;
+  const cross = (a: LngLat, b: LngLat, c: LngLat) => (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+  const onSegment = (a: LngLat, b: LngLat, p: LngLat) => cross(a, b, p) === 0 && p[0] >= Math.min(a[0], b[0]) && p[0] <= Math.max(a[0], b[0]) && p[1] >= Math.min(a[1], b[1]) && p[1] <= Math.max(a[1], b[1]);
+  for (let i = 0; i < count; i++) {
+    const a = points[i], b = points[i + 1], c = points[(i + 2) % count];
+    if (a[0] === b[0] && a[1] === b[1]) return "repeated";
+    if (cross(a, b, c) === 0 && ((a[0] - b[0]) * (c[0] - b[0]) + (a[1] - b[1]) * (c[1] - b[1])) > 0) return "crossing";
+    for (let j = i + 1; j < count; j++) {
+      if (j === i + 1 || (i === 0 && j === count - 1)) continue;
+      const e = points[j], d = points[j + 1];
+      if (onSegment(a, b, e) || onSegment(a, b, d) || onSegment(e, d, a) || onSegment(e, d, b)
+        || (cross(a, b, e) * cross(a, b, d) < 0 && cross(e, d, a) * cross(e, d, b) < 0)) return "crossing";
+    }
+  }
+  return null;
+}
+
+function markedOf(corners: Corners, ring: Field["ring"], lookup: LngLat): MarkResult {
+  let spanM = 0;
+  for (let i = 0; i < corners.length; i++) {
+    for (let j = i + 1; j < corners.length; j++) spanM = Math.max(spanM, metresBetween(corners[i], corners[j]));
+  }
+  return { ok: true, marked: { corners, ring, lookup, areaM2: area(polygonOf(corners)), spanM } as Marked };
+}
+
+function polygonOf(corners: Corners) {
+  return { type: "Polygon" as const, coordinates: [[...corners, corners[0]].map(([lng, lat]) => [lng, lat])] };
+}
+
+/**
+ * Candidate lookups in drawing space, best first. @turf/point-on-feature is not used: it returns a corner for concave
+ * fields and the far side of the planet for a wrapped ring.
+ *  1. The area centroid: a box and any convex field get their middle.
+ *  2. On each latitude halfway between two neighbouring distinct corner latitudes, the middles of the inside spans,
+ *     widest first. Such a line passes through no corner, so L, U and C fields get a point in an arm.
+ * The caller keeps the first that is strictly inside after rounding.
  */
 function insideCandidates(corners: Corners): readonly Corner[] {
-  throw new Error("not implemented");
+  const [originLng, originLat] = corners[0];
+  let twiceArea = 0, sumLng = 0, sumLat = 0;
+  corners.forEach(([pLng, pLat], i) => {
+    const [qLng, qLat] = corners[(i + 1) % corners.length];
+    const [px, py, qx, qy] = [pLng - originLng, pLat - originLat, qLng - originLng, qLat - originLat];
+    const f = px * qy - qx * py;
+    twiceArea += f;
+    sumLng += (px + qx) * f;
+    sumLat += (py + qy) * f;
+  });
+  const centroid: Corner[] = twiceArea === 0 ? [] : [[originLng + sumLng / (3 * twiceArea), originLat + sumLat / (3 * twiceArea)]];
+
+  const latitudes = [...new Set(corners.map(([, lat]) => lat))].sort((m, n) => m - n);
+  const spans: { readonly middle: Corner; readonly width: number }[] = [];
+  for (let k = 0; k + 1 < latitudes.length; k++) {
+    const lat = (latitudes[k] + latitudes[k + 1]) / 2;
+    const crossings: number[] = [];
+    corners.forEach(([pLng, pLat], i) => {
+      const [qLng, qLat] = corners[(i + 1) % corners.length];
+      if ((pLat > lat) !== (qLat > lat)) crossings.push(pLng + ((qLng - pLng) * (lat - pLat)) / (qLat - pLat));
+    });
+    crossings.sort((m, n) => m - n);
+    for (let i = 0; i + 1 < crossings.length; i += 2) {
+      spans.push({ middle: [(crossings[i] + crossings[i + 1]) / 2, lat], width: crossings[i + 1] - crossings[i] });
+    }
+  }
+  spans.sort((m, n) => n.width - m.width);
+  return [...centroid, ...spans.map(span => span.middle)];
+}
+
+function longestSide(corners: Corners): number {
+  let longest = 0;
+  let longestM = -1;
+  corners.forEach((corner, i) => {
+    const length = metresBetween(corner, corners[(i + 1) % corners.length]);
+    if (length > longestM) [longest, longestM] = [i, length];
+  });
+  return longest;
 }

@@ -1,8 +1,7 @@
-// The shape corpus and the two outside judges. Test support only: tests are outside `src`, so they may import
-// src/server and src/fixtures (scripts/check-boundaries.mjs scans src only). Synthetic shapes: never farm evidence.
+// The shape corpus and the outside judges: the contract's own parser, the server's own request handler and an
+// independent strict-inside test, never F2's code, so a test fails when F2 is wrong. Tests sit outside `src`, so they
+// may import src/server and src/fixtures. Synthetic shapes: never farm evidence.
 // Every shape is an OPEN list of wire-space [lng, lat] corners, as a farmer would type them.
-// The judges are the contract's own parser and the server's own request handler, never F2's code, so a test can
-// fail when F2 is wrong (test-behavior-not-implementation).
 import { farmInputSchema } from "@/contracts";
 import type { FarmInput, LngLat } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
@@ -15,7 +14,7 @@ type Ring = readonly LngLat[];
 export const good = {
   /** inputFixture.field's ring without the closing point: about 119 ha at 100° E, 15° N. */
   square: inputFixture.field.ring.slice(0, -1),
-  /** An L. Its centroid is inside. @turf/point-on-feature returns a corner for it (grounding 2.6). */
+  /** An L. Its centroid is inside. @turf/point-on-feature returns a corner for it. */
   l: [[0, 0], [0.02, 0], [0.02, 0.01], [0.01, 0.01], [0.01, 0.02], [0, 0.02]],
   /** A U opening north. Its centroid is in the gap, outside the field. */
   u: [[0, 0], [0.03, 0], [0.03, 0.03], [0.02, 0.03], [0.02, 0.01], [0.01, 0.01], [0.01, 0.03], [0, 0.03]],
@@ -30,11 +29,11 @@ export const good = {
   /** Far south (Tierra del Fuego) and far north (Iceland): no country allowlist, no hemisphere default. */
   south: [[-68.31, -54.81], [-68.3, -54.81], [-68.3, -54.8], [-68.31, -54.8]],
   north: [[-21.95, 64.14], [-21.94, 64.14], [-21.94, 64.145], [-21.95, 64.145]],
-  /** A straight extra corner on a side, as "Add a corner" makes one. The server accepts it (grounding 2.5). */
+  /** A straight extra corner on a side, as "Add a corner" makes one. The server accepts it. */
   straightExtraCorner: [[0, 0], [0.01, 0], [0.02, 0], [0.02, 0.01], [0, 0.01]],
 } as const satisfies Record<string, Ring>;
 
-/** Shapes the contract accepts or not, but the server refuses, with the problem F2 must name. */
+/** Shapes the server refuses, with the problem F2 must name. The contract's parser accepts each with a corner as the lookup. */
 export const bad = {
   bowTie: { corners: [[0, 0], [0.02, 0.02], [0.02, 0], [0, 0.01]], problem: "crossing" },
   spike: { corners: [[0, 0], [0.02, 0], [0.01, 0], [0.01, 0.01]], problem: "crossing" },
@@ -58,6 +57,28 @@ export function circle(corners: number, centre: LngLat = [36.07, -0.3]): Ring {
   });
 }
 
+/** A repeatable source of numbers in [0, 1): the same seed gives the same run. */
+export function randomSource(seed: number): () => number {
+  let state = seed;
+  return () => (state = (state * 1103515245 + 12345) % 2147483648) / 2147483648;
+}
+
+/**
+ * A star-shaped polygon of 3 to 30 corners, 200 m to 2.4 km from a centre anywhere between 75° S and 75° N, any
+ * longitude, so some cross 180°. Wrapped, as a farmer would type it.
+ */
+export function randomPolygon(random: () => number): Ring {
+  const wrap = (lng: number) => ((lng + 540) % 360) - 180;
+  const count = 3 + Math.floor(random() * 28);
+  const lng = -180 + random() * 360;
+  const lat = -75 + random() * 150;
+  const angles = Array.from({ length: count }, () => random() * 2 * Math.PI).sort((a, b) => a - b);
+  return angles.map(angle => {
+    const radius = 0.002 + random() * 0.02;
+    return [wrap(lng + radius * Math.cos(angle)), lat + radius * Math.sin(angle)] as const;
+  });
+}
+
 const placeholder = {
   schemaVersion: 1,
   cropPurposeIds: ["placeholder"],
@@ -66,7 +87,7 @@ const placeholder = {
   history: { kind: "skipped" },
 } as const;
 
-/** The shared parser's verdict on a field alone (grounding 2.4). Empty means the contract accepts it. */
+/** The shared parser's verdict on a field alone. Empty means the contract accepts it. */
 export function fieldIssues(field: unknown): readonly string[] {
   const parsed = farmInputSchema.safeParse({ ...placeholder, field });
   if (parsed.success) return [];
@@ -74,23 +95,29 @@ export function fieldIssues(field: unknown): readonly string[] {
 }
 
 /**
- * The server's verdict (src/server/jobs/http.ts:114) through the real request handler, with an injected store and a
- * synthetic registry: no database. 202 means accepted; 400 on ["field", "ring"] means unsupported geometry.
+ * The server's verdict on a whole request body through the real request handler, with an injected store and a
+ * synthetic registry that knows the placeholder and the fixture's crops: no database. 202 means accepted.
  */
-export async function serverStatus(field: Field): Promise<number> {
+export async function serverStatusOf(body: unknown): Promise<number> {
   const store = { create: async () => ({ jobId: "00000000-0000-4000-8000-000000000000", token: "test" }) } as never;
+  const entries = ["placeholder", ...inputFixture.cropPurposeIds].map(id => ({ id }));
   const readRegistry = () => ({
     kind: "released",
     identity: { catalogueVersion: "test", ruleVersion: "test" },
-    catalogue: { version: "test", entries: [{ id: "placeholder" }] },
+    catalogue: { version: "test", entries },
   }) as never;
   const api = createPlanApi({ store, readRegistry, dataCutoff: "2026-11-01" });
   const response = await api(new Request("http://test.invalid/api/plans", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ ...placeholder, field }),
+    body: JSON.stringify(body),
   }));
   return response.status;
+}
+
+/** The server's verdict on a field alone, inside placeholder answers. */
+export function serverStatus(field: Field): Promise<number> {
+  return serverStatusOf({ ...placeholder, field });
 }
 
 /** Strictly inside an open ring of [lng, lat], by even-odd ray casting after unwrapping next to corner 0, with the boundary excluded. Independent of Turf and of F2. */
