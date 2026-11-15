@@ -1,55 +1,43 @@
 # I1 real pipeline acceptance
 
-**Runtime acceptance PASSED** at code commit `2e7e1b90bdff2d69831c02fcc54583a1f876991a`, after E1 merged as `1c448946c5ed3b63cc9e38be084c2ddc76b51fcb`. The [strict report](live-2026-11-15.json) and [test log](final-live-test.log) record 22 passing tests with no skips. The coordinator requires independent exact-head review and green CI before merging the I1 PR and closing [issue #11](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/11).
+**Current-release runtime acceptance passed on 15 November 2026.** The [strict report](live-hard-windows-2026-11-15.json) and [test log](hard-windows-live-test.log) record 28 passing tests with live NASA, PostgreSQL, HTTP, and separate worker processes. This refresh follows the hard planting-window release and snapshot v2. It does not establish Railway deployment or frontend I3 acceptance.
 
-## Observed live behavior
+The tested production code is `f79ffd7920f46db9c59828b6d017e12413f8c1b2`. The six-file I1 harness patch has SHA-256 `948e275c5dcca6a480015ad2095cd02cd3921812594410bfd1cb9a49bec6a747`, recorded in the report as the binary Git diff against that commit. The follow-up PR binds this patch to its reviewed commit. Evidence files are added after execution and do not change runtime code.
 
-The public illustrative Boise case selected `common-bean-dry`, planning start `2027-06-01`, and cutoff `2026-11-14`. This is an intentionally selected regional demonstration, not a surveyed farm or a farmer questionnaire. The production catalogue was `fao56-reviewed-2026-11-15`. The actual result used `common-bean-dry-fao56-idaho-jun` at version `reviewed-2026-11-15.1` and returned `plan_with_warnings`.
+## Observed result
+
+The public illustrative Boise bean case used planning start `2027-06-01` and cutoff `2026-11-14`. It is a regional demonstration, not a surveyed farm. The release is `fao56-hard-windows-2026-11-15`, with profile `common-bean-dry-fao56-idaho-jun` at `reviewed-2026-11-15.2` and rules `no-rules-2026-11-14`.
 
 | Check | Observed outcome |
 | --- | --- |
-| Real HTTP, PostgreSQL, NASA, registry, and separate calculation worker | Accepted and completed the declared warning-plan case. No injected calculation or fixture supplied the production result. |
-| Provider evidence | Three actual provider snapshots, zero synthetic snapshots, and 9,498 consecutive daily records per product, from 2000-05-31 through 2026-06-01. |
-| Scientific cohort | 25 of 25 target seasons usable; minimum required 15. Actual profile, sources, methods, and unassessed temperature are retained. |
-| Worker restart | Killed the first worker with SIGKILL after durable freeze. A new process reclaimed the lease. Manifest and full frozen digest remained identical. Replay preparation throws if called. |
-| Web restart | A new HTTP process read the identical saved result and result digest. |
-| Authorization | Missing, wrong, and another job's token received 404 for GET and DELETE before and after restart. |
-| Real missing-profile control | Bangkok bean request completed as insufficient_data with only crop_profile gaps, no plan, and 25 usable real seasons. |
-| Provider outage control | A fresh schema used production API, registry, cache, and worker composition with only HTTP 503 provider responses injected. Three attempts produced retrieval_failed before calculation. |
-| Stale worker, expiry, cache concurrency | Real PostgreSQL controlled cases passed. These fault tests retain their explicitly controlled calculation or captured-response scope. |
-| Privacy and cleanup | Child-log and artifact scans passed. All eight live child processes stopped. Direct checks after execution found zero I1 schemas and no owned runtime child processes. |
+| Real production pipeline | `plan_with_warnings`, with `rainfall_mismatch` and temperature explicitly unassessed. |
+| Crop dates | Planted 2027-06-01, last occupied 2027-09-08, available again 2027-09-16. The runner requires the released June window, without fixing the optimum to one day. |
+| Provider evidence | Three real snapshots, zero synthetic snapshots, 9,498 consecutive daily records per product covering 2000-05-31 through 2026-06-01. |
+| Scientific cohort | All 25 target seasons usable; minimum required 15. |
+| Saved snapshot | Schema v2, accepted job ID, exact HTTP catalogue preserved, official label `Common bean (dry grain)`. |
+| Worker and web restarts | SIGKILL after durable freeze, new worker replay without preparation, and new web process preserve frozen and saved-result digests. |
+| Authorization | Missing, wrong, and cross-job tokens rejected for GET and DELETE before and after restart. |
+| Missing-profile control | Real Bangkok request returns `insufficient_data`, crop-profile gaps, no plan, and 25 usable seasons. |
+| Provider outage control | Separately injected HTTP 503 responses yield `retrieval_failed` after three attempts. No fixture supplies the primary scientific result. |
+| Privacy and cleanup | Child-log and report scans pass. All eight live child processes stopped and owned schemas removed. |
 
-The report preserves each provider's hash, retrieval timestamp, native cell, daily period, units, conversion version, and product description. NASA POWER identifies API `v2.10.3` but omits underlying release versions and per-day stream attribution. Those fields remain explicitly unavailable. Source URLs retain origin and path without coordinates, queries, credentials, or fragments.
-
-## Scientific handoff to I2
-
-The returned bean occurrence runs from **2027-11-09 through 2028-02-16**, with field availability on 2028-02-24. Rainfall-only ranking selected these winter dates. The FAO June window is advisory, and the corrected release has no supported daily temperature rule. The result discloses temperature as unassessed and contains a rainfall-mismatch warning.
-
-This observed result completes I1's runtime gate. It does not establish that winter beans in Idaho are agronomically suitable. [I2, owned by yslee1106](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/12), must assess the source applicability and warning behavior before treating this as an accepted farming recommendation. Temperature rules and hard planting constraints require separately reviewed evidence. I3 and deployed behavior also remain separate gates.
+The report preserves provider hashes, retrieval times, native cells, periods, units, conversion methods, profile sources, and observed dates. NASA POWER omits underlying source-release versions and per-day stream attribution; these remain explicitly unavailable. Source URLs omit coordinates and queries.
 
 ## Verification
 
-All commands used Node 24.22.3. Database suites used the dedicated disposable PostgreSQL 18 database. [Coordinator verification](coordinator-verification.json) binds the evidence hashes and tested code. Terminal logs normalize carriage returns and trailing whitespace; original and normalized hashes are recorded. Test outcomes are unchanged.
+Node 24.22.3 and disposable PostgreSQL 18 were used. [Full checks](hard-windows-check.log) passed 1,473 tests, typechecking, and module boundaries. The one live opt-in skip in that command was satisfied by the separate strict run above. The [production build](hard-windows-build.log) passed. Independent review and GitHub checks are recorded on the follow-up PR before merge. Review uses local GPT agents; no cloud or cross-family review is claimed.
 
-| Command | Result |
-| --- | --- |
-| I1_LIVE=1 with I1_TEST_DATABASE_URL, then npx vitest run tests/integration/runtime | [22 passed, zero skipped](final-live-test.log). |
-| npm run check with TEST_DATABASE_URL, B3_TEST_DATABASE_URL, and I1_TEST_DATABASE_URL | [574 passed, one explicit live opt-in skip](final-check.log). The live gate passed separately above. Typecheck and module boundaries passed. |
-| npm run build | [Passed](final-build.log). |
-| Direct schema and process inventory | Zero I1 schemas and zero owned runtime children after the live run and full checks. |
-| Independent review | Exact-head verdict is recorded in the I1 PR conversation before merge. Reviews are local GPT; native cloud and cross-family review are unavailable. |
+The regression suite rejects stable malformed completions even when web restart returns identical bytes. Newly completed v1, another job ID, a mismatched catalogue, absent selected-crop metadata, and changed official labels cannot satisfy the gate. Existing provider, authorization, expiry, stale-lease, and frozen-replay checks remain.
 
-## Preserved failure and correction
+## Historical evidence
 
-The first assembled attempt at `6a75bbd` [failed](failed-product-identity-2026-11-15.json), with [18 passing tests and one live failure](failed-product-identity-test.log). All three real products had complete daily data, but an I1 assertion incorrectly compared descriptive product names to short product IDs. It stopped before the intended SIGKILL and replay.
+The [stale-run reproduction](failed-stale-release-2026-11-15.json) failed at `http_catalogue` before NASA retrieval because it expected the older catalogue release. The current pins correct that expectation and preserve strict scientific assertions.
 
-Regression commit `45c4b75` reproduces the mismatch using captured NASA responses through the real normalizer. Fix `0d117df` matches the stable native-cell product ID and checks that the descriptive label agrees. Duplicate or missing products, mismatched labels, fields, periods, and manifest identities remain checked. The corrected assertion also passed against the retained first-run frozen summary before the successful rerun.
-
-[Historical evidence](historical-evidence.md) preserves older blocked, failed, skipped, and unrun records. The original files and their code identities remain intact.
+The earlier [advisory-window acceptance](advisory-window-acceptance.md) and its original reports remain unchanged. Its November-to-February bean dates describe the older release and are not the current observed plan. [Older failed and blocked runs](historical-evidence.md) remain archived. Runtime acceptance does not certify farming suitability, worldwide coverage, or frontend completion.
 
 ## Reproduce
 
-Use Node 24 and the installed dependencies. Set I1_TEST_DATABASE_URL outside git to the dedicated local database named gilir_i1. The runner creates and removes only its random I1 schemas and owns its child processes and HTTP ports.
+Use Node 24 and set `I1_TEST_DATABASE_URL` outside Git to the disposable local database named `gilir_i1`. The runner allocates its own ports, random schemas, and child processes.
 
 ```sh
 I1_LIVE=1 I1_REPORT_PATH=docs/evidence/I1/new-live-report.json npx vitest run tests/integration/runtime
@@ -57,8 +45,6 @@ TEST_DATABASE_URL="$I1_TEST_DATABASE_URL" B3_TEST_DATABASE_URL="$I1_TEST_DATABAS
 npm run build
 ```
 
-The CLI alternative is `node --import tsx tests/integration/runtime/live.ts --report docs/evidence/I1/new-live-report.json`. Run one strict entrypoint when repeating acceptance; the CLI and Vitest use the same runner. The expected primary result is fixed to plan_with_warnings. There is no expected-state environment override. Preflight never satisfies restart acceptance. A skipped live test is not a passing live result.
+Run one strict entrypoint. The CLI alternative is `node --import tsx tests/integration/runtime/live.ts --report docs/evidence/I1/new-live-report.json`. A preflight or skipped live test cannot satisfy acceptance. The primary expected state cannot be overridden through the environment.
 
-## Workflow
-
-Pstack entrypoint `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, Bug fix and Shipping. Separate worktrees kept E1 data and I1 tests independent. Model the Domain made named live cases and source-row dispositions explicit. Fix Root Causes corrected the product identity comparison. Prove It Works required the real pipeline, retained failures, and direct cleanup checks. Deslop and fresh local no-comments reviews preceded final review. Merge and deployment are separate actions.
+Pstack entrypoint `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, Bug fix and Shipping playbooks. Scope is I1 harness and evidence only. Production runtime, reviewed crop data, and F4 code are unchanged.
