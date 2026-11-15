@@ -11,7 +11,7 @@ import { providerPolicy } from "@/features/location/provider";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
 import {
-  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, openPageOne,
+  betweenBars, centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, openPageOne,
   settledCentre, shoot,
 } from "./support/slot";
 import type { Point } from "./support/slot";
@@ -265,4 +265,23 @@ test("[R16] on F1's page 1, from the world view, with NASA's pictures answering 
   await expect(notice).toBeVisible();
   expect(routes.of("tilejson").length).toBeGreaterThan(0);
   expect(routes.of("tile")).toHaveLength(0);
+});
+
+test("[R16][R22] on F1's page 1 the answer to Search comes into view above F1's dock: the places found, then a search that could not reach the provider", async ({ page }) => {
+  const routes = await routeProviders(page, allAnswer);
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  await searchBox(root).fill("Indramayu");
+  await searchBox(root).press("Enter");
+  const first = placeRow(root, "Indramayu").first();
+  await expect(first).toBeVisible();
+  await expect.poll(() => betweenBars(page, first), { message: "the first place is between F1's bar and dock" }).toBe(true);
+
+  routes.plan.search = "offline";
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await searchBox(root).fill("Ushuaia");
+  await searchBox(root).press("Enter");
+  const reason = root.getByText("We couldn’t reach the place search. Check your internet connection, then press Search again. You can also type a position or your field’s corners.");
+  await expect(reason).toBeVisible();
+  await expect.poll(() => betweenBars(page, reason), { message: "the reason is between F1's bar and dock" }).toBe(true);
 });

@@ -277,7 +277,7 @@ describe("coverage and voice", () => {
 
   it("[R16][R20] with no key nothing points at a name search: the box is named for a position, and 'We couldn’t find you yet' says to type one", () => {
     expect(searchBox.missing.label).toBe("Position of your farm");
-    expect(searchBox.missing.placeholder).toBe("For example: -6.326, 108.32");
+    expect(searchBox.missing.placeholder).toBe("-6.326, 108.32");
     for (const text of Object.values(searchBox.missing)) expect(text).not.toMatch(/village|town|name|Indramayu/i);
     for (const why of ["timeout", "unavailable"] as const) {
       expect(locateFailed(why, "missing").body).toMatch(/close this and type a position\.$/);

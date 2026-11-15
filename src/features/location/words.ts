@@ -31,7 +31,7 @@ export const searchBox: Record<Provider["kind"], { readonly form: string; readon
   missing: {
     form: "Find your farm by its position",
     label: "Position of your farm",
-    placeholder: "For example: -6.326, 108.32",
+    placeholder: "-6.326, 108.32",
     hint: "Type a position, like -6.326, 108.32, then press Search or Enter.",
   },
 };

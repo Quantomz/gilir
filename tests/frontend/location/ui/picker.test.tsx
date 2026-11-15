@@ -81,7 +81,7 @@ describe("with no key and no WebGL", () => {
   it("[R16][R20] the search box is named for a position and its hint asks for one; the corner list is open without a press; 'Use my location' is there", async () => {
     mount();
     await drawing();
-    expect(screen.getByRole("searchbox", { name: "Position of your farm" }).getAttribute("placeholder")).toBe("For example: -6.326, 108.32");
+    expect(screen.getByRole("searchbox", { name: "Position of your farm" }).getAttribute("placeholder")).toBe("-6.326, 108.32");
     expect(screen.getByRole("search", { name: "Find your farm by its position" })).toBeTruthy();
     expect(descriptionOf(searchbox())).toMatch(/Type a position, like -6\.326, 108\.32/);
     expect(screen.getByRole("region", { name: "Type the corners of your field" })).toBeTruthy();

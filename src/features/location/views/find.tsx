@@ -53,6 +53,8 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
   const latest = useRef(0);
   const running = useRef<AbortController | null>(null);
   const input = useRef<HTMLInputElement | null>(null);
+  const results = useRef<HTMLUListElement>(null);
+  const status = useRef<HTMLParagraphElement>(null);
   const searchTarget = c.focusRef("search");
   const inputRef = useCallback((element: HTMLInputElement | null) => {
     input.current = element;
@@ -65,6 +67,10 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
     running.current = null;
   }, []);
   useEffect(() => stop, [stop]);
+  // On a phone the answer can land under F1's dock, and then pressing Search looks like nothing happened.
+  useEffect(() => {
+    if (state.kind !== "idle" && state.kind !== "sending") (results.current ?? status.current)?.scrollIntoView({ block: "nearest" });
+  }, [state]);
 
   function submit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -149,7 +155,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
       </div>
       <p id={c.idOf("search-hint")} className="muted fp-small">{box.hint}</p>
       {places ? (
-        <ul id={c.idOf("results")} className="fp-results" aria-label={search.list}>
+        <ul id={c.idOf("results")} ref={results} className="fp-results" aria-label={search.list}>
           {places.map((place, index) => (
             <li key={`${index}-${place.name}`}>
               <button className="fp-result" type="button" onClick={() => choose(place)}>
@@ -163,7 +169,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
           ))}
         </ul>
       ) : null}
-      <p className={line ? (failed ? "error-text error-soft" : "muted") : "sr"} role="status">
+      <p ref={status} className={line ? (failed ? "error-text error-soft" : "muted") : "sr"} role="status">
         {line && failed ? <Icon name="alert" /> : null}
         {line ? <span>{line}</span> : said}
       </p>

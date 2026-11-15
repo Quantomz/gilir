@@ -18,9 +18,9 @@ import { routeProviders } from "./support/providers";
 import type { ProviderPlan } from "./support/providers";
 import { good, strictlyInside } from "./support/shapes";
 import {
-  centreOf, centresOf, cornersOnPage, distance, drag, dragHandle, expectFieldOnPage, firstPicker, focusableUnderDock,
-  handBack, handles, handlesInMap, isConcave, layoutProblems, lookupOf, mapArea, openPageOne, pixelsAt, retype,
-  settledCentre, shoot, tabTo, typeCorners,
+  betweenBars, centreOf, centresOf, cornersOnPage, distance, drag, dragHandle, expectFieldOnPage, firstPicker,
+  focusableUnderDock, handBack, handles, handlesInMap, isConcave, layoutProblems, lookupOf, mapArea, openPageOne, pixelsAt,
+  retype, settledCentre, shoot, swipe, tabTo, typeCorners,
 } from "./support/slot";
 
 test.use({ launchOptions: { executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium" } });
@@ -44,6 +44,10 @@ async function loseContext(page: Page, restoreMs: number | null): Promise<void> 
     lose.loseContext();
     if (restore !== null) setTimeout(() => lose.restoreContext(), restore);
   }, restoreMs);
+}
+
+async function setTextSize(page: Page, textSize: "normal" | "large" | "largest"): Promise<void> {
+  await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
 }
 
 async function searchPosition(root: Locator, text: string): Promise<void> {
@@ -194,10 +198,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await routeProviders(page);
       const root = await openPageOne(page);
       await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
-      const inView = async (locator: Locator) => {
-        const [box, bar, dock] = await Promise.all([locator.boundingBox(), page.locator(".topbar").boundingBox(), page.locator(".dock").first().boundingBox()]);
-        return Boolean(box && bar && dock) && box!.y >= bar!.y + bar!.height - 1 && box!.y + box!.height <= dock!.y + 1;
-      };
+      const inView = (locator: Locator) => betweenBars(page, locator);
       await mapArea(root).scrollIntoViewIfNeeded();
       const map = (await mapArea(root).boundingBox())!;
       await page.mouse.click(map.x + map.width / 2 + 20, map.y + map.height / 2);
@@ -421,7 +422,7 @@ for (const { textSize, width, height } of textSizes) {
 
     test("[R22] on F1's page 1 with a field, the map is at least 480 px wide and no zoom button covers a corner handle", async ({ page }) => {
       await routeProviders(page);
-      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      await setTextSize(page, textSize);
       const root = (await openPageOne(page, inputFixture)).first();
       await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
       await mapArea(root).scrollIntoViewIfNeeded();
@@ -476,5 +477,82 @@ test.describe("the globe on a 360x740 phone", () => {
     await expect(root.getByText(/^The globe stopped working on this phone\./)).toBeVisible();
     await expect(root.getByRole("heading", { name: "Type the corners of your field" })).toBeFocused();
     expect(await lookupOf(root)).toEqual(inputFixture.field.lookup);
+  });
+
+  for (const textSize of ["large", "largest"] as const) {
+    test(`[R20][R22] ${textSize} text: the no-key search box shows the whole of a typed position, which is also its example`, async ({ page }) => {
+      await routeProviders(page);
+      await setTextSize(page, textSize);
+      const root = (await openPageOne(page)).first();
+      const box = root.getByRole("searchbox", { name: "Position of your farm" });
+      await expect(box).toHaveAttribute("placeholder", "-6.326, 108.32");
+      await box.fill("-6.326, 108.32");
+      expect(await box.evaluate((input: HTMLInputElement) => input.scrollWidth <= input.clientWidth), "the typed position fits in the box").toBe(true);
+    });
+  }
+
+  for (const textSize of ["normal", "largest"] as const) {
+    test(`[R16][R22] ${textSize} text: on F1's page 1 the answer to Search comes into view above F1's dock, for a name with no key and for a position out of range`, async ({ page }) => {
+      await routeProviders(page);
+      await setTextSize(page, textSize);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      const box = root.getByRole("searchbox", { name: "Position of your farm" });
+      const answers = [
+        { typed: "Indramayu", answer: "Searching by name isn’t set up on this site. Type a position, like -6.326, 108.32, or your field’s corners." },
+        { typed: "-6.326, 200", answer: "Longitude goes from -180 to 180." },
+      ];
+      for (const { typed, answer } of answers) {
+        await box.fill(typed);
+        await box.press("Enter");
+        const line = root.getByText(answer);
+        await expect(line).toBeVisible();
+        await expect.poll(() => betweenBars(page, line), { message: `"${answer}" is between F1's bar and dock` }).toBe(true);
+      }
+    });
+  }
+});
+
+for (const textSize of ["normal", "large", "largest"] as const) {
+  test.describe(`${textSize} text on a 360x740 touch phone`, () => {
+    test.use({ viewport: { width: 360, height: 740 }, hasTouch: true });
+
+    test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }) => {
+      await routeProviders(page);
+      await setTextSize(page, textSize);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      const box = root.getByRole("searchbox", { name: "Position of your farm" });
+      await box.fill("-6.326, 108.32");
+      await box.press("Enter");
+      await root.getByRole("button", { name: "Mark my field" }).click();
+      await expect(handles(root)).toHaveCount(4);
+      await mapArea(root).evaluate(element => element.scrollIntoView({ block: "start" }));
+      const [map, dock] = await Promise.all([mapArea(root).boundingBox(), page.locator(".dock").first().boundingBox()]);
+      const strip = dock!.y - (map!.y + map!.height);
+      expect(strip, `the strip between the map and F1's dock at ${textSize} text`).toBeGreaterThanOrEqual(48);
+      const before = await page.evaluate(() => window.scrollY);
+      const from = { x: 180, y: map!.y + map!.height + strip / 2 };
+      await swipe(page, from, { x: from.x, y: from.y - 150 });
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 30);
+    });
+  });
+}
+
+test.describe("the globe at 1280x800", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("[R22] in two columns the map stays in view beside the corner list while the farmer types corner 3", async ({ page }) => {
+    await routeProviders(page);
+    const root = (await openPageOne(page, inputFixture)).first();
+    await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+    await root.getByRole("button", { name: "Type the corners" }).click();
+    const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+    await latitude.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type("1");
+    await expect(latitude).toBeFocused();
+    await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
+    await expect.poll(() => betweenBars(page, latitude)).toBe(true);
   });
 });

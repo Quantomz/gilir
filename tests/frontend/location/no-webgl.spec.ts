@@ -11,7 +11,8 @@ import { inputFixture } from "@/fixtures/input";
 import { routeProviders } from "./support/providers";
 import { good } from "./support/shapes";
 import {
-  cornerList, expectFieldOnPage, firstPicker, layoutProblems, lookupOf, openPageOne, retype, shoot, tabTo, typeCornersByKeyboard,
+  betweenBars, cornerList, expectFieldOnPage, firstPicker, layoutProblems, lookupOf, mapArea, openPageOne, retype, shoot, tabTo,
+  typeCornersByKeyboard,
 } from "./support/slot";
 
 test.use({
@@ -114,4 +115,21 @@ test("[R22] at 360 px on F1's page 1, the drawing, the list and every control fi
   await expect(cornerList(root)).toBeVisible();
   expect(await layoutProblems(page, root)).toEqual([]);
   await shoot(page, testInfo, "no-webgl-largest-text-360", drawingOf(root));
+});
+
+test.describe("at 1280x800", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("[R22] in two columns the drawing stays in view beside the corner list while the farmer types corner 3", async ({ page }) => {
+    await routeProviders(page);
+    const root = (await openPageOne(page, inputFixture)).first();
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+    const latitude = cornerList(root).getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+    await latitude.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type("1");
+    await expect(latitude).toBeFocused();
+    await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
+    await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+  });
 });
