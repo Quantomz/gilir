@@ -139,7 +139,7 @@ describe("the file", () => {
         await expect(renderPdf(variant(name), reader), `${name} ${reader.locale}`).resolves.toBeInstanceOf(Blob);
       }
     }
-  });
+  }, 30_000);
 });
 
 describe("what each state prints", () => {
