@@ -1,0 +1,225 @@
+{
+  "deployment": [
+    {
+      "id": "b8e81057-b40d-4f6c-8df7-e50220191b7e",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-15T10:31:20.443Z",
+      "updatedAt": "2026-11-15T10:33:49.676Z",
+      "serviceId": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+      "environmentId": "05626386-ac59-4759-9f42-2118d6941513",
+      "url": null,
+      "snapshotId": "6b239dc1-bc10-42b0-941e-ed6e7eb1e0c6",
+      "canRollback": true,
+      "canRedeploy": true,
+      "regions": [
+        "asia-southeast1-eqsg3a"
+      ],
+      "meta": {
+        "reason": "deploy",
+        "commitMessage": "fix(f2): add linked MapTiler logo and preserve fallback labels (#50)\n\n* test(f2): require linked MapTiler attribution\n\n* test(f2): keep fallback corner labels clear\n\n* fix(f2): display linked MapTiler logo without hiding corners\n\n* fix(f2): share fallback sizing within CSS conventions\n\n* docs(f2): record logo and fallback verification",
+        "commitHash": "16f1652ff4a6f3e72a3927008b9418c141104dd0",
+        "branch": "main"
+      }
+    }
+  ],
+  "runtime": [
+    {
+      "timestamp": "2026-11-15T10:33:37.892870407Z",
+      "message": "Starting Container"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.385523915Z",
+      "message": "▲ Next.js 16.4.6"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.385526435Z",
+      "message": "- Local:         http://localhost:8080"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.385528985Z",
+      "message": "- Network:       http://0.0.0.0:8080"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.385534415Z",
+      "message": "✓ Ready in 100ms"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.385536815Z",
+      "message": "✓ Running next.config.ts took 22ms"
+    },
+    {
+      "timestamp": "2026-11-15T10:33:46.406900857Z",
+      "message": "Starting Container"
+    }
+  ],
+  "services": {
+    "web": {
+      "service": {
+        "id": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+        "name": "gilir-web"
+      },
+      "environment": {
+        "id": "05626386-ac59-4759-9f42-2118d6941513",
+        "name": "production"
+      },
+      "config": {
+        "source": {
+          "repo": "Quantomz/nefalos_nasa_hackathon",
+          "branch": "main",
+          "commitSha": "16f1652ff4a6f3e72a3927008b9418c141104dd0"
+        },
+        "networking": {
+          "serviceDomains": {
+            "gilir-web-production.up.railway.app": {
+              "port": 8080
+            }
+          },
+          "privateNetworkEndpoint": "nefalosnasahackathon"
+        },
+        "build": {
+          "builder": "DOCKERFILE",
+          "buildEnvironment": "V3",
+          "dockerfilePath": "Dockerfile"
+        },
+        "deploy": {
+          "startCommand": "sh deploy/start.sh web",
+          "preDeployCommand": [
+            "sh deploy/start.sh migrate"
+          ],
+          "preDeployTimeoutSeconds": 120,
+          "healthcheckPath": "/",
+          "healthcheckTimeout": 120,
+          "useLegacyStacker": false,
+          "ipv6EgressEnabled": false,
+          "runtime": "V2",
+          "multiRegionConfig": {
+            "asia-southeast1-eqsg3a": {
+              "numReplicas": 1
+            }
+          },
+          "drainingSeconds": 30,
+          "overlapSeconds": 0
+        }
+      },
+      "variableNames": [
+        "DATABASE_URL",
+        "GILIR_DATA_CUTOFF",
+        "NEXT_PUBLIC_MAPTILER_KEY",
+        "PORT"
+      ],
+      "staged": null
+    },
+    "worker": {
+      "service": {
+        "id": "1bcb4429-f681-49f1-abfc-c36922c2398e",
+        "name": "nefalos_nasa_hackathon Copy"
+      },
+      "environment": {
+        "id": "05626386-ac59-4759-9f42-2118d6941513",
+        "name": "production"
+      },
+      "config": {
+        "source": {
+          "repo": "Quantomz/nefalos_nasa_hackathon",
+          "branch": "main",
+          "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+        },
+        "networking": {
+          "privateNetworkEndpoint": "nefalosnasahackathon-copy"
+        },
+        "build": {
+          "builder": "DOCKERFILE",
+          "buildEnvironment": "V3",
+          "dockerfilePath": "Dockerfile"
+        },
+        "deploy": {
+          "startCommand": "sh deploy/start.sh worker",
+          "preDeployCommand": [
+            "sh deploy/start.sh migrate"
+          ],
+          "preDeployTimeoutSeconds": 120,
+          "useLegacyStacker": false,
+          "ipv6EgressEnabled": false,
+          "runtime": "V2",
+          "multiRegionConfig": {
+            "asia-southeast1-eqsg3a": {
+              "numReplicas": 1
+            }
+          },
+          "drainingSeconds": 300,
+          "overlapSeconds": 0
+        }
+      },
+      "variableNames": [
+        "DATABASE_URL",
+        "WORKER_LEASE_SECONDS",
+        "WORKER_POLL_MILLISECONDS"
+      ],
+      "staged": null
+    },
+    "cleanup": {
+      "service": {
+        "id": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+        "name": "nefalos_nasa_hackathon Copy Copy"
+      },
+      "environment": {
+        "id": "05626386-ac59-4759-9f42-2118d6941513",
+        "name": "production"
+      },
+      "config": {
+        "source": {
+          "repo": "Quantomz/nefalos_nasa_hackathon",
+          "branch": "main",
+          "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+        },
+        "networking": {
+          "privateNetworkEndpoint": "nefalosnasahackathon-copy-copy"
+        },
+        "build": {
+          "builder": "DOCKERFILE",
+          "buildEnvironment": "V3",
+          "dockerfilePath": "Dockerfile"
+        },
+        "deploy": {
+          "startCommand": "sh deploy/start.sh cleanup",
+          "preDeployCommand": [
+            "sh deploy/start.sh migrate"
+          ],
+          "preDeployTimeoutSeconds": 120,
+          "restartPolicyType": "NEVER",
+          "useLegacyStacker": false,
+          "ipv6EgressEnabled": false,
+          "cronSchedule": "0 * * * *",
+          "runtime": "V2",
+          "multiRegionConfig": {
+            "asia-southeast1-eqsg3a": {
+              "numReplicas": 1
+            }
+          },
+          "drainingSeconds": 30,
+          "overlapSeconds": 0
+        }
+      },
+      "variableNames": [
+        "DATABASE_URL"
+      ],
+      "staged": null
+    }
+  },
+  "pending": {
+    "project": {
+      "id": "a110cf19-bdbc-45eb-9769-e4c98ffeee82",
+      "name": "gilir"
+    },
+    "environment": {
+      "id": "05626386-ac59-4759-9f42-2118d6941513",
+      "name": "production"
+    },
+    "staged": null,
+    "destructive": false,
+    "resources": [],
+    "sharedVariables": [],
+    "privateNetworkDisabled": null
+  },
+  "imageDigest": "sha256:ec5bee09e346eae38dbfaf52a5e314bb4b3a465e45419daaf059eb1595d01a75"
+}
