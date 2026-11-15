@@ -1,0 +1,98 @@
+/* F2's component classes: the prototype's page 1 styles that F1's terrace.css does not carry (threefield-web
+   src/styles.css: .search, .results, .place-card, .find-way, .map, .map-btn, .pin, .mark-shape, .size-row, .corner).
+   F1's classes are reused as they are: .btn and its variants, .field, .label, .hint, .input-wrap, .search-row, .note,
+   .note-warn, .error-text, .sheet-head, .section-t, .stack-s, .muted, .sr. F1's tokens are used as they are, including
+   --label-bg and --map-mode, which F1 defines for light, dark and high contrast. This file defines no token and names
+   no colour except the pin's drop shadow (conventions.test.ts).
+   Every class here starts with fp-, so none can collide with F1's (.search-row, .btn-sub, .btn-close already exist)
+   or F3's. Breakpoints are px because media queries ignore the 125% root (F1's rule).
+   Layers: these rules join Tailwind's components layer, so a utility on the same element still wins. The first line
+   restates the layer order, so it holds even if this file loads before globals.css. MapLibre's stylesheet is
+   unlayered, so the few overrides of it at the end are unlayered too, and scoped under .fp. */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .fp { min-width: 0; }
+  .fp :is(h2, h3):focus { outline: none; }
+
+  /* search (prototype .search, .search-go, .results), on F1's .search-row and .input-wrap */
+  .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
+  .fp-search-go { flex: 1 0 auto; min-height: var(--tap-s); padding-inline: 1.2rem; }
+  .fp-clear { flex: none; display: inline-grid; place-items: center; width: var(--tap-min); height: var(--tap-min); border: 0; border-radius: 50%; background: transparent; color: var(--ink-2); }
+  .fp-results { margin: 0; padding: 6px; list-style: none; display: grid; gap: 2px; background: var(--raised); border-radius: var(--r-m); box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-result { display: grid; gap: .1rem; width: 100%; min-height: var(--tap-s); padding: .5rem .8rem; border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); text-align: left; }
+  .fp-result:hover { background: var(--mint); }
+  .fp-result b { display: block; line-height: 1.2; }
+  .fp-result span { color: var(--ink-2); font-size: var(--fs-s); line-height: 1.25; }
+
+  /* ways to find, the place card, "Mark my field" (prototype .find-way, .place-card, .pinic) */
+  .fp-way { background: var(--mint); border-color: var(--mint); }
+  [data-contrast="high"] .fp-way { border-color: var(--ink); }
+  .fp-go { min-height: var(--tap); background: var(--mint); border-color: var(--ink); }
+  .fp-place { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .75rem; align-items: center; }
+  .fp-pinic { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--warn-soft); color: var(--pin); }
+  .fp-locate { display: grid; gap: .75rem; padding: 1rem; border-radius: var(--r-m); background: var(--sunk); }
+
+  /* the map area (prototype .map, .map-ctrls, .map-btn, .pin) */
+  .fp-map { position: relative; width: 100%; height: min(55svh, 28rem); min-height: 15rem; overflow: hidden; border-radius: var(--r-m); background: var(--water-soft); box-shadow: var(--card-edge); }
+  .fp-map-gl { position: absolute; inset: 0; }
+  .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
+  [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
+  .fp-map-ctrls { position: absolute; right: 8px; top: 8px; z-index: 5; display: grid; gap: 4px; justify-items: center; }
+  .fp-map-btn { display: grid; justify-items: center; gap: 3px; min-width: var(--tap-min); padding: 0; border: 0; background: transparent; color: var(--ink); scroll-margin-bottom: var(--bar-bottom, 0px); }
+  .fp-map-btn i { display: grid; place-items: center; width: var(--tap-min); height: var(--tap-min); border-radius: 50%; background: var(--raised); box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-map-btn span { padding: .05rem .55rem; border-radius: 999px; background: var(--raised); box-shadow: var(--shadow), var(--card-edge); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; white-space: nowrap; }
+  .fp-loading { position: absolute; inset: auto 8px 8px; z-index: 5; font-size: var(--fs-s); }
+  .fp-pin { width: 48px; height: 62px; color: var(--pin); transform-origin: 50% 100%; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)); pointer-events: none; }
+  .fp-pill { padding: .15rem .8rem; border-radius: 999px; background: var(--label-bg); color: var(--on-night); font-size: var(--fs-s); font-weight: 700; white-space: nowrap; }
+
+  /* a corner handle: a 48 px target around a 14 px square (prototype .ms-corner). Pointer only: aria-hidden. */
+  .fp-handle { display: grid; place-items: center; width: var(--tap-min); height: var(--tap-min); border-radius: 50%; cursor: grab; touch-action: none; }
+  .fp-handle::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--mint-pill); box-shadow: 0 0 0 2px var(--night); }
+  .fp-handle[data-selected]::before { width: 22px; height: 22px; }
+
+  /* the flat plan (prototype .mark-shape: dark under-stroke, mint edge, corner squares, label pill) */
+  .fp-plan { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--sunk); }
+  .fp-plan-grid { stroke: var(--line); stroke-width: 1; }
+  .fp-plan-under { fill: none; stroke: var(--night); stroke-width: 7; stroke-linejoin: round; }
+  .fp-plan-edge { fill: var(--leaf); fill-opacity: .3; stroke: var(--mint-pill); stroke-width: 3; stroke-linejoin: round; }
+  .fp-plan-corner { fill: var(--mint-pill); stroke: var(--night); stroke-width: 2; }
+  .fp-plan text { fill: var(--ink); font: 700 var(--fs-s) var(--f-body); }
+  .fp-tag { position: absolute; left: 8px; bottom: 8px; padding: .35rem .8rem; border-radius: var(--r-s); background: var(--label-bg); color: var(--on-night); font-size: var(--fs-s); }
+
+  /* credits: readable and always shown (not MapLibre's 12 px collapsed control) */
+  .fp-credits { font-size: var(--fs-s); color: var(--ink-2); }
+  .fp-credits a { color: var(--ink); min-height: var(--tap-min); display: inline-flex; align-items: center; }
+
+  /* marking (prototype .mark-place, .mark-acts, .size-row) */
+  .fp-place-line { display: flex; flex-wrap: wrap; align-items: center; gap: .2rem .5rem; font-weight: 700; }
+  .fp-acts { display: flex; flex-wrap: wrap; gap: 0 .4rem; margin-left: -.7rem; }
+  .fp-status { display: flex; gap: .5rem; align-items: flex-start; font-weight: 700; }
+  .fp-size { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "a r b"; align-items: center; gap: .5rem; }
+  .fp-size > :first-child { grid-area: a; }
+  .fp-size > :last-child { grid-area: b; }
+  .fp-size-read { grid-area: r; display: grid; text-align: center; line-height: 1.25; }
+  .fp-size .btn { min-height: var(--tap-s); padding-inline: .9rem; }
+  @media (max-width: 419px) { .fp-size { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "r r" "a b"; } }
+  .big-text .fp-size { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "r r" "a b"; }
+  .fp-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr)); gap: .5rem; }
+  .fp-tools .btn { min-height: var(--tap-s); }
+
+  /* the corner list (prototype .corner, .corner-in) */
+  .fp-list { display: grid; gap: .75rem; padding: 1rem; border-radius: var(--r-m); background: var(--raised); box-shadow: var(--shadow), var(--card-edge); }
+  .fp-corner { display: grid; gap: .5rem; min-width: 0; margin: 0; padding: .75rem; border: 2px solid var(--line); border-radius: var(--r-s); }
+  [data-contrast="high"] .fp-corner { border-color: var(--ink); }
+  .fp-corner-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: .5rem; }
+  @media (min-width: 460px) { .fp-corner-in { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .big-text .fp-corner-in { grid-template-columns: minmax(0, 1fr); }
+  .fp-corner input { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fp-pin { animation: fp-drop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+    @keyframes fp-drop { from { transform: translateY(-30px) scale(.8); opacity: 0; } }
+  }
+}
+
+/* MapLibre's stylesheet is unlayered, so these are too. */
+.fp .maplibregl-canvas:focus-visible { outline: none; }
+.fp .maplibregl-marker { z-index: 2; }
