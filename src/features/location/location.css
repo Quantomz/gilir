@@ -20,7 +20,7 @@
     .fp { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); grid-template-rows: repeat(6, auto) 1fr; column-gap: var(--s6); row-gap: 0; }
     .fp > * { grid-column: 1; margin-bottom: var(--s4); }
     .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); }
-    .fp .fp-map { --fp-map-height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); --fp-map-min-height: 20rem; }
+    .fp .fp-map, .fp .fp-plan { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
   }
 
   .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
@@ -62,8 +62,9 @@
   .fp .fp-go:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
 
   /* A fixed height leaves a thumb room to scroll the page beside the map, and keeps the map clear of F1's sticky dock. */
-  .fp-map { --fp-map-height: min(55svh, 28rem); --fp-map-min-height: 15rem; container: fp-map / inline-size; position: relative; width: 100%; height: var(--fp-map-height); min-height: var(--fp-map-min-height); overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
-  .big-text .fp-map { --fp-map-min-height: 18rem; }
+  .fp-map, .fp-plan { height: min(55svh, 28rem); min-height: 15rem; }
+  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+  .big-text .fp-map, .big-text .fp-plan { min-height: 18rem; }
   .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
   [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
   [data-contrast="high"] .fp-map { border: 2px solid var(--ink); }
@@ -89,7 +90,7 @@
   .fp-handle::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--mint-pill); box-shadow: 0 0 0 2px var(--night); }
   .fp-handle[data-selected]::before { width: 22px; height: 22px; box-shadow: 0 0 0 3px var(--night); }
 
-  .fp-plan { position: relative; height: var(--fp-map-height); min-height: var(--fp-map-min-height); background: var(--sunk); }
+  .fp-plan { position: relative; background: var(--sunk); }
   .fp-plan svg { display: block; }
   .fp-plan-grid { stroke: var(--line); stroke-width: 1; }
   .fp-plan-under { fill: none; stroke: var(--night); stroke-width: 7; stroke-linejoin: round; }

@@ -200,6 +200,6 @@ test.describe("live, no WebGL2", () => {
     await typeCorners(root, good.north);
     await expect.poll(() => lookupOf(root)).not.toEqual(field.lookup);
     await expectFieldOnPage(root, good.north);
-    await shoot(page, testInfo, "live-no-webgl-360");
+    await shoot(page, testInfo, "live-no-webgl-360", root.locator(".fp-map-wrap"));
   });
 });
