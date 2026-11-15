@@ -250,7 +250,7 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
   }
 });
 
-test("[R16] on F1's page 1, from the world view, with NASA's pictures answering and MapTiler's refused (a bad key): 'The map pictures didn’t load. …' shows, and still shows on the marked field", async ({ page }) => {
+test("[R16] on F1's page 1, from the world view, with NASA's pictures answering and MapTiler's refused (a bad key): 'The map pictures didn’t load. …' shows, and still shows on the marked field", async ({ page }, testInfo) => {
   const routes = await routeProviders(page, { ...allAnswer, maptiler: "refused" });
   const root = (await openPageOne(page)).first();
   await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
@@ -263,6 +263,7 @@ test("[R16] on F1's page 1, from the world view, with NASA's pictures answering 
   await expect(handles(root)).toHaveCount(4);
   await page.waitForTimeout(3000);
   await expect(notice).toBeVisible();
+  await shoot(page, testInfo, "provider-close-ups-refused-360", notice);
   expect(routes.of("tilejson").length).toBeGreaterThan(0);
   expect(routes.of("tile")).toHaveLength(0);
 });

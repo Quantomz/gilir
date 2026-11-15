@@ -126,7 +126,7 @@ test("[R22] at 360 px on F1's page 1, the drawing, the list and every control fi
 test.describe("at 1280x800", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("[R22] in two columns the drawing stays in view beside the corner list while the farmer types corner 3", async ({ page }) => {
+  test("[R22] in two columns the drawing stays in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
     await routeProviders(page);
     const root = (await openPageOne(page, inputFixture)).first();
     await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
@@ -137,5 +137,6 @@ test.describe("at 1280x800", () => {
     await expect(latitude).toBeFocused();
     await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
     await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+    await shoot(page, testInfo, "no-webgl-typing-1280");
   });
 });

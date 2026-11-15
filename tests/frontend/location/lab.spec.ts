@@ -492,7 +492,7 @@ test.describe("the globe on a 360x740 phone", () => {
   }
 
   for (const textSize of ["normal", "largest"] as const) {
-    test(`[R16][R22] ${textSize} text: on F1's page 1 the answer to Search comes into view above F1's dock, for a name with no key and for a position out of range`, async ({ page }) => {
+    test(`[R16][R22] ${textSize} text: on F1's page 1 the answer to Search comes into view above F1's dock, for a name with no key and for a position out of range`, async ({ page }, testInfo) => {
       await routeProviders(page);
       await setTextSize(page, textSize);
       const root = (await openPageOne(page)).first();
@@ -509,6 +509,7 @@ test.describe("the globe on a 360x740 phone", () => {
         await expect(line).toBeVisible();
         await expect.poll(() => betweenBars(page, line), { message: `"${answer}" is between F1's bar and dock` }).toBe(true);
       }
+      await shoot(page, testInfo, `page-one-search-answer-${textSize}-360`);
     });
   }
 });
@@ -517,7 +518,7 @@ for (const textSize of ["normal", "large", "largest"] as const) {
   test.describe(`${textSize} text on a 360x740 touch phone`, () => {
     test.use({ viewport: { width: 360, height: 740 }, hasTouch: true });
 
-    test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }) => {
+    test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }, testInfo) => {
       await routeProviders(page);
       await setTextSize(page, textSize);
       const root = (await openPageOne(page)).first();
@@ -528,9 +529,11 @@ for (const textSize of ["normal", "large", "largest"] as const) {
       await root.getByRole("button", { name: "Mark my field" }).click();
       await expect(handles(root)).toHaveCount(4);
       await mapArea(root).evaluate(element => element.scrollIntoView({ block: "start" }));
+      await settledCentre(handles(root).first());
       const [map, dock] = await Promise.all([mapArea(root).boundingBox(), page.locator(".dock").first().boundingBox()]);
       const strip = dock!.y - (map!.y + map!.height);
       expect(strip, `the strip between the map and F1's dock at ${textSize} text`).toBeGreaterThanOrEqual(48);
+      if (textSize === "largest") await shoot(page, testInfo, "page-one-largest-marked-360");
       const before = await page.evaluate(() => window.scrollY);
       const from = { x: 180, y: map!.y + map!.height + strip / 2 };
       await swipe(page, from, { x: from.x, y: from.y - 150 });
@@ -542,7 +545,7 @@ for (const textSize of ["normal", "large", "largest"] as const) {
 test.describe("the globe at 1280x800", () => {
   test.use({ viewport: { width: 1280, height: 800 } });
 
-  test("[R22] in two columns the map stays in view beside the corner list while the farmer types corner 3", async ({ page }) => {
+  test("[R22] in two columns the map stays in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
     await routeProviders(page);
     const root = (await openPageOne(page, inputFixture)).first();
     await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
@@ -554,5 +557,6 @@ test.describe("the globe at 1280x800", () => {
     await expect(latitude).toBeFocused();
     await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
     await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+    await shoot(page, testInfo, "page-one-typing-1280");
   });
 });
