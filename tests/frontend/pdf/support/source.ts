@@ -6,10 +6,12 @@ import ts from "typescript";
 const root = fileURLToPath(new URL("../../../../", import.meta.url));
 const at = (path: string) => join(root, path);
 
-export function sourceFiles(dir: string): string[] {
+/** With `mentioning`, only files whose text holds it: parsing all of src and tests overruns the test timeout. */
+export function sourceFiles(dir: string, mentioning?: string): string[] {
   return readdirSync(at(dir), { withFileTypes: true, recursive: true })
     .filter(entry => entry.isFile() && /\.(ts|tsx|mts|js|mjs)$/.test(entry.name))
-    .map(entry => relative(root, join(entry.parentPath, entry.name)).replaceAll("\\", "/"));
+    .map(entry => relative(root, join(entry.parentPath, entry.name)).replaceAll("\\", "/"))
+    .filter(path => mentioning === undefined || readFileSync(at(path), "utf8").includes(mentioning));
 }
 
 export function parse(path: string): ts.SourceFile {
