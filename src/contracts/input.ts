@@ -40,8 +40,10 @@ const historySchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+export const farmInputSchemaVersion = 1 as const;
+
 export const farmInputSchema = z.strictObject({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(farmInputSchemaVersion),
   field: z.strictObject({
     ring: z.array(lngLatSchema).min(4).max(inputLimits.polygonVertices + 1).readonly(),
     lookup: lngLatSchema,

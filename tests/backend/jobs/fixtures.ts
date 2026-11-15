@@ -1,5 +1,5 @@
 import { inputFixture } from "@/fixtures/input";
-import { frozenRunFixture } from "@/fixtures/science";
+import { frozenRunFixture, syntheticRegistryFixture } from "@/fixtures/science";
 import { resultFixtures } from "@/fixtures/results";
 import { parsePlanResult } from "@/contracts/result";
 import { hashNormalizedInput } from "@/server/jobs";
@@ -19,3 +19,5 @@ export const completedJobResultFixture = parsePlanResult({
     },
   },
 });
+
+export const snapshotCompletionFixture = { result: completedJobResultFixture, catalogue: syntheticRegistryFixture.catalogue };

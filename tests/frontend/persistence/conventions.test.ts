@@ -51,11 +51,12 @@ describe("src/client/storage.ts", () => {
     expectTypeOf(localPlans).toEqualTypeOf<LocalPlans>();
   });
 
-  it("imports completedSnapshotSchema and farmInputSchema from src/contracts, and its only own zod schema is the job capability guard", () => {
+  it("imports shared snapshot, input and capability schemas without declaring private schemas", () => {
     const imports = moduleUses(storagePath).filter(use => use.kind === "static value");
-    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema"] }));
-    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/input", names: ["farmInputSchema"] }));
-    expect(zodDeclarations()).toEqual(["capabilityGuard"]);
+    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema", "completedSnapshotSchemaVersion"] }));
+    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/input", names: ["farmInputSchema", "farmInputSchemaVersion"] }));
+    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/jobs", names: ["jobCapabilitySchema"] }));
+    expect(zodDeclarations()).toEqual([]);
   });
 
   it("vitest/node still exports createViteServer, which starts the browser harness's Vite", async () => {

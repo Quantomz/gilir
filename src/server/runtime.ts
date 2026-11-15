@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import type { ClimateCache, EngineSettings, FrozenRun, JobStore, PlanResult, ReleasedRegistry, ServiceFailure } from "@/contracts";
-import { parsePlanResult, releasedRegistrySchema } from "@/contracts";
+import { completedSnapshotSchemaVersion, completedSnapshotV2Schema, parsePlanResult, releasedRegistrySchema } from "@/contracts";
 import type { calculate } from "@/engine";
 import type { readRegistryRelease } from "@/registry";
 import type { prepareClimate } from "@/server/climate";
@@ -92,7 +92,7 @@ export async function runWorkerOnce(dependencies: RuntimeDependencies): Promise<
   try {
     if (!await renew()) return lostResult;
     const registry = immutable(releasedRegistrySchema.parse(dependencies.readRegistryRelease(claim.registry.catalogueVersion)));
-    if (registry.identity.catalogueVersion !== claim.registry.catalogueVersion || registry.identity.ruleVersion !== claim.registry.ruleVersion) {
+    if (registry.identity.catalogueVersion !== claim.registry.catalogueVersion || registry.identity.ruleVersion !== claim.registry.ruleVersion || registry.catalogue.version !== claim.registry.catalogueVersion) {
       throw new Error("The exact frozen registry release is unavailable.");
     }
     let run = claim.frozenRun;
@@ -139,8 +139,12 @@ export async function runWorkerOnce(dependencies: RuntimeDependencies): Promise<
       || sortedJson(provenance.manifest.value) !== sortedJson(run.manifest)) {
       throw new Error("Calculation output does not identify the exact frozen run.");
     }
+    const completion = { result, catalogue: registry.catalogue };
+    completedSnapshotV2Schema.parse({
+      schemaVersion: completedSnapshotSchemaVersion, id: lease.jobId, completedAt: now(), input: run.input, ...completion,
+    });
     if (!await renew()) return lostResult;
-    const accepted = await jobs.complete(lease, result, now());
+    const accepted = await jobs.complete(lease, completion, now());
     return accepted ? { kind: "completed", jobId: lease.jobId } : lostResult;
   } catch {
     if (!await renew()) return lostResult;

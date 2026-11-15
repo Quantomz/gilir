@@ -3,12 +3,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 import { resultFixtures } from "@/fixtures/results";
 import { climateSnapshotFixture, syntheticRegistryFixture } from "@/fixtures/science";
-import { readRegistryRelease } from "@/registry";
 import { releasedRegistrySchema } from "@/contracts";
 import type { RuntimeDependencies } from "@/server/runtime";
 import { runWorkerLoop, runWorkerOnce } from "@/server/runtime";
 import { executeInThread } from "../../../scripts/worker";
-import { dependencies, MemoryJobs, resultForRun, snapshot } from "./support";
+import { controlledRegistry, dependencies, MemoryJobs, resultForRun, snapshot } from "./support";
 
 describe("injected durable worker", () => {
   it.each(Object.values(resultFixtures))("preserves result state $state", async result => {
@@ -23,7 +22,7 @@ describe("injected durable worker", () => {
     expect(await runWorkerOnce(dependencies(jobs))).toEqual({ kind: "idle" });
     expect(jobs.completions).toBe(1);
     if (!jobs.lease) throw new Error("Expected a lease.");
-    expect(await jobs.complete(jobs.lease, result, dependencies().now())).toBe(false);
+    expect(await jobs.complete(jobs.lease, { result, catalogue: controlledRegistry.catalogue }, dependencies().now())).toBe(false);
   });
 
   it("freezes missing coverage and lets the deterministic engine assess both first attempt and replay", async () => {
@@ -71,6 +70,52 @@ describe("injected durable worker", () => {
     expect(calculate.mock.calls[0]?.[0]).toEqual(frozen);
     expect(Object.isFrozen(calculate.mock.calls[0]?.[0])).toBe(true);
     expect(Object.isFrozen(calculate.mock.calls[0]?.[0]?.climate)).toBe(true);
+  });
+
+  it("pins replay calculation and completion labels even when the default release changes", async () => {
+    const jobs = new MemoryJobs();
+    jobs.crashAfterFreeze = true;
+    await runWorkerOnce(dependencies(jobs));
+    const frozenBytes = JSON.stringify(jobs.frozenRun);
+    jobs.crashAfterFreeze = false;
+    jobs.rejectRenewal = false;
+    const changedDefault = releasedRegistrySchema.parse({
+      ...controlledRegistry,
+      identity: { ...controlledRegistry.identity, catalogueVersion: "worker-controlled-v2" },
+      catalogue: { version: "worker-controlled-v2", entries: controlledRegistry.catalogue.entries.map(entry => ({ ...entry, label: "Changed current label" })) },
+    });
+    const readRegistryRelease = vi.fn<RuntimeDependencies["readRegistryRelease"]>(version => version === undefined ? changedDefault : dependencies(jobs).readRegistryRelease(version));
+    const calculate = vi.fn<RuntimeDependencies["calculate"]>((run, registry) => {
+      expect(registry).toEqual(controlledRegistry);
+      expect(Object.isFrozen(registry.catalogue.entries[0])).toBe(true);
+      return resultForRun(run);
+    });
+    expect((await runWorkerOnce({ ...dependencies(jobs), readRegistryRelease, calculate, now: () => "2026-01-01T00:02:00.000Z" })).kind).toBe("completed");
+    expect(readRegistryRelease.mock.calls).toEqual([[controlledRegistry.identity.catalogueVersion]]);
+    expect(JSON.stringify(jobs.frozenRun)).toBe(frozenBytes);
+    expect(jobs.state.state).toBe("completed");
+    if (jobs.state.state !== "completed") throw new Error("Expected replay completion.");
+    expect(jobs.state.snapshot.schemaVersion).toBe(2);
+    if (jobs.state.snapshot.schemaVersion !== 2) throw new Error("Expected saved catalogue.");
+    expect(jobs.state.snapshot.catalogue).toEqual(controlledRegistry.catalogue);
+    expect(jobs.state.snapshot.catalogue).not.toEqual(changedDefault.catalogue);
+  });
+
+  it.each(["catalogue_version", "release_identity", "duplicate_entries", "missing_selected"] as const)("fails malformed %s completion metadata without reporting a lost lease", async kind => {
+    const jobs = new MemoryJobs();
+    const badRegistry = releasedRegistrySchema.parse({
+      ...controlledRegistry,
+      identity: kind === "release_identity" ? { ...controlledRegistry.identity, ruleVersion: "different-rules" } : controlledRegistry.identity,
+      catalogue: kind === "catalogue_version" ? { ...controlledRegistry.catalogue, version: "different" }
+        : kind === "duplicate_entries" ? { ...controlledRegistry.catalogue, entries: [...controlledRegistry.catalogue.entries, ...controlledRegistry.catalogue.entries] }
+        : kind === "missing_selected" ? { ...controlledRegistry.catalogue, entries: [] } : controlledRegistry.catalogue,
+    });
+    const complete = vi.spyOn(jobs, "complete");
+    const result = await runWorkerOnce({ ...dependencies(jobs), readRegistryRelease: () => badRegistry });
+    expect(result).toMatchObject({ kind: "failed", failure: { code: "processing_failed" } });
+    expect(jobs.state).toMatchObject({ state: "failed", failure: { code: "processing_failed" } });
+    expect(complete).not.toHaveBeenCalled();
+    expect(jobs.completions).toBe(0);
   });
 
   it("rejects a missing exact registry release on replay", async () => {

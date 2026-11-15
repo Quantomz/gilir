@@ -19,7 +19,7 @@ const farmer: LocalState = {
 const lab: LocalState = {
   draft: inputFixture,
   step: 4,
-  activeJob: { jobId: "synthetic-job", token: "synthetic-local-fixture-token" },
+  activeJob: { jobId: "00000000-0000-4000-8000-000000000001", token: "synthetic-local-fixture-token" },
   snapshot: completedSnapshotFixture,
 };
 
