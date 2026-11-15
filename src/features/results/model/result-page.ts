@@ -23,6 +23,7 @@ interface Reading {
   readonly names: CropNames;
   /** The plan keeps last year's rotation, which renames the timeline and the ranking. */
   readonly keeps: boolean;
+  readonly modeling: ResultDetails["modeling"];
 }
 
 interface Body<Id extends string> {
@@ -31,12 +32,18 @@ interface Body<Id extends string> {
 }
 
 export function resultPage(snapshot: CompletedSnapshot, format: Format): ResultPage {
-  const reading: Reading = { input: snapshot.input, format, names: words.cropNamesOf(snapshot), keeps: words.keepsLastYear(snapshot) };
+  const reading: Reading = {
+    input: snapshot.input,
+    format,
+    names: words.cropNamesOf(snapshot),
+    keeps: words.keepsLastYear(snapshot),
+    modeling: snapshot.result.details.modeling,
+  };
   const headSaying = (text: string) => headOf(snapshot, reading, text);
   const result = snapshot.result;
   switch (result.state) {
     case "plan":
-      return { kind: "plan", head: headSaying(words.status.plan), ...planBody(result, reading) };
+      return { kind: "plan", head: headSaying(reading.modeling ? words.modeling.planStatus : words.status.plan), ...planBody(result, reading) };
     case "plan_with_warnings":
       return { kind: "plan", head: headSaying(flaggedSentence(result, reading.names)), ...planBody(result, reading) };
     case "insufficient_data": {
@@ -44,7 +51,7 @@ export function resultPage(snapshot: CompletedSnapshot, format: Format): ResultP
       return { kind: "no_plan", head: headSaying(words.status.insufficient_data), ...noPlanBody(lead, result.details, reading, result.missing) };
     }
     case "no_calendar_fit":
-      return { kind: "no_plan", head: headSaying(proofSentence(result.proof, format)), ...noPlanBody(noFit(result, reading), result.details, reading) };
+      return { kind: "no_plan", head: headSaying(reading.modeling ? words.modeling.noFitStatus : proofSentence(result.proof, format)), ...noPlanBody(noFit(result, reading), result.details, reading) };
     case "search_incomplete":
       return { kind: "no_plan", head: headSaying(words.status.search_incomplete), ...noPlanBody(stopped(result.details.search, reading), result.details, reading) };
     case "service_error":
@@ -106,8 +113,9 @@ function headOf(snapshot: CompletedSnapshot, { format, names }: Reading, statusT
   return {
     eyebrow: words.eyebrowOf(snapshot, format),
     title: words.titleOf(snapshot),
-    status: { ...statusLooks[result.state], label: words.statusLabels[result.state], text: statusText },
+    status: { ...statusLooks[result.state], label: result.state === "plan" && result.details.modeling ? "Modeled calendar." : words.statusLabels[result.state], text: statusText },
     facts: [
+      ...(result.details.modeling ? [words.modeling.label, words.modeling.validation] : []),
       plan === null ? words.head.fieldReady(format.day(input.planningStart)) : words.head.year(yearRange(plan.horizon, format)),
       words.sentenceCase(names.list(input.cropPurposeIds)),
       words.waterLabels[input.water],
@@ -182,17 +190,18 @@ function timeline(plan: Plan, reading: Reading): Section<"timeline"> {
   const spans = planSpans(plan);
   return {
     id: "timeline",
-    title: keeps ? words.sections.timelineKept : words.sections.timeline,
+    title: reading.modeling ? words.modeling.timelineTitle : keeps ? words.sections.timelineKept : words.sections.timeline,
     look: "card",
     blocks: [
       text("muted", words.timeline.caption(yearRange(plan.horizon, format))),
+      ...(reading.modeling ? [text("body", words.modeling.reservation)] : []),
       planYear("plan", null, plan.horizon, spans, spans.map(span => planRow(span, reading)), format),
       text("muted", words.timeline.viewOnly),
     ],
   };
 }
 
-function ranking(plan: Plan, details: ResultDetails, { format, keeps, names }: Reading): Section<"ranking"> {
+function ranking(plan: Plan, details: ResultDetails, { format, keeps, names, modeling }: Reading): Section<"ranking"> {
   const yearDays = daysBetween(plan.horizon.start, plan.horizon.endExclusive);
   const notRanked = [badYearRank(details.metrics), heatRank(plan, details, names)].filter(isPresent);
   return {
@@ -200,8 +209,9 @@ function ranking(plan: Plan, details: ResultDetails, { format, keeps, names }: R
     title: keeps ? words.sections.rankingKept : words.sections.ranking,
     look: "card",
     blocks: [
-      note("neutral", "info", null, words.ranking.fixedOrder),
-      { kind: "ranks", numbered: true, ranks: plan.rankingTuple.components.map(component => tupleRank(component, yearDays, format)) },
+      note("neutral", "info", null, modeling ? words.modeling.fixedOrder : words.ranking.fixedOrder),
+      { kind: "ranks", numbered: true, ranks: plan.rankingTuple.components.map(component => tupleRank(component, yearDays, format, modeling !== undefined)) },
+      ...(modeling ? [text("body", words.modeling.occupancy)] : []),
       ...(notRanked.length === 0 ? [] : [subhead(words.ranking.notRanked), { kind: "ranks", numbered: false, ranks: notRanked } satisfies Block]),
       text("muted", `${words.cohortLine(details.cohort, format)} ${words.ranking.cohort.closing}`),
       ...(details.search.ranking === "limit_reached" ? [bestFoundNote(details.search)] : []),
@@ -213,8 +223,8 @@ export function bestFoundNote(search: ResultDetails["search"]): Block {
   return note("info", "grid", words.search.bestFound, words.search.bestFoundText(words.dayCount(search.gridStepDays)));
 }
 
-function tupleRank(component: RankingComponent, yearDays: number, format: Format): Rank {
-  const question = words.ranking.questions[component.metricId];
+function tupleRank(component: RankingComponent, yearDays: number, format: Format, modeled: boolean): Rank {
+  const question = (modeled ? words.modeling.questions : words.ranking.questions)[component.metricId];
   const { explain } = words.ranking;
   const { value } = component;
   switch (component.metricId) {
@@ -225,9 +235,9 @@ function tupleRank(component: RankingComponent, yearDays: number, format: Format
         ? { icon: null, question, value: words.ranking.values.none, explain: explain.noShortfall }
         : { icon: null, question, value: words.sentenceCase(words.shareWords(value)), explain: explain.shortfall };
     case "unplanted_days":
-      return { icon: null, question, value: words.dayCount(value), explain: explain.unplanted(format.count(yearDays, "day", "days")) };
+      return { icon: null, question, value: words.dayCount(value), explain: (modeled ? words.modeling.unplanted : explain.unplanted)(format.count(yearDays, "day", "days")) };
     case "longest_unplanted_gap":
-      return { icon: null, question, value: words.dayCount(value), explain: explain.longest };
+      return { icon: null, question, value: words.dayCount(value), explain: modeled ? words.modeling.longest : explain.longest };
     default:
       return absurd(component);
   }
@@ -437,7 +447,17 @@ function missing(gaps: Branch<"insufficient_data">["missing"], search: ResultDet
 }
 
 /** No hint about which crops or dates would fit: the proof does not show that. */
-function noFit({ proof, details }: Branch<"no_calendar_fit">, { format, input, names }: Reading): Section<"no_fit"> {
+function noFit({ proof, details }: Branch<"no_calendar_fit">, { format, input, names, modeling }: Reading): Section<"no_fit"> {
+  if (modeling) return {
+    id: "no_fit", title: words.modeling.noFitTitle, look: "card",
+    blocks: [
+      text("body", words.engineText(details.explanation, format)),
+      text("body", words.modeling.noFitScope),
+      ...(proof.kind === "structural_exhaustion"
+        ? [items(proof.constraints.map(constraint => item(words.engineText(constraint, format), [], "info")))]
+        : [text("body", `The modeled cropping slots require at least ${words.dayCount(proof.mandatoryMinimumDays)} within a ${words.dayCount(proof.horizonDays)} horizon.`)]),
+    ],
+  };
   const one = unique(input.cropPurposeIds).length === 1;
   const why: readonly Block[] = proof.kind === "duration_lower_bound"
     ? [
@@ -582,13 +602,16 @@ function planYear(source: "plan" | "baseline", caption: string | null, year: Yea
   return yearBlock(source, caption, year, bars, rows, format);
 }
 
-function planRow(span: PlanSpan, { format, names }: Reading): YearRow {
+function planRow(span: PlanSpan, { format, names, modeling }: Reading): YearRow {
   const { timeline: said } = words;
   if (span.kind === "crop") {
     return {
       mark: String(span.order),
       head: names.name(span.cropPurposeId),
-      lines: [
+      lines: modeling && span.modeledTiming ? [
+        words.modeling.cropDates(format.day(span.planted), format.dayRange(span.modeledTiming.earliestHarvest, span.modeledTiming.latestHarvest)),
+        words.modeling.cropDays(words.dayCount(span.occupiedDays), format.day(span.modeledTiming.latestHarvest), format.day(span.fieldAvailable)),
+      ] : [
         said.cropDates(format.day(span.planted), format.day(span.lastOccupied)),
         said.cropDays(words.dayCount(span.occupiedDays), format.day(span.fieldAvailable)),
       ],
@@ -654,10 +677,10 @@ function bar(year: Year, look: BarLook, from: IsoDate, endExclusive: IsoDate, ma
   return { look, from: shareOf(year, from), to: shareOf(year, endExclusive), mark };
 }
 
-function gapItems(gaps: readonly EvidenceGap[], { format, names }: Reading): Block {
+function gapItems(gaps: readonly EvidenceGap[], { format, names, modeling }: Reading): Block {
   return items(gaps.map(gap => {
     const several = unique(gap.cropPurposeIds).length > 1;
-    const ownLine = words.gapLines[gap.code];
+    const ownLine = modeling ? undefined : words.gapLines[gap.code];
     return item(
       words.gapHeads[gap.code](names.list(gap.cropPurposeIds), several),
       [ownLine === undefined ? words.engineText(gap.reason, format) : ownLine(several)],

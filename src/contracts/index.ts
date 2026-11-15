@@ -5,3 +5,4 @@ export * from "./climate";
 export * from "./engine";
 export * from "./result";
 export * from "./jobs";
+export * from "./model";

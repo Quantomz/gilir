@@ -1,5 +1,6 @@
 import { releasedRegistrySchema } from "@/contracts/registry";
 import type { ReleasedRegistry } from "@/contracts/registry";
+import { parseCompleteModelRelease } from "./models/validate";
 import { scopeLevel, scopesMayOverlap } from "./applicability";
 
 export type ReleaseValidation =
@@ -24,6 +25,10 @@ export function validateRelease(raw: unknown): ReleaseValidation {
     return { ok: false, issues: parsed.error.issues.map(issue => `schema ${issue.path.join(".") || "(root)"}: ${issue.message}`) };
   }
   const release = parsed.data;
+  if (release.modelRelease) {
+    try { parseCompleteModelRelease(release.modelRelease, release.catalogue, release.sources.map(source => source.id)); }
+    catch (error) { return { ok: false, issues: [error instanceof Error ? error.message : "Invalid global model release."] }; }
+  }
   const issues = [...checkSources(release), ...checkProfiles(release), ...checkCatalogue(release), ...checkRules(release), ...checkPrecedence(release)];
   return issues.length === 0 ? { ok: true, release } : { ok: false, issues };
 }

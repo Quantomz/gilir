@@ -1,0 +1,17 @@
+{
+  "schema": "gilir.source-review-bundle-lock.v1",
+  "reviewedOn": "2026-11-15",
+  "reviewScope": "AI technical source review. No professional agronomist approval or local validation.",
+  "files": {
+    "approved-published-32.json": "d27e5fedd12789a2359c024755e318f678a99277809b39be52cb0523a5671090",
+    "evidence-payloads.json": "cdc16d61badc92d4550d549702bce9fcd9d7f362fcb5159daf8a66dbd80e6044",
+    "method-review.json": "c66ec81f780aa526fe3358862e9a176608c1e934e69908c5ecafa2f69bd6e1d2",
+    "per-crop-verdicts.json": "8fd52ebff1b36f26a586828761c7c5520780bb608b5f5d300bb71635b5dcdb56",
+    "published-approval-lock.json": "b79d3199ce0c9a887400262f55df7eee1c037158b5fcf91c684899ae06e8770f",
+    "deferred-eight.json": "ed3148f85c8b41046fa1c88508c97b89413f822255955967e307b6f993d89c4c",
+    "independent-derivation-check.json": "15cc32f40033b0061ee809a1d3ce856ea3586591696951adce865c4ac401ac68",
+    "review.md": "8893b8066ec270096e2e84bd73c205ece6a62a83ed4c8082b6b453733b737c3c",
+    "review_parameters.py": "7945c7033e25e9c2033eccb224b2aab5f9d495505966cb1c09af9329b35c7984",
+    "check_derivations_independently.py": "214a25011b3c67d7c70dc41dbc98b7d1664df924a33c701463b7e48f302df5fc"
+  }
+}

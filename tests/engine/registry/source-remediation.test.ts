@@ -12,9 +12,9 @@ const retiredVersions = [
 
 describe("E1 source correction", () => {
   it("publishes a new identity without rebuilding the retired drafts", () => {
-    expect(latestReleaseVersion).toBe(hardWindowsVersion);
-    expect(releasedVersions).toEqual(["v1-empty", reviewedVersion, hardWindowsVersion]);
-    expect(readRegistryRelease().identity).toEqual({
+    expect(latestReleaseVersion).toBe("fao56-global-32-2026-11-15");
+    expect(releasedVersions).toEqual(["v1-empty", reviewedVersion, hardWindowsVersion, latestReleaseVersion]);
+    expect(readRegistryRelease("fao56-hard-windows-2026-11-15").identity).toEqual({
       catalogueVersion: hardWindowsVersion,
       ruleVersion: "no-rules-2026-11-14",
     });
@@ -26,7 +26,7 @@ describe("E1 source correction", () => {
   });
 
   it("does not publish unsupported operational temperature mappings", () => {
-    expect(readRegistryRelease().profiles.flatMap(profile => profile.temperatureRules)).toEqual([]);
+    expect(readRegistryRelease("fao56-hard-windows-2026-11-15").profiles.flatMap(profile => profile.temperatureRules)).toEqual([]);
   });
 
   it.each([
@@ -35,7 +35,7 @@ describe("E1 source correction", () => {
     ["cowpea-dry-fao56-mediterranean-mar", 100, 110],
     ["eggplant-fao56-mediterranean-may-jun", 140, 40],
   ])("keeps %s duration unavailable when source figures conflict", (id, derived, printed) => {
-    const profile = readRegistryRelease().profiles.find(candidate => candidate.id === id);
+    const profile = readRegistryRelease("fao56-hard-windows-2026-11-15").profiles.find(candidate => candidate.id === id);
     expect(profile).toBeDefined();
     expect(profile?.timing.publishedDurationDays).toEqual({
       kind: "unavailable",

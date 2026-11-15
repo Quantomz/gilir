@@ -10,6 +10,7 @@ import type { Catalogue, FarmInput, Submission, WaterAnswer } from "@/contracts"
 import { Onboarding } from "@/features/onboarding";
 import { inputFixture } from "@/fixtures/input";
 import { syntheticRegistryFixture } from "@/fixtures/science";
+import { readCatalogue } from "@/registry";
 import { capability, catalogueOf, farmInputKeys, fillFourPages, memoryPlans, phoneBack, scriptedClient, stubSpeech } from "../support/harness";
 import type { ScriptedClient } from "../support/harness";
 
@@ -351,8 +352,8 @@ describe("page 2", () => {
     expect(screen.getByRole("region", { name: "Next step" }).textContent).toContain("1 picked: synthetic crop.");
   });
 
-  it("page 2 says before the list that growing details exist for only some crops in some places, read by Listen; not while the list is loading or failed", async () => {
-    const coverage = "We have growing details for only some crops in some places. If a crop you pick has none for your field, we’ll tell you, and no plan is made.";
+  it("page 2 explains model coverage and local limits before the list, read by Listen; not while the list is loading or failed", async () => {
+    const coverage = "We have growing estimates for every crop listed. These estimates have not been checked for your area. Some crops may not fit into one year at your location.";
     open();
     await toCrops();
     const list = await screen.findByRole("list", { name: "Crops" });
@@ -442,6 +443,38 @@ describe("page 2", () => {
     await click("Make my plan");
     await waitFor(() => expect(client.submitted.map(input => input.cropPurposeIds)).toEqual([["synthetic-crop"]]));
   });
+
+  it.each(["brussels-sprouts", "radish", "millet-grain", "mung-bean-dry", "onion-green", "pea-dry", "celery", "watermelon"])(
+    "restored %s selection stays visible and blocks submission until the farmer removes it from the new 32-crop release",
+    async removedId => {
+      const current = readCatalogue("fao56-global-32-2026-11-15");
+      const archived = readCatalogue("fao56-reviewed-2026-11-15");
+      expect(current.entries).toHaveLength(32);
+      expect(archived.entries).toHaveLength(40);
+      expect(archived.entries.some(entry => entry.id === removedId)).toBe(true);
+      const kept = current.entries[0];
+      const removed = parseCropPurposeId(removedId);
+      const plans = memoryPlans(savedAt(4, { ...answers, cropPurposeIds: [kept.id, removed] }));
+      const client = scriptedClient({ catalogue: current, submit: [{ kind: "accepted", capability }], read: ["queued"] });
+      open({ client, plans });
+      await title("Your rotation");
+      await waitFor(() => expect(screen.getByRole("button", { name: "Make my plan" }).getAttribute("disabled")).toBeNull());
+      await click("Make my plan");
+      const fix = await screen.findByRole("button", { name: /Fix on page 2:.*not on the current crop list/ });
+      expect(client.submitted).toEqual([]);
+      expect(plans.latest()?.draft?.cropPurposeIds).toEqual([kept.id, removed]);
+      await userEvent.click(fix);
+      await title("Which crops do you want to grow?");
+      const remove = screen.getByRole("button", { name: /^Remove / });
+      expect(remove.parentElement?.textContent).toContain("is not on the current crop list");
+      await userEvent.click(remove);
+      await waitFor(() => expect(plans.latest()?.draft?.cropPurposeIds).toEqual([kept.id]));
+      await click("Next: water");
+      await click("Next: your rotation");
+      await click("Make my plan");
+      await waitFor(() => expect(client.submitted.map(input => input.cropPurposeIds)).toEqual([[kept.id]]));
+    },
+  );
 
   it("[E6] a cover crop (purpose cover) can be picked and is submitted like a food crop", async () => {
     const client = scriptedClient({ catalogue: catalogueOf(3), submit: [{ kind: "accepted", capability }], read: ["queued"] });

@@ -115,6 +115,8 @@ These came from an independent review of the branch at `75d2ffd`. Each has a mod
 
 ## Plain words in place of the engine's sentences
 
+This section records the regional-profile release. The [global-model follow-up](../global-models/verification.md) retains this wording for archived results. A modeled no-calendar result also shows its model-specific explanation and constraints in the result's no-fit section.
+
 A run of the real stack on 15 November 2026 (card I3) showed sentences no fixture had carried: "The first deciding metric against the final runner-up was mean_frequency: 0.898327 versus 0.904004 fraction, after comparison rounding." under Why this plan ranked first, "Every reachable daily calendar state was exhausted under the released durations, hard planting windows, and successor prohibitions." under a no-plan title, and "In some replay seasons, rainfall fell below estimated crop demand in at least one rolling window." under a warning. The fixtures say "Synthetic result: …" and "Example rainfall warning." in those places, so no test had met the real text.
 
 - **The engine's explanation** is no longer on the result page in any state. Why this plan ranked first opens with F3's own fixed-order note and the four numbers. View details shows the explanation as given, last under How far the search went, headed "The calculation’s own summary", with a structural proof's constraint sentences after it.

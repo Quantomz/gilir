@@ -6,7 +6,7 @@ import { syntheticRegistryFixture } from "@/fixtures/science";
 import { readRegistryRelease, resolveRegistry } from "@/registry";
 import { lookupAt, places } from "./support";
 
-const release = readRegistryRelease();
+const release = readRegistryRelease("fao56-hard-windows-2026-11-15");
 const resolveAt = (crops: readonly string[], place: readonly [number, number]) => resolveRegistry(lookupAt(crops, place), release);
 const profileIds = (crops: readonly string[], place: readonly [number, number]) => resolveAt(crops, place).profiles.map(profile => profile.id);
 

@@ -1,0 +1,11 @@
+{
+  "decision": "approved_model_estimate",
+  "reviewer": "Gilir integration coordinator, user-authorized implementation policy",
+  "reviewedOn": "2026-11-15",
+  "scope": "Scheduling policy only. Not a scientific parameter review or local validation.",
+  "turnaroundDays": 7,
+  "turnaroundAssumption": "Gilir planning assumption: 7 days to clear and prepare the field after harvest. FAO-56 gives no turnaround; this is not a published agronomic value.",
+  "reservation": "Reserve through the latest modeled harvest across all retained seasons, then add turnaround.",
+  "coverage": "The user approved releasing the 32 reviewed crop purposes. The other eight remain excluded from the new catalogue until ready. Archived catalogues remain unchanged.",
+  "establishment": "Use the source reference field-start date. Nursery occupancy before entering the field is excluded. No seeded or transplanted method is asserted."
+}

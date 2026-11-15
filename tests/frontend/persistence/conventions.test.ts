@@ -53,7 +53,7 @@ describe("src/client/storage.ts", () => {
 
   it("imports shared snapshot, manifest, input and capability schemas without declaring private schemas", () => {
     const imports = moduleUses(storagePath).filter(use => use.kind === "static value");
-    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema", "completedSnapshotSchemaVersion", "runManifestSchema"] }));
+    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema", "runManifestSchema"] }));
     expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/input", names: ["farmInputSchema", "farmInputSchemaVersion"] }));
     expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/jobs", names: ["jobCapabilitySchema"] }));
     expect(zodDeclarations()).toEqual([]);

@@ -1,7 +1,7 @@
 // F1's date helpers are private to F1, so F3 keeps these few. All arithmetic is on UTC midnights, so a calendar date
 // never shifts with the browser's time zone.
 import { isoDateSchema } from "@/contracts";
-import type { BaselineComparison, CalendarOccurrence, CropPurposeId, FarmInput, IsoDate, Plan } from "@/contracts";
+import type { BaselineComparison, CalendarOccurrence, CropPurposeId, FarmInput, IsoDate, Plan, PlanOccurrence } from "@/contracts";
 
 /** A half-open stretch of calendar days, as the contract writes a horizon. */
 export interface Year {
@@ -56,6 +56,7 @@ export interface CropSpan {
   readonly lastOccupied: IsoDate;
   readonly fieldAvailable: IsoDate;
   readonly occupiedDays: number;
+  readonly modeledTiming?: PlanOccurrence["modeledTiming"];
 }
 
 /**
@@ -86,7 +87,7 @@ export function baselineSpans(plan: Plan, baseline: AssessedBaseline): readonly 
   return spansIn(plan.horizon, baseline.occurrences);
 }
 
-function spansIn(year: Year, occurrences: readonly CalendarOccurrence[]): readonly PlanSpan[] {
+function spansIn(year: Year, occurrences: readonly PlanOccurrence[]): readonly PlanSpan[] {
   const spans: PlanSpan[] = [];
   let free = year.start;
   let previous: CalendarOccurrence | null = null;
@@ -102,6 +103,7 @@ function spansIn(year: Year, occurrences: readonly CalendarOccurrence[]): readon
       lastOccupied: occurrence.lastOccupied,
       fieldAvailable: occurrence.fieldAvailable,
       occupiedDays: daysBetween(occurrence.planted, occurrence.lastOccupied) + 1,
+      ...(occurrence.modeledTiming ? { modeledTiming: occurrence.modeledTiming } : {}),
     });
     const dayAfter = addDays(occurrence.lastOccupied, 1);
     if (dayAfter > free) free = dayAfter;

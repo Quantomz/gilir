@@ -1,0 +1,79 @@
+{
+  "sourceCommit": "9fb508796ac74d1fe3602772a6f57b1d67ba6166",
+  "claim": "Local engine using captured NASA input; no hosted or agronomic validation claim.",
+  "cases": [
+    {
+      "name": "bangkok-reported",
+      "state": "plan_with_warnings",
+      "changedSincePrevious": true,
+      "snapshotSha256": "075e4cad57f912369896aaca2b060a2cb2fd46b2c581611dd86ca1f5fa7f5af7",
+      "climateArchiveSha256": "6ee100c376fb7069902c2ae5908bcd141ccd53c0763462be52b717345a82dc42",
+      "modelReleaseHash": "71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246",
+      "occurrences": [
+        {
+          "cropPurposeId": "wheat-grain",
+          "planted": "2026-11-15",
+          "earliestHarvest": "2027-02-04",
+          "latestHarvest": "2027-02-17",
+          "fieldAvailable": "2027-02-25"
+        },
+        {
+          "cropPurposeId": "sweet-maize",
+          "planted": "2027-04-11",
+          "earliestHarvest": "2027-06-20",
+          "latestHarvest": "2027-06-29",
+          "fieldAvailable": "2027-07-07"
+        },
+        {
+          "cropPurposeId": "rice-paddy",
+          "planted": "2027-07-10",
+          "earliestHarvest": "2027-10-26",
+          "latestHarvest": "2027-11-07",
+          "fieldAvailable": "2027-11-15"
+        }
+      ]
+    },
+    {
+      "name": "helsinki-rice",
+      "state": "no_calendar_fit",
+      "changedSincePrevious": true,
+      "snapshotSha256": "336a0e2538f43114f502a857c985f85c4e6613b7dfd896083e159d26788e5b3d",
+      "climateArchiveSha256": "eb2bbe93afbfb80310b068ddff33cfa2411f99e7790747a15f4d148b0d5dfdf9",
+      "modelReleaseHash": "71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246"
+    },
+    {
+      "name": "sydney-wheat",
+      "state": "plan_with_warnings",
+      "changedSincePrevious": true,
+      "snapshotSha256": "4ed54fcefac9cc1093dd7234a9beeaf5cad1ea0e8943e0904ab756762a801a89",
+      "climateArchiveSha256": "814430f8d3ebdd9abed761c57639139718a7c2bee3b9ac40bfb24369c74157d8",
+      "modelReleaseHash": "71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246",
+      "occurrences": [
+        {
+          "cropPurposeId": "wheat-grain",
+          "planted": "2027-12-28",
+          "earliestHarvest": "2028-04-01",
+          "latestHarvest": "2028-04-13",
+          "fieldAvailable": "2028-04-21"
+        }
+      ]
+    },
+    {
+      "name": "cairo-maize",
+      "state": "plan_with_warnings",
+      "changedSincePrevious": true,
+      "snapshotSha256": "be069dd48ec9ba1ab6cf6a25f379243304d15d4dde7db5933ee05042eec17e27",
+      "climateArchiveSha256": "dc7a77c1cb2b46fe5fd58fdad55a9f476ba6f456e22febb1af81b20890081867",
+      "modelReleaseHash": "71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246",
+      "occurrences": [
+        {
+          "cropPurposeId": "maize-grain",
+          "planted": "2027-08-10",
+          "earliestHarvest": "2027-12-12",
+          "latestHarvest": "2028-03-31",
+          "fieldAvailable": "2028-04-08"
+        }
+      ]
+    }
+  ]
+}

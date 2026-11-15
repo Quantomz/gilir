@@ -46,8 +46,9 @@ function planDocument(ctx: Context, result: ResultOf<PlanState>): PlanDocument {
   const { details, plan } = result;
   const { timeline: drawing, rows } = timeline(plan, ctx);
   const calendar: Section<Block | TimelineBlock> = {
-    heading: t(words.calendar.heading),
+    heading: t(details.modeling ? words.modeling.timelineTitle : words.calendar.heading),
     blocks: [
+      ...(details.modeling ? [paragraph(t(words.modeling.reservation))] : []),
       { kind: "timeline", timeline: drawing },
       list("number", rows),
       ...(details.search.ranking === "limit_reached" ? [searchLimit(details)] : []),
@@ -60,6 +61,7 @@ function planDocument(ctx: Context, result: ResultOf<PlanState>): PlanDocument {
     compared(ctx),
     prepare(details, ctx),
     couldNotCheck(result, ctx),
+    modeling(details, ctx),
     method(ctx),
     assumptions(details, ctx),
     sources(details, ctx, details.metrics),
@@ -79,6 +81,7 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
     details.baseline.kind === "not_recorded" ? null : compared(ctx),
     couldNotCheck(result, ctx),
     farm(details, ctx),
+    modeling(details, ctx),
     repeatsMessage ? null : method(ctx),
     assumptions(details, ctx),
     sources(details, ctx, [...details.metrics, ...monthlyInsights(details).map(insight => insight.metric)]),
@@ -88,7 +91,14 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
 
 const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>) => readonly Block[] } = {
   insufficient_data: (ctx, result) => [gapList(result.missing, ctx), paragraph(t(words.noPlan.missingNext))],
-  no_calendar_fit: (ctx, { proof }) => {
+  no_calendar_fit: (ctx, { proof, details }) => {
+    if (details.modeling) return [
+      paragraph(engineText(details.explanation, ctx.say)),
+      paragraph(t(words.modeling.noFitScope)),
+      ...(proof.kind === "structural_exhaustion"
+        ? [list("bullet", proof.constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] })))]
+        : [paragraph(t(`The modeled cropping slots require at least ${words.days(proof.mandatoryMinimumDays)} within a ${words.days(proof.horizonDays)} horizon.`))]),
+    ];
     const { input, result } = ctx.snapshot;
     const one = input.cropPurposeIds.length === 1;
     return proof.kind === "duration_lower_bound"
@@ -138,26 +148,27 @@ function head(ctx: Context): Head {
   const tone = words.status[result.state].tone;
   return {
     brand: t(words.brand),
-    title: t(title),
+    title: t(result.state === "no_calendar_fit" && result.details.modeling ? words.modeling.noFitTitle : title),
     place: place.text,
     lines: [
+      ...(result.details.modeling ? [t(words.modeling.label), t(words.modeling.validation)] : []),
       t(words.place.weatherPoint(coordinates(input.field.lookup))),
       t(words.madeLine(ctx.made, period(ctx, horizon.start, addDays(horizon.endExclusive, -1)))),
       t(words.answersLine(words.cap(cropList(ctx, input.cropPurposeIds) ?? ""), words.waterLabels[input.water], historyWords(input.history))),
       ...(place.shown === "replaced" ? [t(words.place.note)] : []),
     ],
     synthetic: synthetic(ctx),
-    status: { label: t(words.status[result.state].label), text: statusSentence(ctx), tone },
+    status: { label: t(result.state === "plan" && result.details.modeling ? "Modeled calendar." : words.status[result.state].label), text: statusSentence(ctx), tone },
   };
 }
 
 function statusSentence(ctx: Context): PdfText {
   const result = ctx.snapshot.result;
   switch (result.state) {
-    case "plan": return t(words.status.plan.text);
+    case "plan": return t(result.details.modeling ? words.modeling.planStatus : words.status.plan.text);
     case "plan_with_warnings": return t(flagged(ctx, result));
     case "insufficient_data": return t(words.status.insufficient_data.text);
-    case "no_calendar_fit": return t(result.proof.kind === "duration_lower_bound"
+    case "no_calendar_fit": return t(result.details.modeling ? words.modeling.noFitStatus : result.proof.kind === "duration_lower_bound"
       ? words.proofLine.duration(words.days(result.proof.mandatoryMinimumDays), words.whole(result.proof.horizonDays))
       : words.proofLine.structural);
     case "search_incomplete": return t(words.status.search_incomplete.text);
@@ -289,7 +300,10 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
       const { occurrence } = stretch;
       rows.push({
         head: t(words.cap(cropName(ctx.snapshot, occurrence.cropPurposeId))),
-        lines: [
+        lines: ctx.snapshot.result.details.modeling && occurrence.modeledTiming ? [
+          t(words.modeling.cropDates(say.day(occurrence.planted), period(ctx, occurrence.modeledTiming.earliestHarvest, occurrence.modeledTiming.latestHarvest))),
+          t(words.modeling.cropDays(words.days(stretch.to - stretch.from), say.day(occurrence.modeledTiming.latestHarvest), say.day(occurrence.fieldAvailable))),
+        ] : [
           t(words.calendar.crop(say.day(occurrence.planted), say.day(occurrence.lastOccupied))),
           t(words.calendar.cropDays(words.days(stretch.to - stretch.from), say.day(occurrence.fieldAvailable))),
         ],
@@ -335,7 +349,9 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
   }
 
   const looks: readonly BarLook[] = ["crop", "after_harvest", "no_crop"];
-  const legend = looks.filter(look => bars.some(bar => bar.look === look)).map(look => ({ look, label: t(words.legend[look]) }));
+  const legend = looks.filter(look => bars.some(bar => bar.look === look)).map(look => ({
+    look, label: t(look === "crop" && ctx.snapshot.result.details.modeling ? "Reserved cropping slot, numbered as in the list below" : words.legend[look]),
+  }));
   return { timeline: { days: length, months, years, bars, legend }, rows };
 }
 
@@ -349,14 +365,15 @@ function searchLimit(details: ResultDetails): Block {
 function ranking(plan: Plan, details: ResultDetails, ctx: Context): Section<Block> {
   const yearDays = daysBetween(plan.horizon.start, plan.horizon.endExclusive);
   const rows = plan.rankingTuple.components.map((component): Item => ({
-    head: t(words.rankingQuestions[component.metricId]),
-    lines: rankingLines(component, yearDays).map(line => t(line)),
+    head: t((details.modeling ? words.modeling.questions : words.rankingQuestions)[component.metricId]),
+    lines: rankingLines(component, yearDays, details.modeling !== undefined).map(line => t(line)),
   }));
   return {
     heading: t(words.ranking.heading),
     blocks: [
-      paragraph(t(words.ranking.order)),
+      paragraph(t(details.modeling ? words.modeling.fixedOrder : words.ranking.order)),
       list("number", rows),
+      ...(details.modeling ? [paragraph(t(words.modeling.occupancy))] : []),
       paragraph(t(words.ranking.notRanked), "strong"),
       list("bullet", [badYear(details, ctx), heatAndCold(plan, details, ctx)]),
       paragraph(t(`${cohortLine(details, ctx)} ${words.ranking.pastNotPrediction} ${words.ranking.rainAlone}`), "small"),
@@ -364,12 +381,12 @@ function ranking(plan: Plan, details: ResultDetails, ctx: Context): Section<Bloc
   };
 }
 
-function rankingLines(component: RankingComponent, yearDays: number): readonly string[] {
+function rankingLines(component: RankingComponent, yearDays: number, modeled: boolean): readonly string[] {
   switch (component.metricId) {
     case "mean_frequency": return said(words.howOften(component.value));
     case "mean_mismatch": return said(words.howMuch(component.value));
-    case "unplanted_days": return [words.days(component.value), words.ranking.unplannedNote(words.whole(yearDays))];
-    case "longest_unplanted_gap": return [words.days(component.value), words.ranking.longestNote];
+    case "unplanted_days": return [words.days(component.value), (modeled ? words.modeling.unplanted : words.ranking.unplannedNote)(words.whole(yearDays))];
+    case "longest_unplanted_gap": return [words.days(component.value), modeled ? words.modeling.longest : words.ranking.longestNote];
   }
 }
 
@@ -623,6 +640,41 @@ function method(ctx: Context): Section<Block> {
     blocks: [
       paragraph(engineText(result.details.explanation, ctx.say)),
       ...(constraints.length ? [list("bullet", constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] })))] : []),
+    ],
+  };
+}
+
+function modeling(details: ResultDetails, ctx: Context): Section<Block> | null {
+  const diagnostics = details.modeling;
+  if (!diagnostics) return null;
+  const said = words.modeling;
+  return {
+    heading: t(said.label),
+    blocks: [
+      paragraph(t(said.validation)),
+      paragraph(t(said.checks)),
+      paragraph(t(said.methodReservation)),
+      paragraph(t(said.methodOccupancy)),
+      list("none", diagnostics.crops.map(crop => ({
+        head: cropName(ctx.snapshot, crop.cropPurposeId),
+        lines: [
+          t(said.reference(crop.scientificName, crop.harvestPurpose)),
+          t(said.cultivar(crop.cultivarAssumption)),
+          t(said.basis[crop.evidenceBasis]),
+          t(said.identity(crop.modelId, crop.modelVersion)),
+          t(`Sources ${crop.sourceIds.join(", ") || "none recorded"}.`),
+          t(`Turnaround after the latest modeled harvest is ${words.days(crop.turnaroundDays)}.`),
+          t(`${words.whole(crop.validPlantingDays)} planting dates completed in every retained replay.`),
+          ...crop.assumptions.map(line => engineText(line, ctx.say)),
+          ...crop.limitations.map(line => engineText(line, ctx.say)),
+          ...crop.noncompletionByReplay.map(replay => t(said.noncompletion(words.whole(replay.plantingDays), ctx.say.day(replay.replayStart)))),
+        ],
+      }))),
+      paragraph(t(`Model release ${diagnostics.modelReleaseVersion}.`), "small"),
+      paragraph(t(`Model release hash ${diagnostics.modelReleaseHash}.`), "small"),
+      paragraph(t(`Reservation policy ${diagnostics.policy.reservation}.`), "small"),
+      paragraph(t(`Planned-slot policy ${diagnostics.policy.occupancy}.`), "small"),
+      paragraph(t(`Retained weather replay starts ${diagnostics.retainedReplayStarts.map(ctx.say.day).join(", ") || "none"}.`), "small"),
     ],
   };
 }

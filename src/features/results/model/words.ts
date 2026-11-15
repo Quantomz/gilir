@@ -32,6 +32,7 @@ export function keepsLastYear(snapshot: CompletedSnapshot): boolean {
 
 export function titleOf(snapshot: CompletedSnapshot): string {
   const { state } = snapshot.result;
+  if (state === "no_calendar_fit" && snapshot.result.details.modeling) return modeling.noFitTitle;
   return (state === "plan" || state === "plan_with_warnings") && keepsLastYear(snapshot) ? keptTitles[state] : titles[state];
 }
 
@@ -140,7 +141,7 @@ export interface CropNames {
  * "maize-grain" becomes "Maize grain", and "maize grain" inside a sentence.
  */
 export function cropNamesOf(snapshot: CompletedSnapshot): CropNames {
-  const labels = new Map<string, string>(snapshot.schemaVersion === 2 ? snapshot.catalogue.entries.map(entry => [entry.id, entry.label]) : []);
+  const labels = new Map<string, string>(snapshot.schemaVersion !== 1 ? snapshot.catalogue.entries.map(entry => [entry.id, entry.label]) : []);
   const readable = (id: CropPurposeId) => sentenceCase(id.replace(/[-_:]+/g, " "));
   const name = (id: CropPurposeId) => labels.get(id) ?? readable(id);
   const inList = (id: CropPurposeId) => labels.get(id) ?? inSentence(readable(id));
@@ -412,6 +413,39 @@ export const ranking = {
     unavailable: (reason: string) => `Past seasons: ${reason}`,
     closing: "From past seasons, not a prediction. Checked with rain alone.",
   },
+} as const;
+
+export const modeling = {
+  label: "Estimated crop development from historical weather",
+  validation: "These estimates have not been checked for your area.",
+  planStatus: "A calendar fits the estimated growing times.",
+  noFitTitle: "No calendar fits this development model",
+  noFitStatus: "No calendar fits the saved model and weather replays within one year.",
+  noFitScope: "Completion was assessed under the saved reference model and retained weather seasons. The result describes that model’s development thresholds.",
+  reservation: "We leave time until the latest estimated harvest in the past weather years we checked, plus time to prepare the field. An earlier harvest may leave extra waiting time.",
+  methodReservation: "The calendar reserves each cropping slot until the latest modeled completion across all retained weather seasons, then adds turnaround time. Earlier modeled harvests can leave waiting time before the next crop.",
+  occupancy: "These two numbers describe the planned calendar, with each crop ending at its latest estimated harvest. An earlier harvest may leave extra days without a crop. They do not measure actual crop cover. Rain and water need are checked only until each past year’s estimated harvest.",
+  methodOccupancy: "The last two ranking indicators measure planned cropping slots through the latest modeled harvest. They do not measure continuous live crop cover. Rainfall and demand calculations end at each weather season’s own modeled completion.",
+  checks: "Local checks remain unavailable for frost, crop survival, photoperiod, vernalization and soil suitability.",
+  timelineTitle: "Planting dates and estimated harvest ranges",
+  cropDates: (planted: string, harvested: string) => `Plant ${planted} · Estimated harvest ${harvested}`,
+  cropDays: (days: string, latest: string, free: string) => `${days} set aside through ${latest}. The field is ready again on ${free}.`,
+  fixedOrder: "We compare plans in one fixed order, water first, then days without a planned crop.",
+  questions: {
+    ...ranking.questions,
+    unplanted_days: "Days without a planned crop",
+    longest_unplanted_gap: "Longest gap without a planned crop",
+  } satisfies Record<RankingMetricId, string>,
+  unplanted: (days: string) => `Of the ${days} in your year, outside the planned crop dates. Fewer is better.`,
+  longest: "Days in a row without a scheduled crop. Shorter is better.",
+  basis: {
+    published_parameter: "Published model parameters",
+    derived_estimate: "Derived model estimate. Values were derived from reference inputs by Gilir.",
+    analogue_estimate: "Analogue model estimate. Values were transferred from a reference crop or purpose.",
+  },
+  reference: (name: string, purpose: string) => `Reference crop ${name}. Harvest purpose ${purpose}.`,
+  cultivar: (assumption: string) => `Reference cultivar assumption. ${assumption}`,
+  noncompletion: (days: string, replay: string) => `${days} planting dates did not complete within the modeled horizon for the replay starting ${replay}.`,
 } as const;
 
 export function cohortLine(cohort: ResultDetails["cohort"], format: Format): string {
