@@ -10,8 +10,9 @@ import type { Locator, Page } from "@playwright/test";
 import { providerPolicy } from "@/features/location/provider";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
+import { good } from "./support/shapes";
 import {
-  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, settledCentre, shoot,
+  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, settledCentre, shoot, typeCorners,
 } from "./support/slot";
 import type { Point } from "./support/slot";
 
@@ -176,6 +177,48 @@ test("[R5] the credits line reads NASA EOSDIS GIBS, © MapTiler and © OpenStree
 });
 
 for (const width of [360, 1280]) {
+  test(`[R5][R14] the fallback footer and scale leave all four corner numbers clear at ${width}px`, async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: 740 });
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      Object.defineProperty(HTMLCanvasElement.prototype, "getContext", {
+        value(this: HTMLCanvasElement, kind: string, ...args: unknown[]) {
+          return kind === "webgl2" ? null : Reflect.apply(original, this, [kind, ...args]);
+        },
+      });
+    });
+    const routes = await routeProviders(page, allAnswer);
+    await page.goto("/dev/fixtures");
+    const root = firstPicker(page);
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+    await typeCorners(root, good.north);
+    const drawing = root.getByRole("img", { name: "Drawing of your field, north at the top. It is a drawing, not a photo." });
+    const footer = root.locator(".fp-map-foot");
+    await expect(drawing).toBeVisible();
+    await expect(footer.getByText("A drawing, not a photo", { exact: true })).toBeVisible();
+    const logo = footer.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+    await expect(logo).toBeVisible();
+    await expect.poll(() => logo.getByRole("img").evaluate(element => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+    await mapArea(root).scrollIntoViewIfNeeded();
+    await shoot(page, testInfo, `provider-fallback-footer-${width}`, mapArea(root));
+    for (const number of [1, 2, 3, 4]) {
+      const label = drawing.locator("text").filter({ hasText: new RegExp(`^${number}$`) });
+      await expect(label).toBeVisible();
+      const labelBox = await label.boundingBox();
+      expect(labelBox).not.toBeNull();
+      if (!labelBox) throw new Error("The corner label must be visible.");
+      for (const obstacle of [{ name: "fallback footer", element: footer }, { name: "scale label", element: drawing.locator(".fp-plan-scale text") }]) {
+        const obstacleBox = await obstacle.element.boundingBox();
+        expect(obstacleBox).not.toBeNull();
+        if (!obstacleBox) throw new Error(`The ${obstacle.name} must be visible.`);
+        const overlaps = labelBox.x < obstacleBox.x + obstacleBox.width && labelBox.x + labelBox.width > obstacleBox.x
+          && labelBox.y < obstacleBox.y + obstacleBox.height && labelBox.y + labelBox.height > obstacleBox.y;
+        expect(overlaps, `corner ${number} must not overlap the ${obstacle.name}`).toBe(false);
+      }
+    }
+    expect(routes.of("elsewhere")).toHaveLength(0);
+  });
+
   for (const colorScheme of ["light", "dark"] as const) {
     test(`[R5] the linked provider logo is visible and usable at ${width}px in ${colorScheme} mode`, async ({ page }) => {
       await page.setViewportSize({ width, height: 800 });
