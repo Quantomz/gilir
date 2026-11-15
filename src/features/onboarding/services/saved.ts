@@ -100,7 +100,9 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
   return {
     open() {
       const call = ++opens;
-      const load = (left: number): Promise<LocalState | null> => port.load().catch((error: unknown) => (left > 1 ? load(left - 1) : Promise.reject(error)));
+      const started = Date.now();
+      const retry = (left: number) => left > 1 && Date.now() - started < policy.save.openRetryWithinMs;
+      const load = (left: number): Promise<LocalState | null> => port.load().catch((error: unknown) => (retry(left) ? load(left - 1) : Promise.reject(error)));
       return load(policy.save.openAttempts).then(
         state => {
           if (call === opens) unread = false;

@@ -50,6 +50,17 @@ describe("open", () => {
     expect(health).toEqual(["working"]);
   });
 
+  it("[B2] a load that fails only after storage's own 5 s limit is not tried again, so Opening waits for it once", async () => {
+    vi.useFakeTimers();
+    let loads = 0;
+    const slow = () => new Promise<LocalState | null>((_, reject) => setTimeout(() => reject(new Error("Storage did not answer.")), 5_000));
+    const saved = createSavedPlans({ ...memoryPlans(null), load: () => (++loads, slow()) });
+    const opened = saved.open();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect(opened).resolves.toBeNull();
+    expect(loads).toBe(1);
+  });
+
   it("a load that resolves null is nothing saved, with health working", async () => {
     const saved = createSavedPlans(memoryPlans(null));
     const health = healthOf(saved);

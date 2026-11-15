@@ -30,6 +30,8 @@ export const policy = {
     debounceMs: 150,
     /** Loads tried at open before the flow starts empty, so one passing failure does not hide what is saved. */
     openAttempts: 3,
+    /** A failed load is tried again only within this long of the open, so a storage that hangs is waited on once. */
+    openRetryWithinMs: 1_000,
   },
   timeoutMs: {
     /** The HTTP client has no timeout or abort signal, so F1 races each call. */
