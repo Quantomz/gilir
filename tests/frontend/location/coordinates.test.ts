@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { classifyQuery, coordsText, cornersOfRows, parseCoord, rowsOfPoints } from "@/features/location/coordinates";
 import type { CornerRow } from "@/features/location/coordinates";
-import { boxAround, cornersOfRing, markOutline } from "@/features/location/outline";
+import { boxAround, cornersFrom, cornersOfRing, markOutline } from "@/features/location/outline";
 import { inputFixture } from "@/fixtures/input";
 import { fieldIssues, good } from "./support/shapes";
 
@@ -164,9 +164,50 @@ describe("classifyQuery", () => {
     expect(classifyQuery("-16.79, -179.99")).toEqual({ kind: "position", at: [-179.99, -16.79] });
     expect(classifyQuery("16.79 S, 179.99 W")).toEqual({ kind: "position", at: [-179.99, -16.79] });
   });
+
+  it("[R25] a position with lat and lon labels is read by its numbers, in the labels' order", () => {
+    for (const typed of ["lat: -6.326, lon: 108.32", "Latitude: -6.326, Longitude: 108.32", "Lat -6.326 Lon 108.32", "lat=-6.326&lon=108.32", "LAT -6.326 LNG 108.32"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at: [108.32, -6.326] });
+    }
+    for (const typed of ["lng: 108.32, lat: -6.326", "long=36.07&lat=-0.3"]) {
+      expect(classifyQuery(typed).kind, typed).toBe("position");
+    }
+    expect(classifyQuery("lon: 36.07, lat: -0.3")).toEqual({ kind: "position", at: [36.07, -0.3] });
+  });
+
+  it("[R25] words around two or more decimal numbers or a degree mark never make a name, so a pasted link or a note never reaches the geocoder", () => {
+    for (const typed of [
+      "https://maps.google.com/?q=-6.326,108.32",
+      "geo:-6.326,108.32",
+      "my farm -6.326, 108.32",
+      "6.326 South, 108.32 East",
+      "GPS -6.326 108.32",
+      "Farm 6°19' S",
+    ]) {
+      expect(classifyQuery(typed).kind, typed).not.toBe("name");
+    }
+  });
+
+  it("[R1] place names that hold a label word or one decimal number stay names", () => {
+    for (const typed of ["Latvia", "Lat Krabang", "Long Beach", "Long Xuyen", "Km 4.5 Ruta 3", "Lon Nol Road"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "name", text: typed });
+    }
+  });
 });
 
 describe("rows", () => {
+  it("[R15] a walked boundary whose last row repeats the first marks the field by its other corners", () => {
+    const walked = [...good.square, good.square[0]];
+    const result = cornersOfRows(rowsOf(walked));
+    if (!result.ok) throw new Error("the walked rows should parse");
+    expect(result.corners).toEqual(cornersFrom(good.square));
+    const marked = markOutline(result.corners, { kind: "choose" });
+    expect(marked.ok).toBe(true);
+    const triangle = cornersOfRows(rowsOf([...good.square.slice(0, 2), good.square[0]]));
+    if (!triangle.ok) throw new Error("the three rows should parse");
+    expect(triangle.corners).toHaveLength(3);
+  });
+
   it("[R15] cornersOfRows reports every bad number at once, in reading order, with row and axis", () => {
     const result = cornersOfRows([
       { latitude: "-6.3", longitude: "108.3" },

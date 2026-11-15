@@ -344,6 +344,23 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it("[R25] a labelled position is chosen with no fetch; a pasted map link or a position among words says it cannot be read and calls fetch 0 times", async () => {
+    const user = userEvent.setup();
+    const { onChange } = mount();
+    await drawing();
+    for (const typed of ["lat: -6.326, lon: 108.32", "Latitude -6.326 Longitude 108.32", "lat=-6.326&lon=108.32"]) {
+      await typePosition(user, typed);
+      expect(await screen.findByRole("button", { name: "Mark my field" })).toBeTruthy();
+      expect(screen.getByText("6.326° S, 108.320° E", { selector: "b" })).toBeTruthy();
+    }
+    for (const typed of ["https://maps.google.com/?q=-6.326,108.32", "geo:-6.326,108.32", "my farm -6.326, 108.32", "6.326 South, 108.32 East", "GPS -6.326 108.32"]) {
+      await typePosition(user, typed);
+      expect(screen.getByText("We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search."), typed).toBeTruthy();
+    }
+    expect(fetchCalls).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("results show as buttons 'Indramayu' with 'West Java, Indonesia'; the status line says '2 places found. Choose one from the list.'", async () => {
     const user = userEvent.setup();
     mount();

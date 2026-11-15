@@ -214,6 +214,17 @@ describe("the shape", () => {
     expect(across / tall).toBeLessThan(2.3);
   });
 
+  it("[R15] a walked boundary that ends on its first corner is accepted: 5 rows, the last equal to the first, emit the 4-corner field with no alert", async () => {
+    const user = userEvent.setup();
+    const { onChange } = mount();
+    await drawing();
+    await fill(user, [...good.l.slice(0, 4), good.l[0]]);
+    await useCorners(user);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(emitted(onChange).ring).toEqual([...good.l.slice(0, 4), good.l[0]]);
+    expect(liveRegion().textContent).toBe("Your field now has the 4 corners you typed.");
+  });
+
   it("corners 10° apart show 'These corners are more than 20 km apart. Check the numbers.'", async () => {
     const user = userEvent.setup();
     const { onChange } = mount();

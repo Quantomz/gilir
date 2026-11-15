@@ -96,25 +96,38 @@ const pairs = separators.flatMap(({ between, accepts }) =>
 /**
  * Tells a name from a position. A position is two numbers, latitude first as phone maps copy them ("-6.326, 108.32",
  * "-6.326 108.32", "(-6.326, 108.32)", "6.326 S 108.32 E", "6°19'33.6\"S 108°19'12.0\"E"). With letters either order
- * works ("108.32 E, 6.326 S"). Text with a word of three or more letters is a name ("Route 66", "São Paulo").
- * Anything else with a decimal point or a degree, minute or second mark is a position typed some other way, and is
- * never sent to the geocoder, which would otherwise receive the farm's coordinates.
+ * works ("108.32 E, 6.326 S"), and labels set the order ("lon: 108.32, lat: -6.326").
+ * The numbers decide, not the words: two decimal numbers or a degree mark make a position typed some other way (a map
+ * link, "my farm -6.326, 108.32"), which is never sent to the geocoder, because that would send it the farm's
+ * coordinates. Otherwise a word of three or more letters makes a name ("Route 66", "São Paulo").
  */
 export function classifyQuery(raw: string): Query {
   const text = raw.trim();
   if (Array.from(text).length < 2) return { kind: "short" };
-  const bare = normalise(text).replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
+  const labelled = unlabelled(normalise(text));
+  const bare = labelled.text.replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
   const pair = pairOf(bare);
   if (!pair) return looksLikePosition(bare) ? { kind: "unclear_position" } : { kind: "name", text };
-  const axes = axesOf(pair);
+  const axes = axesOf(pair, labelled.first);
   const [first, second] = pair.map((typed, i) => parseCoord(typed, axes[i]));
   if (!first.ok) return { kind: "bad_position", axis: axes[0], error: first.error };
   if (!second.ok) return { kind: "bad_position", axis: axes[1], error: second.error };
   return { kind: "position", at: axes[0] === "longitude" ? [first.value, second.value] : [second.value, first.value] };
 }
 
+const labelPattern = /(?<!\p{L})(lat(?:itude)?|lng|lon(?:g(?:itude)?)?)(?!\p{L}) ?[:=]? ?/giu;
+
+/** "lat: -6.326, lon: 108.32", "Latitude -6.326 Longitude 108.32" and "lat=-6.326&lon=108.32" lose their labels. */
+function unlabelled(text: string): { readonly text: string; readonly first: Axis | null } {
+  const [label] = text.matchAll(labelPattern);
+  if (!label) return { text, first: null };
+  const first: Axis = label[1].toLowerCase().startsWith("lat") ? "latitude" : "longitude";
+  return { text: text.replace(labelPattern, " ").replace(/&/g, " ").replace(/ +/g, " ").trim(), first };
+}
+
 function looksLikePosition(text: string): boolean {
-  return !/\p{L}{3,}/u.test(text) && /\d\.\d|\d ?["'°]/.test(text);
+  if ((text.match(/\d[.,]\d/g) ?? []).length >= 2 || /\d ?°/.test(text)) return true;
+  return !/\p{L}{3,}/u.test(text) && /\d\.\d|\d ?["']/.test(text);
 }
 
 function pairOf(text: string): readonly [string, string] | null {
@@ -127,13 +140,13 @@ function pairOf(text: string): readonly [string, string] | null {
   return null;
 }
 
-/** N or S marks a latitude and E or W a longitude; with no letter, latitude comes first. */
-function axesOf(pair: readonly [string, string]): readonly [Axis, Axis] {
+/** The first label decides; else N or S marks a latitude and E or W a longitude; with neither, latitude comes first. */
+function axesOf(pair: readonly [string, string], label: Axis | null): readonly [Axis, Axis] {
   const axisOf = (typed: string): Axis | null => {
     const letter = (/^[a-z]/i.test(typed) ? typed[0] : typed.at(-1) ?? "").toUpperCase();
     return letters.latitude.includes(letter) ? "latitude" : letters.longitude.includes(letter) ? "longitude" : null;
   };
-  const [first, second] = pair.map(axisOf);
+  const [first, second] = label ? [label, null] : pair.map(axisOf);
   if (first === "longitude" || (first === null && second === "latitude")) return ["longitude", "latitude"];
   return ["latitude", "longitude"];
 }
@@ -156,7 +169,10 @@ export type RowsResult =
   /** In reading order, so the first entry is where focus goes. */
   | { readonly ok: false; readonly errors: readonly RowError[] };
 
-/** Every per-number error at once. The shape itself is judged by the picker. */
+/**
+ * Every per-number error at once. The shape itself is judged by the picker. A farmer who walks the boundary may type
+ * the starting corner again at the end, so a last row on the first corner closes the ring instead of repeating it.
+ */
 export function cornersOfRows(rows: readonly CornerRow[]): RowsResult {
   const errors: RowError[] = [];
   const points: LngLat[] = [];
@@ -167,7 +183,11 @@ export function cornersOfRows(rows: readonly CornerRow[]): RowsResult {
     if (!longitude.ok) errors.push({ row: index, axis: "longitude", error: longitude.error });
     if (latitude.ok && longitude.ok) points.push([longitude.value, latitude.value]);
   });
-  return errors.length > 0 ? { ok: false, errors } : { ok: true, corners: cornersFrom(points) };
+  if (errors.length > 0) return { ok: false, errors };
+  const corners = cornersFrom(points);
+  const [start, end] = [corners[0], corners.at(-1)];
+  const closed = corners.length >= 4 && end !== undefined && start[0] === end[0] && start[1] === end[1];
+  return { ok: true, corners: closed ? cornersFrom(points.slice(0, -1)) : corners };
 }
 
 /**
