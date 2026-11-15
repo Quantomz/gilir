@@ -170,17 +170,20 @@ function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }
 }
 
 /**
- * Always visible, at the smallest text size, never behind MapLibre's 12 px control. Shown with the flat plan too,
- * because search results need their credit.
+ * Always visible, at the smallest text size, never behind MapLibre's 12 px control. With the flat plan it credits only
+ * the place search, so with no key it shows nothing.
  */
-export function Credits(props: { readonly c: Controller }): ReactElement {
-  const { provider } = props.c;
-  const words = credits[provider.kind];
+export function Credits(props: { readonly c: Controller }): ReactElement | null {
+  const { provider, picker } = props.c;
+  const pictures = picker.surface.kind !== "plan";
+  const shown = creditsFor(provider, pictures);
+  if (shown.length === 0) return null;
+  const words = credits[!pictures ? "search" : provider.kind === "ready" ? "pictures_and_search" : "pictures"];
   return (
     <div className="fp-credits">
       <p>
         {words.lead}{" "}
-        {creditsFor(provider).map((credit, index) => (
+        {shown.map((credit, index) => (
           <Fragment key={credit.text}>
             {index > 0 ? ", " : null}
             {credit.href ? <a href={credit.href} target="_blank" rel="noopener noreferrer" aria-label={newTab(credit.text)}>{credit.text}</a> : credit.text}

@@ -36,9 +36,15 @@ async function cornerNumbers(root: Locator): Promise<string[]> {
   return (await drawingOf(root).locator("text").allTextContents()).map(text => text.trim()).filter(text => /^\d+$/.test(text)).sort((a, b) => Number(a) - Number(b));
 }
 
-test("[R14][R16] the slot reports data-surface='plan', shows 'This phone can’t show the moving globe. …' and a drawing of the fixture with 4 numbered corners", async ({ page }, testInfo) => {
-  const root = await openLab(page);
+test("[R14][R16][R5] the slot reports data-surface='plan', shows 'This phone can’t show the moving globe. …' and a drawing of the fixture with 4 numbered corners, with no map picture credit and no picture request", async ({ page }, testInfo) => {
+  const routes = await routeProviders(page);
+  await page.goto("/dev/fixtures");
+  const root = firstPicker(page);
+  await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
   await expect(root.getByText(/^This phone can’t show the moving globe\./)).toBeVisible();
+  await expect(root.locator(".fp-credits")).toHaveCount(0);
+  await expect(root.getByText(/NASA EOSDIS GIBS|Map pictures/)).toHaveCount(0);
+  expect(routes.requests).toEqual([]);
   await expect(drawingOf(root)).toBeVisible();
   expect(await cornerNumbers(root)).toEqual(["1", "2", "3", "4"]);
   await expect(root.locator("canvas.maplibregl-canvas")).toHaveCount(0);

@@ -260,15 +260,19 @@ export const weatherGrid = "Weather comes from NASA records on a grid much large
 /** A credit link's name: it opens a new tab, so the slot stays where it was. */
 export const newTab = (name: string) => `${name} (opens in a new tab)`;
 
-/** Keyed by the provider, so what it says about who sees what is true for each. */
-export const credits: Record<Provider["kind"], { readonly lead: string; readonly privacy: string }> = {
-  missing: {
+/** Keyed by what is in use, so what it says about who sees what is true for each. The drawing shows no pictures. */
+export const credits: Record<"pictures" | "pictures_and_search" | "search", { readonly lead: string; readonly privacy: string }> = {
+  pictures: {
     lead: "Map pictures:",
     privacy: "The map pictures come from NASA, so NASA can see which area you are looking at.",
   },
-  ready: {
+  pictures_and_search: {
     lead: "Map pictures and place search:",
     privacy: "The map pictures and the place search come from NASA and MapTiler, so they can see which area you are looking at and the names you search for.",
+  },
+  search: {
+    lead: "Place search:",
+    privacy: "The place search comes from MapTiler, so MapTiler can see the names you search for.",
   },
 };
 

@@ -422,6 +422,14 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     expect(globe.zoom).toEqual([1, -1]);
   });
 
+  it("[R5] beside the globe the credits line names the map pictures: 'Map pictures: NASA EOSDIS GIBS'", async () => {
+    fakeGlobe();
+    mount(inputFixture.field);
+    await screen.findByRole("button", { name: "Zoom in" });
+    expect(screen.getByText(/^Map pictures:\s*NASA EOSDIS GIBS$/)).toBeTruthy();
+    expect(screen.getByText("The map pictures come from NASA, so NASA can see which area you are looking at.")).toBeTruthy();
+  });
+
   it("[R14][R15] when the globe stops working, focus on 'Zoom in' moves to the corner list's heading; focus in the search box stays there", async () => {
     const globe = fakeGlobe();
     const user = userEvent.setup();

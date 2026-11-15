@@ -154,11 +154,11 @@ describe("with no key and no WebGL", () => {
     expect(fetchCalls).not.toHaveBeenCalled();
   });
 
-  it("[R5] the credits line shows 'NASA EOSDIS GIBS' without a press", async () => {
+  it("[R5] with the drawing and no key there are no map pictures and no place search, so no credit and no claim that NASA sees the area", async () => {
     mount();
     await drawing();
-    expect(screen.getByText(/^Map pictures:\s*NASA EOSDIS GIBS$/)).toBeTruthy();
-    expect(screen.queryByText(/MapTiler/)).toBeNull();
+    expect(screen.queryByText(/NASA EOSDIS GIBS|Map pictures|MapTiler/)).toBeNull();
+    expect(screen.queryByText(/can see which area/)).toBeNull();
   });
 
   it("the root has data-surface='plan', and once marked data-lookup equals the emitted lookup", async () => {
@@ -452,10 +452,11 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     expect(fetchCalls).toHaveBeenCalledTimes(2);
   });
 
-  it("[R5] the credits line shows '© MapTiler' and '© OpenStreetMap contributors' as links, without a press", async () => {
+  it("[R5] with the drawing the credits line credits the place search alone: '© MapTiler' and '© OpenStreetMap contributors' as links, without a press, and no NASA", async () => {
     mount();
     await drawing();
-    expect(screen.getByText(/^Map pictures and place search:/)).toBeTruthy();
+    expect(screen.getByText(/^Place search:/)).toBeTruthy();
+    expect(screen.getByText("The place search comes from MapTiler, so MapTiler can see the names you search for.")).toBeTruthy();
     const maptiler = screen.getByRole("link", { name: "© MapTiler (opens in a new tab)" });
     const osm = screen.getByRole("link", { name: "© OpenStreetMap contributors (opens in a new tab)" });
     expect(maptiler.getAttribute("href")).toMatch(/^https:\/\/www\.maptiler\.com\//);
@@ -464,7 +465,7 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
-    expect(screen.getByText(/NASA EOSDIS GIBS/)).toBeTruthy();
+    expect(screen.queryByText(/NASA/)).toBeNull();
   });
 
   it("unmounting during a search aborts it and nothing is set afterwards", async () => {
