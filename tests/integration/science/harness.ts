@@ -10,13 +10,11 @@ import type { FarmInput, LngLat, WaterAnswer } from "@/contracts/input";
 import type { RegistryRelease } from "@/contracts/registry";
 import type { PlanResult } from "@/contracts/result";
 import { calculate } from "@/engine";
-import type { CalculateOptions } from "@/engine";
-import { readCatalogue, readRegistryRelease, resolveRegistry } from "@/registry";
+import { readRegistryRelease } from "@/registry";
 import { providerSnapshotSchema } from "@/server/cache/schema";
 import { addDays, daysFrom, occurrenceWindows } from "./reference";
-import { resolveStandIn, standInRegistry } from "./stand-in-registry";
 
-export type Recording = "ibadan" | "madrid" | "boise";
+export type Recording = "boise-apr" | "boise-jun" | "madrid" | "bangkok" | "ibadan";
 
 export type Expectation =
   | { readonly state: "plan"; readonly profileIds: readonly string[] }
@@ -32,28 +30,24 @@ export interface ScienceCase {
   readonly expect: Expectation;
 }
 
+const boise: LngLat = [-116.2, 43.6];
+
 export const scienceCases: readonly ScienceCase[] = [
-  { id: "ibadan-maize-plan", lookup: [3.9, 7.4], cropPurposeIds: ["maize-grain"], planningStart: "2027-06-01", recording: "ibadan",
-    expect: { state: "plan", profileIds: ["maize-grain-fao56-nigeria-humid-jun"] } },
-  { id: "madrid-wheat-maize-no-fit", lookup: [-3.7, 40.4], cropPurposeIds: ["wheat-grain", "maize-grain"], planningStart: "2027-06-01", recording: "madrid",
-    expect: { state: "no_calendar_fit", profileIds: ["wheat-grain-fao56-mediterranean-winter-nov", "maize-grain-fao56-spain-california-apr"] } },
-  { id: "ibadan-bean-insufficient", lookup: [3.9, 7.4], cropPurposeIds: ["common-bean-dry"], planningStart: "2027-06-01", recording: "ibadan",
-    expect: { state: "insufficient_data", missingProfiles: ["common-bean-dry"] } },
-  { id: "boise-maize-bean-plan", lookup: [-116.2, 43.6], cropPurposeIds: ["maize-grain", "common-bean-dry"], planningStart: "2027-04-01", recording: "boise",
+  { id: "boise-bean-plan", lookup: boise, cropPurposeIds: ["common-bean-dry"], planningStart: "2027-06-01", recording: "boise-jun",
+    expect: { state: "plan", profileIds: ["common-bean-dry-fao56-idaho-jun"] } },
+  { id: "boise-maize-bean-plan", lookup: boise, cropPurposeIds: ["maize-grain", "common-bean-dry"], planningStart: "2027-04-01", recording: "boise-apr",
     expect: { state: "plan", profileIds: ["maize-grain-fao56-idaho-apr", "common-bean-dry-fao56-idaho-jun"] } },
+  { id: "madrid-wheat-maize-plan", lookup: [-3.7, 40.4], cropPurposeIds: ["wheat-grain", "maize-grain"], planningStart: "2027-06-01", recording: "madrid",
+    expect: { state: "plan", profileIds: ["wheat-grain-fao56-lat35-45n-mar-apr", "maize-grain-fao56-spain-california-apr"] } },
+  { id: "boise-maize-bean-wheat-no-fit", lookup: boise, cropPurposeIds: ["maize-grain", "common-bean-dry", "wheat-grain"], planningStart: "2027-04-01", recording: "boise-apr",
+    expect: { state: "no_calendar_fit", profileIds: ["maize-grain-fao56-idaho-apr", "common-bean-dry-fao56-idaho-jun", "wheat-grain-fao56-lat35-45n-mar-apr"] } },
+  { id: "bangkok-bean-insufficient", lookup: [100.5, 13.75], cropPurposeIds: ["common-bean-dry"], planningStart: "2027-06-01", recording: "bangkok",
+    expect: { state: "insufficient_data", missingProfiles: ["common-bean-dry"] } },
+  { id: "ibadan-maize-withheld-insufficient", lookup: [3.9, 7.4], cropPurposeIds: ["maize-grain"], planningStart: "2027-06-01", recording: "ibadan",
+    expect: { state: "insufficient_data", missingProfiles: ["maize-grain"] } },
 ];
 
-export type RegistrySource =
-  | { readonly kind: "stand-in"; readonly registry: RegistryRelease; readonly options: CalculateOptions }
-  | { readonly kind: "released"; readonly registry: RegistryRelease; readonly options: CalculateOptions };
-
-export const e1Released = readCatalogue().entries.length > 0;
-
-export function registrySource(kind: RegistrySource["kind"]): RegistrySource {
-  return kind === "stand-in"
-    ? { kind, registry: standInRegistry, options: { resolveRegistry: resolveStandIn } }
-    : { kind, registry: readRegistryRelease(), options: { resolveRegistry } };
-}
+export const registry = readRegistryRelease();
 
 const snapshotList = providerSnapshotSchema.array();
 const recordings = new Map<Recording, readonly ClimateSnapshot[]>();
@@ -112,14 +106,14 @@ export function frozenRun(c: ScienceCase, registry: RegistryRelease, water: Wate
   });
 }
 
-export function runCase(c: ScienceCase, source: RegistrySource, water: WaterAnswer = "rain_only"): PlanResult {
-  return calculate(frozenRun(c, source.registry, water), source.registry, source.options);
+export function runCase(c: ScienceCase, water: WaterAnswer = "rain_only"): PlanResult {
+  return calculate(frozenRun(c, registry, water), registry);
 }
 
 export const usableSeasons = (result: PlanResult): number | null =>
   result.details.cohort.kind === "available" ? result.details.cohort.value.seasons.filter(s => s.status === "usable").length : null;
 
-export function recomputeFirstOccurrence(c: ScienceCase, result: PlanResult, registry: RegistryRelease) {
+export function recomputeFirstOccurrence(c: ScienceCase, result: PlanResult) {
   if (!("plan" in result)) throw new Error(`Expected a plan, got ${result.state}.`);
   if (result.details.cohort.kind !== "available") throw new Error("Cohort coverage is unavailable.");
   const occurrence = result.plan.occurrences[0];

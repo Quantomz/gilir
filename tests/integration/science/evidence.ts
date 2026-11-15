@@ -1,16 +1,8 @@
-import { e1Released, recomputeFirstOccurrence, registrySource, runCase, scienceCases, sha256, usableSeasons } from "./harness";
-import type { RegistrySource } from "./harness";
-
-const kind: RegistrySource["kind"] = process.argv[2] === "released" ? "released" : "stand-in";
-if (kind === "released" && !e1Released) {
-  process.stderr.write("NOT RUN: E1 crop registry is not merged; readCatalogue() is empty.\n");
-  process.exit(2);
-}
-const source = registrySource(kind);
+import { recomputeFirstOccurrence, registry, runCase, scienceCases, sha256, usableSeasons } from "./harness";
 
 const cases = scienceCases.map(c => {
-  const result = runCase(c, source);
-  const rerun = runCase(c, source);
+  const result = runCase(c);
+  const rerun = runCase(c);
   const { provenance } = result.details;
   return {
     id: c.id,
@@ -41,7 +33,7 @@ const cases = scienceCases.map(c => {
 });
 
 const first = scienceCases[0];
-const check = recomputeFirstOccurrence(first, runCase(first, source), source.registry);
+const check = recomputeFirstOccurrence(first, runCase(first));
 const independentRecompute = {
   caseId: first.id,
   occurrence: check.occurrence,
@@ -54,4 +46,4 @@ const independentRecompute = {
   engine: check.engine,
 };
 
-process.stdout.write(JSON.stringify({ registrySource: kind, registryIdentity: source.registry.identity, cases, independentRecompute }, null, 2) + "\n");
+process.stdout.write(JSON.stringify({ registryKind: registry.kind, registryIdentity: registry.identity, cases, independentRecompute }, null, 2) + "\n");

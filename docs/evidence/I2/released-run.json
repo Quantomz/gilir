@@ -1,0 +1,695 @@
+{
+  "registryKind": "released",
+  "registryIdentity": {
+    "catalogueVersion": "fao56-reviewed-2026-11-15",
+    "ruleVersion": "no-rules-2026-11-14"
+  },
+  "cases": [
+    {
+      "id": "boise-bean-plan",
+      "input": {
+        "lookup": [
+          -116.2,
+          43.6
+        ],
+        "cropPurposeIds": [
+          "common-bean-dry"
+        ],
+        "planningStart": "2027-06-01",
+        "recording": "boise-jun",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "plan or plan_with_warnings",
+      "state": "plan_with_warnings",
+      "provenanceKind": "run",
+      "profiles": [
+        {
+          "id": "common-bean-dry-fao56-idaho-jun",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        }
+      ],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-27656db88086304c086b25e8e70b07ab8aafaafa64221d3c7c5da9127b1a09ea",
+        "power-859c13cff2b2ed9a83c22156644b2ee69594bafb0e751a417cb0a78e04598d4e",
+        "power-f7eae6a81f9b1e42db84059b0dc6ff17e20385307df9406bb3f409ad81412b49"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": "The first deciding metric against the final runner-up was mean_frequency: 0.21234 versus 0.218298 fraction, after comparison rounding.",
+      "explanation": "The first deciding metric against the final runner-up was mean_frequency: 0.21234 versus 0.218298 fraction, after comparison rounding.",
+      "plan": {
+        "horizon": {
+          "start": "2027-06-01",
+          "endExclusive": "2028-06-01"
+        },
+        "occurrences": [
+          {
+            "cropPurposeId": "common-bean-dry",
+            "profileId": "common-bean-dry-fao56-idaho-jun",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2027-11-09",
+            "lastOccupied": "2028-02-16",
+            "fieldAvailable": "2028-02-24"
+          }
+        ],
+        "rankingTuple": [
+          {
+            "metricId": "mean_frequency",
+            "value": 0.21234,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "mean_mismatch",
+            "value": 0.125911,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "unplanted_days",
+            "value": 266,
+            "unit": "days"
+          },
+          {
+            "metricId": "longest_unplanted_gap",
+            "value": 161,
+            "unit": "days"
+          }
+        ]
+      },
+      "missing": null,
+      "proof": null,
+      "warnings": [
+        {
+          "code": "rainfall_mismatch",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ]
+        }
+      ],
+      "unassessedChecks": [
+        "temperature_rule"
+      ],
+      "search": {
+        "structural": "witness",
+        "ranking": "grid_complete",
+        "structuralExpandedStates": 1,
+        "gridExpandedStates": 455,
+        "scoredCandidates": 453,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "3b29b8c1e04183652b47a6325acbaf8433b7e43ca08679c73e9b41b2d715ad41",
+      "rerunSha256": "3b29b8c1e04183652b47a6325acbaf8433b7e43ca08679c73e9b41b2d715ad41"
+    },
+    {
+      "id": "boise-maize-bean-plan",
+      "input": {
+        "lookup": [
+          -116.2,
+          43.6
+        ],
+        "cropPurposeIds": [
+          "maize-grain",
+          "common-bean-dry"
+        ],
+        "planningStart": "2027-04-01",
+        "recording": "boise-apr",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "plan or plan_with_warnings",
+      "state": "plan_with_warnings",
+      "provenanceKind": "run",
+      "profiles": [
+        {
+          "id": "maize-grain-fao56-idaho-apr",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        },
+        {
+          "id": "common-bean-dry-fao56-idaho-jun",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        }
+      ],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-6a16f55eb1fb3611646bf0f74fc41bd5c68050182f9f06372869aa662f37f4f3",
+        "power-8963035372cd655188a0905d07e222b1931b5fb62cd72f3fce50620b12f528d6",
+        "power-1b647b0d8c7ef3281e56c456275c8c03a1df8ce38985e7bc8c80f2d42e5a5092"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": "The first deciding metric against the final runner-up was longest_unplanted_gap: 54 versus 61 days, after comparison rounding.",
+      "explanation": "The first deciding metric against the final runner-up was longest_unplanted_gap: 54 versus 61 days, after comparison rounding.",
+      "plan": {
+        "horizon": {
+          "start": "2027-04-01",
+          "endExclusive": "2028-04-01"
+        },
+        "occurrences": [
+          {
+            "cropPurposeId": "common-bean-dry",
+            "profileId": "common-bean-dry-fao56-idaho-jun",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2027-04-01",
+            "lastOccupied": "2027-07-09",
+            "fieldAvailable": "2027-07-17"
+          },
+          {
+            "cropPurposeId": "maize-grain",
+            "profileId": "maize-grain-fao56-idaho-apr",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2027-09-02",
+            "lastOccupied": "2028-02-18",
+            "fieldAvailable": "2028-02-26"
+          }
+        ],
+        "rankingTuple": [
+          {
+            "metricId": "mean_frequency",
+            "value": 0.836596,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "mean_mismatch",
+            "value": 0.637342,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "unplanted_days",
+            "value": 96,
+            "unit": "days"
+          },
+          {
+            "metricId": "longest_unplanted_gap",
+            "value": 54,
+            "unit": "days"
+          }
+        ]
+      },
+      "missing": null,
+      "proof": null,
+      "warnings": [
+        {
+          "code": "rainfall_mismatch",
+          "cropPurposeIds": [
+            "common-bean-dry",
+            "maize-grain"
+          ]
+        }
+      ],
+      "unassessedChecks": [
+        "temperature_rule"
+      ],
+      "search": {
+        "structural": "witness",
+        "ranking": "grid_complete",
+        "structuralExpandedStates": 2,
+        "gridExpandedStates": 527,
+        "scoredCandidates": 205,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "3db2c08aca865c7a9409197abd2ba2fe721bc5c0c0d29e7c22719def695ebbab",
+      "rerunSha256": "3db2c08aca865c7a9409197abd2ba2fe721bc5c0c0d29e7c22719def695ebbab"
+    },
+    {
+      "id": "madrid-wheat-maize-plan",
+      "input": {
+        "lookup": [
+          -3.7,
+          40.4
+        ],
+        "cropPurposeIds": [
+          "wheat-grain",
+          "maize-grain"
+        ],
+        "planningStart": "2027-06-01",
+        "recording": "madrid",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "plan or plan_with_warnings",
+      "state": "plan_with_warnings",
+      "provenanceKind": "run",
+      "profiles": [
+        {
+          "id": "wheat-grain-fao56-lat35-45n-mar-apr",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        },
+        {
+          "id": "maize-grain-fao56-spain-california-apr",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        }
+      ],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-ef0d8babeebd11fea39f2cdccbf4d17bc0707c90ad199d2cfb8d8833fdb528e7",
+        "power-f8c29c742116134483caa001c86a47d6f2af4d55bada13c5beb29cf0c444c365",
+        "power-93323362856a9678a124d39e7f80b30ca165ccbd88a27d976c886c051ed9ce6b"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": "The first deciding metric against the final runner-up was mean_frequency: 0.720039 versus 0.724955 fraction, after comparison rounding.",
+      "explanation": "The first deciding metric against the final runner-up was mean_frequency: 0.720039 versus 0.724955 fraction, after comparison rounding.",
+      "plan": {
+        "horizon": {
+          "start": "2027-06-01",
+          "endExclusive": "2028-06-01"
+        },
+        "occurrences": [
+          {
+            "cropPurposeId": "maize-grain",
+            "profileId": "maize-grain-fao56-spain-california-apr",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2027-08-03",
+            "lastOccupied": "2027-12-30",
+            "fieldAvailable": "2028-01-07"
+          },
+          {
+            "cropPurposeId": "wheat-grain",
+            "profileId": "wheat-grain-fao56-lat35-45n-mar-apr",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2028-01-07",
+            "lastOccupied": "2028-05-20",
+            "fieldAvailable": "2028-05-28"
+          }
+        ],
+        "rankingTuple": [
+          {
+            "metricId": "mean_frequency",
+            "value": 0.720039,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "mean_mismatch",
+            "value": 0.550283,
+            "unit": "fraction"
+          },
+          {
+            "metricId": "unplanted_days",
+            "value": 81,
+            "unit": "days"
+          },
+          {
+            "metricId": "longest_unplanted_gap",
+            "value": 63,
+            "unit": "days"
+          }
+        ]
+      },
+      "missing": null,
+      "proof": null,
+      "warnings": [
+        {
+          "code": "rainfall_mismatch",
+          "cropPurposeIds": [
+            "maize-grain",
+            "wheat-grain"
+          ]
+        },
+        {
+          "code": "profile_limitation",
+          "cropPurposeIds": [
+            "wheat-grain"
+          ]
+        },
+        {
+          "code": "profile_limitation",
+          "cropPurposeIds": [
+            "wheat-grain"
+          ]
+        }
+      ],
+      "unassessedChecks": [
+        "temperature_rule"
+      ],
+      "search": {
+        "structural": "witness",
+        "ranking": "grid_complete",
+        "structuralExpandedStates": 2,
+        "gridExpandedStates": 305,
+        "scoredCandidates": 119,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "28df2c771e8fdb2d83f230a793707b815e51bdeacd6860b4055090673e5dc2e4",
+      "rerunSha256": "28df2c771e8fdb2d83f230a793707b815e51bdeacd6860b4055090673e5dc2e4"
+    },
+    {
+      "id": "boise-maize-bean-wheat-no-fit",
+      "input": {
+        "lookup": [
+          -116.2,
+          43.6
+        ],
+        "cropPurposeIds": [
+          "maize-grain",
+          "common-bean-dry",
+          "wheat-grain"
+        ],
+        "planningStart": "2027-04-01",
+        "recording": "boise-apr",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "no_calendar_fit",
+      "state": "no_calendar_fit",
+      "provenanceKind": "run",
+      "profiles": [
+        {
+          "id": "maize-grain-fao56-idaho-apr",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        },
+        {
+          "id": "common-bean-dry-fao56-idaho-jun",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        },
+        {
+          "id": "wheat-grain-fao56-lat35-45n-mar-apr",
+          "version": "reviewed-2026-11-15.1",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        }
+      ],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-6a16f55eb1fb3611646bf0f74fc41bd5c68050182f9f06372869aa662f37f4f3",
+        "power-8963035372cd655188a0905d07e222b1931b5fb62cd72f3fce50620b12f528d6",
+        "power-1b647b0d8c7ef3281e56c456275c8c03a1df8ce38985e7bc8c80f2d42e5a5092"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": null,
+      "explanation": "The mandatory occupancy and turnaround total 426 days, exceeding the 366-day horizon under the released model.",
+      "plan": null,
+      "missing": null,
+      "proof": {
+        "kind": "duration_lower_bound",
+        "horizonDays": 366,
+        "mandatoryMinimumDays": 426,
+        "minimumByCrop": [
+          {
+            "cropPurposeId": "common-bean-dry",
+            "minimumDays": 107
+          },
+          {
+            "cropPurposeId": "maize-grain",
+            "minimumDays": 177
+          },
+          {
+            "cropPurposeId": "wheat-grain",
+            "minimumDays": 142
+          }
+        ]
+      },
+      "warnings": [],
+      "unassessedChecks": [],
+      "search": {
+        "structural": "proved_impossible",
+        "ranking": "not_started",
+        "structuralExpandedStates": 0,
+        "gridExpandedStates": 0,
+        "scoredCandidates": 0,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "f6dd615b0070ce3b43eb615c7b4095c67b6165fb37bebc809a97230728023f60",
+      "rerunSha256": "f6dd615b0070ce3b43eb615c7b4095c67b6165fb37bebc809a97230728023f60"
+    },
+    {
+      "id": "bangkok-bean-insufficient",
+      "input": {
+        "lookup": [
+          100.5,
+          13.75
+        ],
+        "cropPurposeIds": [
+          "common-bean-dry"
+        ],
+        "planningStart": "2027-06-01",
+        "recording": "bangkok",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "insufficient_data",
+      "state": "insufficient_data",
+      "provenanceKind": "run",
+      "profiles": [],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-d9c79769a976eacae9db9c0049c00e8a33cb5da13789bda10cc19bd27aa0214d",
+        "power-391c5a3d9b9d77366b7609021f672d07946f90bb3aff91453fe649852eb24c48",
+        "power-7d3dea804669d99f3f79ace77c634e8854d59530ab61f38e21685adca0495523"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": null,
+      "explanation": "Required crop, climate, or ranking evidence is missing. Available insights remain visible, but no plan can be recommended.",
+      "plan": null,
+      "missing": [
+        {
+          "code": "crop_profile",
+          "reason": "No released common-bean-dry profile applies at this location.",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ],
+          "sourceIds": []
+        },
+        {
+          "code": "crop_profile",
+          "reason": "A selected crop has no applicable released profile.",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ],
+          "sourceIds": []
+        }
+      ],
+      "proof": null,
+      "warnings": [],
+      "unassessedChecks": [
+        "crop_profile",
+        "crop_profile"
+      ],
+      "search": {
+        "structural": "not_started",
+        "ranking": "not_started",
+        "structuralExpandedStates": 0,
+        "gridExpandedStates": 0,
+        "scoredCandidates": 0,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "c1f4ebde1b9084706ee8ea0d162606145a95310a218fa307940f46c9bb0fda2a",
+      "rerunSha256": "c1f4ebde1b9084706ee8ea0d162606145a95310a218fa307940f46c9bb0fda2a"
+    },
+    {
+      "id": "ibadan-maize-withheld-insufficient",
+      "input": {
+        "lookup": [
+          3.9,
+          7.4
+        ],
+        "cropPurposeIds": [
+          "maize-grain"
+        ],
+        "planningStart": "2027-06-01",
+        "recording": "ibadan",
+        "history": "skipped",
+        "water": "rain_only"
+      },
+      "expected": "insufficient_data",
+      "state": "insufficient_data",
+      "provenanceKind": "run",
+      "profiles": [],
+      "sources": [
+        "fao56-table11",
+        "fao56-table12"
+      ],
+      "climateSnapshotIds": [
+        "power-0b7c6c7771583b386594db4e24e543e76fd787eeba85651daea347ecb7051271",
+        "power-f32e2b515e27013c4b8e63e1a8ecec3008794413c1659c8d58ebb8f0b6dd92be",
+        "power-38db5e556a59f782eaa3a3454e98141360ad86ebaba91ea7ffa4364aa50eda00"
+      ],
+      "usableSeasons": 25,
+      "rankingDecision": null,
+      "explanation": "Required crop, climate, or ranking evidence is missing. Available insights remain visible, but no plan can be recommended.",
+      "plan": null,
+      "missing": [
+        {
+          "code": "crop_profile",
+          "reason": "No released maize-grain profile applies at this location.",
+          "cropPurposeIds": [
+            "maize-grain"
+          ],
+          "sourceIds": []
+        },
+        {
+          "code": "crop_profile",
+          "reason": "A selected crop has no applicable released profile.",
+          "cropPurposeIds": [
+            "maize-grain"
+          ],
+          "sourceIds": []
+        }
+      ],
+      "proof": null,
+      "warnings": [],
+      "unassessedChecks": [
+        "crop_profile",
+        "crop_profile"
+      ],
+      "search": {
+        "structural": "not_started",
+        "ranking": "not_started",
+        "structuralExpandedStates": 0,
+        "gridExpandedStates": 0,
+        "scoredCandidates": 0,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      },
+      "resultSha256": "21a9866cf14d0c5fd4a74e336806a886d20b6056ea012a051ed6d3d8f61542ba",
+      "rerunSha256": "21a9866cf14d0c5fd4a74e336806a886d20b6056ea012a051ed6d3d8f61542ba"
+    }
+  ],
+  "independentRecompute": {
+    "caseId": "boise-bean-plan",
+    "occurrence": {
+      "cropPurposeId": "common-bean-dry",
+      "profileId": "common-bean-dry-fao56-idaho-jun",
+      "planted": "2027-11-09"
+    },
+    "replayStart": "2001-06-01",
+    "firstReplayDate": "2001-11-09",
+    "firstWindow": {
+      "start": "2001-11-09",
+      "demandMm": 4.620208863268961,
+      "rainMm": 1.68,
+      "shortfall": 0.6363800750749307
+    },
+    "firstWindowDays": [
+      {
+        "date": "2001-11-09",
+        "et0": 2.1928628066064704,
+        "etc": 0.8771451226425881,
+        "rain": 0
+      },
+      {
+        "date": "2001-11-10",
+        "et0": 1.6170200116241509,
+        "etc": 0.6468080046496604,
+        "rain": 0
+      },
+      {
+        "date": "2001-11-11",
+        "et0": 1.5955822055172677,
+        "etc": 0.6382328822069071,
+        "rain": 0
+      },
+      {
+        "date": "2001-11-12",
+        "et0": 1.853818078690981,
+        "etc": 0.7415272314763924,
+        "rain": 0
+      },
+      {
+        "date": "2001-11-13",
+        "et0": 1.5228292982059994,
+        "etc": 0.6091317192823998,
+        "rain": 1.18
+      },
+      {
+        "date": "2001-11-14",
+        "et0": 0.9401708979261375,
+        "etc": 0.376068359170455,
+        "rain": 0.45
+      },
+      {
+        "date": "2001-11-15",
+        "et0": 1.8282388596013965,
+        "etc": 0.7312955438405586,
+        "rain": 0.05
+      }
+    ],
+    "firstShortfallWindow": {
+      "start": "2001-11-09",
+      "demandMm": 4.620208863268961,
+      "rainMm": 1.68,
+      "shortfall": 0.6363800750749307
+    },
+    "reference": {
+      "mismatch": 0.08688804289145913,
+      "frequency": 0.1595744680851064,
+      "windows": 94
+    },
+    "engine": {
+      "mismatch": {
+        "kind": "available",
+        "value": 0.08688804289145913
+      },
+      "frequency": {
+        "kind": "available",
+        "value": 0.1595744680851064
+      },
+      "windows": {
+        "kind": "available",
+        "value": {
+          "count": 94,
+          "unit": "windows"
+        }
+      }
+    }
+  }
+}
