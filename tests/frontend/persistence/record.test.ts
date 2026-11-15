@@ -21,6 +21,8 @@ function record(parts: Record<string, unknown>, version: unknown = 1) {
   return { format: "gilir.local-state", version, state: { ...empty, ...parts } };
 }
 
+const contracts = { input: inputFixture.schemaVersion, snapshot: completedSnapshotFixture.schemaVersion };
+
 async function seeded(raw: unknown, setAside?: unknown) {
   const memory = memoryIdb();
   const keys = new Map<string, unknown>([["state", raw]]);
@@ -68,7 +70,7 @@ describe("round trip", () => {
     expect(loaded?.snapshot?.completedAt).toBe("2026-07-01T00:00:00Z");
     expect(loaded?.snapshot?.result.details.provenance).toEqual(fixture.result.details.provenance);
     const stored = onDisk(memory, "state") as { state: object };
-    expect(Object.keys(stored).sort()).toEqual(["format", "state", "version"]);
+    expect(Object.keys(stored).sort()).toEqual(["contracts", "format", "state", "version"]);
     expect(Object.keys(stored.state).sort()).toEqual(["activeJob", "draft", "snapshot", "step"]);
     expect(datetimes(stored)).toEqual(datetimes(fixture));
   });
@@ -156,6 +158,32 @@ describe("record versions", () => {
     const notice = await readStorageNotice();
     expect(notice?.text).toBe(`${words.snapshot} ${words.kept}`);
     expect(notice?.text).not.toMatch(/older/);
+  });
+
+  it("a record stamped with a newer FarmInput or CompletedSnapshot version rejects load, save and clear with newer, and nothing is written or dropped", async () => {
+    for (const stamp of [{ input: 2, snapshot: 1 }, { input: 1, snapshot: 2 }]) {
+      const newer = { ...record({ draft: { ...answers, soilKind: "clay", water: "rain_plus_tank" }, snapshot: fixture }), contracts: stamp };
+      const { localPlans, storageProblem, memory } = await seeded(newer);
+      for (const call of [() => localPlans.load(), () => localPlans.save(state), () => localPlans.clear()]) {
+        expect(storageProblem(await call().catch(error => error)).reason, JSON.stringify(stamp)).toBe("newer");
+      }
+      expect(onDisk(memory, "state")).toBe(newer);
+      expect(onDisk(memory, "set-aside")).toBeUndefined();
+    }
+  });
+
+  it("a snapshot whose input carries a newer FarmInput schemaVersion reads as newer, though the snapshot's own schemaVersion is 1", async () => {
+    const newer = record({ draft: answers, snapshot: { ...fixture, input: { ...fixture.input, schemaVersion: 2 } } });
+    const { localPlans, storageProblem, memory } = await seeded(newer);
+    expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("newer");
+    expect(onDisk(memory, "state")).toBe(newer);
+    expect(onDisk(memory, "set-aside")).toBeUndefined();
+  });
+
+  it("this build stamps what it saves with its own FarmInput and CompletedSnapshot versions, so an older build can refuse it", async () => {
+    const { localPlans, memory } = await freshStorage();
+    await localPlans.save(state);
+    expect((onDisk(memory, "state") as { contracts: unknown }).contracts).toEqual(contracts);
   });
 
   it("clear on a newer record rejects newer and deletes nothing", async () => {
@@ -292,7 +320,7 @@ describe("set aside, never lost", () => {
   it("the readable rest is written back in the same transaction, so the next load writes nothing and returns the same state", async () => {
     const { localPlans, memory } = await seeded(record({ ...state, snapshot: retiredPriority }));
     const first = await localPlans.load();
-    expect(onDisk(memory, "state")).toEqual(record({ ...state, snapshot: null }));
+    expect(onDisk(memory, "state")).toEqual({ ...record({ ...state, snapshot: null }), contracts });
     const writtenBack = onDisk(memory, "state");
     const setAside = onDisk(memory, "set-aside");
     expect(await localPlans.load()).toEqual(first);
@@ -300,15 +328,29 @@ describe("set aside, never lost", () => {
     expect(onDisk(memory, "set-aside")).toBe(setAside);
   });
 
-  it("if the set-aside write fails at commit with QuotaExceededError, load rejects full and the stored record is unchanged", async () => {
+  it("on a full device (the set-aside write fails at commit with QuotaExceededError) load still resolves the readable rest and writes nothing", async () => {
     const raw = record({ ...state, snapshot: retiredPriority });
-    const { localPlans, storageProblem, memory } = await seeded(raw);
+    const { localPlans, memory } = await seeded(raw);
     memory.failNext("commit", domError("QuotaExceededError"));
-    expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("full");
+    expect(await localPlans.load()).toEqual({ ...state, snapshot: null });
     expect(onDisk(memory, "state")).toBe(raw);
     expect(onDisk(memory, "set-aside")).toBeUndefined();
     expect(await localPlans.load()).toEqual({ ...state, snapshot: null });
     expect(leftOut(memory)).toEqual([["snapshot"]]);
+  });
+
+  it("a save after that load sets the unreadable part aside before it replaces the state; while that doesn't fit, save rejects full and the old record stays", async () => {
+    const raw = record({ ...state, snapshot: retiredPriority });
+    const { localPlans, storageProblem, memory } = await seeded(raw);
+    memory.failNext("commit", domError("QuotaExceededError"));
+    const loaded = { ...(await localPlans.load() ?? empty), step: 4 };
+    memory.failNext("commit", domError("QuotaExceededError"));
+    expect(storageProblem(await localPlans.save(loaded).catch(error => error)).reason).toBe("full");
+    expect(onDisk(memory, "state")).toBe(raw);
+    expect(onDisk(memory, "set-aside")).toBeUndefined();
+    await localPlans.save(loaded);
+    expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["snapshot"], answersKept: true, raw }] });
+    expect(await localPlans.load()).toEqual(loaded);
   });
 
   it("a second finding is appended and the first raw value is kept", async () => {
@@ -380,6 +422,17 @@ describe("the notice in the farmer's words", () => {
   it("draft.field and draft.cropPurposeIds: Some saved answers don’t match this version and were left out: your field and your crops. Please check your answers.", async () => {
     expect(await noticeAfterLoad(record({ draft: { ...answers, field: { label: "Synthetic example field" }, cropPurposeIds: [] } })))
       .toBe("Some saved answers don’t match this version and were left out: your field and your crops. Please check your answers.");
+  });
+
+  it("readStorageNotice and load started in the same tick, notice first or load first, both name what that load set aside", async () => {
+    for (const noticeFirst of [true, false]) {
+      const { localPlans, readStorageNotice } = await seeded(record({ draft: answers, snapshot: retiredPriority }));
+      const [notice, loaded] = noticeFirst
+        ? await Promise.all([readStorageNotice(), localPlans.load()])
+        : await Promise.all([localPlans.load(), readStorageNotice()]).then(([state, text]) => [text, state] as const);
+      expect(loaded, noticeFirst ? "notice first" : "load first").toEqual({ ...empty, draft: answers });
+      expect(notice?.text, noticeFirst ? "notice first" : "load first").toBe(`${words.snapshot} ${words.kept}`);
+    }
   });
 
   it("reading twice gives the same text and changes nothing (React Strict Mode runs effects twice)", async () => {

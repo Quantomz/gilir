@@ -133,6 +133,22 @@ test.describe("useful messages, no silent loss", () => {
     expect(finds.map(find => find.raw)).toEqual([recordWithRetiredPriority]);
   });
 
+  test("the notice and a load called in the same tick, notice first or load first: the notice names the plan that load set aside", async ({ page, harness }) => {
+    await openHarness(page, `${harness.origin}/`);
+    for (const noticeFirst of [true, false]) {
+      await page.evaluate(() => window.gilirF4.localPlans.clear());
+      await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), recordWithRetiredPriority);
+      const outcome = await page.evaluate(async noticeFirst => {
+        const { localPlans, readStorageNotice } = window.gilirF4;
+        const notice = noticeFirst ? readStorageNotice() : null;
+        const loaded = localPlans.load();
+        const text = (await (notice ?? readStorageNotice()))?.text ?? null;
+        return { text, snapshot: (await loaded)?.snapshot ?? null };
+      }, noticeFirst);
+      expect(outcome, noticeFirst ? "notice first" : "load first").toEqual({ text: words.oldPlanAnswersKept, snapshot: null });
+    }
+  });
+
   test("the notice survives a restart until dismissed, and after dismiss and a restart it does not return", async ({ harness }) => {
     await withUserDataFolder(async launch => {
       const first = await launch();
