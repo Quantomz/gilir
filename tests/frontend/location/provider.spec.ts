@@ -250,13 +250,17 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
   }
 });
 
-test("[R16] on F1's page 1, from the world view, with NASA's pictures answering and MapTiler's refused (a bad key): 'The map pictures didn’t load. …' shows, and still shows on the marked field", async ({ page }, testInfo) => {
+const picturesNotice = (root: Locator) => root.getByText(/^The map pictures didn’t load\./);
+
+test("[R16] on F1's page 1 with MapTiler's pictures refused (a bad key): the world view shows NASA's pictures with no notice; on the marked field 'The map pictures didn’t load. …' shows", async ({ page }, testInfo) => {
   const routes = await routeProviders(page, { ...allAnswer, maptiler: "refused" });
   const root = (await openPageOne(page)).first();
   await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
   await expect.poll(() => routes.of("gibs").length, { timeout: 30_000 }).toBeGreaterThan(0);
-  const notice = root.getByText(/^The map pictures didn’t load\./);
-  await expect(notice).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => routes.of("tilejson").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(2000);
+  const notice = picturesNotice(root);
+  await expect(notice).toHaveCount(0);
   await searchBox(root).fill("-6.326, 108.32");
   await searchBox(root).press("Enter");
   await root.getByRole("button", { name: "Mark my field" }).click();
@@ -264,8 +268,42 @@ test("[R16] on F1's page 1, from the world view, with NASA's pictures answering 
   await page.waitForTimeout(3000);
   await expect(notice).toBeVisible();
   await shoot(page, testInfo, "provider-close-ups-refused-360", notice);
-  expect(routes.of("tilejson").length).toBeGreaterThan(0);
   expect(routes.of("tile")).toHaveLength(0);
+});
+
+test("[R16] on F1's page 1 with NASA's pictures refused and MapTiler's answering: the world view says 'The map pictures didn’t load. …'; on the marked field the close-ups show and the notice goes", async ({ page }) => {
+  const routes = await routeProviders(page, { ...allAnswer, gibs: "refused" });
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  const notice = picturesNotice(root);
+  await expect(notice).toBeVisible({ timeout: 30_000 });
+  await searchBox(root).fill("-6.326, 108.32");
+  await searchBox(root).press("Enter");
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect(notice).toHaveCount(0, { timeout: 15_000 });
+});
+
+test("[R14][R16] a lost WebGL context that comes back asks for the pictures again; when they fail then, 'The map pictures didn’t load. …' shows", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  await expect(handles(root)).toHaveCount(4);
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(2000);
+  const notice = picturesNotice(root);
+  await expect(notice).toHaveCount(0);
+  const asked = routes.of("tilejson").length;
+  routes.plan.maptiler = "offline";
+  routes.plan.gibs = "offline";
+  await page.evaluate(() => {
+    const lose = document.querySelector<HTMLCanvasElement>(".fp canvas.maplibregl-canvas")?.getContext("webgl2")?.getExtension("WEBGL_lose_context");
+    if (!lose) throw new Error("no WebGL2 context to lose");
+    lose.loseContext();
+    setTimeout(() => lose.restoreContext(), 500);
+  });
+  await expect.poll(() => routes.of("tilejson").length, { timeout: 15_000 }).toBeGreaterThan(asked);
+  await expect(notice).toBeVisible({ timeout: 15_000 });
+  await expect(root).toHaveAttribute("data-surface", "globe");
 });
 
 test("[R16][R22] on F1's page 1 the answer to Search comes into view above F1's dock: the places found, then a search that could not reach the provider", async ({ page }) => {

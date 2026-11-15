@@ -129,7 +129,8 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   let stale = false;
   let pin: Marker | null = null;
   const handles: Marker[] = [];
-  // Per source: NASA's far-out tiles showing must not hide that MapTiler's close-ups were refused.
+  // Per source, judged only while the zoom draws it: NASA's far-out tiles showing must not hide that MapTiler's
+  // close-ups were refused, and NASA's failing must not be reported over close-ups that show.
   const sources = new Map<string, "waiting" | "shown" | "failed">((options.pictures.near ? ["far", "near"] : ["far"]).map(id => [id, "waiting"]));
   let pictures: "waiting" | "shown" | "failed" = "waiting";
 
@@ -140,12 +141,17 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
     report({ kind: "surface", surface: { kind: "plan", why } });
     alive = false;
   };
-  const picturesNow = (id: string, state: "shown" | "failed") => {
-    sources.set(id, state);
-    const now = [...sources.values()].includes("failed") ? "failed" : "shown";
-    if (now === pictures) return;
+  const atThisZoom = (id: string) => (id === "far" ? !options.pictures.near || map.getZoom() < farUntil : map.getZoom() >= nearFrom);
+  const reportPictures = () => {
+    const states = [...sources].filter(([id]) => atThisZoom(id)).map(([, state]) => state);
+    const now = states.includes("failed") ? "failed" : states.includes("shown") ? "shown" : "waiting";
+    if (now === "waiting" || now === pictures) return;
     pictures = now;
     report({ kind: "pictures", state: now });
+  };
+  const picturesNow = (id: string, state: "shown" | "failed") => {
+    sources.set(id, state);
+    reportPictures();
   };
 
   const fieldSource = () => (loaded && lost === null ? map.getSource<GeoJSONSource>("field") : undefined);
@@ -240,12 +246,15 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
       giveUp("failed");
     }
   });
+  map.on("zoomend", reportPictures);
   map.on("webglcontextlost", () => {
     lost ??= setTimeout(() => giveUp("lost"), lostForMs);
   });
+  // MapLibre rebuilds the style, so every picture source loads again and may fail this time.
   map.on("webglcontextrestored", () => {
     if (lost !== null) clearTimeout(lost);
     lost = null;
+    for (const id of sources.keys()) sources.set(id, "waiting");
     stale = true;
     render();
   });
