@@ -1,6 +1,6 @@
 # E1 evidence
 
-The current default is `fao56-reviewed-2026-11-15`: 75 profiles, 40 food crop purposes, and no operational temperature or rotation rules. Every retained profile has version `reviewed-2026-11-15.1`. The empty rotation-rule identity remains `no-rules-2026-11-14`.
+The current default is `fao56-hard-windows-2026-11-15`. It has 75 profiles, 40 food crop purposes, and no operational temperature or rotation rules. Every retained profile has version `reviewed-2026-11-15.2`, and every planting window is a hard constraint. The earlier `fao56-reviewed-2026-11-15` release remains readable unchanged. See [hard-planting-windows.md](hard-planting-windows.md). The empty rotation-rule identity remains `no-rules-2026-11-14`.
 
 This source correction preserves supported FAO curation, withholds 11 unresolved rows, and marks four retained printed-duration conflicts unavailable. It does not establish field validation or a live plan.
 
