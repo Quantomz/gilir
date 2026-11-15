@@ -61,7 +61,7 @@ for (const size of sizes) {
     });
 
     test("[I3-F2] a fixture result with missing evidence shows its report with no timeline", async ({ page }) => {
-      await stubApi(page, { catalogue, submit: [{ kind: "accepted" }], reads: [completed("insufficient_data")] });
+      await stubApi(page, { catalogue, submit: [{ kind: "accepted" }], reads: [jobFixtures.queued, completed("insufficient_data")] });
       await openApp(page);
       await answerAll(page, answers);
       await makePlan(page);
