@@ -1,0 +1,24 @@
+
+Running 17 tests using 1 worker
+
+(node:13767) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, phone 360x740 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year
+[2/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:141:5 › live, phone 360x740 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off
+[3/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:169:5 › live, phone 360x740 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan
+[4/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:207:5 › live, phone 360x740 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says
+[5/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, phone 360x740 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF
+[6/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:312:5 › live, phone 360x740 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result
+[7/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:336:5 › live, phone 360x740 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF
+[8/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:352:5 › live, phone 360x740 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back
+[9/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:76:5 › live, desktop 1280x800 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year
+[10/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:141:5 › live, desktop 1280x800 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off
+[11/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:169:5 › live, desktop 1280x800 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan
+[12/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:207:5 › live, desktop 1280x800 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says
+[13/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:256:5 › live, desktop 1280x800 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF
+[14/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:312:5 › live, desktop 1280x800 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result
+[15/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:336:5 › live, desktop 1280x800 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF
+[16/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:352:5 › live, desktop 1280x800 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back
+[17/17] ../../../../gilir-i3-release/tests/integration/browser/live.spec.ts:371:3 › live, a short recording of the real journey › [I3-demo] phone width: field, crop, water, rotation, the real result, details and the PDF
+  17 passed (2.1m)

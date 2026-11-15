@@ -1,0 +1,25 @@
+[
+  {
+    "path": "/",
+    "status": 200
+  },
+  {
+    "path": "/api/catalogue",
+    "status": 200,
+    "version": "fao56-hard-windows-2026-11-15",
+    "entries": 40
+  },
+  {
+    "path": "/dev/fixtures",
+    "status": 404
+  },
+  {
+    "path": "/maptiler-logo.svg",
+    "status": 200
+  },
+  {
+    "path": "/icon.svg",
+    "status": 200,
+    "matchesReviewedSource": true
+  }
+]

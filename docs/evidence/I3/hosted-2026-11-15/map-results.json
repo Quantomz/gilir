@@ -1,0 +1,315 @@
+{
+  "origin": "https://gilir-web-production.up.railway.app",
+  "deploymentShaSuppliedByReleaseCoordinator": "fe4728a0f31c40f8ee17e651f0405c6311661062",
+  "startedAt": "2026-11-15T14:02:16.510Z",
+  "testData": "Synthetic field at the public Bangkok search result. This is not a farm recommendation.",
+  "routeStubs": 0,
+  "apiStatusCountsMeaning": "Resource-path response categories include cleanup. planReads separately counts authorized GET requests.",
+  "browser": "Installed Google Chrome, headless Chromium through Playwright. Native Codex verification.",
+  "journeys": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "status": "PASS",
+      "counts": {
+        "nasaImageSuccess": 9,
+        "maptilerImageSuccess": 66,
+        "maptilerMetadataSuccess": 1,
+        "maptilerSearchSuccess": 1,
+        "maptilerLogoImageSuccess": 1,
+        "pageErrors": 0,
+        "providerNonSuccessByHostStatus": {},
+        "apiStatusCounts": {
+          "catalogue 200": 1,
+          "submit 202": 1,
+          "read 200": 3,
+          "read 204": 1
+        },
+        "planSubmissions": 1,
+        "planReads": 3,
+        "authorizedPlanReads": 3,
+        "planReadUrlsWithoutQuery": 3
+      },
+      "screenshots": [
+        "360-globe.png",
+        "360-place-search.png",
+        "360-field-before-drag.png",
+        "360-field-after-drag.png",
+        "360-rotation.png",
+        "360-result.png",
+        "360-details.png"
+      ],
+      "logo": {
+        "officialDestination": true,
+        "imageLoaded": true
+      },
+      "selectedPublicPlace": "Bangkok Thailand, Asia",
+      "logoAfterFieldSelection": {
+        "officialDestination": true,
+        "imageLoaded": true
+      },
+      "drag": {
+        "hitHandle": true,
+        "changedCoordinateRows": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "handleTravelPx": [
+          33.941125496954285,
+          0,
+          0,
+          0
+        ],
+        "fieldAreaStatusChanged": true,
+        "interiorLookupChanged": false,
+        "lookupChangeIsNotRequiredForOutwardCornerEdit": true,
+        "preciseCornerCoordinatesOmitted": true
+      },
+      "horizontalOverflowAtField": false,
+      "detailsOpened": true,
+      "backFromDetails": true,
+      "result": {
+        "heading": "Your plan, with warnings",
+        "snapshotSchemaVersion": 2,
+        "state": "plan_with_warnings",
+        "provenanceKind": "run",
+        "selectedCropIds": [
+          "rice-paddy"
+        ],
+        "water": "rain_only",
+        "planningStart": "2027-05-06",
+        "historyKind": "skipped",
+        "baselineKind": "not_recorded",
+        "occurrenceCount": 1,
+        "occurrenceCropIds": [
+          "rice-paddy"
+        ],
+        "usableSeasonCount": 25,
+        "climateProductCount": 3,
+        "warningCodes": [
+          "rainfall_mismatch",
+          "profile_limitation",
+          "profile_limitation",
+          "profile_limitation"
+        ],
+        "availableManifest": true,
+        "savedOnDeviceVisible": true,
+        "scientificCaveatVisible": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "counts": {
+        "nasaImageSuccess": 9,
+        "maptilerImageSuccess": 110,
+        "maptilerMetadataSuccess": 1,
+        "maptilerSearchSuccess": 1,
+        "maptilerLogoImageSuccess": 1,
+        "pageErrors": 0,
+        "providerNonSuccessByHostStatus": {},
+        "apiStatusCounts": {
+          "catalogue 200": 1,
+          "submit 202": 1,
+          "read 200": 3,
+          "read 204": 1
+        },
+        "planSubmissions": 1,
+        "planReads": 3,
+        "authorizedPlanReads": 3,
+        "planReadUrlsWithoutQuery": 3
+      },
+      "screenshots": [
+        "1280-globe.png",
+        "1280-place-search.png",
+        "1280-field-before-drag.png",
+        "1280-field-after-drag.png",
+        "1280-rotation.png",
+        "1280-result.png",
+        "1280-details.png"
+      ],
+      "logo": {
+        "officialDestination": true,
+        "imageLoaded": true
+      },
+      "selectedPublicPlace": "Bangkok Thailand, Asia",
+      "logoAfterFieldSelection": {
+        "officialDestination": true,
+        "imageLoaded": true
+      },
+      "drag": {
+        "hitHandle": true,
+        "changedCoordinateRows": [
+          true,
+          false,
+          false,
+          false
+        ],
+        "handleTravelPx": [
+          33.941125496954285,
+          0,
+          0,
+          0
+        ],
+        "fieldAreaStatusChanged": true,
+        "interiorLookupChanged": false,
+        "lookupChangeIsNotRequiredForOutwardCornerEdit": true,
+        "preciseCornerCoordinatesOmitted": true
+      },
+      "horizontalOverflowAtField": false,
+      "detailsOpened": true,
+      "backFromDetails": true,
+      "result": {
+        "heading": "Your plan, with warnings",
+        "snapshotSchemaVersion": 2,
+        "state": "plan_with_warnings",
+        "provenanceKind": "run",
+        "selectedCropIds": [
+          "rice-paddy"
+        ],
+        "water": "rain_only",
+        "planningStart": "2027-05-06",
+        "historyKind": "skipped",
+        "baselineKind": "not_recorded",
+        "occurrenceCount": 1,
+        "occurrenceCropIds": [
+          "rice-paddy"
+        ],
+        "usableSeasonCount": 25,
+        "climateProductCount": 3,
+        "warningCodes": [
+          "rainfall_mismatch",
+          "profile_limitation",
+          "profile_limitation",
+          "profile_limitation"
+        ],
+        "availableManifest": true,
+        "savedOnDeviceVisible": true,
+        "scientificCaveatVisible": true
+      }
+    }
+  ],
+  "geolocationControls": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "status": "PASS",
+      "mode": "Browser-granted synthetic location permission control. This does not verify physical GPS.",
+      "counts": {
+        "nasaImageSuccess": 0,
+        "maptilerImageSuccess": 4,
+        "maptilerMetadataSuccess": 1,
+        "maptilerSearchSuccess": 0,
+        "maptilerLogoImageSuccess": 1,
+        "pageErrors": 0,
+        "providerNonSuccessByHostStatus": {},
+        "apiStatusCounts": {},
+        "planSubmissions": 0,
+        "planReads": 0,
+        "authorizedPlanReads": 0,
+        "planReadUrlsWithoutQuery": 0
+      },
+      "permissionExplanationVisible": true,
+      "lookupMatchesSyntheticLocation": true,
+      "phase": "box",
+      "preciseLocationOmittedFromEvidence": true,
+      "screenshot": "360-synthetic-location.png"
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "mode": "Browser-granted synthetic location permission control. This does not verify physical GPS.",
+      "counts": {
+        "nasaImageSuccess": 0,
+        "maptilerImageSuccess": 115,
+        "maptilerMetadataSuccess": 1,
+        "maptilerSearchSuccess": 0,
+        "maptilerLogoImageSuccess": 1,
+        "pageErrors": 0,
+        "providerNonSuccessByHostStatus": {},
+        "apiStatusCounts": {},
+        "planSubmissions": 0,
+        "planReads": 0,
+        "authorizedPlanReads": 0,
+        "planReadUrlsWithoutQuery": 0
+      },
+      "permissionExplanationVisible": true,
+      "lookupMatchesSyntheticLocation": true,
+      "phase": "box",
+      "preciseLocationOmittedFromEvidence": true,
+      "screenshot": "1280-synthetic-location.png"
+    }
+  ],
+  "status": "PASS",
+  "finishedAt": "2026-11-15T14:03:07.789Z",
+  "supplementalGlobeVisuals": [
+    {
+      "viewport": {
+        "width": 360,
+        "height": 740
+      },
+      "status": "PASS",
+      "nasaImageSuccess": 9,
+      "nasaNonSuccess": 0,
+      "pageErrors": 0,
+      "planSubmissions": 0,
+      "screenshot": "360-globe-visible.png"
+    },
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "status": "PASS",
+      "nasaImageSuccess": 9,
+      "nasaNonSuccess": 0,
+      "pageErrors": 0,
+      "planSubmissions": 0,
+      "screenshot": "1280-globe-visible.png"
+    }
+  ],
+  "supplementalGlobeVisualsFinishedAt": "2026-11-15T14:03:39.150Z",
+  "railwayWebDeploymentIdSuppliedByReleaseCoordinator": "c9f29c50-5e98-44d6-8368-59a17b0f9bca",
+  "railwayWebSuccessAtSuppliedByReleaseCoordinator": "2026-11-15T14:01:38Z",
+  "visualInspection": {
+    "status": "PASS",
+    "method": "Native Codex opened and inspected every final PNG screenshot.",
+    "screenshots": [
+      "1280-details.png",
+      "1280-field-after-drag.png",
+      "1280-field-before-drag.png",
+      "1280-globe-visible.png",
+      "1280-globe.png",
+      "1280-place-search.png",
+      "1280-result.png",
+      "1280-rotation.png",
+      "1280-synthetic-location.png",
+      "360-details.png",
+      "360-field-after-drag.png",
+      "360-field-before-drag.png",
+      "360-globe-visible.png",
+      "360-globe.png",
+      "360-place-search.png",
+      "360-result.png",
+      "360-rotation.png",
+      "360-synthetic-location.png"
+    ],
+    "sourceAndRemoteConfigurationEditsByThisVerifier": 0
+  },
+  "probeScriptSha256": {
+    "hosted-map-journey.mjs": "d5a6a24f6e3e12fc98d9e61f98a000429ebb3bf054d406a7bf1a7984748cfe82",
+    "globe-visual.mjs": "9dee3d1e2a078a85ae86331d9cd5ec5868e0a895343bc58c9dcb42ecc7fb6ec1"
+  }
+}

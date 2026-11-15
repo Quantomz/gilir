@@ -1,0 +1,22 @@
+[
+  {
+    "width": 360,
+    "oldSavedPlanRecovered": true,
+    "apiUnavailable": true,
+    "newSubmissions": 0,
+    "details": true,
+    "offlinePdf": true,
+    "reload": true,
+    "horizontalOverflow": false
+  },
+  {
+    "width": 1280,
+    "oldSavedPlanRecovered": true,
+    "apiUnavailable": true,
+    "newSubmissions": 0,
+    "details": true,
+    "offlinePdf": true,
+    "reload": true,
+    "horizontalOverflow": false
+  }
+]
