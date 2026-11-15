@@ -280,9 +280,6 @@ export const credits: Record<"pictures" | "pictures_and_search" | "search", { re
   },
 };
 
-/** `picture` shows in place of MapTiler's logo if it does not load. */
-export const logo = { link: newTab("MapTiler logo"), picture: "MapTiler" } as const;
-
 export function areaText(areaM2: number): string {
   const hectares = areaM2 / 10_000;
   const shown = hectares < 1 ? Math.round(hectares * 100) / 100 : hectares < 10 ? Math.round(hectares * 10) / 10 : Math.round(hectares);

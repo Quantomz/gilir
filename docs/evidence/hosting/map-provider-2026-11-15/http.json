@@ -1,0 +1,227 @@
+{
+  "checkedAt": "2026-11-15T10:34:15.903Z",
+  "results": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/dev/fixtures",
+      "status": 404
+    },
+    {
+      "path": "/api/catalogue",
+      "status": 200,
+      "body": {
+        "version": "fao56-hard-windows-2026-11-15",
+        "entries": [
+          {
+            "id": "barley-grain",
+            "label": "Barley (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "beet-table",
+            "label": "Beet (table)",
+            "purpose": "food"
+          },
+          {
+            "id": "broccoli",
+            "label": "Broccoli",
+            "purpose": "food"
+          },
+          {
+            "id": "brussels-sprouts",
+            "label": "Brussels sprouts",
+            "purpose": "food"
+          },
+          {
+            "id": "cabbage",
+            "label": "Cabbage",
+            "purpose": "food"
+          },
+          {
+            "id": "cantaloupe",
+            "label": "Cantaloupe",
+            "purpose": "food"
+          },
+          {
+            "id": "carrot",
+            "label": "Carrot",
+            "purpose": "food"
+          },
+          {
+            "id": "cauliflower",
+            "label": "Cauliflower",
+            "purpose": "food"
+          },
+          {
+            "id": "celery",
+            "label": "Celery",
+            "purpose": "food"
+          },
+          {
+            "id": "common-bean-dry",
+            "label": "Common bean (dry grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "cowpea-dry",
+            "label": "Cowpea (dry grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "eggplant",
+            "label": "Eggplant",
+            "purpose": "food"
+          },
+          {
+            "id": "green-bean",
+            "label": "Green bean (fresh pods)",
+            "purpose": "food"
+          },
+          {
+            "id": "groundnut",
+            "label": "Groundnut (peanut)",
+            "purpose": "food"
+          },
+          {
+            "id": "lentil-dry",
+            "label": "Lentil (dry grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "lettuce",
+            "label": "Lettuce",
+            "purpose": "food"
+          },
+          {
+            "id": "maize-grain",
+            "label": "Maize (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "millet-grain",
+            "label": "Millet (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "mung-bean-dry",
+            "label": "Mung bean (dry grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "oats-grain",
+            "label": "Oats (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "onion-dry",
+            "label": "Onion (dry bulb)",
+            "purpose": "food"
+          },
+          {
+            "id": "onion-green",
+            "label": "Onion (green)",
+            "purpose": "food"
+          },
+          {
+            "id": "pea-dry",
+            "label": "Pea (dry seed)",
+            "purpose": "food"
+          },
+          {
+            "id": "pea-green",
+            "label": "Pea (fresh)",
+            "purpose": "food"
+          },
+          {
+            "id": "potato",
+            "label": "Potato",
+            "purpose": "food"
+          },
+          {
+            "id": "pumpkin-winter-squash",
+            "label": "Pumpkin and winter squash",
+            "purpose": "food"
+          },
+          {
+            "id": "radish",
+            "label": "Radish",
+            "purpose": "food"
+          },
+          {
+            "id": "rice-paddy",
+            "label": "Rice (paddy)",
+            "purpose": "food"
+          },
+          {
+            "id": "safflower-seed",
+            "label": "Safflower (seed)",
+            "purpose": "food"
+          },
+          {
+            "id": "sorghum-grain",
+            "label": "Sorghum (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "soybean-grain",
+            "label": "Soybean (grain)",
+            "purpose": "food"
+          },
+          {
+            "id": "spinach",
+            "label": "Spinach",
+            "purpose": "food"
+          },
+          {
+            "id": "squash-zucchini",
+            "label": "Squash and zucchini",
+            "purpose": "food"
+          },
+          {
+            "id": "sunflower-seed",
+            "label": "Sunflower (seed)",
+            "purpose": "food"
+          },
+          {
+            "id": "sweet-maize",
+            "label": "Sweet maize (sweet corn)",
+            "purpose": "food"
+          },
+          {
+            "id": "sweet-melon",
+            "label": "Sweet melon",
+            "purpose": "food"
+          },
+          {
+            "id": "sweet-potato",
+            "label": "Sweet potato",
+            "purpose": "food"
+          },
+          {
+            "id": "tomato",
+            "label": "Tomato",
+            "purpose": "food"
+          },
+          {
+            "id": "watermelon",
+            "label": "Watermelon",
+            "purpose": "food"
+          },
+          {
+            "id": "wheat-grain",
+            "label": "Wheat (grain)",
+            "purpose": "food"
+          }
+        ]
+      }
+    },
+    {
+      "path": "/maptiler-logo.svg",
+      "status": 200,
+      "sha256": "c2fef38a1e77e9ff774dc1b21a2e931c81eab12191395be726c594404e4bf332"
+    }
+  ]
+}

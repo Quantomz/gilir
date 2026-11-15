@@ -11,19 +11,6 @@ type Field = FarmInput["field"];
 type Ring = readonly LngLat[];
 export interface Point { readonly x: number; readonly y: number }
 
-/**
- * A phone without WebGL2, made per page because launchOptions cannot change inside a describe (it forces a new worker):
- * getContext("webgl2") answers null, and MapLibre throws GPUInitializationError as it does on such a phone.
- */
-export async function withoutWebGL2(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, kind: string, ...rest: unknown[]) {
-      return kind === "webgl2" ? null : (original as (...args: unknown[]) => unknown).call(this, kind, ...rest);
-    } as typeof original;
-  });
-}
-
 /** The lab's own picker. The lab also renders Onboarding, whose page 1 holds a second one. */
 export const firstPicker = (page: Page): Locator => page.locator("[data-phase]").first();
 

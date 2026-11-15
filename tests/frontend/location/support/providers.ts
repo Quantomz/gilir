@@ -19,7 +19,7 @@ export interface ProviderPlan {
   search: Answer | ((query: string) => GeocodingAnswer);
 }
 
-export type RequestKind = "gibs" | "tilejson" | "tile" | "search" | "logo" | "maptiler_other" | "elsewhere";
+export type RequestKind = "gibs" | "tilejson" | "tile" | "search" | "maptiler_other" | "elsewhere";
 
 export interface ProviderRequest {
   readonly kind: RequestKind;
@@ -61,7 +61,6 @@ export async function routeProviders(target: Page | BrowserContext, plan: Partia
         const body = typeof search === "function" ? search(query ?? "") : places[(query ?? "").trim().toLowerCase()] ?? noPlaces;
         return answerWith(route, typeof search === "function" ? "answer" : search, () => fulfil(route, 200, JSON.stringify(body), "application/json"));
       }
-      case "logo": return fulfil(route, 200, standInLogo, "image/svg+xml");
       case "maptiler_other": return fulfil(route, 404, JSON.stringify({ message: "Not found" }), "application/json");
       case "elsewhere": return route.abort("blockedbyclient");
     }
@@ -85,7 +84,6 @@ function kindOf(url: URL): RequestKind {
   if (url.pathname.startsWith("/geocoding/") && url.pathname.endsWith(".json")) return "search";
   if (/^\/tiles\/[^/]+\/tiles\.json$/.test(url.pathname)) return "tilejson";
   if (/^\/tiles\/[^/]+\/\d+\/\d+\/\d+\.\w+$/.test(url.pathname)) return "tile";
-  if (url.pathname === "/resources/logo.svg") return "logo";
   return "maptiler_other";
 }
 
@@ -110,9 +108,6 @@ async function fulfil(route: Route, status: number, body: string | Buffer, conte
     headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "cache-control": "no-store" },
   }).catch(() => undefined);
 }
-
-/** Answers the request for MapTiler's logo. Plainly a stand-in, never MapTiler's artwork. */
-const standInLogo = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="30" viewBox="0 0 100 30"><rect x="1" y="1" width="98" height="28" fill="none" stroke="black" stroke-dasharray="4 3"/><text x="50" y="19" font-family="sans-serif" font-size="12" text-anchor="middle">logo stand-in</text></svg>';
 
 function tile(route: Route): Promise<void> {
   return fulfil(route, 200, syntheticTile(), "image/png");

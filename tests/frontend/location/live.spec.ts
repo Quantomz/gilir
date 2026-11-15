@@ -13,11 +13,11 @@
 // only, nothing prints a URL, and no assertion message carries one.
 import { expect, test } from "@playwright/test";
 import type { APIRequestContext, Locator, Page } from "@playwright/test";
-import { logoFor, picturesFor, readProvider } from "@/features/location/provider";
+import { picturesFor, readProvider } from "@/features/location/provider";
 import { good } from "./support/shapes";
 import {
   drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, pixelsAt,
-  settledCentre, shoot, typeCorners, withoutWebGL2,
+  settledCentre, shoot, typeCorners,
 } from "./support/slot";
 
 test.use({ launchOptions: { executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium" }, trace: "off", video: "off", screenshot: "off" });
@@ -54,21 +54,6 @@ async function satelliteTileJson(request: APIRequestContext): Promise<{ status: 
   } catch {
     throw new Error("The satellite TileJSON request failed.");
   }
-}
-
-/**
- * MapTiler's logo on the map: linked to its site, and its picture loaded from MapTiler. A Free account must show it.
- * Neither URL carries the key, so the assertions may name them.
- */
-async function expectLinkedLogo(root: Locator): Promise<void> {
-  const logo = logoFor(readProvider());
-  expect(logo, "with a key the picker names MapTiler's logo").not.toBeNull();
-  const link = root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
-  await expect(link).toBeVisible();
-  await expect(link).toHaveAttribute("href", logo!.href);
-  const picture = link.getByRole("img");
-  await expect(picture).toHaveAttribute("src", logo!.src);
-  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), { message: "MapTiler's logo picture loaded", timeout: 20_000 }).toBe(true);
 }
 
 /** The lookup of the field marked on the first search result for `text`. */
@@ -163,16 +148,19 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expectFieldOnPage(root, good.south);
     });
 
-    test("[R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's linked logo shows on the map with the picture that TileJSON names", async ({ page, request }, testInfo) => {
+    test("[R19][R5] the provider credits and linked MapTiler logo are visible", async ({ page, request }, testInfo) => {
       const root = await openLab(page);
-      const tileJson = (await satelliteTileJson(request)).body as { attribution?: string; logo?: string };
+      const tileJson = (await satelliteTileJson(request)).body as { attribution?: string };
       const names = [...(tileJson.attribution ?? "").replace(/<[^>]+>/g, "\n").replace(/&copy;/g, "©").split("\n")].map(name => name.trim()).filter(Boolean);
       expect(names.length).toBeGreaterThan(0);
       const credits = root.locator(".fp-credits");
       for (const name of names) await expect(credits).toContainText(name);
-      await expectLinkedLogo(root);
-      if (tileJson.logo !== undefined) expect(tileJson.logo === logoFor(readProvider())?.src, "the logo the TileJSON names is the one the picker shows").toBe(true);
-      await shoot(page, testInfo, `live-credits-${w}`);
+      const logo = root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+      await expect(logo).toBeVisible();
+      await expect(logo).toHaveAttribute("href", "https://www.maptiler.com");
+      const image = logo.getByRole("img", { name: "MapTiler logo" });
+      await expect.poll(() => image.evaluate(element => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+      await shoot(page, testInfo, `live-credits-${w}`, root.locator(".fp-map-wrap"));
     });
 
     test("[R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses", async ({ request }) => {
@@ -189,21 +177,29 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
 }
 
 test.describe("live, no WebGL2", () => {
+  // launchOptions cannot change inside a describe (it forces a new worker), so this phone without WebGL2 is made per
+  // page: getContext("webgl2") answers null, and MapLibre throws GPUInitializationError as it does on such a phone.
   test.use({ viewport: { width: 360, height: 740 } });
-  test.beforeEach(({ page }) => withoutWebGL2(page));
-  test("[R19][R14] with WebGL off, a real submitted search still names the place, MapTiler's linked logo shows, and 'Mark my field' plus the corner list mark a field on the drawing", async ({ page }, testInfo) => {
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, kind: string, ...rest: unknown[]) {
+        return kind === "webgl2" ? null : (original as (...args: unknown[]) => unknown).call(this, kind, ...rest);
+      } as typeof original;
+    });
+  });
+  test("[R19][R14] with WebGL off, a real submitted search still names the place, and 'Mark my field' plus the corner list mark a field on the drawing", async ({ page }, testInfo) => {
     const root = await openLab(page, "plan");
     await search(root, "Indramayu");
     await expect(places(root).first()).toContainText("Indramayu");
     await places(root).first().click();
     await root.getByRole("button", { name: "Mark my field" }).click();
     await expect(root.getByRole("img", { name: "Drawing of your field, north at the top. It is a drawing, not a photo." })).toBeVisible();
-    await expectLinkedLogo(root);
     const field = await expectFieldOnPage(root);
     expect(field.label).toMatch(/^Field near Indramayu/);
     await typeCorners(root, good.north);
     await expect.poll(() => lookupOf(root)).not.toEqual(field.lookup);
     await expectFieldOnPage(root, good.north);
-    await shoot(page, testInfo, "live-no-webgl-360");
+    await shoot(page, testInfo, "live-no-webgl-360", root.locator(".fp-map-wrap"));
   });
 });

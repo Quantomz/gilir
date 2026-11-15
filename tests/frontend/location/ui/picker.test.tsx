@@ -498,22 +498,14 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     const osm = screen.getByRole("link", { name: "© OpenStreetMap contributors (opens in a new tab)" });
     expect(maptiler.getAttribute("href")).toMatch(/^https:\/\/www\.maptiler\.com\//);
     expect(osm.getAttribute("href")).toMatch(/^https:\/\/www\.openstreetmap\.org\//);
-    for (const link of [maptiler, osm]) {
+    const logo = screen.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+    expect(logo.getAttribute("href")).toBe("https://www.maptiler.com");
+    expect(within(logo).getByRole("img", { name: "MapTiler logo" }).getAttribute("src")).toBe("/maptiler-logo.svg");
+    for (const link of [maptiler, osm, logo]) {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
     expect(screen.queryByText(/NASA/)).toBeNull();
-  });
-
-  it("[R5] with a key the drawing carries MapTiler's logo: a link named 'MapTiler logo (opens in a new tab)' to https://www.maptiler.com/, its picture from api.maptiler.com with no key", async () => {
-    mount();
-    const plan = await drawing();
-    const link = screen.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
-    expect(link.getAttribute("href")).toBe("https://www.maptiler.com/");
-    expect(link.getAttribute("target")).toBe("_blank");
-    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
-    expect(within(link).getByRole("img", { name: "MapTiler" }).getAttribute("src")).toBe("https://api.maptiler.com/resources/logo.svg");
-    expect(plan.closest(".fp-map")?.contains(link)).toBe(true);
   });
 
   it("unmounting during a search aborts it and nothing is set afterwards", async () => {

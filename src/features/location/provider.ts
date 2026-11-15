@@ -1,9 +1,8 @@
 // Every outside map service, and nothing else: the MapTiler key, place search, the map pictures and their credits.
 // The only file in src/ that reads NEXT_PUBLIC_MAPTILER_KEY, names a provider host, or calls fetch. Wire shapes stay in
-// here: the rest of the folder sees FoundPlace, SearchAnswer, MapLibre raster sources, Credits and the Logo.
+// here: the rest of the folder sees FoundPlace, SearchAnswer, MapLibre raster sources and Credits.
 //
-// What leaves the browser: the typed text, on Search or Enter only, picture tile requests for the area on screen, and
-// with a key one request for MapTiler's logo.
+// What leaves the browser: the typed text, on Search or Enter only, and picture tile requests for the area on screen.
 // The ring, a corner, the lookup, a GPS fix and the label never do, and there is no reverse geocoding.
 // The key is public by design and rides in every MapTiler URL, so no URL is ever put in an answer or an error.
 import type { RasterSourceSpecification } from "maplibre-gl";
@@ -25,6 +24,12 @@ export function readProvider(): Provider {
   const key = process.env.NEXT_PUBLIC_MAPTILER_KEY?.trim();
   return key ? { kind: "ready", key: key as BrowserKey } : { kind: "missing" };
 }
+
+export const maptilerLogo = {
+  href: "https://www.maptiler.com",
+  src: "/maptiler-logo.svg",
+  alt: "MapTiler logo",
+} as const;
 
 export const providerPolicy = {
   searchLimit: 6,
@@ -172,18 +177,4 @@ export function creditsFor(provider: Provider, pictures: boolean): readonly Cred
     { text: "© MapTiler", href: "https://www.maptiler.com/copyright/" },
     { text: "© OpenStreetMap contributors", href: "https://www.openstreetmap.org/copyright" },
   ];
-}
-
-export interface Logo {
-  readonly src: string;
-  readonly href: string;
-}
-
-/**
- * MapTiler asks a Free account to show its logo, linked to its site. It shows whenever the credits name MapTiler, so
- * beside the place search alone too. The picture and the link are the ones MapTiler's own SDK uses. The picture needs
- * no key, so its URL carries none.
- */
-export function logoFor(provider: Provider): Logo | null {
-  return provider.kind === "ready" ? { src: "https://api.maptiler.com/resources/logo.svg", href: "https://www.maptiler.com/" } : null;
 }

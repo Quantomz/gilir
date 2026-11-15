@@ -430,20 +430,6 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     expect(screen.getByText("The map pictures come from NASA, so NASA can see which area you are looking at.")).toBeTruthy();
   });
 
-  it("[R5] beside the globe MapTiler's logo shows on the map only with a key, as a link to https://www.maptiler.com/", async () => {
-    fakeGlobe();
-    const first = mount(inputFixture.field);
-    await screen.findByRole("button", { name: "Zoom in" });
-    expect(screen.queryByRole("link", { name: /MapTiler/ })).toBeNull();
-    first.unmount();
-    vi.stubEnv("NEXT_PUBLIC_MAPTILER_KEY", "test-key");
-    mount(inputFixture.field);
-    const zoomIn = await screen.findByRole("button", { name: "Zoom in" });
-    const link = screen.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
-    expect(link.getAttribute("href")).toBe("https://www.maptiler.com/");
-    expect(zoomIn.closest(".fp-map")?.contains(link)).toBe(true);
-  });
-
   it("[R14][R15] when the globe stops working, focus on 'Zoom in' moves to the corner list's heading; focus in the search box stays there", async () => {
     const globe = fakeGlobe();
     const user = userEvent.setup();
