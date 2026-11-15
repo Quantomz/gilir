@@ -88,18 +88,24 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
 
 const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>) => readonly Block[] } = {
   insufficient_data: (ctx, result) => [gapList(result.missing, ctx), paragraph(t(words.noPlan.missingNext))],
-  no_calendar_fit: (ctx, { proof }) => proof.kind === "duration_lower_bound"
-    ? [
-      paragraph(t(words.noPlan.fitEach)),
-      list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(words.cap(cropName(ctx.snapshot, crop.cropPurposeId)), words.days(crop.minimumDays)))] }))),
-      paragraph(t(words.noPlan.fitNext)),
-    ]
-    : [
-      paragraph(t(words.noPlan.fitStops)),
-      list("bullet", proof.constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] }))),
-      ...(proof.expandedStates > 0 ? [paragraph(t(words.noPlan.fitTried(words.count(proof.expandedStates, "way"))), "small")] : []),
-      paragraph(t(words.noPlan.fitNext)),
-    ],
+  no_calendar_fit: (ctx, { proof }) => {
+    const { input, result } = ctx.snapshot;
+    const one = input.cropPurposeIds.length === 1;
+    return proof.kind === "duration_lower_bound"
+      ? [
+        paragraph(t(words.noPlan.fitEach)),
+        list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(words.cap(cropName(ctx.snapshot, crop.cropPurposeId)), words.days(crop.minimumDays)))] }))),
+        paragraph(t(words.noPlan.fitNext(one))),
+      ]
+      : [
+        paragraph(t(words.noPlan.fitStops)),
+        list("bullet", proof.constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] }))),
+        ...(proof.expandedStates > 0 ? [paragraph(t(words.noPlan.fitTried(words.count(proof.expandedStates, "way"))), "small")] : []),
+        // The engine tries this proof only after the crops' days fit in the year, so the hard planting windows, or the
+        // follow rules when the run had any, are what stop them.
+        paragraph(t(words.noPlan.fitPlanting(one, result.details.provenance.rules.length > 0, ctx.say.day(input.planningStart)))),
+      ];
+  },
   search_incomplete: (_, { details: { search } }) => [
     paragraph(t(search.structural === "limit_reached"
       ? words.noPlan.stoppedStructural(words.count(search.structuralExpandedStates, "try", "tries"), words.whole(search.structuralExpansionLimit))
@@ -416,11 +422,29 @@ function compared(ctx: Context): Section<Block> | null {
           paragraph(t(words.compare.notScored)),
           list("bullet", baseline.reasons.map(reason => ({ head: null, lines: [engineText(reason, say)] }))),
           ...(estimated ? [paragraph(t(words.compare.estimatesNotAssessed))] : []),
-          ...reported(ctx),
+          ...reported(ctx, false),
         ],
       };
     }
     case "assessed": {
+      if (result.state !== "plan" && result.state !== "plan_with_warnings") {
+        const lines = (metric: AssessmentMetric) => {
+          const value = available(metric);
+          return value === null ? notAvailable(metric, ctx) : [t(words.metricValue(value, metric.unit))];
+        };
+        return {
+          heading,
+          blocks: [
+            paragraph(t(words.verdict(baseline))),
+            ...(baseline.approximateDates ? [paragraph(t(words.compare.estimatesScored))] : []),
+            ...(baseline.metrics.length ? [
+              paragraph(t(words.compare.scored), "strong"),
+              list("bullet", baseline.metrics.map(metric => ({ head: t(words.deltaNames[metric.id] ?? metric.label), lines: lines(metric) }))),
+            ] : []),
+            ...reported(ctx, true),
+          ],
+        };
+      }
       const deltas = baseline.deltas.map((delta): Item => {
         const now = metricIn(details.metrics, delta.metricId);
         const before = metricIn(baseline.metrics, delta.metricId);
@@ -440,7 +464,6 @@ function compared(ctx: Context): Section<Block> | null {
         };
       });
       const changes = baseline.changes.map((change): Item => ({ head: null, lines: [t(changeWords(change, ctx))] }));
-      const hasPlan = result.state === "plan" || result.state === "plan_with_warnings";
       return {
         heading,
         blocks: [
@@ -450,12 +473,10 @@ function compared(ctx: Context): Section<Block> | null {
           deltas.length
             ? list("bullet", deltas)
             : paragraph(t(words.compare.noNumbers)),
-          ...(hasPlan ? [
-            paragraph(t(words.compare.changesHeading), "strong"),
-            ...(changes.length ? [paragraph(t(words.compare.movedForward), "small"), list("bullet", changes)]
-              // The engine can say "changed" with no changes listed, so only "kept" means no changes.
-              : [paragraph(t(baseline.recommendation === "kept" ? words.compare.noChanges : words.compare.cantList))]),
-          ] : []),
+          paragraph(t(words.compare.changesHeading), "strong"),
+          ...(changes.length ? [paragraph(t(words.compare.movedForward), "small"), list("bullet", changes)]
+            // The engine can say "changed" with no changes listed, so only "kept" means no changes.
+            : [paragraph(t(baseline.recommendation === "kept" ? words.compare.noChanges : words.compare.cantList))]),
         ],
       };
     }
@@ -480,7 +501,7 @@ function changeWords(change: Extract<BaselineComparison, { kind: "assessed" }>["
   }
 }
 
-function reported(ctx: Context): Block[] {
+function reported(ctx: Context, scored: boolean): Block[] {
   const { say } = ctx;
   const history = ctx.snapshot.input.history;
   if (history.kind === "skipped") return [];
@@ -514,7 +535,7 @@ function reported(ctx: Context): Block[] {
   }
   if (cursor < history.endExclusive) unsure(cursor, history.endExclusive);
   return [
-    paragraph(t(words.compare.reported), "strong"),
+    paragraph(t(words.compare.reported(scored)), "strong"),
     list("none", items),
   ];
 }
@@ -607,7 +628,8 @@ function cohortLine(details: ResultDetails, ctx: Context): string {
   const usable = details.cohort.value.seasons.filter(season => season.status === "usable")
     .sort((a, b) => a.interval.start.localeCompare(b.interval.start));
   if (!usable.length) return words.sources.cohortNone;
-  return words.sources.cohort(words.count(usable.length, "past season"),
+  const { state } = ctx.snapshot.result;
+  return (state === "plan" || state === "plan_with_warnings" ? words.sources.cohort : words.sources.weatherFrom)(words.count(usable.length, "past season"),
     monthRange(ctx, usable[0].interval.start, addDays(usable[usable.length - 1].interval.endExclusive, -1)));
 }
 

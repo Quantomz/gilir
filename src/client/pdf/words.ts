@@ -186,13 +186,15 @@ export const compare = {
   heading: "Compared with last year",
   skipped: "You skipped last year, so we didn’t compare.",
   notScored: "We couldn’t score last year’s rotation:",
-  reported: "What you told us about last year (not scored)",
+  reported: (scored: boolean) => `What you told us about last year${scored ? "" : " (not scored)"}`,
   kept: "Last year’s rotation ranked first, so we suggest keeping it.",
   changed: "The new plan ranked ahead of last year’s rotation.",
   notEligible: "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
   noNewPlan: "Last year’s rotation is shown for comparison only. No new plan was made to compare it with.",
   estimatesAssessed: "Your dates are estimates. You said some of last year’s dates are approximate, so this comparison is approximate too.",
   estimatesNotAssessed: "Your dates are estimates. You said some of last year’s dates are approximate.",
+  estimatesScored: "Your dates are estimates. You said some of last year’s dates are approximate, so these numbers are approximate too.",
+  scored: "Last year’s rotation in past seasons",
   howTheyCompare: "How they compare",
   noNumbers: "No numbers to compare.",
   changesHeading: "Changes from last year",
@@ -284,7 +286,14 @@ export const noPlan = {
   fitMinimum: (crop: string, days: string) => `${crop}: at least ${days}`,
   fitStops: "What stops them:",
   fitTried: (ways: string) => `We checked ${ways} of placing them.`,
-  fitNext: "Choose fewer crops, or crops that grow faster, then make the plan again.",
+  fitNext: (one: boolean) => (one
+    ? "Choose a crop that grows faster, then make the plan again."
+    : "Choose fewer crops, or crops that grow faster, then make the plan again."),
+  fitPlanting: (one: boolean, rules: boolean, start: string) =>
+    `${one ? "The time of year when your crop can be planted" : "The times of year when your crops can be planted"}`
+    + `${rules ? ", and the rules about which crop may follow which," : ""} leave${one && !rules ? "s" : ""} no way to fit `
+    + `${one ? "it" : "them all"} into one year from your start date, ${start}. `
+    + `Try ${one ? "another start date or another crop" : "another start date, other crops or fewer crops"}, then make the plan again.`,
   stoppedStructural: (tries: string, limit: string) => `We stopped after ${tries} at fitting your crops into your year (our limit is ${limit}), before we found an order that fits.`,
   stoppedScoring: (plans: string, limit: string) => `We stopped after scoring ${plans} (our limit is ${limit}).`,
   stoppedOther: "The search stopped before it found an order that fits.",
@@ -307,6 +316,7 @@ export const assumptionsHeading = "Assumptions";
 export const sources = {
   heading: "Sources, period and versions",
   cohort: (seasons: string, period: string) => `Checked against ${seasons}, ${period}.`,
+  weatherFrom: (seasons: string, period: string) => `Weather from ${seasons}, ${period}.`,
   cohortNone: "No complete past season could be used.",
   cohortUnavailable: (reason: string) => `Past seasons: ${reason}`,
   seasonsMethod: (version: string) => `Past seasons chosen with method ${version}.`,

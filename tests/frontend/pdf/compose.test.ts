@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { parseCropPurposeId } from "@/contracts/common";
+import { parseCropPurposeId, parseIsoDate } from "@/contracts/common";
 import type { CropPurposeId } from "@/contracts/common";
 import { completedSnapshotSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 import { compose } from "@/client/pdf/compose";
 import type { Item, PdfDocument, PlanDocument, StatusDocument, Timeline, TimelineBlock } from "@/client/pdf/model";
 import { pdfText } from "@/client/pdf/text";
+import { findCalendar } from "@/engine";
 import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { readRegistryRelease, resolveRegistry } from "@/registry";
@@ -550,6 +551,52 @@ describe("a crop's name", () => {
   });
 });
 
+describe("a no-plan report says only what it shows", () => {
+  const scoredRotation = (approximateDates: boolean) => {
+    const base = completedSnapshotsByState.plan.result.details.metrics[0];
+    const metrics = [
+      { ...base, id: "mean_frequency", value: { kind: "available", value: 0.948 } },
+      { ...base, id: "unplanted_days", unit: "days", value: { kind: "available", value: 215 } },
+      { ...base, id: "q90_temperature_exposure", value: { kind: "unavailable", reason: "No crop has an assessable temperature rule." } },
+    ];
+    return withDetails(completedSnapshotsByState.no_calendar_fit, {
+      baseline: { ...assessedPlanBaseline, recommendation: "no_recommendation", eligible: false, approximateDates, metrics, deltas: [], changes: [] },
+    });
+  };
+
+  it("a no-plan report with last year’s rotation scored shows its numbers in past seasons and the rows you gave, and calls only those numbers approximate", () => {
+    const text = textOf(compose(scoredRotation(true), britishReader));
+    const from = text.indexOf("Compared with last year");
+    expect(text.slice(from, from + 12)).toEqual([
+      "Compared with last year",
+      "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
+      "Your dates are estimates. You said some of last year’s dates are approximate, so these numbers are approximate too.",
+      "Last year’s rotation in past seasons",
+      "Weeks with less rain than the crops need", "95%",
+      "Days without a planned crop", "215 days",
+      "Checked days outside temperature limits in a bad year", "Not available", "No crop has an assessable temperature rule.",
+      "What you told us about last year",
+    ]);
+    expect(text[from + 12]).toBe("Synthetic crop");
+    const said = text.join(" ");
+    for (const untrue of ["How they compare", "No numbers to compare.", "this comparison is approximate", "(not scored)"]) expect(said).not.toContain(untrue);
+    expect(textOf(compose(scoredRotation(false), britishReader)).join(" ")).not.toContain("Your dates are estimates.");
+  });
+
+  it("a no-plan report gives the past seasons of weather it holds and never says it checked anything against them; a plan says Checked against", () => {
+    const cohort = variant("excludedSeasons").result.details.cohort;
+    for (const state of noPlanStates) {
+      const doc = compose(withDetails(completedSnapshotsByState[state], { cohort }), britishReader);
+      expect(sourcesOf(doc)[0], state).toBe("Weather from 3 past seasons, Jul 2001 to Jun 2005.");
+      expect(textOf(doc).join(" "), state).not.toContain("Checked against");
+    }
+    const months = variant("monthlyInsights");
+    const farm = textOf(compose(withDetails(months, { cohort }), britishReader));
+    expect(farm[farm.indexOf("What we know about your farm") + 1]).toBe("Weather from 3 past seasons, Jul 2001 to Jun 2005. Monthly rain from 2001 to 2020.");
+    expect(sourcesOf(compose(variant("excludedSeasons"), britishReader))[0]).toBe("Checked against 3 past seasons, Jul 2001 to Jun 2005.");
+  });
+});
+
 describe("real registry and engine text", () => {
   const registry = readRegistryRelease();
   const bangkok = {
@@ -614,5 +661,58 @@ describe("real registry and engine text", () => {
     expect(doc.head.lines[2]).toBe("Crops: Pumpkin and winter squash; Squash and zucchini; Brussels sprouts · Water: Rain only · Last year: 1 crop");
     expect(text).toContain("Temperatures went outside the limits for Pumpkin and winter squash; Squash and zucchini");
     expect(text.filter(line => line.includes("brussels sprouts"))).toEqual([]);
+  });
+
+  describe("a no-fit report’s advice follows its proof", () => {
+    const rice = parseCropPurposeId("rice-paddy");
+    const soybean = parseCropPurposeId("soybean-grain");
+    const rule = { id: "synthetic-rule", version: "synthetic-rule-v1", target: "synthetic-crop", sourceIds: [] };
+
+    function proofFor(crops: readonly CropPurposeId[], start: string) {
+      const found = findCalendar({
+        horizon: { start: parseIsoDate(start), endExclusive: parseIsoDate(`${Number(start.slice(0, 4)) + 1}${start.slice(4)}`) },
+        cropPurposeIds: crops, profiles: resolveRegistry({ cropPurposeIds: crops, ...bangkok }, registry).profiles,
+        hardConstraints: [], initialPredecessor: null, eligibleBaseline: null, expansionLimit: 2_000_000,
+      });
+      if (found.kind !== "proved_impossible") throw new Error(`${crops.join(", ")} fit from ${start}`);
+      return found.proof;
+    }
+
+    function noFit(crops: readonly CropPurposeId[], start: string, proof: object, rules: readonly object[] = []): string[] {
+      const source = completedSnapshotsByState.no_calendar_fit;
+      const details = source.result.details;
+      return textOf(compose(completedSnapshotSchema.parse({
+        ...source,
+        input: { ...source.input, cropPurposeIds: crops, planningStart: start },
+        result: { ...source.result, proof, details: { ...details, provenance: { ...details.provenance, rules } } },
+      }), britishReader));
+    }
+
+    it("one rice crop from 15 Jan 2027: its December planting time and the start date are the reason, and the advice is another date or crop, never fewer or faster crops", () => {
+      const proof = proofFor([rice], "2027-01-15");
+      expect(proof.kind).toBe("structural_exhaustion");
+      const text = noFit([rice], "2027-01-15", proof);
+      expect(text).toContain("The time of year when your crop can be planted leaves no way to fit it into one year from your start date, 15 Jan 2027. "
+        + "Try another start date or another crop, then make the plan again.");
+      expect(text.join(" ")).not.toMatch(/fewer crops|grow faster/);
+    });
+
+    it("rice and soybean from 15 Jan 2027: the planting times, and the follow rules when the run had any, with fewer crops among the choices", () => {
+      const proof = proofFor([rice, soybean], "2027-01-15");
+      expect(noFit([rice, soybean], "2027-01-15", proof)).toContain("The times of year when your crops can be planted leave no way to fit them all into one year "
+        + "from your start date, 15 Jan 2027. Try another start date, other crops or fewer crops, then make the plan again.");
+      expect(noFit([rice, soybean], "2027-01-15", proof, [rule])).toContain("The times of year when your crops can be planted, and the rules about which crop "
+        + "may follow which, leave no way to fit them all into one year from your start date, 15 Jan 2027. Try another start date, other crops or fewer crops, "
+        + "then make the plan again.");
+    });
+
+    it("a duration proof asks for faster crops, and for fewer only when more than one was chosen", () => {
+      const one = textOf(compose(completedSnapshotsByState.no_calendar_fit, britishReader));
+      expect(one).toContain("Choose a crop that grows faster, then make the plan again.");
+      expect(one.join(" ")).not.toContain("fewer crops");
+      const proof = { kind: "duration_lower_bound", horizonDays: 365, mandatoryMinimumDays: 400,
+        minimumByCrop: [{ cropPurposeId: rice, minimumDays: 160 }, { cropPurposeId: soybean, minimumDays: 240 }] };
+      expect(noFit([rice, soybean], "2026-07-01", proof)).toContain("Choose fewer crops, or crops that grow faster, then make the plan again.");
+    });
   });
 });

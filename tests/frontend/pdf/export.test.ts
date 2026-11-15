@@ -289,7 +289,7 @@ describe("what each state prints", () => {
     expect(prose(changed)).not.toContain("Keep last year’s rotation");
   });
 
-  it("No changes is said only for a kept rotation; a status report lists no changes from last year", async () => {
+  it("No changes is said only for a kept rotation; a status report lists no changes from last year, and shows last year’s numbers instead", async () => {
     expect(prose(await fixture("plan"))).toContain("Changes from last year No changes: the same crops, order and dates as last year.");
     const changed = variant("changedBaseline");
     const assessed = changed.result.details.baseline;
@@ -308,8 +308,10 @@ describe("what each state prints", () => {
       expect(text, state).toContain([
         "Compared with last year",
         "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
-        "How they compare No numbers to compare.",
+        "Last year’s rotation in past seasons • Weeks with less rain than the crops need 60% • Days without a planned crop 157 days • Crop families 2",
+        "• Shortfall in a bad year Not available No season has a mismatch value. • Bean-family plantings 1 What you told us about last year",
       ].join(" "));
+      expect(text, state).not.toContain("No numbers to compare.");
       expect(text, state).not.toContain("Changes from last year");
       expect(text, state).not.toContain("No changes");
       expect(text, state).not.toContain("We can’t list the changes");
