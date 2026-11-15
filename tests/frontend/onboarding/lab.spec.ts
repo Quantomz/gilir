@@ -139,6 +139,19 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expect(undo).toBeVisible();
     });
 
+    test("[G2][G4] typing one digit too many in the year never clears the field-ready date; the four-digit year it becomes is flagged", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      const input = app(page).getByRole("textbox", { name: "When is your field ready to plant?" });
+      await input.focus();
+      await page.keyboard.type("07012027");
+      await expect(input).toHaveValue("2027-07-01");
+      await page.keyboard.type("5");
+      await expect(input).not.toHaveValue("");
+      await expect(app(page).locator(".ly-window")).toBeVisible();
+      await expect(app(page).getByText("This date has passed. Is the year right?")).toBeVisible();
+    });
+
     test("[H3] drags the bar body to move it; the lane dates change and keep the length", async ({ page }) => {
       await openLab(page);
       await toRotation(page);

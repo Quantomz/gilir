@@ -59,7 +59,7 @@ function Screen(props: { readonly c: Controller }): ReactElement {
     case "making":
       return <Making c={c} job={mode.job} />;
     case "failed":
-      return <Failed c={c} failure={mode.failure} />;
+      return <Failed c={c} failure={mode.failure} sending={mode.sending} />;
     default: {
       const unreachable: never = mode;
       return unreachable;

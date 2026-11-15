@@ -44,7 +44,7 @@ export const policy = {
     backoffMs: [2_500, 5_000, 10_000, 20_000],
     /** The server sends Retry-After: 60 with rate_limited. The client does not expose it. */
     rateLimitedMs: 60_000,
-    /** Making says it keeps trying after this many retryable failures in a row. Retryable failures never end the wait. */
+    /** Making says it keeps trying after this many failed reads in a row. Retryable failures never end the wait. */
     unreachableAfter: 3,
     /** Reads that fail with no ServiceFailure (a malformed 200 body) end the wait after this many in a row. */
     unknownStrikes: 5,

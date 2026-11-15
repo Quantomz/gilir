@@ -41,13 +41,13 @@ interface Opened {
 }
 
 /** Opens with `saved` in storage: a draft at page 4 by default, or a running job. */
-async function open(read: readonly Read[], options: { readonly saved?: Partial<LocalState>; readonly mode?: "ok" | "saveThrows"; readonly submit?: readonly JobCapability[] } = {}): Promise<Opened> {
+async function open(read: readonly Read[], options: { readonly saved?: Partial<LocalState>; readonly mode?: "ok" | "saveThrows"; readonly submit?: readonly (JobCapability | "hang")[] } = {}): Promise<Opened> {
   vi.useFakeTimers();
   const plans = memoryPlans({ draft: answers, step: 4, activeJob: null, snapshot: null, ...options.saved }, options.mode);
   live.plans = plans;
   const client = scriptedClient({
     catalogue: syntheticRegistryFixture.catalogue,
-    submit: (options.submit ?? [capability]).map(job => ({ kind: "accepted", capability: job })),
+    submit: (options.submit ?? [capability]).map(job => (job === "hang" ? job : { kind: "accepted", capability: job })),
     read,
   });
   const savedAtCompletion: (LocalState | null)[] = [];
@@ -290,6 +290,17 @@ describe("the failed screen", () => {
     expect(retried.client.submitted[1]).toEqual(retried.client.submitted[0]);
     expect(retried.client.reads.at(-1)).toEqual(second);
     expect(retried.plans.latest()?.activeJob).toEqual(second);
+  });
+
+  it("[J6] Try again shows the busy button page 4 shows while the answers are sent, and a second tap sends nothing", async () => {
+    const { client } = await open(["failed"], { submit: [capability, "hang"] });
+    await press("Make my plan");
+    await press("Try again");
+    const busy = screen.getByRole("button", { name: "Sending your answers…" });
+    expect(busy.getAttribute("aria-busy")).toBe("true");
+    expect(busy.querySelector(".spinner")).not.toBeNull();
+    await press("Sending your answers…");
+    expect(client.submitted).toHaveLength(2);
   });
 
   it("Open my earlier plan, made {local date} shows only when a plan was saved before, and calls onCompleted with it", async () => {

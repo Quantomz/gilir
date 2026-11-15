@@ -21,7 +21,7 @@ export type Progress = "queued" | "fetching" | "calculating";
 export interface TrackedJob {
   readonly capability: JobCapability;
   readonly progress: Progress;
-  /** False after policy.poll.unreachableAfter retryable read failures in a row. Making says it keeps trying. */
+  /** False after policy.poll.unreachableAfter read failures in a row. Making says it keeps trying. */
   readonly reachable: boolean;
 }
 
@@ -41,7 +41,7 @@ export type Mode =
   | { readonly kind: "opening" }
   | { readonly kind: "editing"; readonly step: Step; readonly asked: boolean; readonly send: Send; readonly job: TrackedJob | null }
   | { readonly kind: "making"; readonly job: TrackedJob }
-  | { readonly kind: "failed"; readonly failure: ServiceFailure };
+  | { readonly kind: "failed"; readonly failure: ServiceFailure; readonly sending: boolean };
 
 type Editing = Extract<Mode, { readonly kind: "editing" }>;
 
@@ -276,7 +276,8 @@ export function update(flow: Flow, msg: Msg): Update {
       return same;
 
     case "sending":
-      return mode.kind === "editing" ? out({ ...flow, mode: { ...mode, send: { kind: "sending" } } }) : same;
+      if (mode.kind === "editing") return out({ ...flow, mode: { ...mode, send: { kind: "sending" } } });
+      return mode.kind === "failed" ? out({ ...flow, mode: { ...mode, sending: true } }) : same;
 
     case "submitted": {
       const submission = msg.submission;
@@ -304,7 +305,7 @@ export function update(flow: Flow, msg: Msg): Update {
 
     case "jobFailed":
       if (!forJob(msg.jobId)) return same;
-      return out({ ...flow, mode: { kind: "failed", failure: msg.failure }, sheet: null }, title);
+      return out({ ...flow, mode: { kind: "failed", failure: msg.failure, sending: false }, sheet: null }, title);
 
     case "jobDone":
       if (forJob(msg.jobId)) return out(onStep(flow, editingAt(4, null)), title);

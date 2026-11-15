@@ -113,6 +113,19 @@ describe("the field-ready date", () => {
     expect(within(dateCard()).getByText((_, element) => element?.tagName === "SPAN" && element.textContent === line)).toBeTruthy();
   });
 
+  it("[G2] one digit too many in the year keeps the date the farmer had: the input keeps what was typed and the plan year stays", async () => {
+    const { plans } = await openAt4(answers);
+    fireEvent.change(dateInput(), { target: { value: "2027-07-01" } });
+    fireEvent.change(dateInput(), { target: { value: "20275-07-01" } });
+    expect(dateInput().value).toBe("20275-07-01");
+    const line = `Your plan covers ${shown("2027-07-01")} to ${shown("2028-06-30")}`;
+    expect(within(dateCard()).getByText((_, element) => element?.tagName === "SPAN" && element.textContent === line)).toBeTruthy();
+    await waitFor(() => expect(plans.latest()?.draft?.planningStart).toBe("2027-07-01"));
+    expect([dateInput().min, dateInput().max]).toEqual(["0001-01-01", "9998-12-31"]);
+    fireEvent.change(dateInput(), { target: { value: "" } });
+    expect(screen.queryByText(/^Your plan covers/)).toBeNull();
+  });
+
   it("[G4] a past date shows This date has passed. Is the year right? and still submits", async () => {
     const { client } = await openAt4({ ...answers, history: { kind: "skipped" } });
     fireEvent.change(dateInput(), { target: { value: "2099-03-01" } });

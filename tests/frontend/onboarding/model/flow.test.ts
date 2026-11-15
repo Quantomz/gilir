@@ -268,7 +268,7 @@ describe("update", () => {
 
   it("[K5] jobFailed moves to failed and focuses the title", () => {
     const result = update(making(), { kind: "jobFailed", jobId: capability.jobId, failure: expired });
-    expect(result.flow.mode).toEqual({ kind: "failed", failure: expired });
+    expect(result.flow.mode).toEqual({ kind: "failed", failure: expired, sending: false });
     expect(result.focus).toEqual({ kind: "title" });
     expect(activeJobOf(result.flow)).toBeNull();
     const back = update(result.flow, { kind: "changeAnswers" });
@@ -416,7 +416,7 @@ describe("backOf: one Back for the in-app button and the phone", () => {
   });
 
   it("failed goes to step 4", () => {
-    const failed: Flow = { ...editingAt(4), mode: { kind: "failed", failure: expired } };
+    const failed: Flow = { ...editingAt(4), mode: { kind: "failed", failure: expired, sending: false } };
     const msg = backOf(failed);
     expect(msg).toEqual({ kind: "changeAnswers" });
     if (msg === null) throw new Error("expected a Back message");
