@@ -30,7 +30,7 @@ Gilir turns that record into one answer a farmer can read: what to plant, when, 
 
 ## What a farmer does
 
-The interface is designed for accessibility, for farmers aged 40 and older using low-cost phones in bright sun. There is no account, no sign-in and no landing page: the site opens on the first question.
+The interface is designed for accessibility, because farmers are on average an older group, and for low-cost phones in bright sun. There is no account, no sign-in and no landing page: the site opens on the first question.
 
 1. **Where is your farm?** Turn the NASA globe or search for a place, then fit a box to the field. A position can be typed instead, and a list of corners works with no map at all.
 2. **Which crops do you want to grow?** Pick from 40 food crops. Every plan includes every crop picked.
@@ -56,7 +56,7 @@ The result stays on the phone and reopens with no connection. It downloads as a 
 
 ## Designed for accessibility
 
-Farmers are an ageing group in much of the world, so the interface is designed for people aged 40 and older, whose eyesight and hands may not suit small text and small buttons.
+In much of the world farmers are, on average, older than most people who use apps. The interface is designed for older eyes and hands, which may not suit small text and small buttons.
 
 | Need | What the interface does |
 | --- | --- |
