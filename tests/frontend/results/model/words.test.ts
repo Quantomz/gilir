@@ -92,7 +92,11 @@ describe("forbidden words", () => {
   });
 
   it("[R6] no page says priority or offers an order to choose", () => {
-    const allowed = ["You don’t choose it.", "Choose fewer crops, or crops that grow faster, then make the plan again."];
+    const allowed = [
+      "You don’t choose it.",
+      "Choose fewer crops, or crops that grow faster, then make the plan again.",
+      "Choose a crop that grows faster, then make the plan again.",
+    ];
     for (const { where, text } of everything()) {
       expect(text, where).not.toMatch(/priorit/i);
       for (const sentence of sentencesOf(text).filter(each => /\b(choose|choice|pick|select|prefer)\b/i.test(each))) {

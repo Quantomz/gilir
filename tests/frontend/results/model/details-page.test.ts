@@ -307,4 +307,14 @@ describe("View details: how this result was made", () => {
     expect(lastYear(shared("plan_with_warnings"))).toEqual(["Last year", "1 crop and 1 empty time"]);
     expect(lastYear(variant("skipped"))).toEqual(["Last year", "Skipped"]);
   });
+
+  it("[R42] How far the search went ends with the calculation’s own summary: the engine’s explanation as given in every state, and a structural proof’s constraint sentences", () => {
+    for (const { name, snapshot } of everySnapshot()) {
+      const words = wordsOf(sectionOf(detailsOf(snapshot), "coverage"));
+      expect(words, name).toContain(`The calculation’s own summary\n${snapshot.result.details.explanation}`);
+    }
+    const structural = wordsOf(sectionOf(detailsOf(variant("structural")), "coverage"));
+    expect(structural.split("\n").slice(-2)).toEqual(["Example constraint about the first crop.", "Example constraint about the second crop."]);
+    expect(wordsOf(sectionOf(detailsOf(shared("no_calendar_fit")), "coverage"))).not.toContain("Example constraint");
+  });
 });

@@ -117,12 +117,12 @@ describe("every branch has its own page", () => {
     }
   });
 
-  it("[R3] in plan_with_warnings the flagged section comes before the timeline in lead, with the warning’s own message under its plain head", () => {
+  it("[R3] in plan_with_warnings the flagged section comes before the timeline in lead, with a plain line under the warning’s plain head", () => {
     const page = pageOf(shared("plan_with_warnings"));
     expect(page.lead.map(section => section.id)).toEqual(["flagged", "timeline"]);
     const [flags] = blocksOf(sectionOf(page, "flagged"), "items").filter(block => block.look === "flag");
     expect(flags.items).toEqual([
-      { icon: "drop", head: "Rain fell short of what synthetic crop needs in past seasons", lines: ["Example rainfall warning."], href: null },
+      { icon: "drop", head: "Rain fell short of what synthetic crop needs in past seasons", lines: ["In some past seasons, at least one week had less rain than it needs."], href: null },
     ]);
   });
 
@@ -197,7 +197,6 @@ describe("head", () => {
     expect(textOf(page)).not.toContain("retrieval_failed");
     const fatal = pageOf(variant("fatal"));
     expect(fatal.head.status.text).toBe("The plan couldn’t be finished. It wasn’t anything you did.");
-    expect(fatal.head.lead).toBeNull();
     expect(textOf(fatal)).not.toMatch(/Example processing failure|processing_failed/);
   });
 
@@ -213,7 +212,6 @@ describe("head", () => {
       if (kind === "plan") continue;
       expect(head.facts[0], name).toBe("Field ready: 1 Jul 2026");
       expect(head.facts.join(" "), name).not.toContain("Your year");
-      expect(head.lead, name).toBe(snapshot.result.state === "service_error" ? null : snapshot.result.details.explanation);
     }
   });
 
@@ -324,19 +322,19 @@ describe("warnings and checks", () => {
       "What we flagged",
       "We flag a crop if, in any past season, even one week had less rain than it needs, or a temperature outside its limits. The check is strict, so most plans have warnings.",
       "Rain fell short of what synthetic crop needs in past seasons",
-      "Example rainfall warning.",
+      "In some past seasons, at least one week had less rain than it needs.",
       "A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It shows where past seasons fell short, so you know what to watch.",
       "Also good to know",
       "The search stopped at its limit",
-      "Example search stopped at its scoring budget.",
+      "We stopped at our search limit before everything was compared.",
     ]);
     const notes = sectionOf(pageOf(variant("context")), "flagged");
     expect(notes.title).toBe("Good to know");
     expect(notes.look).toBe("card");
     expect(wordsOf(notes)).not.toContain("We flag a crop");
     expect(wordsOf(notes)).not.toContain("Also good to know");
-    expect(wordsOf(notes)).toContain("A limit of the growing details for synthetic crop\nExample water check note.");
-    expect(wordsOf(notes)).not.toContain("What the water check leaves out");
+    expect(wordsOf(notes)).toContain("About the growing details for synthetic crop\nExample water check note.");
+    expect(wordsOf(notes)).not.toMatch(/What the water check leaves out|A limit of the growing details/);
   });
 
   it("[R39] a no-plan result shows its warnings under Good to know after the actions: the insights variant’s backup water note, in every no-plan state", () => {
@@ -344,11 +342,11 @@ describe("warnings and checks", () => {
     const notes = sectionOf(insights, "notes");
     expect(insights.more[0]).toBe(notes);
     expect(notes.look).toBe("card");
-    expect(wordsOf(notes)).toBe("Good to know\nYour backup water isn’t counted\nExample backup water note.");
+    expect(wordsOf(notes)).toBe("Good to know\nYour backup water isn’t counted\nIt may give extra protection. Every number here is worked out with rain alone.");
     const water = { code: "water_context", message: "Example rain-only note.", cropPurposeIds: [], ruleIds: [], metricIds: [] };
     for (const state of noPlanStates) {
       const page = pageOf(changed(shared(state), result => ({ ...result, details: { ...result.details, warnings: [water] } })));
-      expect(wordsOf(sectionOf(page, "notes")), state).toBe("Good to know\nYour backup water isn’t counted\nExample rain-only note.");
+      expect(wordsOf(sectionOf(page, "notes")), state).toBe("Good to know\nOnly rain is counted\nEvery number here is worked out with rain alone.");
       expect(sectionIds(pageOf(shared(state))).more, state).not.toContain("notes");
     }
   });
@@ -359,9 +357,47 @@ describe("warnings and checks", () => {
     const withBoth = (state: (typeof noPlanStates)[number]) => pageOf(changed(shared(state), result => ({ ...result, details: { ...result.details, warnings: [limit, water] } })));
     const stopped = withBoth("search_incomplete");
     expect(textOf(stopped)).not.toContain("Example limit message.");
-    expect(wordsOf(sectionOf(stopped, "notes"))).toBe("Good to know\nYour backup water isn’t counted\nExample rain-only note.");
-    expect(wordsOf(sectionOf(withBoth("insufficient_data"), "notes"))).toContain("The search stopped at its limit\nExample limit message.");
+    expect(wordsOf(sectionOf(stopped, "notes"))).toBe("Good to know\nOnly rain is counted\nEvery number here is worked out with rain alone.");
+    expect(wordsOf(sectionOf(withBoth("insufficient_data"), "notes"))).toContain("The search stopped at its limit\nWe stopped at our search limit before everything was compared.");
+    expect(textOf(withBoth("insufficient_data"))).not.toContain("Example limit message.");
     expect(sectionIds(pageOf(changed(shared("search_incomplete"), result => ({ ...result, details: { ...result.details, warnings: [limit] } })))).more).not.toContain("notes");
+  });
+
+  it("[R3] a warning whose engine message is one fixed developer sentence gets a plain line of F3’s own; a crop profile’s note and a rule’s text show as given", () => {
+    const warn = (code: string, cropPurposeIds: string[] = []) => ({ code, message: `Engine sentence for ${code}.`, cropPurposeIds, ruleIds: [], metricIds: [] });
+    const lineUnder = (snapshot: CompletedSnapshot, head: string) => {
+      const all = blocksOf(sectionOf(pageOf(snapshot), "flagged"), "items").flatMap(list => list.items);
+      return all.find(each => each.head === head)?.lines;
+    };
+    const withWarnings = (water: string, warnings: unknown[]) => completedSnapshotSchema.parse({
+      ...shared("plan_with_warnings"),
+      input: { ...shared("plan_with_warnings").input, water },
+      result: { ...shared("plan_with_warnings").result, details: { ...shared("plan_with_warnings").result.details, warnings } },
+    });
+    const every = withWarnings("rain_plus_backup", [
+      warn("rainfall_mismatch", ["synthetic-crop"]), warn("temperature_exposure", ["synthetic-crop"]), warn("search_limit"),
+      warn("water_context"), warn("approximate_history"), warn("profile_limitation", ["synthetic-crop"]), warn("environmental_rule"), warn("rotation_rule"),
+    ]);
+    expect(lineUnder(every, "Rain fell short of what synthetic crop needs in past seasons")).toEqual(["In some past seasons, at least one week had less rain than it needs."]);
+    expect(lineUnder(every, "Temperatures went outside the limits for synthetic crop")).toEqual([
+      "In some past seasons, at least one day was hotter or colder than its limit, at a time of growth when that matters.",
+    ]);
+    expect(lineUnder(every, "The search stopped at its limit")).toEqual(["We stopped at our search limit before everything was compared."]);
+    expect(lineUnder(every, "Your backup water isn’t counted")).toEqual(["It may give extra protection. Every number here is worked out with rain alone."]);
+    expect(lineUnder(every, "Your dates for last year are estimates")).toEqual(["So any comparison with last year is approximate too."]);
+    expect(lineUnder(every, "About the growing details for synthetic crop")).toEqual(["Engine sentence for profile_limitation."]);
+    expect(lineUnder(every, "A published rule about this place flagged the plan")).toEqual(["Engine sentence for environmental_rule."]);
+    expect(lineUnder(every, "A rule about which crop may follow which flagged the plan")).toEqual(["Engine sentence for rotation_rule."]);
+    for (const code of ["rainfall_mismatch", "temperature_exposure", "search_limit", "water_context", "approximate_history"]) {
+      expect(textOf(pageOf(every)), code).not.toContain(`Engine sentence for ${code}.`);
+    }
+
+    for (const water of ["rain_only", "unsure"]) {
+      const rainOnly = withWarnings(water, [warn("water_context"), warn("rainfall_mismatch")]);
+      expect(lineUnder(rainOnly, "Only rain is counted"), water).toEqual(["Every number here is worked out with rain alone."]);
+      expect(textOf(pageOf(rainOnly)), water).not.toContain("backup water");
+      expect(lineUnder(rainOnly, "Rain fell short of what the crops need in past seasons"), water).toEqual(["In some past seasons, at least one week had less rain than the crops need."]);
+    }
   });
 
   it("[R39] the context variant shows Your backup water isn’t counted as a note, not a flag, and its ranking rows equal the same plan without backup water", () => {
@@ -529,19 +565,22 @@ describe("ranking", () => {
     }
   });
 
-  it("[R42] details.explanation is shown in the ranking section as given", () => {
+  it("[R42] the engine’s explanation, written for developers, is not on the result page in any state", () => {
     for (const { name, snapshot } of everySnapshot()) {
-      const page = pageOf(snapshot);
-      if (page.kind !== "plan") continue;
-      expect(sectionOf(page, "ranking").blocks[0], name).toEqual({ kind: "text", look: "body", text: snapshot.result.details.explanation });
+      expect(textOf(pageOf(snapshot)), name).not.toContain(snapshot.result.details.explanation);
     }
+    const real = changed(shared("plan"), result => ({
+      ...result,
+      details: { ...result.details, explanation: "The first deciding metric against the final runner-up was mean_frequency: 0.898327 versus 0.904004 fraction, after comparison rounding." },
+    }));
+    expect(textOf(pageOf(real))).not.toMatch(/mean_frequency|runner-up|0\.898327/);
+    expect(wordsOf(sectionOf(pageOf(real), "ranking")).split("\n")[1]).toBe("We compare plans in one fixed order: water first, then days without a crop. You don’t choose it.");
   });
 
   it("[R36] a calendar date inside engine text is shown the reader’s way, and nothing else in the text changes", () => {
-    const dated = changed(shared("plan"), result => ({
-      ...result, details: { ...result.details, explanation: "Planted on 2026-07-01 in run 2026-13-01." },
-    }));
-    expect(sectionOf(pageOf(dated), "ranking").blocks[0]).toMatchObject({ text: "Planted on 1 Jul 2026 in run 2026-13-01." });
+    const note = { code: "profile_limitation", message: "Planted on 2026-07-01 in run 2026-13-01.", cropPurposeIds: [], ruleIds: [], metricIds: [] };
+    const dated = changed(shared("plan"), result => ({ ...result, details: { ...result.details, warnings: [note] } }));
+    expect(wordsOf(sectionOf(pageOf(dated), "flagged"))).toContain("Planted on 1 Jul 2026 in run 2026-13-01.");
   });
 
   it("[R41] every number on a plan page is a value of the snapshot: tuple components, metrics by id, deltas, cohort count; a tuple that disagrees with details.metrics shows the tuple’s values", () => {
@@ -755,7 +794,7 @@ describe("preparation and no-plan reasons", () => {
     expect(table.rows[1]).toEqual(["August", "210", "Not available: No complete monthly sample.", "300", "28.1"]);
   });
 
-  it("[R32] the duration proof shows 366 and 365 as two boxes and the crop’s minimum; the structural variant lists its constraints as given and how many ways were checked", () => {
+  it("[R32] the duration proof shows 366 and 365 as two boxes and the crop’s minimum; the structural variant names the planting times and the start date, never the engine’s constraint sentences, and how many ways were checked", () => {
     const noFit = sectionOf(pageOf(shared("no_calendar_fit")), "no_fit");
     expect(blocksOf(noFit, "versus")[0].sides).toEqual([
       { value: "366", caption: "days your crops need, at least", tone: "warn" },
@@ -764,13 +803,22 @@ describe("preparation and no-plan reasons", () => {
     expect(wordsOf(noFit)).toContain("Each crop needs at least:\nSynthetic crop: 366 days");
     const structural = sectionOf(pageOf(variant("structural")), "no_fit");
     expect(blocksOf(structural, "versus")).toEqual([]);
-    expect(blocksOf(structural, "items")[0].items.map(item => item.head)).toEqual([
-      "Example constraint about the first crop.", "Example constraint about the second crop.",
+    expect(blocksOf(structural, "items")).toEqual([]);
+    expect(wordsOf(structural)).not.toContain("Example constraint");
+    expect(wordsOf(noFit)).toContain("Choose a crop that grows faster, then make the plan again.");
+    expect(wordsOf(noFit)).not.toContain("fewer crops");
+    expect(wordsOf(structural).split("\n").slice(1)).toEqual([
+      "The time of year when your crop can be planted leaves no way to fit it into one year from your start date, 1 Jul 2026.",
+      "We checked 1,234 ways of placing it.",
+      "Try another start date or another crop, then make the plan again.",
     ]);
-    expect(wordsOf(structural)).toContain("We checked 1,234 ways of placing them.");
-    for (const section of [noFit, structural]) {
-      expect(wordsOf(section)).toContain("Choose fewer crops, or crops that grow faster, then make the plan again.");
-    }
+    const twoCrops = variant("structural");
+    const several = completedSnapshotSchema.parse({ ...twoCrops, input: { ...twoCrops.input, cropPurposeIds: ["synthetic-crop", "synthetic-second"] } });
+    expect(wordsOf(sectionOf(pageOf(several), "no_fit")).split("\n").slice(1)).toEqual([
+      "The times of year when your crops can be planted leave no way to fit them all into one year from your start date, 1 Jul 2026.",
+      "We checked 1,234 ways of placing them.",
+      "Try another start date, other crops or fewer crops, then make the plan again.",
+    ]);
   });
 
   it("[R8][R30] search_incomplete shows We stopped after 10 tries at fitting your crops into your year (our limit is 10), that a stopped search is not proof, and how to try again", () => {
