@@ -26,9 +26,11 @@ The calculator, NASA ingestion, PostgreSQL job service, worker, and four input p
 The current catalogue contains **75 source-reviewed profiles for 40 food-crop purposes**.
 Gilir enforces the release's planting windows as hard constraints. Profiles without a published window remain windowless.
 
-The field picker, results screen, browser recovery, PDF export, and complete browser journey remain unfinished.
-The [older hosted preview](https://gilir-web-production.up.railway.app) still returned
-`v1-empty` with zero catalogue entries on 15 November 2026. Start with the recordings and calculator cases.
+The [hosted preview](https://gilir-web-production.up.railway.app) serves the current 40-crop catalogue.
+A [live API and worker check](docs/evidence/hosting/current-release.md) completed the Boise bean case
+with a saved plan and rainfall warnings on 15 November 2026.
+Full browser-journey acceptance, map-provider setup, results presentation, and remaining PDF/recovery work
+are separate frontend tasks. The recordings above demonstrate the verified fixture flow.
 
 ## How a plan is chosen
 
@@ -98,12 +100,12 @@ that matches Boise's per-season metrics. These checks do not establish harvest s
 | Evidence | What it establishes |
 | --- | --- |
 | [Current-release science cases](docs/evidence/I2/README.md) | Six actual-engine cases, repeat hashes, and independent recomputation |
-| [Live runtime acceptance](docs/evidence/I1/README.md) | 22 passing checks with real NASA, HTTP, PostgreSQL, separate workers, and restart recovery. Uses the **earlier** `fao56-reviewed-2026-11-15` release. |
+| [Live runtime acceptance](docs/evidence/I1/README.md) | 28 passing checks with real NASA, HTTP, PostgreSQL, separate workers, restart recovery, and snapshot v2 on the current hard-window release. |
 | [Crop-source review](docs/evidence/E1/README.md) | Published parameters, applicability decisions, withheld rows, and release history |
 | [Climate coverage](docs/evidence/X2/README.md) and [reference calculations](docs/evidence/X3/README.md) | Additional location checks and independent metric examples |
 | [Interface evidence](docs/evidence/F1/README.md) | 51 Chromium fixture cases covering input flows, keyboard controls, and failures |
 
-Runtime and science evidence cover different paths and releases. Neither proves a deployed browser journey.
+Runtime and science evidence cover different paths. The [hosted API check](docs/evidence/hosting/current-release.md) adds deployed worker evidence; a complete deployed browser journey remains a separate gate.
 
 ## Run locally
 

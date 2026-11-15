@@ -1,12 +1,12 @@
 # Operate Gilir hosting
 
-Gilir is deployed in the owner's Nefalos Railway workspace. The public website is [gilir-web-production.up.railway.app](https://gilir-web-production.up.railway.app/). On 14 November 2026, the coordinator observed PostgreSQL, web, and worker Online. Cleanup showed its image Ready and a next hourly run. Cleanup execution remains unverified.
+Gilir is deployed in the owner's Nefalos Railway workspace. The public website is [gilir-web-production.up.railway.app](https://gilir-web-production.up.railway.app/). The [15 November release record](evidence/hosting/current-release.md) verifies the deployed API and worker, exact application commit, current catalogue, and saved planning result. It records cleanup execution separately.
 
-Use the existing [Gilir project](https://railway.com/project/a110cf19-bdbc-45eb-9769-e4c98ffeee82) and its production environment. Confirm the workspace and service IDs against the [Railway production evidence](evidence/hosting/railway-production.md) before making changes. That note records the applied settings, HTTP responses, and remaining verification. Do not use the CLI's personal default workspace or the existing Caravan project.
+Use the existing [Gilir project](https://railway.com/project/a110cf19-bdbc-45eb-9769-e4c98ffeee82) and its production environment. Confirm the workspace and service IDs against the [Railway production evidence](evidence/hosting/railway-production.md) before making changes. That historical note records the resource identities. Use the [current read-back](evidence/hosting/release-2026-11-15.json) for release settings and deployment identities. Do not use the CLI's personal default workspace or the existing Caravan project.
 
-The owner approved deployment, additional Railway usage charges, and the public web domain. Follow the owner's current authorization for future changes. Use one reviewed Git commit for every application service and verify the deployed SHA after each release. The initial deployment's exact SHAs remain unverified. Historical local container checks are recorded in [local hosting evidence](evidence/hosting/README.md).
+The owner approved deployment, additional Railway usage charges, and the public web domain. Follow the owner's current authorization for future changes. Use one reviewed Git commit for every application service and verify the deployed SHA after each release. The three application services are pinned to `ec2ef2255ba76d6383d81dad43ff98a70584a850`. Future branch pushes do not change the pinned release. Historical local container checks are recorded in [local hosting evidence](evidence/hosting/README.md).
 
-The current application still has an empty released catalogue and unimplemented scientific engine modules. The HTTP checks establish public reachability and limited API behavior. They do not establish a usable farm planner or scientific acceptance.
+The public catalogue now has 40 entries. A real hosted request completed with snapshot v2 and a June bean warning plan. Complete browser acceptance, map-provider behavior, and remaining results/PDF work are separate frontend gates.
 
 ## Use Railway PostgreSQL
 
@@ -16,19 +16,19 @@ Reference `${{Postgres.DATABASE_URL}}` from all three application services. The 
 
 ## Review settings before a release
 
-Use the repository root and its `Dockerfile` for each application service. Compare dashboard values with the [recorded service settings](evidence/hosting/railway-production.md#service-settings). Read back the source repository, branch, and selected commit before deploying. Automatic source deployments have not been verified. Inspect that setting before relying on a manual release sequence.
+Use the repository root and its `Dockerfile` for each application service. Compare dashboard values with the [recorded service settings](evidence/hosting/railway-production.md#service-settings). Read back the source repository, branch, and selected commit before deploying. Explicit commit pins make the current release deliberate. Update web readers first, verify health and catalogue identity, then update worker and cleanup to the same reviewed commit. Read back the actual deployed commit for each service.
 
-Retain `sh deploy/start.sh migrate` as the web and worker pre-deploy command with a 120-second timeout. The runner serializes migrations with a PostgreSQL advisory transaction lock and checks applied file hashes. A failed [pre-deploy command](https://docs.railway.com/deployments/pre-deploy-command) prevents that deployment from starting. The cleanup cron UI hides pre-deploy fields, so its pre-deploy configuration and execution remain unverified. A web healthcheck tests the HTTP process, while worker startup separately checks database tables and the registry release.
+Retain `sh deploy/start.sh migrate` as the web and worker pre-deploy command with a 120-second timeout. The runner serializes migrations with a PostgreSQL advisory transaction lock and checks applied file hashes. A failed [pre-deploy command](https://docs.railway.com/deployments/pre-deploy-command) prevents that deployment from starting. The current API read-back also confirms the same migration command and timeout for cleanup. Successful deployment clears the configured pre-deploy gate; a separate migration-history audit was not performed. A web healthcheck tests the HTTP process, while worker startup separately checks database tables and the registry release.
 
 Keep [Serverless](https://docs.railway.com/deployments/serverless) off for the worker so job processing does not depend on incoming HTTP traffic. The worker receives `SIGTERM` directly because `deploy/start.sh` replaces the shell with Node. A busy worker finishes its current tick before exiting. The configured [draining time](https://docs.railway.com/deployments/deployment-teardown) is finite. If a job exceeds it, durable lease expiry permits a replacement worker to reclaim it.
 
 Railway's [cron scheduler](https://docs.railway.com/cron-jobs) uses UTC. The cleanup process exits when its task completes. A run that remains active prevents the next scheduled run. The hourly interval is within the documented minimum spacing of five minutes.
 
-Do not add legacy `railway.json` or `railway.toml` files. The live [Config as Code documentation](https://docs.railway.com/config-as-code), checked on 14 November 2026, says new services cannot opt in and existing support ends on 1 December 2026. The supported [Infrastructure as Code workflow](https://docs.railway.com/infrastructure-as-code) is a future alternative. Use dashboard settings for this deployment.
+Do not add legacy `railway.json` or `railway.toml` files. The live [Config as Code documentation](https://docs.railway.com/config-as-code), checked on 14 November 2026, says new services cannot opt in and existing support ends on 1 December 2026. The supported [Infrastructure as Code workflow](https://docs.railway.com/infrastructure-as-code) is a future alternative. Use Railway service settings for this deployment.
 
 ## Set the runtime variables
 
-Keep the [recorded runtime variables](evidence/hosting/railway-production.md#runtime-variables) in the service environment. Web uses `PORT=8080` and `GILIR_DATA_CUTOFF=2026-06-30`. Change the cutoff only to an approved ISO date supported by the available provider evidence. Keep secrets out of source files, command arguments, and shared logs.
+Keep the [recorded runtime variables](evidence/hosting/railway-production.md#runtime-variables) in the service environment. Web uses `PORT=8080` and `GILIR_DATA_CUTOFF=2026-11-14`, confirmed by the completed hosted job manifest. Change the cutoff only to an approved ISO date supported by the available provider evidence. Keep secrets out of source files, command arguments, and shared logs.
 
 The image sets `NODE_ENV=production` and disables Next.js telemetry. The worker wrapper takes its ID from `WORKER_ID`, then `RAILWAY_REPLICA_ID`, then the container hostname. Leave `WORKER_ID` unset on Railway so replicas receive distinct IDs.
 
@@ -49,8 +49,8 @@ Run `npm run check` and `npm run build` with Node 24 before review. The smoke sc
 
 ## Verify each deployment
 
-Record the exact deployed commit for every application service. Confirm migration success in the web and worker deployment logs, `worker_ready` in worker logs, and a successful hourly cleanup exit. Read back the PostgreSQL region after a volume move. The initial deployment still needs these checks, as listed in the [production evidence](evidence/hosting/railway-production.md#unverified-checks).
+Record the exact deployed commit for every application service. Confirm migration success in the web and worker deployment logs, `worker_ready` in worker logs, and a successful hourly cleanup exit. Read back the PostgreSQL region after a volume move. The [current production evidence](evidence/hosting/current-release.md) distinguishes observed outcomes from remaining checks. PostgreSQL is confirmed in Singapore, with no public endpoint.
 
 Check `/`, `/api/catalogue`, and the production-only exclusion of `/dev/fixtures` through the public web domain. Use a synthetic capability and a valid, unused UUID for a read-only job lookup. Do not use another person's job ID or token. Keep public access limited to web on port 8080. Worker, cleanup, and PostgreSQL do not need public endpoints.
 
-Run the remaining I1, I2, and I3 acceptance checks separately before calling the product ready. B1, B2, and B3 are Done, but [I1 issue #11](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/11) remains open. The released catalogue is empty, and E2 and E3 remain `not_implemented`.
+Keep [I1 runtime evidence](evidence/I1/README.md), [I2 science evidence](evidence/I2/README.md), and I3 browser acceptance distinct. The refreshed I1 gate and hosted API probe pass on the current release. They do not complete the full frontend journey.
