@@ -33,7 +33,7 @@ Gilir turns that record into one answer a farmer can read: what to plant, when, 
 
 ## What a farmer does
 
-Gilir is built for farmers aged 50 to 80 on low-cost phones in bright sun. There is no account, no sign-in and no landing page: the site opens on the first question.
+The interface is designed for accessibility, for farmers aged 40 and older using low-cost phones in bright sun. There is no account, no sign-in and no landing page: the site opens on the first question.
 
 1. **Where is your farm?** Turn the NASA globe or search for a place, then fit a box to the field. A position can be typed instead, and a list of corners works with no map at all.
 2. **Which crops do you want to grow?** Pick from 40 food crops. Every plan includes every crop picked.
@@ -52,11 +52,26 @@ Then the farmer taps **Make my plan** and gets one of these:
 | Something went wrong | The service failed. The farmer's answers are kept |
 
 The result stays on the phone and reopens with no connection. It downloads as a PDF with the same plan, warnings and source period.
-Text size and high contrast settings and a read-aloud button are in the top bar, and every step works by keyboard alone.
 
 <img src="docs/evidence/I3/pdf-page-2.png" width="55%" alt="Page 2 of a downloaded PDF plan: a twelve-month timeline with one rice crop planted on December 1 and harvested on April 28, a legend, and the list of periods with their dates and day counts.">
 
 *Page 2 of a real downloaded PDF: the year's timeline and each period with its dates.*
+
+## Designed for accessibility
+
+Farmers are an ageing group in much of the world, so the interface is designed for people aged 40 and older, whose eyesight and hands may not suit small text and small buttons.
+
+| Need | What the interface does |
+| --- | --- |
+| Reading small text | Body text is 20 px and the smallest text is 18 px. A **Text size** setting offers Normal, Large and Largest, and spacing and buttons grow with it |
+| Bright sun and weak contrast | Dark text on a light page, a **High contrast** setting with black text on white and thicker edges, and a dark theme that follows the phone |
+| Reading is tiring or hard | A **Listen** button reads the page aloud. Sentences are short and plain, with one question per page |
+| Tapping accurately | Main buttons are 64 px tall and no target is smaller than 48 px |
+| Telling things apart without colour | Every status has an icon and words, and timeline bars differ by pattern, so they read in grayscale and in print |
+| No mouse or no touch | Every step works by keyboard alone, with a visible focus ring |
+| An old or cheap phone | The journey works with no WebGL through a drawing and a list of corners, and motion runs only when the phone allows it |
+
+The body typeface is Atkinson Hyperlegible Next, which was drawn for legibility. The interface has not yet been tested with a screen reader or on a real low-cost phone.
 
 ## Where NASA data enters
 
@@ -142,8 +157,8 @@ Map pictures come from NASA and MapTiler, so they can see which area is being vi
 Use Node.js 24 and Docker Compose. Run commands from the repository root.
 
 ```sh
-git clone https://github.com/Quantomz/nefalos_nasa_hackathon.git
-cd nefalos_nasa_hackathon
+git clone https://github.com/Quantomz/gilir.git
+cd gilir
 npm ci
 cp .env.example .env
 ```
