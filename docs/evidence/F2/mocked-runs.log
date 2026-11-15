@@ -1,0 +1,15 @@
+
+Running 10 tests using 1 worker
+
+  ✓   1 tests/frontend/location/provider.spec.ts:53:1 › [R6] typing 'Indramayu' sends no request to the provider; Enter sends exactly one geocoding request (7.7s)
+  ✓   2 tests/frontend/location/provider.spec.ts:66:1 › [R4][R1] that request has key=pw-dummy-key, autocomplete=false, and no proximity, bbox or country (3.4s)
+  ✓   3 tests/frontend/location/provider.spec.ts:76:1 › [R4] tile requests that carry the key go to api.maptiler.com only; GIBS requests carry no key (9.0s)
+  ✓   4 tests/frontend/location/provider.spec.ts:96:1 › [R3] choosing 'Indramayu' drops the pin and the camera goes there; 'Mark my field' draws a 1 ha box with its handles apart (13.4s)
+  ✓   5 tests/frontend/location/provider.spec.ts:117:1 › tapping the map moves the box to the tap; after dragging a corner a tap no longer moves it (17.0s)
+  ✓   6 tests/frontend/location/provider.spec.ts:144:1 › [R11] a canned Fiji answer whose bbox has west > east: the camera goes to its center, and the label is 'Field near Labasa, …', not Tonga (14.3s)
+  ✓   7 tests/frontend/location/provider.spec.ts:161:1 › [R5] the credits line reads NASA EOSDIS GIBS, © MapTiler and © OpenStreetMap contributors without a press, in text of at least 18 px (4.0s)
+  ✓   8 tests/frontend/location/provider.spec.ts:178:1 › [R16] a 403 to the search shows its explanation; a 429 says the search is busy; 403 to tiles shows 'The map pictures didn’t load. …' and the globe still turns (15.3s)
+  ✓   9 tests/frontend/location/provider.spec.ts:203:1 › [R16] no answer, an answer past the time limit and no place found each say so in the slot; a typed position still marks a field after them (20.1s)
+  ✓  10 tests/frontend/location/provider.spec.ts:224:1 › [R25] no request to any provider carries a coordinate of the field: only the typed text and tile z, x and y (17.8s)
+
+  10 passed (2.3m)

@@ -1,0 +1,249 @@
+// Playwright, Chromium, against a MOCKED MapTiler: every request to api.maptiler.com is answered by
+// support/providers.ts with a canned TileJSON, a synthetic tile and a canned search answer; GIBS gets the same tile.
+// MOCKED EVIDENCE. It proves the wiring: what is asked, when, and what the farmer then sees. It does NOT pass the card's
+// live criterion ("A mocked search alone does not pass"): live.spec.ts does, and it is BLOCKED here.
+// The dev server must start with a dummy key so the key is inlined; without it this file skips:
+//   CI=1 NEXT_PUBLIC_MAPTILER_KEY=pw-dummy-key PW_CHROMIUM=/opt/pw-browsers/chromium env -u CLAUDECODE -u AI_AGENT \
+//     npx playwright test tests/frontend/location/provider.spec.ts
+import { expect, test } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
+import { providerPolicy } from "@/features/location/provider";
+import { allAnswer, routeProviders } from "./support/providers";
+import type { ProviderPlan, ProviderRoutes } from "./support/providers";
+import {
+  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, settledCentre, shoot,
+} from "./support/slot";
+import type { Point } from "./support/slot";
+
+const dummyKey = "pw-dummy-key";
+
+test.use({ launchOptions: { executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium" }, viewport: { width: 360, height: 740 } });
+test.describe.configure({ timeout: 120_000 });
+test.skip(process.env.NEXT_PUBLIC_MAPTILER_KEY !== dummyKey, `needs the dev server started with NEXT_PUBLIC_MAPTILER_KEY=${dummyKey}`);
+
+async function openLab(page: Page, plan: Partial<ProviderPlan> = {}): Promise<{ root: Locator; routes: ProviderRoutes }> {
+  const routes = await routeProviders(page, { ...allAnswer, ...plan });
+  await page.goto("/dev/fixtures");
+  const root = firstPicker(page);
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  return { root, routes };
+}
+
+const searchBox = (root: Locator) => root.getByRole("searchbox", { name: "Village, town or area" });
+
+async function search(root: Locator, text: string): Promise<void> {
+  await root.getByRole("button", { name: "Search again" }).click();
+  await searchBox(root).fill(text);
+  await searchBox(root).press("Enter");
+}
+
+const placeRow = (root: Locator, name: string) => root.getByRole("list", { name: "Places" }).getByRole("button", { name: new RegExp(`^${name}\\b`) });
+
+async function mapCentre(root: Locator): Promise<Point> {
+  await mapArea(root).scrollIntoViewIfNeeded();
+  const box = (await mapArea(root).boundingBox())!;
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+
+const average = (points: readonly Point[]): Point => ({
+  x: points.reduce((sum, p) => sum + p.x, 0) / points.length,
+  y: points.reduce((sum, p) => sum + p.y, 0) / points.length,
+});
+
+test("[R6] typing 'Indramayu' sends no request to the provider; Enter sends exactly one geocoding request", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  await root.getByRole("button", { name: "Search again" }).click();
+  await searchBox(root).pressSequentially("Indramayu", { delay: 50 });
+  await page.waitForTimeout(1000);
+  expect(routes.of("search")).toHaveLength(0);
+  await searchBox(root).press("Enter");
+  await expect(placeRow(root, "Indramayu").first()).toBeVisible();
+  await page.waitForTimeout(500);
+  expect(routes.of("search")).toHaveLength(1);
+  expect(routes.of("search")[0].query).toBe("Indramayu");
+});
+
+test("[R4][R1] that request has key=pw-dummy-key, autocomplete=false, and no proximity, bbox or country", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  await search(root, "Indramayu");
+  await expect(placeRow(root, "Indramayu").first()).toBeVisible();
+  const [request] = routes.of("search");
+  expect(request.url.searchParams.get("key")).toBe(dummyKey);
+  expect(request.url.searchParams.get("autocomplete")).toBe("false");
+  for (const name of ["proximity", "bbox", "country"]) expect(request.url.searchParams.has(name)).toBe(false);
+});
+
+test("[R4] tile requests that carry the key go to api.maptiler.com only; GIBS requests carry no key", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  // The lab opens close to its field, where only MapTiler's pictures show. NASA's show further out.
+  const zoomOut = root.getByRole("button", { name: "Zoom out" });
+  for (let press = 0; press < 14 && routes.of("gibs").length === 0; press++) {
+    await zoomOut.click();
+    await page.waitForTimeout(400);
+  }
+  expect(routes.of("gibs").length).toBeGreaterThan(0);
+  await search(root, "Indramayu");
+  await placeRow(root, "Indramayu").first().click();
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  for (const request of routes.requests) {
+    if (request.url.href.includes(dummyKey)) expect(request.url.hostname).toBe("api.maptiler.com");
+  }
+  for (const request of routes.of("gibs")) expect(request.url.searchParams.has("key")).toBe(false);
+  expect(routes.of("elsewhere")).toHaveLength(0);
+});
+
+test("[R3] choosing 'Indramayu' drops the pin and the camera goes there; 'Mark my field' draws a 1 ha box with its handles apart", async ({ page }, testInfo) => {
+  const { root } = await openLab(page);
+  await search(root, "Indramayu");
+  await placeRow(root, "Indramayu").first().click();
+  const pin = root.locator(".fp-pin");
+  await expect(pin).toBeVisible();
+  const centre = await mapCentre(root);
+  const tip = await settledCentre(pin);
+  expect(Math.abs(tip.x - centre.x)).toBeLessThan(40);
+  expect(Math.abs(tip.y - centre.y)).toBeLessThan(80);
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await expect(root.getByText(/^Your field is marked: /).first()).toHaveText("Your field is marked: about 1 hectare, 4 corners.");
+  await settledCentre(handles(root).first());
+  const corners = await centresOf(handles(root));
+  for (const [i, a] of corners.entries()) for (const b of corners.slice(i + 1)) expect(distance(a, b)).toBeGreaterThan(24);
+  await shoot(page, testInfo, "provider-indramayu-box-360", mapArea(root));
+  const field = await expectFieldOnPage(root);
+  expect(field.label).toMatch(/^Field near Indramayu, /);
+});
+
+test("tapping the map moves the box to the tap; after dragging a corner a tap no longer moves it", async ({ page }) => {
+  const { root } = await openLab(page);
+  await search(root, "Indramayu");
+  await placeRow(root, "Indramayu").first().click();
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  const centre = await mapCentre(root);
+  await settledCentre(handles(root).first());
+  // Clear of the corner handles and the zoom buttons.
+  const tap = { x: centre.x - 60, y: centre.y + 110 };
+  const before = await lookupOf(root);
+  await page.mouse.click(tap.x, tap.y);
+  await expect.poll(() => lookupOf(root)).not.toEqual(before);
+  await settledCentre(handles(root).first());
+  expect(distance(average(await centresOf(handles(root))), tap)).toBeLessThan(12);
+
+  await dragHandle(page, root, 2, from => ({ x: from.x + 20, y: from.y + 20 }));
+  const drawn = await lookupOf(root);
+  const corners = await centresOf(handles(root));
+  const elsewhere = await mapCentre(root);
+  await page.mouse.click(elsewhere.x + 80, elsewhere.y - 40);
+  await page.waitForTimeout(800);
+  expect(await lookupOf(root)).toEqual(drawn);
+  const after = await centresOf(handles(root));
+  for (const [i, corner] of after.entries()) expect(distance(corner, corners[i])).toBeLessThan(2);
+});
+
+test("[R11] a canned Fiji answer whose bbox has west > east: the camera goes to its center, and the label is 'Field near Labasa, …', not Tonga", async ({ page }) => {
+  const { root } = await openLab(page);
+  await search(root, "Labasa");
+  await placeRow(root, "Labasa").click();
+  const pin = root.locator(".fp-pin");
+  await expect(pin).toBeVisible();
+  const centre = await mapCentre(root);
+  const tip = await settledCentre(pin);
+  expect(Math.abs(tip.x - centre.x)).toBeLessThan(40);
+  expect(Math.abs(tip.y - centre.y)).toBeLessThan(80);
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  const field = await expectFieldOnPage(root);
+  expect(field.label).toMatch(/^Field near Labasa, Northern Division, Fiji$/);
+  expect(Math.abs(field.lookup[0] - 179.3644)).toBeLessThan(0.01);
+  expect(Math.abs(field.lookup[1] + 16.4167)).toBeLessThan(0.01);
+});
+
+test("[R5] the credits line reads NASA EOSDIS GIBS, © MapTiler and © OpenStreetMap contributors without a press, in text of at least 18 px", async ({ page }, testInfo) => {
+  const { root } = await openLab(page);
+  const credits = root.locator(".fp-credits");
+  const line = credits.locator("p").first();
+  await expect(line).toBeVisible();
+  for (const name of ["NASA EOSDIS GIBS", "© MapTiler", "© OpenStreetMap contributors"]) await expect(line).toContainText(name);
+  const links = [
+    { name: "© MapTiler", href: "https://www.maptiler.com/copyright/" },
+    { name: "© OpenStreetMap contributors", href: "https://www.openstreetmap.org/copyright" },
+  ];
+  for (const { name, href } of links) await expect(credits.getByRole("link", { name })).toHaveAttribute("href", href);
+  for (const text of [line, ...links.map(({ name }) => credits.getByRole("link", { name }))]) {
+    expect(parseFloat(await text.evaluate(element => getComputedStyle(element).fontSize))).toBeGreaterThanOrEqual(18);
+  }
+  await shoot(page, testInfo, "provider-credits-360", credits);
+});
+
+test("[R16] a 403 to the search shows its explanation; a 429 says the search is busy; 403 to tiles shows 'The map pictures didn’t load. …' and the globe still turns", async ({ page }) => {
+  const { root, routes } = await openLab(page, { search: "refused" });
+  await search(root, "Indramayu");
+  await expect(root.getByText("The place search isn’t working on this site right now. Type a position, like -6.326, 108.32, or your field’s corners.")).toBeVisible();
+
+  routes.plan.search = "busy";
+  await searchBox(root).press("Enter");
+  await expect(root.getByText("The place search is busy. Wait a moment, then press Search again.")).toBeVisible();
+
+  routes.plan.gibs = "refused";
+  routes.plan.maptiler = "refused";
+  await page.reload();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  await expect(root.getByText(/^The map pictures didn’t load\./)).toBeVisible({ timeout: 30_000 });
+  await root.getByRole("button", { name: "Search again" }).click();
+  await searchBox(root).fill("-0.3, 36.07");
+  await searchBox(root).press("Enter");
+  const pin = root.locator(".fp-pin");
+  await expect(pin).toBeVisible();
+  const centre = await mapCentre(root);
+  const placed = await settledCentre(pin);
+  await drag(page, centre, { x: centre.x - 60, y: centre.y + 40 });
+  expect(distance(placed, await settledCentre(pin))).toBeGreaterThan(30);
+});
+
+test("[R16] no answer, an answer past the time limit and no place found each say so in the slot; a typed position still marks a field after them", async ({ page }) => {
+  const { root, routes } = await openLab(page, { search: "offline" });
+  await search(root, "Indramayu");
+  await expect(root.getByText("We couldn’t reach the place search. Check your internet connection, then press Search again. You can also type a position or your field’s corners.")).toBeVisible();
+
+  routes.plan.search = "slow";
+  await searchBox(root).press("Enter");
+  await expect(root.getByText("The place search took too long. Press Search again, or type a position.")).toBeVisible({ timeout: providerPolicy.searchTimeoutMs + 5000 });
+
+  routes.plan.search = "answer";
+  await searchBox(root).fill("Atlantis");
+  await searchBox(root).press("Enter");
+  await expect(root.getByText("No place found. Try the nearest town, or tap the globe.")).toBeVisible();
+
+  await searchBox(root).fill("-6.326, 108.32");
+  await searchBox(root).press("Enter");
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expectFieldOnPage(root);
+  expect(routes.of("search").map(request => request.query)).toEqual(["Indramayu", "Indramayu", "Atlantis"]);
+});
+
+test("[R25] no request to any provider carries a coordinate of the field: only the typed text and tile z, x and y", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  await search(root, "Indramayu");
+  await placeRow(root, "Indramayu").first().click();
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await dragHandle(page, root, 1, from => ({ x: from.x + 20, y: from.y - 20 }));
+  const field = await expectFieldOnPage(root);
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+
+  const numbers = [...field.ring.flat(), ...field.lookup].map(value => String(Math.abs(value)));
+  for (const request of routes.requests) {
+    expect(request.kind).not.toBe("elsewhere");
+    expect(request.kind).not.toBe("maptiler_other");
+    const text = decodeURIComponent(request.url.pathname + request.url.search);
+    for (const number of numbers) expect(text.includes(number), `a ${request.kind} request carries a field coordinate`).toBe(false);
+    const params = [...request.url.searchParams.keys()].sort();
+    if (request.kind === "search") {
+      expect(request.query).toBe("Indramayu");
+      expect(params).toEqual(["autocomplete", "key", "language", "limit"]);
+    } else {
+      expect(request.url.pathname).toMatch(/(\/\d+\/\d+\/\d+\.\w+|\/tiles\.json)$/);
+      expect(params).toEqual(request.kind === "gibs" ? [] : ["key"]);
+    }
+  }
+});
