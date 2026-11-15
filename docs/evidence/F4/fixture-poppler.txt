@@ -1,0 +1,443 @@
+===== fixture-plan.pdf
+--- pdfinfo fixture-plan.pdf
+Title:           Gilir crop plan, made 1 Jul 2026
+Subject:         Keep last year’s rotation
+Creator:         Gilir
+Producer:        Gilir
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           4
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       5780 bytes
+Optimized:       no
+PDF version:     1.7
+--- pdffonts fixture-plan.pdf
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+Helvetica                            Type 1            WinAnsi          no  no  no       3  0
+Helvetica-Bold                       Type 1            WinAnsi          no  no  no       4  0
+--- pdftotext -layout fixture-plan.pdf -
+Gilir · A crop plan from past seasons
+
+Keep last year’s rotation
+Synthetic example field
+Weather point 15.005° N, 100.005° E
+Made 1 Jul 2026 · Your year: 1 Jul 2026 to 30 Jun 2027
+Crops: Synthetic crop · Water: Rain only · Last year: 1 crop
+
+
+ Synthetic test data only. Values are invented and are not farm advice.
+
+
+    This order passed every check we could run.
+    That means only that those checks found nothing in past seasons. It isn’t a
+    promise about next season.
+
+
+
+
+When to plant and harvest
+Jul      Aug     Sept    Oct      Nov     Dec    Jan    Feb   Mar        Apr   May     Jun
+
+                                                 2
+
+1
+2026                                             2027
+
+       A crop, numbered as in the list below
+       After harvest, before the field is free
+       No planned crop
+
+1. Synthetic crop
+   Plant 1 Jul 2026 · Harvest 4 Jul 2026
+   4 days in the field. The field is free again on 6 Jul 2026.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 1 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+2. No planned crop
+   5 Jul 2026 to 30 Jun 2027 · 361 days
+   The first day is the time after the synthetic crop harvest, before the field is
+   free.
+
+
+
+Why this plan ranked first
+Plans are compared in one fixed order: water first, then days without a crop.
+1. How often rain fell below what the crops need
+   Never
+   In past seasons, no 7-day window had less rain than the crops need.
+2. How big the shortfall was
+   None
+   In past seasons, rain covered what the crops need in every week.
+3. Days without a planned crop
+   361 days
+   Of the 365 days in your year, counting the days after each harvest. Fewer is
+   better.
+4. Longest stretch without a planned crop
+   361 days
+   Days in a row without a planned crop. Shorter is better.
+Shown, but not used to rank
+•   In a bad year
+    Not available
+•   Heat and cold
+    Not available
+Checked against 1 past season, Jul 2000. From past seasons, not a prediction. Checked with
+rain alone: backup water is not counted.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                              Page 2 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+Compared with last year
+Last year’s rotation ranked first, so we suggest keeping it.
+Your dates are estimates. You said some of last year’s dates are approximate,
+so this comparison is approximate too.
+How they compare
+•   Weeks with less rain than the crops need
+    This plan: 0%
+    Last year’s rotation: 0%
+    The same
+Changes from last year
+No changes: the same crops, order and dates as last year.
+
+
+
+Get ready
+1. Example preparation text for layout tests.
+
+
+
+How this was worked out
+Synthetic result: the existing rotation ranks first in this example.
+
+
+
+Assumptions
+•   Synthetic test data only. Values are invented and are not farm advice.
+
+
+
+Sources, period and versions
+Checked against 1 past season, Jul 2000.
+
+Past seasons chosen with method synthetic-v1.
+
+Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                        Page 3 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
+synthetic-rules, records before 1 Jan 2026.
+
+Weather records: synthetic-weather.
+
+
+
+From past seasons. Not a prediction for next season. Checked with rain alone: backup water
+is not counted. No fertilizer amounts, costs or soil tests.
+Gilir is an independent project for the NASA Space Apps Challenge 2026, not affiliated with or
+endorsed by NASA.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 4 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+===== fixture-plan_with_warnings.pdf
+--- pdfinfo fixture-plan_with_warnings.pdf
+Title:           Gilir crop plan, made 1 Jul 2026
+Subject:         Your plan, with warnings
+Creator:         Gilir
+Producer:        Gilir
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           4
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       6535 bytes
+Optimized:       no
+PDF version:     1.7
+--- pdffonts fixture-plan_with_warnings.pdf
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+Helvetica                            Type 1            WinAnsi          no  no  no       3  0
+Helvetica-Bold                       Type 1            WinAnsi          no  no  no       4  0
+--- pdftotext -layout fixture-plan_with_warnings.pdf -
+Gilir · A crop plan from past seasons
+
+Your plan, with warnings
+Synthetic example field
+Weather point 15.005° N, 100.005° E
+Made 1 Jul 2026 · Your year: 1 Jul 2026 to 30 Jun 2027
+Crops: Synthetic crop · Water: Rain only · Last year: 1 crop and 1 empty time
+
+
+    Synthetic test data only. Values are invented and are not farm advice.
+
+
+    With warnings.
+    In past seasons, rain fell short of what the crops need in about 5 in 10
+    weeks.
+
+
+
+
+What we flagged
+We flag a crop if, in any past season, even one week had less rain than it needs,
+or a temperature outside its limits. The check is strict, so most plans have
+warnings.
+•     Rain fell short of what synthetic crop needs in past seasons
+      Example rainfall warning.
+A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It
+shows where past seasons fell short, so you know what to watch.
+
+
+
+Good to know
+•     The search stopped at its limit
+      Example search stopped at its scoring budget.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                          Page 1 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+When to plant and harvest
+Jul     Aug      Sept    Oct      Nov     Dec    Jan    Feb   Mar        Apr   May     Jun
+
+                                                 2
+
+1
+2026                                             2027
+
+       A crop, numbered as in the list below
+       After harvest, before the field is free
+       No planned crop
+
+1. Synthetic crop
+   Plant 1 Jul 2026 · Harvest 4 Jul 2026
+   4 days in the field. The field is free again on 6 Jul 2026.
+2. No planned crop
+   5 Jul 2026 to 30 Jun 2027 · 361 days
+   The first day is the time after the synthetic crop harvest, before the field is
+   free.
+We stopped at our search limit.
+This is the best plan we found, not proven to be the best.
+We tried planting dates every 7 days.
+
+
+
+Why this plan ranked first
+Plans are compared in one fixed order: water first, then days without a crop.
+1. How often rain fell below what the crops need
+   About 5 in 10 weeks
+   In past seasons, for the crop with the most short weeks each season. Lower
+   is better.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 2 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+2. How big the shortfall was
+   About 25%
+   The average share of the crops’ need that rain didn’t cover. Weeks with
+   enough rain count as 0%. Lower is better.
+3. Days without a planned crop
+   361 days
+   Of the 365 days in your year, counting the days after each harvest. Fewer is
+   better.
+4. Longest stretch without a planned crop
+   361 days
+   Days in a row without a planned crop. Shorter is better.
+Shown, but not used to rank
+•   In a bad year
+    Not available
+•   Heat and cold
+    Not available
+Checked against 1 past season, Jul 2000. From past seasons, not a prediction. Checked with
+rain alone: backup water is not counted.
+
+
+
+Compared with last year
+We couldn’t score last year’s rotation:
+•   The reported crop has no supported example profile.
+Your dates are estimates. You said some of last year’s dates are approximate.
+What you told us about last year (not scored)
+Synthetic unlisted crop (not on our crop list)
+Planted about 1 Jul 2025 · Harvested about 4 Jul 2025
+Field empty, as you said
+5 Jul to 31 Jul 2025 · 27 days
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                              Page 3 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+Not sure: nothing recorded
+1 Aug 2025 to 30 Jun 2026 · 334 days
+
+
+
+Get ready
+1. Example preparation text for layout tests.
+
+
+
+How this was worked out
+Synthetic result: rainfall falls below estimated demand in this example.
+
+
+
+Assumptions
+•   Synthetic test data only. Values are invented and are not farm advice.
+
+
+
+Sources, period and versions
+Checked against 1 past season, Jul 2000.
+
+Past seasons chosen with method synthetic-v1.
+
+Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
+
+Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
+synthetic-rules, records before 1 Jan 2026.
+
+Weather records: synthetic-weather.
+
+
+
+From past seasons. Not a prediction for next season. Checked with rain alone: backup water
+is not counted. No fertilizer amounts, costs or soil tests.
+Gilir is an independent project for the NASA Space Apps Challenge 2026, not affiliated with or
+endorsed by NASA.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 4 of 4
+Synthetic test data only. Values are invented and are not farm advice.
+===== fixture-insufficient_data.pdf
+--- pdfinfo fixture-insufficient_data.pdf
+Title:           Gilir status report, made 1 Jul 2026
+Subject:         We can’t make a plan yet
+Creator:         Gilir
+Producer:        Gilir
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           2
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       3215 bytes
+Optimized:       no
+PDF version:     1.7
+--- pdffonts fixture-insufficient_data.pdf
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+Helvetica                            Type 1            WinAnsi          no  no  no       3  0
+Helvetica-Bold                       Type 1            WinAnsi          no  no  no       4  0
+--- pdftotext -layout fixture-insufficient_data.pdf -
+Gilir · A crop plan from past seasons
+
+We can’t make a plan yet
+Synthetic example field
+Weather point 15.005° N, 100.005° E
+Made 1 Jul 2026 · Your year: 1 Jul 2026 to 30 Jun 2027
+Crops: Synthetic crop · Water: Rain only · Last year: 1 crop
+
+
+    Synthetic test data only. Values are invented and are not farm advice.
+
+
+    No plan yet.
+    Some information a plan needs is missing.
+
+
+
+
+What’s missing
+•     Enough complete past seasons of weather
+      No complete weather season in this example.
+Making the plan again gives the same answer until new data is available. You
+can change your answers, for example to other crops.
+This is a status report. No calendar is shown, because no plan was made.
+
+
+
+Compared with last year
+We couldn’t score last year’s rotation:
+•     Baseline was not scored in this example.
+Your dates are estimates. You said some of last year’s dates are approximate.
+What you told us about last year (not scored)
+Synthetic crop
+Planted about 1 Jul 2025 · Harvested about 4 Jul 2025
+
+
+Gilir status report · Made 1 Jul 2026                                      Page 1 of 2
+Synthetic test data only. Values are invented and are not farm advice.
+Not sure: nothing recorded
+5 Jul 2025 to 30 Jun 2026 · 361 days
+
+
+
+How this was worked out
+Synthetic result: this example is missing required climate data.
+
+
+
+Assumptions
+•   Synthetic test data only. Values are invented and are not farm advice.
+
+
+
+Sources, period and versions
+Past seasons: A complete cohort was not assessed in this example.
+
+Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
+
+Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
+synthetic-rules, records before 1 Jan 2026.
+
+Weather records: synthetic-weather.
+
+
+
+From past seasons. Not a prediction for next season. Checked with rain alone: backup water
+is not counted. No fertilizer amounts, costs or soil tests.
+Gilir is an independent project for the NASA Space Apps Challenge 2026, not affiliated with or
+endorsed by NASA.
+
+
+
+
+Gilir status report · Made 1 Jul 2026                                                Page 2 of 2
+Synthetic test data only. Values are invented and are not farm advice.
+
