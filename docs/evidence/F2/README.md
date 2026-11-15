@@ -1,12 +1,25 @@
 # F2 field picker browser evidence
 
-The later [15 November live verification](live-2026-11-15.md) ran all 17 real-provider cases successfully and inspected actual globe and satellite imagery. Account-plan attribution and hosted activation remain separate checks.
+## Live verification and the code it covered
 
-The original runs below are **fixture evidence** or **mocked evidence**. At the time of those runs, the live criterion was **BLOCKED** because that build container had no MapTiler key and its network proxy refused the provider hosts.
+The [15 November live verification](live-2026-11-15.md) ran all 17 real-provider cases successfully and inspected actual globe and satellite imagery. It verifies the component against live providers on localhost. It does not establish deployment, complete F2 attribution for a Free account, or complete I3's assembled farmer journey. Account-plan attribution and hosted activation remain separate checks.
 
-The runs drive the real field picker in Chromium under `next dev`. A stand-in answers every request that would leave the machine (`tests/frontend/location/support/providers.ts`). NASA GIBS and MapTiler tiles are one synthetic 256 px checkerboard. Place searches get canned answers for Indramayu, Labasa and Ushuaia. Every field the page shows is judged in Node by the contract's own parser, the server's own request handler, and an independent strictly-inside test. All shapes are synthetic test shapes, not farm data.
+That run tested the F2 code that PR #43 merged, from commit 34f58c1. The main commit it names, a0fba59, holds the same files under `src/features/location` and `tests/frontend/location`. This branch has changed F2 since then:
 
-## What the tags in test titles mean
+- **Positions.** A position with lat and lon labels is read, and a boundary typed back to its first corner is accepted. Text counts as a position by its two numbers, so a position among words or in a map link is never sent as a place name, and a name with an ordinal or a kilometre mark still is (2368ef8, 60dd52e).
+- **The globe.** It stays through a WebGL context that MapLibre restores. Only a context still lost after 3 seconds becomes the drawing, and focus on the map's buttons then moves to the corner list. The pictures notice judges only the pictures the current zoom draws (d014909, fac7779).
+- **Layout.** The map, the answer to Search and a typed position stay in view. A strip of page stays below the map for a thumb to scroll by, and in two columns the map gives way to its credits (1ec7860, 06f2535).
+- **Credits.** They name only what the map area shows: nothing on the drawing with no key, and the place search alone on the drawing with a key (ed074e4).
+- **Smaller changes.** The location help names "the small icon beside the web address", the pin has one shape on both surfaces, and the jsdom cases call browser APIs directly (0cb6162, 4ec018b).
+- **MapTiler's linked logo**, which the live verification named as the blocker for activation on a Free account. With a key, the map's bottom left holds MapTiler's logo, linked to https://www.maptiler.com/, on the globe and on the drawing (0b9dddb). Live cases 7 and 9 now assert it (da7c643).
+
+These changes have fixture evidence and mocked evidence only. None of them, the logo included, is live-verified until the live suite runs again with a key. This container cannot run it: it has no key, and its network proxy refuses api.maptiler.com and gibs.earthdata.nasa.gov. So the live result for this branch's code is **NOT RUN**, and each live case reports itself skipped as BLOCKED.
+
+## Fixture and mocked runs
+
+The runs below are **fixture evidence** or **mocked evidence**. They drive the real field picker in Chromium under `next dev`. A stand-in answers every request that would leave the machine (`tests/frontend/location/support/providers.ts`). NASA GIBS and MapTiler tiles are one synthetic 256 px checkerboard. MapTiler's logo is a stand-in picture that reads "logo stand-in", never MapTiler's artwork. Place searches get canned answers for Indramayu, Labasa and Ushuaia. Every field the page shows is judged in Node by the contract's own parser, the server's own request handler, and an independent strictly-inside test. All shapes are synthetic test shapes, not farm data.
+
+### What the tags in test titles mean
 
 Test titles and this page tag each case with the card requirement it checks, from R1 to R26. Each tag means:
 
@@ -39,31 +52,31 @@ Test titles and this page tag each case with the card requirement it checks, fro
 | R25 | No precise geometry, key or farm input reaches a log, a third party or git. |
 | R26 | No word claims field-level weather or validated worldwide coverage. |
 
-## Commands and results
+### Commands and results
 
 Each command ran from the repository root on 15 November 2026, with Node 24 first on `PATH`. `env -u CLAUDECODE -u AI_AGENT` stops `next dev` from rewriting AGENTS.md. The runs used a local Playwright configuration that extends `playwright.config.ts` and starts its own dev server on port 3100, so it never reuses a server from another checkout. With the repository's own configuration, `CI=1` has the same effect.
 
 | Key | Command | Observed | Kind |
 | --- | --- | --- | --- |
-| Pl, Pn | `env -u CLAUDECODE -u AI_AGENT -u NEXT_PUBLIC_MAPTILER_KEY PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/lab.spec.ts tests/frontend/location/no-webgl.spec.ts` | 63 passed in 10.0 minutes ([fixture-runs.log](fixture-runs.log)) | fixture evidence |
-| Pm | `NEXT_PUBLIC_MAPTILER_KEY=pw-dummy-key env -u CLAUDECODE -u AI_AGENT PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/provider.spec.ts` | 17 passed in 3.0 minutes ([mocked-runs.log](mocked-runs.log)) | mocked evidence |
-| PL | `env -u CLAUDECODE -u AI_AGENT -u NEXT_PUBLIC_MAPTILER_KEY PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/live.spec.ts` | 17 skipped, each with the reason "BLOCKED: needs NEXT_PUBLIC_MAPTILER_KEY and network access to api.maptiler.com and gibs.earthdata.nasa.gov" ([live-blocked.log](live-blocked.log)) | **BLOCKED** |
-| V | `npx vitest run tests/frontend/location` | 10 files passed, 274 tests passed, none left as todo. The same with `env -u NEXT_PUBLIC_MAPTILER_KEY`. | component tests |
-| C | `env -u CLAUDECODE -u AI_AGENT npm run check` | exit 0. 71 files passed and 5 skipped. 1,201 tests passed and 29 skipped, none of them in tests/frontend/location. Module boundaries passed. | repository check |
+| Pl, Pn | `env -u CLAUDECODE -u AI_AGENT -u NEXT_PUBLIC_MAPTILER_KEY PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/lab.spec.ts tests/frontend/location/no-webgl.spec.ts` | 63 passed in 8.7 minutes ([fixture-runs.log](fixture-runs.log)). The dev server relayed one warning from the browser, "Can't perform a React state update on a component that hasn't mounted yet". No run before the merge of main logged it, and it was not traced. | fixture evidence |
+| Pm | `NEXT_PUBLIC_MAPTILER_KEY=pw-dummy-key env -u CLAUDECODE -u AI_AGENT PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/provider.spec.ts` | 20 passed in 3.1 minutes ([mocked-runs.log](mocked-runs.log)) | mocked evidence |
+| PL | `env -u CLAUDECODE -u AI_AGENT -u NEXT_PUBLIC_MAPTILER_KEY PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test tests/frontend/location/live.spec.ts` | 17 skipped ([live-blocked.log](live-blocked.log)). The skip in live.spec.ts gives the reason "BLOCKED: needs NEXT_PUBLIC_MAPTILER_KEY and network access to api.maptiler.com and gibs.earthdata.nasa.gov". | **NOT RUN** for this branch |
+| V | `npx vitest run tests/frontend/location` | 10 files passed, 277 tests passed, none left as todo. The same with `env -u NEXT_PUBLIC_MAPTILER_KEY`. The shell set no key, so both runs saw none, and the cases that need one stub it. | component tests |
+| C | `env -u CLAUDECODE -u AI_AGENT npm run check` | exit 0. Typecheck passed. 81 files passed and 5 skipped. 1,455 tests passed and 33 skipped, none of them in tests/frontend/location. Module boundaries passed. | repository check |
 | B | `env -u CLAUDECODE -u AI_AGENT npm run build` | exit 0. `/` and `/dev/fixtures` prerendered, and the MapLibre worker file was emitted. | production build |
 
 The lab and no-WebGL files skip themselves when a key is set, and the provider file skips unless the key is `pw-dummy-key`. So the fixture runs and the mocked run each need their own dev server.
 
-## Screenshots
+### Screenshots
 
-Each screenshot is the viewport at the stated width, with the part under test scrolled into view. Next's development badge is hidden. The tests write them to the Playwright output folder, and they were then copied here. They come from the runs in the logs above. A new file inside the project makes `next dev` rebuild and refresh every open page, so the tests never write into this folder while they run. Playwright empties its output folder at the start of each run, so this copy step ran after each one:
+Each screenshot is the viewport at the stated width, with the part under test scrolled into view. Next's development badge is hidden. The tests write them to the Playwright output folder, and they were then copied here. This round added the 3 logo screenshots and replaced 4. provider-indramayu-box-360 and provider-credits-360 now show the logo stand-in. lab-concave-1280 and lab-dateline-1280 show a narrower lab column since the merge of main, which F2's code does not cause. The other 18 differed from this round's pictures only in the anti-aliased edges of text and lines and in the text caret, so the earlier files were kept. A new file inside the project makes `next dev` rebuild and refresh every open page, so the tests never write into this folder while they run. Playwright empties its output folder at the start of each run, so this copy step ran after each one:
 
 ```sh
 for name in globe-360 globe-1280 lab-normal-360 lab-concave-1280 lab-dateline-360 lab-dateline-1280 page-one-360 \
   page-one-1280 page-one-marked-360 page-one-refused-360 page-one-refused-1280 lab-no-pictures-360 \
   no-webgl-fixture-360 no-webgl-dateline-360 no-webgl-largest-text-360 page-one-search-answer-largest-360 \
   page-one-largest-marked-360 page-one-typing-1280 no-webgl-typing-1280 provider-indramayu-box-360 provider-credits-360 \
-  provider-close-ups-refused-360; do
+  provider-close-ups-refused-360 provider-logo-normal-360 provider-logo-largest-320 provider-no-webgl-logo-360; do
   find test-results -name "$name.png" -exec cp {} docs/evidence/F2/ \;
 done
 ```
@@ -84,32 +97,35 @@ done
 | [page-one-search-answer-largest-360.png](page-one-search-answer-largest-360.png) | 360x740 | lab [R16][R22] answer in view | fixture | Largest text, no key. "-6.326, 200" searched: "Longitude goes from -180 to 180." sits above F1's dock, and the box shows the whole typed position. |
 | [page-one-largest-marked-360.png](page-one-largest-marked-360.png) | 360x740 | lab [R22] strip | fixture | Largest text, a box marked and the map at the top. A strip of page about 52 px tall stays between the map and F1's dock, and a swipe there scrolls the page. |
 | [page-one-typing-1280.png](page-one-typing-1280.png), [no-webgl-typing-1280.png](no-webgl-typing-1280.png) | 1280x800 | lab and no-webgl [R22] two columns | fixture | Corner 3's latitude being typed. The globe with its credit and privacy lines, and with WebGL off the drawing, stay in view on the right above F1's dock. The drawing has no map picture credit. |
-| [provider-indramayu-box-360.png](provider-indramayu-box-360.png) | 360x740 | provider [R3] | mocked | A canned "Indramayu" answer chosen and "Mark my field" pressed. A 1 hectare box over the synthetic MapTiler tiles. |
-| [provider-credits-360.png](provider-credits-360.png) | 360x740 | provider [R5] | mocked | The credits line names NASA EOSDIS GIBS, © MapTiler and © OpenStreetMap contributors, without a press. |
+| [provider-indramayu-box-360.png](provider-indramayu-box-360.png) | 360x740 | provider [R3] | mocked | A canned "Indramayu" answer chosen and "Mark my field" pressed. A 1 hectare box over the synthetic MapTiler tiles, with the logo stand-in in the map's bottom left. |
+| [provider-credits-360.png](provider-credits-360.png) | 360x740 | provider [R5] | mocked | The credits line names NASA EOSDIS GIBS, © MapTiler and © OpenStreetMap contributors, without a press. The logo stand-in sits on the map just above it. |
 | [provider-close-ups-refused-360.png](provider-close-ups-refused-360.png) | 360x740 | provider [R16] refused key | mocked | NASA's pictures answer and MapTiler's are refused, as with a bad key. The world view showed NASA's pictures with no notice. On the field marked from there, "The map pictures didn’t load. …" shows. |
+| [provider-logo-normal-360.png](provider-logo-normal-360.png) | 360x740 | provider [R5][R22] logo | mocked | F1's page 1 with a box marked from a typed position. The logo stand-in sits on a light chip with a dark ring in the map's bottom left, clear of the 4 corner handles and the zoom buttons. |
+| [provider-logo-largest-320.png](provider-logo-largest-320.png) | 320x568 | provider [R5][R22] logo | mocked | The same at Largest text on a small phone. The logo chip keeps its size and stays clear of the handles. The zoom buttons' labels cover the box's top two corners, which the logo does not cause (see Limits). |
+| [provider-no-webgl-logo-360.png](provider-no-webgl-logo-360.png) | 360x740 | provider [R14][R5] drawing | mocked | WebGL off, with a key. The drawing of the fixture with "A drawing, not a photo" and the logo stand-in below it. The corner numbers, scale and north stay clear of both. |
 
-No trace, video or HAR file is kept. No file here holds a key. The only key in any of these files is the dummy `pw-dummy-key`, in one test name in mocked-runs.log.
+No trace, video or HAR file is kept. No file here holds a key. The only key in any of these files is the dummy `pw-dummy-key`, in one test name in mocked-runs.log. The live verification's own files are in [live-2026-11-15](live-2026-11-15/).
 
 ## The card's criteria
 
 | Card item | Evidence | Status |
 | --- | --- | --- |
 | Browser checks select a normal field, a concave field and a dateline fixture with an inside lookup point. | lab NORMAL, CONCAVE and DATELINE at 360 and 1280 px. no-webgl "Tab only: the U shape, then the Fiji corners". | passed, fixture evidence |
-| Globe rotation, submitted place search, zoom, polygon edit and fallback controls work in a real configured browser. | live.spec.ts, all 17 cases listed below. | **BLOCKED** |
+| Globe rotation, submitted place search, zoom, polygon edit and fallback controls work in a real configured browser. | live.spec.ts, all 17 cases listed below, in the [15 November live verification](live-2026-11-15.md). | passed live for the code at 34f58c1. **NOT RUN** for this branch's later code, BLOCKED here. |
 | No key is required to run component tests or coordinate input. | V ran with no key set. lab and no-webgl ran with the key unset, and lab "[R16][R20] with no key the slot says so" sent nothing but NASA requests. | passed, fixture evidence |
-| Public attribution is visible. | lab [R5] with no key, and provider [R5] with the stand-in key, both at 18 px or more without a press. With WebGL off the drawing shows no pictures, so no-webgl [R14][R16][R5] shows no picture credit and sends no picture request. | passed, fixture and mocked evidence |
+| Public attribution is visible. | lab [R5] with no key, and provider [R5] with the stand-in key, both at 18 px or more without a press. With WebGL off the drawing shows no pictures, so no-webgl [R14][R16][R5] shows no picture credit and sends no picture request. MapTiler's linked logo: picker.test.tsx and corner-list.test.tsx in jsdom, provider [R5][R22] on the globe and provider [R14][R5] on the drawing. Live case 7 asserts the logo and its picture from MapTiler. | text credits passed, fixture and mocked evidence, and live for the code at 34f58c1. The linked logo passed with mocked evidence only. Live **NOT RUN**. |
 
 These cases support the live criterion but never pass it, as the card says.
 
 - **Fixture.** lab [R3] turns the globe by dragging, and zooms by mouse and by keyboard, over the synthetic tiles. Another lab [R3] case clicks in space beside the sphere: no place is chosen and a marked box stays put, while a click on the sphere still does both. lab [R22] checks that each next step is in view on F1's page 1, and that at Large and Largest text the map stays at least 480 px wide with no corner handle under a zoom button. lab [R7] and [R7][R12] drag corners, add a corner and make a concave field. lab [R7] puts back a corner dragged across a side. lab [R15][R22] edits a corner with Tab alone. no-webgl shows the drawing, its explanation and the corner list.
 - **Fixture, from the review's fixes.** lab [R14] keeps the globe when MapLibre restarts its busy workers on a return to the foreground, and when a lost WebGL context comes back. A context that stays lost becomes the drawing after a short wait, and focus on "Zoom in" moves to the corner list's heading. lab and no-webgl [R22] keep the map in view in two columns while corner 3 is typed, and lab [R22][R5] keeps the map with its credit and privacy lines between F1's bars at 1280x800 and 1280x600. lab [R22] leaves a strip at least 48 px tall between the map and F1's dock at Normal, Large and Largest text on a 360x740 phone, a 320x568 phone and a 740x360 phone on its side, and a touch swipe there scrolls the page. On its side at Largest text that leaves a map 73 px tall. lab [R16][R22] brings the answer to Search into view above F1's dock. lab [R20][R22] shows a whole typed position in the search box at Large and Largest text.
-- **Mocked.** provider [R6] shows that typing sends nothing and Enter sends exactly one search. provider [R16] covers each search failure: refused (403), busy (429), no answer, past the time limit and no place found. Each shows its own words, and a typed position still marks a field afterwards. provider [R16] also refuses MapTiler alone, as with a bad key: the world view shows NASA's pictures with no notice, and the pictures notice shows on the marked field. With NASA refused and MapTiler answering, the notice shows at the world view and goes once the field's close-ups show. provider [R14][R16] shows the notice when the pictures fail after a lost WebGL context comes back. provider [R16][R22] brings the places found and a failed search into view above F1's dock. provider [R22][R5] keeps the map with the NASA and MapTiler credits and the privacy line between F1's bars in two columns at 1280x720 Normal and Large and at 1280x800 Large. provider [R25] shows that no request carries a coordinate of the field.
+- **Mocked.** provider [R6] shows that typing sends nothing and Enter sends exactly one search. provider [R16] covers each search failure: refused (403), busy (429), no answer, past the time limit and no place found. Each shows its own words, and a typed position still marks a field afterwards. provider [R16] also refuses MapTiler alone, as with a bad key: the world view shows NASA's pictures with no notice, and the pictures notice shows on the marked field. With NASA refused and MapTiler answering, the notice shows at the world view and goes once the field's close-ups show. provider [R14][R16] shows the notice when the pictures fail after a lost WebGL context comes back. provider [R16][R22] brings the places found and a failed search into view above F1's dock. provider [R22][R5] keeps the map with the NASA and MapTiler credits and the privacy line between F1's bars in two columns at 1280x720 Normal and Large and at 1280x800 Large. provider [R25] shows that no request carries a coordinate of the field, and that the logo's request is `/resources/logo.svg` with no parameter. provider [R5][R22] shows MapTiler's linked logo in the map's bottom left on F1's page 1, at 360x740 Normal and 320x568 Largest text: at least 48 px, its picture loaded, clear of the zoom buttons and of every corner handle of a marked box, and with no layout problem. provider [R14][R5] shows the logo on the drawing below its tag, with the corner numbers, scale and north clear of both.
 
-The field also reaches F1. lab [R23] marks a U field on F1's page 1 at `/`. "Next: crops" opens page 2, and Back shows the same field from F1's draft. After a reload that hands the field back to F1 as its initial input, the same corners and lookup show again. A reload through saved answers is **NOT RUN**: local storage belongs to F4 and is not built yet, and `localPlans.load` throws on this branch.
+The field also reaches F1. lab [R23] marks a U field on F1's page 1 at `/`. "Next: crops" opens page 2, and Back shows the same field from F1's draft. After a reload that hands the field back to F1 as its initial input, the same corners and lookup show again. A reload through saved answers is **NOT RUN**. F4's local storage reached this branch with the merge of main, but no F2 case reloads through it.
 
-## Original live cases, blocked at that run
+## Live cases
 
-Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. Each needs a MapTiler key restricted to the test origin and a network that reaches both providers, and runs with `F2_LIVE=1`. Their bodies had not run against the real providers during the original evidence run. See the later live verification above for the successful run.
+Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. Each needs a MapTiler key restricted to the test origin and a network that reaches both providers, and runs with `F2_LIVE=1`. All 17 passed in the [15 November live verification](live-2026-11-15.md) for the code at 34f58c1 ([its log](live-2026-11-15/live-run.log)). At that code, case 7 only noted whether the TileJSON names a logo, and case 9 did not look for one. On this branch, case 7 asserts the linked logo, its picture loaded from MapTiler, and, when the TileJSON names a logo, that it is the one shown. Case 9 asserts the logo on the drawing. Here every case skips as BLOCKED ([live-blocked.log](live-blocked.log)), so for this branch they are **NOT RUN**.
 
 1. [R19][R3] the globe shows NASA's Blue Marble far out and turns when dragged
 2. [R19][R6] a submitted search for 'Indramayu' returns real places; choosing one moves the camera there
@@ -117,16 +133,19 @@ Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. 
 4. [R19][R3] 'Mark my field', then zoom to where single fields show in MapTiler's satellite pictures
 5. [R19][R7] drag a corner, add a corner, remove a corner: the size words and data-lookup follow
 6. [R19][R15] with the globe showing, the corner list still marks a typed field
-7. [R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's logo rule is checked against its terms
+7. [R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's linked logo shows on the map with the picture that TileJSON names
 8. [R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses
-9. [R19][R14] with WebGL off, a real submitted search still names the place, and 'Mark my field' plus the corner list mark a field on the drawing
+9. [R19][R14] with WebGL off, a real submitted search still names the place, MapTiler's linked logo shows, and 'Mark my field' plus the corner list mark a field on the drawing
 
 ## Limits
 
-- Chromium only, under `next dev`. No run used `next start`, another browser or a real phone.
+- The runs here use Chromium only, under `next dev`. None used `next start`, another browser or a real phone. The live verification used installed Google Chrome, also under `next dev`.
 - Drags use a mouse pointer. One case swipes with touch events sent through Chromium's DevTools protocol. Touch on a real phone was not tried.
 - The worker restart is forced by keeping MapLibre's worker busy and dispatching `visibilitychange`, and the context loss by `WEBGL_lose_context`. A real phone leaving and coming back to the page was not tried.
 - "Use my location" has jsdom tests only. No browser here gave a position.
-- The tile and search stand-ins follow the shapes provider.ts reads. They say nothing about what MapTiler or NASA really send. Until live cases 7 and 8 run, the satellite TileJSON path, its tile size and its attribution text in provider.ts are unverified.
+- The tile, search and logo stand-ins follow the shapes provider.ts reads. They say nothing about what MapTiler or NASA really send. The live verification checked the satellite TileJSON path, its tile size and its attribution text (cases 7 and 8) for the code at 34f58c1, and those parts of provider.ts have not changed since.
+- The logo screenshots show the stand-in. How MapTiler's own logo looks on the light chip, in dark mode and in bright sun is unverified. This container could not fetch the logo or read docs.maptiler.com. The requirement and placement come from the live verification's note, a web search's summary of [MapTiler's attribution guide](https://docs.maptiler.com/guides/map-design/attribution/add-attribution/), and the source of MapTiler's SDK (`@maptiler/sdk` 4.2.1, `MaptilerLogoControl`), which uses the same picture and link.
+- The logo shows with any key. MapTiler's SDK shows it when the map's TileJSON names a logo, or when told to. Whether MapTiler's TileJSON names one for this Free account is unverified here. Live case 7 always asserts the logo, and compares its picture with the TileJSON's only when the TileJSON names one. Dropping the logo after a plan change would need a change here.
+- Found, not fixed: at Largest text on a 320x568 phone the zoom buttons' labels cover the top two corner handles of a box marked from a typed position ([provider-logo-largest-320.png](provider-logo-largest-320.png)). The corner list still edits those corners. The logo does not cause it: it sits at the bottom left, clear of every handle.
 - The corner inputs ask for the full keyboard, because the iPhone decimal pad has no minus sign. No real iPhone was available to see it.
 - On a phone on its side (740x360) F1's bars leave a band of 195, 166 and 137 px at Normal, Large and Largest text. To keep a strip of page to scroll by, the map is 131, 102 and 73 px tall there, too small to drag corners at Largest. The corner list still works, and so does holding the phone upright.
