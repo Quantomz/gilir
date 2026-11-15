@@ -463,12 +463,15 @@
   /* ---------- the bars above the top bar, and the toast ---------- */
   .offline-bar { display: flex; justify-content: center; align-items: center; gap: .6rem; padding: .6rem 1rem; background: var(--warn); color: var(--bg); font-weight: 700; text-align: center; }
   .offline-bar svg { width: 1.3rem; height: 1.3rem; }
-  .notice-bar { background: var(--water-soft); color: var(--ink); border-bottom: 1px solid var(--line); padding-block: .8rem; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
+  .notice-bar { background: var(--water-soft); color: var(--ink); border-bottom: 1px solid var(--line); padding-block: .5rem; padding-left: var(--gutter-l); padding-right: var(--gutter-r); }
   [data-contrast="high"] .notice-bar { border-bottom: 2px solid var(--ink); }
-  .notice-in { max-width: 76rem; margin: 0 auto; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: .4rem .8rem; align-items: center; }
+  .notice-in { max-width: 76rem; margin: 0 auto; display: flex; align-items: center; gap: .8rem; }
   .notice-in > .i svg { width: 1.5rem; height: 1.5rem; color: var(--water); }
-  .notice-in p { font-weight: 500; }
-  @media (max-width: 559px) { .notice-in { grid-template-columns: auto minmax(0, 1fr); } .notice-in .btn { grid-column: 2; justify-self: start; } }
+  .notice-words { flex: 1 1 auto; min-width: 0; display: grid; gap: .3rem; }
+  .notice-words p { font-weight: 500; line-height: 1.4; }
+  .notice-words .btn { margin-left: .6rem; padding-block: 0; vertical-align: middle; }
+  /* On a phone the icon would take a column from every row of words. */
+  @media (max-width: 559px) { .notice-in > .i { display: none; } }
   .toast {
     --focus: var(--focus-night);
     position: fixed; z-index: 65; left: 50%; top: calc(var(--toast-top, env(safe-area-inset-top, 0px) + var(--bar-top, 3.8rem)) + .6rem); transform: translateX(-50%);
