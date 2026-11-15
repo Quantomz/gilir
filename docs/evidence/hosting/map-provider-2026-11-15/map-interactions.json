@@ -1,0 +1,196 @@
+[
+  {
+    "width": 360,
+    "counts": {
+      "nasaImages200": 10,
+      "maptilerImages200": 103,
+      "maptilerMetadata200": 1,
+      "search200": 1,
+      "providerErrors": 0,
+      "pageErrors": 0
+    },
+    "linkedLogoLoaded": true,
+    "zoom": {
+      "fittedSpanPx": 96,
+      "zoomedSpanPx": 194,
+      "restoredSpanPx": 96,
+      "zoomInEnlargesField": true,
+      "zoomOutRestoresField": true
+    },
+    "drag": {
+      "phaseBefore": "box",
+      "phaseAfter": "corners",
+      "hit": {
+        "handle": true,
+        "tag": "DIV",
+        "className": "fp-handle maplibregl-marker maplibregl-marker-anchor-center maplibregl-marker-draggable"
+      },
+      "immediateHitHandle": true,
+      "screenshotScrollDelta": {
+        "x": 0,
+        "y": -75
+      },
+      "pointer": {
+        "pointerdown": 1,
+        "pointermove": 17,
+        "pointerup": 1,
+        "downOnHandle": true
+      },
+      "changedCoordinateRows": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "handleTravelPx": [
+        33.941125496954285,
+        0,
+        0,
+        0
+      ],
+      "screenCornersBefore": [
+        {
+          "x": 116,
+          "y": 269
+        },
+        {
+          "x": 212,
+          "y": 269
+        },
+        {
+          "x": 212,
+          "y": 171
+        },
+        {
+          "x": 116,
+          "y": 171
+        }
+      ],
+      "screenCornersAfter": [
+        {
+          "x": 92,
+          "y": 293
+        },
+        {
+          "x": 212,
+          "y": 269
+        },
+        {
+          "x": 212,
+          "y": 171
+        },
+        {
+          "x": 116,
+          "y": 171
+        }
+      ],
+      "unchangedInteriorLookup": true,
+      "statusBefore": "Your field is marked: about 1 hectare, 4 corners.",
+      "statusAfter": "Your field is marked: about 1.3 hectares, 4 corners.",
+      "cameraStaysStill": true
+    },
+    "screenshots": [
+      "field-fitted-360.png",
+      "field-zoomed-in-360.png",
+      "field-before-drag-360.png",
+      "field-after-drag-360.png"
+    ]
+  },
+  {
+    "width": 1280,
+    "counts": {
+      "nasaImages200": 9,
+      "maptilerImages200": 156,
+      "maptilerMetadata200": 1,
+      "search200": 1,
+      "providerErrors": 0,
+      "pageErrors": 0
+    },
+    "linkedLogoLoaded": true,
+    "zoom": {
+      "fittedSpanPx": 122,
+      "zoomedSpanPx": 246,
+      "restoredSpanPx": 122,
+      "zoomInEnlargesField": true,
+      "zoomOutRestoresField": true
+    },
+    "drag": {
+      "phaseBefore": "box",
+      "phaseAfter": "corners",
+      "hit": {
+        "handle": true,
+        "tag": "DIV",
+        "className": "fp-handle maplibregl-marker maplibregl-marker-anchor-center maplibregl-marker-draggable"
+      },
+      "immediateHitHandle": true,
+      "screenshotScrollDelta": {
+        "x": 0,
+        "y": -3
+      },
+      "pointer": {
+        "pointerdown": 1,
+        "pointermove": 17,
+        "pointerup": 1,
+        "downOnHandle": true
+      },
+      "changedCoordinateRows": [
+        true,
+        false,
+        false,
+        false
+      ],
+      "handleTravelPx": [
+        33.941125496954285,
+        0,
+        0,
+        0
+      ],
+      "screenCornersBefore": [
+        {
+          "x": 268,
+          "y": 269
+        },
+        {
+          "x": 390,
+          "y": 269
+        },
+        {
+          "x": 390,
+          "y": 146
+        },
+        {
+          "x": 268,
+          "y": 146
+        }
+      ],
+      "screenCornersAfter": [
+        {
+          "x": 244,
+          "y": 293
+        },
+        {
+          "x": 390,
+          "y": 269
+        },
+        {
+          "x": 390,
+          "y": 146
+        },
+        {
+          "x": 268,
+          "y": 146
+        }
+      ],
+      "unchangedInteriorLookup": true,
+      "statusBefore": "Your field is marked: about 1 hectare, 4 corners.",
+      "statusAfter": "Your field is marked: about 1.2 hectares, 4 corners.",
+      "cameraStaysStill": true
+    },
+    "screenshots": [
+      "field-fitted-1280.png",
+      "field-zoomed-in-1280.png",
+      "field-before-drag-1280.png",
+      "field-after-drag-1280.png"
+    ]
+  }
+]
