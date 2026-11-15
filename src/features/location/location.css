@@ -23,6 +23,7 @@
 
   /* the search, on F1's .search-row and .input-wrap */
   .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
+  .fp-search .input-wrap:focus-within { box-shadow: 0 0 0 4px var(--focus), var(--shadow); }
   .fp-search input[type="search"] { appearance: none; }
   .fp-search input[type="search"]::-webkit-search-cancel-button { appearance: none; }
   .fp .fp-search-go { flex: 1 0 auto; padding-inline: 1.2rem; }
