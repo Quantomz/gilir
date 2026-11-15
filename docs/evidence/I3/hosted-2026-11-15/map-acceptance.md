@@ -36,9 +36,9 @@ Each journey made three authorized GET plan reads. All used a capability header 
 
 The supplemental globe-only probe passed at both sizes with nine successful NASA images each, no NASA HTTP error, no page error, and no extra planning submission. Every final PNG was opened and visually inspected. Globe, place search, satellite field before and after the drag, rotation, real result, details and synthetic location screenshots show the expected rendered screens.
 
-The sanitized machine report is `map-results.json`. All 18 screenshots are small viewport or map crops. No provider URL with a key, capability token, job ID, precise geometry, raw API snapshot, trace or HAR was persisted. No route was stubbed. This verifier made no source or remote configuration changes.
+The sanitized machine report is `map-results.json`. It omits provider key URLs, capability tokens, job IDs, precise geometry, and raw API snapshots. Screenshots show the synthetic public test field. No trace or HAR was recorded, and no route was stubbed. This verifier made no source or remote configuration changes.
 
-The rerunnable scripts are one directory above this report. `map-results.json` records their SHA-256 hashes. Both scripts write to a deployment-specific directory based on `FINAL_DEPLOYMENT_SHA`. Prior deployment evidence remains separately archived under `e5ca3eafa43c/`.
+The rerunnable scripts, all 18 original screenshots, and the earlier `e5ca3eafa43c` run remain in the local release audit directory. Selected screenshots are published under `screenshots/` beside this report. `map-results.json` records the scripts' SHA-256 hashes and original artifact names. Both scripts write to a deployment-specific directory based on `FINAL_DEPLOYMENT_SHA`.
 
 The release coordinator owns the separate standard I3 recovery, keyboard, no-WebGL, PDF and demo suite. This report makes no independent pass claim for that suite. Native Codex verification is GPT-only and makes no cross-family claim.
 
