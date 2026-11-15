@@ -23,15 +23,25 @@ const emptyV1 = {
   rules: [],
 };
 
-const profiles = buildProfiles();
-const reviewedRelease = {
-  kind: "released",
-  identity: { catalogueVersion: "fao56-reviewed-2026-11-15", ruleVersion: "no-rules-2026-11-14" },
-  catalogue: { version: "fao56-reviewed-2026-11-15", entries: buildCatalogueEntries(profiles) },
-  sources: fao56Sources,
-  profiles,
-  rules: [],
-};
+function fao56Release(catalogueVersion: string, profiles: ReturnType<typeof buildProfiles>) {
+  return {
+    kind: "released",
+    identity: { catalogueVersion, ruleVersion: "no-rules-2026-11-14" },
+    catalogue: { version: catalogueVersion, entries: buildCatalogueEntries(profiles) },
+    sources: fao56Sources,
+    profiles,
+    rules: [],
+  };
+}
+
+const reviewedRelease = fao56Release(
+  "fao56-reviewed-2026-11-15",
+  buildProfiles({ windowBasis: "recommendation", version: "reviewed-2026-11-15.1" }),
+);
+const hardWindowsRelease = fao56Release(
+  "fao56-hard-windows-2026-11-15",
+  buildProfiles({ windowBasis: "hard_constraint", version: "reviewed-2026-11-15.2" }),
+);
 
 const retiredVersions = new Set([
   "fao56-2026-11-14",
@@ -41,14 +51,14 @@ const retiredVersions = new Set([
 ]);
 
 const releases: ReadonlyMap<string, ReleasedRegistry> = new Map(
-  [emptyV1, reviewedRelease].map(raw => {
+  [emptyV1, reviewedRelease, hardWindowsRelease].map(raw => {
     const release = deepFreeze(assertValidRelease(raw));
     return [release.identity.catalogueVersion, release] as const;
   }),
 );
 
 export const releasedVersions: readonly string[] = Object.freeze([...releases.keys()]);
-export const latestReleaseVersion = reviewedRelease.identity.catalogueVersion;
+export const latestReleaseVersion = hardWindowsRelease.identity.catalogueVersion;
 
 export function readRegistryRelease(version: string = latestReleaseVersion): ReleasedRegistry {
   if (retiredVersions.has(version)) {

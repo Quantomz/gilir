@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { syntheticRegistrySchema } from "@/contracts/registry";
+import { parseIsoDate } from "@/contracts/common";
+import { findCalendar } from "@/engine";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import { readRegistryRelease, resolveRegistry } from "@/registry";
 import { lookupAt, places } from "./support";
@@ -40,7 +42,7 @@ describe("E1 registry resolution with the FAO-56 release", () => {
   });
 
   it("reports crops outside the released catalogue", () => {
-    expect(resolveAt(["teff-grain"], places.ibadanNigeria).gaps[0].reason).toBe("teff-grain is not in catalogue fao56-reviewed-2026-11-15.");
+    expect(resolveAt(["teff-grain"], places.ibadanNigeria).gaps[0].reason).toBe("teff-grain is not in catalogue fao56-hard-windows-2026-11-15.");
   });
 
   it("resolves the added crops by region", () => {
@@ -79,10 +81,26 @@ describe("I2 hand-off cases (docs/evidence/E1/i2-handoff.md)", () => {
     expect(resolution.gaps).toEqual([]);
     expect(resolution.profiles).toHaveLength(1);
     expect(resolution.profiles[0]).toMatchObject({
-      status: "released", id: "common-bean-dry-fao56-idaho-jun", version: "reviewed-2026-11-15.1",
+      status: "released", id: "common-bean-dry-fao56-idaho-jun", version: "reviewed-2026-11-15.2",
       timing: { generatedStageDays: { initial: 25, development: 25, middle: 30, late: 20 }, turnaround: { days: 7 } },
       kc: { initial: 0.4, middle: 1.15, end: 0.35 },
     });
+  });
+
+  it.each([
+    ["2027-06-01", "2028-06-01", "witness"],
+    ["2027-07-01", "2028-06-01", "proved_impossible"],
+  ] as const)("Boise dry bean planted from %s before %s is %s under the June hard window", (start, endExclusive, kind) => {
+    const lookup = lookupAt(["common-bean-dry"], places.boiseIdaho);
+    const result = findCalendar({
+      horizon: { start: parseIsoDate(start), endExclusive: parseIsoDate(endExclusive) },
+      cropPurposeIds: lookup.cropPurposeIds, profiles: resolveRegistry(lookup, release).profiles,
+      hardConstraints: [], initialPredecessor: null, eligibleBaseline: null, expansionLimit: 100_000,
+    });
+    expect(result.kind).toBe(kind);
+    if (result.kind === "witness") {
+      expect(result.calendar.occurrences.map(occurrence => occurrence.planted.slice(5, 7))).toEqual(["06"]);
+    }
   });
 
   it.each([

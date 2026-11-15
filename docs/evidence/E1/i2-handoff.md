@@ -1,6 +1,6 @@
 # E1 to I2 handoff cases
 
-These public illustrative inputs replace the superseded Ibadan maize and Madrid winter-wheat cases. Registry resolution is component evidence. The current default is `fao56-reviewed-2026-11-15`; every retained profile has version `reviewed-2026-11-15.1`.
+These public illustrative inputs replace the superseded Ibadan maize and Madrid winter-wheat cases. Registry resolution is component evidence. The current default is `fao56-hard-windows-2026-11-15`. Every retained profile has version `reviewed-2026-11-15.2`. The earlier `fao56-reviewed-2026-11-15` release with version `reviewed-2026-11-15.1` remains readable for frozen retries. See [hard-planting-windows.md](hard-planting-windows.md).
 
 ## Supported case: Boise dry bean
 
@@ -16,7 +16,7 @@ These public illustrative inputs replace the superseded Ibadan maize and Madrid 
 | Printed duration | 100 days, available from FAO-56 Table 11 |
 | Kc | 0.4 / 1.15 / 0.35, FAO-56 Table 12 dry-bean row and stated non-tall-stalk assumption |
 | Turnaround | 7 days, a Gilir scheduling assumption |
-| Planting window | June recommendation, not a hard constraint |
+| Planting window | June, a hard constraint. A 2027-06-01 start plants in June 2027 |
 | Temperature | Unassessed; there is no operational heat or cold rule |
 | Component observation | One applicable profile and no registry gaps |
 
