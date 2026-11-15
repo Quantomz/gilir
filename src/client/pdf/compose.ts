@@ -60,7 +60,7 @@ function planDocument(ctx: Context, result: ResultOf<PlanState>): PlanDocument {
     compared(ctx),
     prepare(details, ctx),
     couldNotCheck(result, ctx),
-    method(details, ctx),
+    method(ctx),
     assumptions(details, ctx),
     sources(details, ctx, details.metrics),
   ].filter(present);
@@ -79,7 +79,7 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
     details.baseline.kind === "not_recorded" ? null : compared(ctx),
     couldNotCheck(result, ctx),
     farm(details, ctx),
-    repeatsMessage ? null : method(details, ctx),
+    repeatsMessage ? null : method(ctx),
     assumptions(details, ctx),
     sources(details, ctx, [...details.metrics, ...monthlyInsights(details).map(insight => insight.metric)]),
   ].filter(present);
@@ -98,12 +98,10 @@ const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>
         paragraph(t(words.noPlan.fitNext(one))),
       ]
       : [
-        paragraph(t(words.noPlan.fitStops)),
-        list("bullet", proof.constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] }))),
-        ...(proof.expandedStates > 0 ? [paragraph(t(words.noPlan.fitTried(words.count(proof.expandedStates, "way"))), "small")] : []),
         // The engine tries this proof only after the crops' days fit in the year, so the hard planting windows, or the
-        // follow rules when the run had any, are what stop them.
+        // follow rules when the run had any, are what stop them. Its own constraint sentences close the report.
         paragraph(t(words.noPlan.fitPlanting(one, result.details.provenance.rules.length > 0, ctx.say.day(input.planningStart)))),
+        ...(proof.expandedStates > 0 ? [paragraph(t(words.noPlan.fitTried(words.count(proof.expandedStates, "way"), one)), "small")] : []),
       ];
   },
   search_incomplete: (_, { details: { search } }) => [
@@ -220,10 +218,16 @@ function historyWords(history: FarmInput["history"]): string {
 function warnings(all: readonly ResultWarning[], flagsAllowed: boolean, ctx: Context): readonly Section<Block>[] {
   const flagCodes = new Set<string>(words.flagCodes);
   const isFlag = (warning: ResultWarning) => flagsAllowed && flagCodes.has(warning.code);
-  const item = (warning: ResultWarning): Item => ({
-    head: t(words.warningHeads[warning.code](cropList(ctx, warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1, ctx.snapshot.input.water)),
-    lines: [engineText(warning.message, ctx.say)],
-  });
+  const item = (warning: ResultWarning): Item => {
+    const who = cropList(ctx, warning.cropPurposeIds);
+    const many = unique(warning.cropPurposeIds).length > 1;
+    const water = ctx.snapshot.input.water;
+    const ownLine = words.warningLines[warning.code];
+    return {
+      head: t(words.warningHeads[warning.code](who, many, water)),
+      lines: [ownLine === undefined ? engineText(warning.message, ctx.say) : t(ownLine(who, many, water))],
+    };
+  };
   const flags = all.filter(isFlag);
   const notes = all.filter(warning => !isFlag(warning));
   const sections: Section<Block>[] = [];
@@ -611,8 +615,16 @@ function farm(details: ResultDetails, ctx: Context): Section<Block> | null {
   };
 }
 
-function method(details: ResultDetails, ctx: Context): Section<Block> {
-  return { heading: t(words.methodHeading), blocks: [paragraph(engineText(details.explanation, ctx.say))] };
+function method(ctx: Context): Section<Block> {
+  const { result } = ctx.snapshot;
+  const constraints = result.state === "no_calendar_fit" && result.proof.kind === "structural_exhaustion" ? result.proof.constraints : [];
+  return {
+    heading: t(words.methodHeading),
+    blocks: [
+      paragraph(engineText(result.details.explanation, ctx.say)),
+      ...(constraints.length ? [list("bullet", constraints.map(constraint => ({ head: null, lines: [engineText(constraint, ctx.say)] })))] : []),
+    ],
+  };
 }
 
 function assumptions(details: ResultDetails, ctx: Context): Section<Block> | null {
