@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import x1 from "../../../docs/evidence/X1/fao-source-comparison.json";
+import x1SourceObservations from "../../../docs/evidence/X1/fao-source-comparison.json";
 import { latestReleaseVersion, readCatalogue, readRegistryRelease, releasedVersions, validateRelease } from "@/registry";
 import { withheldProfileIds } from "./support";
 
@@ -17,9 +17,8 @@ const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(ca
 const release = readRegistryRelease();
 const reviewed = readRegistryRelease("fao56-reviewed-2026-11-15");
 
-// These are X1's source observations at 090626a, not a passing audit of this release.
-const table11 = new Map(x1.table11Rows.map(row => [row.id, row]));
-const originalProfiles = new Map(x1.profiles.map(profile => [profile.profileId, profile]));
+const x1Table11Rows = new Map(x1SourceObservations.table11Rows.map(row => [row.id, row]));
+const x1Profiles = new Map(x1SourceObservations.profiles.map(profile => [profile.profileId, profile]));
 
 describe("E1 reviewed release", () => {
   it("validates every supported immutable release identity", () => {
@@ -75,10 +74,10 @@ describe("E1 reviewed release", () => {
   });
 
   it("publishes exactly the 75 retained rows from 86 mappings to 71 source rows", () => {
-    expect(x1.table11Rows).toHaveLength(71);
-    expect(x1.profiles).toHaveLength(86);
+    expect(x1SourceObservations.table11Rows).toHaveLength(71);
+    expect(x1SourceObservations.profiles).toHaveLength(86);
     expect(withheldProfileIds).toHaveLength(11);
-    const retained = x1.profiles.map(profile => profile.profileId).filter(id => !withheldProfileIds.includes(id));
+    const retained = x1SourceObservations.profiles.map(profile => profile.profileId).filter(id => !withheldProfileIds.includes(id));
     expect(release.profiles.map(profile => profile.id)).toEqual(retained);
     expect(release.profiles).toHaveLength(75);
     for (const id of withheldProfileIds) expect(release.profiles.some(profile => profile.id === id)).toBe(false);
@@ -105,7 +104,7 @@ describe("E1 reviewed release", () => {
       "eggplant-fao56-mediterranean-may-jun",
     ]);
     for (const profile of release.profiles) {
-      const original = originalProfiles.get(profile.id);
+      const original = x1Profiles.get(profile.id);
       expect(original, profile.id).toBeDefined();
       if (original === undefined) throw new Error(`No X1 mapping for ${profile.id}`);
       const selected = original.selectedImplementation;
@@ -115,7 +114,7 @@ describe("E1 reviewed release", () => {
         .toEqual([selected.kc.initial, selected.kc.middle, selected.kc.end]);
       expect(profile.timing.plantingWindows, profile.id)
         .toEqual(selected.plantingWindows.map(window => ({ ...window, basis: "hard_constraint" })));
-      const sourceRow = table11.get(original.table11RowId);
+      const sourceRow = x1Table11Rows.get(original.table11RowId);
       expect(sourceRow, profile.id).toBeDefined();
       if (sourceRow === undefined) throw new Error(`No Table 11 source row for ${profile.id}`);
       const published = profile.timing.publishedDurationDays;
@@ -145,7 +144,6 @@ describe("E1 reviewed release", () => {
       expect(profile.preparation).toEqual([]);
       expect(profile.applicability.managementAssumptions.join(" ")).toContain("not a published boundary");
       expect(profile.kc.assumptions.join(" ")).toContain("no climatic adjustment");
-      expect(profile.timing.plantingWindows.every(window => window.basis === "hard_constraint")).toBe(true);
     }
     expect(release.rules).toEqual([]);
   });
