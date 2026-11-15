@@ -4,142 +4,142 @@
   "snapshotJsonBytes": 306322,
   "machine": {
     "cpus": 4,
-    "loadAverageBefore": "6.17 7.02 7.65",
-    "loadAverageAfter": "7.89 7.33 7.73",
-    "note": "Shared machine: other jobs were running Next.js servers and Chromium at the same time.",
+    "loadAverageBefore": "2.68 5.30 8.67",
+    "loadAverageAfter": "3.84 5.36 8.60",
+    "note": "Shared machine: other jobs' sessions were active on it.",
     "chromium": "Google Chrome for Testing 153.0.8010.12, headless"
   },
   "summary": {
     "runs": 5,
     "allPassed": true,
     "coldFirstLoadMs": {
-      "median": 149,
-      "min": 134.1,
-      "max": 316.2
+      "median": 100.9,
+      "min": 84.5,
+      "max": 169.1
     },
     "warmBigLoadMs": {
       "samples": 35,
-      "median": 64.6,
-      "min": 22.7,
-      "max": 367.8
+      "median": 51.5,
+      "min": 34.3,
+      "max": 107.6
     },
     "warmSmallLoadMs": {
       "samples": 35,
-      "median": 13.4,
-      "min": 8.1,
-      "max": 39.7
+      "median": 12.2,
+      "min": 7.4,
+      "max": 24.9
     },
     "limitMs": 5000
   },
   "runsDetail": [
     {
       "status": "passed",
-      "coldFirstLoadMs": 149,
+      "coldFirstLoadMs": 169.1,
       "warmBigMs": [
-        69.8,
-        41.8,
-        53.3,
-        74.7,
-        58.5,
-        145,
-        49.7
+        84.9,
+        51.5,
+        45.1,
+        44.4,
+        62.3,
+        37.2,
+        35.7
       ],
       "warmSmallMs": [
-        14.4,
-        39.7,
-        12.9,
-        10.8,
-        14.1,
-        15.1,
-        10.5
-      ]
-    },
-    {
-      "status": "passed",
-      "coldFirstLoadMs": 134.1,
-      "warmBigMs": [
-        70.2,
-        112,
-        69.3,
-        59.7,
-        46.7,
-        44.1,
-        56
-      ],
-      "warmSmallMs": [
-        18.2,
-        26,
-        12.2,
+        17.8,
+        8.3,
+        10.7,
         14.2,
-        8.7,
-        13.4,
-        16
-      ]
-    },
-    {
-      "status": "passed",
-      "coldFirstLoadMs": 316.2,
-      "warmBigMs": [
-        64.6,
-        43.8,
-        59.9,
-        115.8,
-        32.2,
-        112.2,
-        49.8
-      ],
-      "warmSmallMs": [
-        17.7,
-        12.1,
-        11.3,
         9.8,
-        32.1,
-        18.8,
-        18.3
+        12.4,
+        18
       ]
     },
     {
       "status": "passed",
-      "coldFirstLoadMs": 284.7,
+      "coldFirstLoadMs": 137.3,
       "warmBigMs": [
-        121.6,
-        105.9,
-        82.6,
-        30.5,
-        61.2,
-        32.2,
-        238.9
+        89.4,
+        36.4,
+        48.7,
+        56.7,
+        68.5,
+        47.3,
+        36.8
       ],
       "warmSmallMs": [
-        30.7,
-        10.9,
-        10.6,
-        8.1,
         14,
-        23,
-        10.8
+        20.8,
+        10.1,
+        8.1,
+        10.6,
+        14.9,
+        20.8
       ]
     },
     {
       "status": "passed",
-      "coldFirstLoadMs": 137.5,
+      "coldFirstLoadMs": 100.9,
       "warmBigMs": [
-        75.6,
-        22.7,
-        157,
-        367.8,
-        65.2,
-        47,
-        205.6
+        58.8,
+        37.5,
+        61.5,
+        52.5,
+        91.8,
+        107.6,
+        72
       ],
       "warmSmallMs": [
-        16.2,
-        33.3,
-        8.6,
-        12.3,
-        11.1,
-        11.1,
-        11.4
+        12.6,
+        24.9,
+        12.2,
+        7.9,
+        14,
+        16.6,
+        18.4
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 84.5,
+      "warmBigMs": [
+        41.7,
+        47.4,
+        72.1,
+        56.5,
+        45.7,
+        56.1,
+        34.3
+      ],
+      "warmSmallMs": [
+        18.5,
+        10.3,
+        7.4,
+        7.9,
+        13.3,
+        9.7,
+        9.7
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 87.1,
+      "warmBigMs": [
+        50.2,
+        44.9,
+        50.8,
+        53.9,
+        75.2,
+        56.1,
+        39.4
+      ],
+      "warmSmallMs": [
+        10.5,
+        19.4,
+        8.8,
+        10.2,
+        15.4,
+        8.9,
+        10.3
       ]
     }
   ],

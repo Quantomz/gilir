@@ -15,7 +15,7 @@ Pages:           4
 Encrypted:       no
 Page size:       595.28 x 841.89 pts (A4)
 Page rot:        0
-File size:       5780 bytes
+File size:       5802 bytes
 Optimized:       no
 PDF version:     1.7
 --- pdffonts fixture-plan.pdf
@@ -133,14 +133,16 @@ Checked against 1 past season, Jul 2000.
 
 Past seasons chosen with method synthetic-v1.
 
-Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
+Calculation methods: synthetic-v1.
 
 
 
 
 Gilir crop plan · Made 1 Jul 2026                                        Page 3 of 4
 Synthetic test data only. Values are invented and are not farm advice.
-Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
+Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
+
+Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
 synthetic-rules, records before 1 Jan 2026.
 
 Weather records: synthetic-weather.
@@ -174,7 +176,7 @@ Pages:           4
 Encrypted:       no
 Page size:       595.28 x 841.89 pts (A4)
 Page rot:        0
-File size:       6535 bytes
+File size:       6552 bytes
 Optimized:       no
 PDF version:     1.7
 --- pdffonts fixture-plan_with_warnings.pdf
@@ -320,6 +322,8 @@ Checked against 1 past season, Jul 2000.
 
 Past seasons chosen with method synthetic-v1.
 
+Calculation methods: synthetic-v1.
+
 Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
 
 Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
@@ -356,7 +360,7 @@ Pages:           2
 Encrypted:       no
 Page size:       595.28 x 841.89 pts (A4)
 Page rot:        0
-File size:       3215 bytes
+File size:       3237 bytes
 Optimized:       no
 PDF version:     1.7
 --- pdffonts fixture-insufficient_data.pdf
@@ -420,6 +424,8 @@ Assumptions
 
 Sources, period and versions
 Past seasons: A complete cohort was not assessed in this example.
+
+Calculation methods: synthetic-v1.
 
 Crop profiles: Synthetic crop synthetic-profile synthetic-v1.
 

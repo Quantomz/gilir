@@ -12,9 +12,9 @@ Each entry records clipping, warnings, source details, the data period, and read
 
 **Page 2** ([render](fixture-plan-2.png)). Row 2 continues as "No planned crop. 5 Jul 2026 to 30 Jun 2027 · 361 days", which matches the ranking's longest stretch, with a sentence on the day after harvest. "Why this plan ranked first" explains the fixed order and lists the four ranking rows in words: "Never", "None", "361 days", "361 days", each with its own explanation. The bold line "Shown, but not used to rank" has its two rows under it on the same page, and both print "Not available", not zero. The period line reads "Checked against 1 past season, Jul 2000. From past seasons, not a prediction. Checked with rain alone: backup water is not counted." Nothing is clipped. There are no warnings in this state.
 
-**Page 3** ([render](fixture-plan-3.png)). "Compared with last year" says last year's rotation ranked first, that the dates are approximate, the comparison of weeks with less rain ("This plan: 0%", "Last year’s rotation: 0%", "The same"), and, under "Changes from last year", "No changes: the same crops, order and dates as last year." That sentence is right here because the rotation was kept. "Get ready" prints the snapshot's one preparation line. "How this was worked out" prints the engine explanation. "Assumptions" prints the snapshot's one assumption. "Sources, period and versions" starts with the period "Checked against 1 past season, Jul 2000.", the cohort method `synthetic-v1`, and the crop profile with its version. Small text is 12 pt in dark gray-green and reads clearly. Nothing is clipped.
+**Page 3** ([render](fixture-plan-3.png)). "Compared with last year" says last year's rotation ranked first, that the dates are approximate, the comparison of weeks with less rain ("This plan: 0%", "Last year’s rotation: 0%", "The same"), and, under "Changes from last year", "No changes: the same crops, order and dates as last year." That sentence is right here because the rotation was kept. "Get ready" prints the snapshot's one preparation line. "How this was worked out" prints the engine explanation. "Assumptions" prints the snapshot's one assumption. "Sources, period and versions" starts with the period "Checked against 1 past season, Jul 2000.", the cohort method `synthetic-v1`, and "Calculation methods: synthetic-v1.", so the heading has three lines under it before the page ends. Small text is 12 pt in dark gray-green and reads clearly. Nothing is clipped.
 
-**Page 4** ([render](fixture-plan-4.png)). The versions continue with the engine, settings, crop list, rules, "records before 1 Jan 2026", and the weather records. The closing lines say the plan comes from past seasons, uses rain alone, and gives no fertilizer amounts, costs or soil tests. The last line says Gilir is not affiliated with or endorsed by NASA. The rest of the page is blank. The footer reads "Page 4 of 4".
+**Page 4** ([render](fixture-plan-4.png)). The versions continue with the crop profile and its version, the engine, settings, crop list, rules, "records before 1 Jan 2026", and the weather records. The closing lines say the plan comes from past seasons, uses rain alone, and gives no fertilizer amounts, costs or soil tests. The last line says Gilir is not affiliated with or endorsed by NASA. The rest of the page is blank. The footer reads "Page 4 of 4".
 
 ## fixture-plan_with_warnings.pdf (warning plan, 4 pages)
 
@@ -24,13 +24,13 @@ Each entry records clipping, warnings, source details, the data period, and read
 
 **Page 3** ([render](fixture-plan_with_warnings-3.png)). The ranking continues with "About 25%" for the shortfall, then the two day counts. "Shown, but not used to rank" keeps its two "Not available" rows with it. The period line is the same as the plan's. "Compared with last year" opens with "We couldn’t score last year’s rotation:" and its reason on the same page, then the estimate line, then "What you told us about last year (not scored)" with "Synthetic unlisted crop (not on our crop list)" and the empty stretch "5 Jul to 31 Jul 2025 · 27 days". Nothing is clipped.
 
-**Page 4** ([render](fixture-plan_with_warnings-4.png)). The last history row "Not sure: nothing recorded. 1 Aug 2025 to 30 Jun 2026 · 334 days" ends the comparison. Then "Get ready", "How this was worked out", "Assumptions", "Sources, period and versions" with the period and every version, and the closing lines. Nothing is clipped. The footer reads "Page 4 of 4".
+**Page 4** ([render](fixture-plan_with_warnings-4.png)). The last history row "Not sure: nothing recorded. 1 Aug 2025 to 30 Jun 2026 · 334 days" ends the comparison. Then "Get ready", "How this was worked out", "Assumptions", "Sources, period and versions" with the period, "Calculation methods: synthetic-v1." and every version, and the closing lines. Nothing is clipped. The footer reads "Page 4 of 4".
 
 ## fixture-insufficient_data.pdf (missing data, 2 pages)
 
 **Page 1** ([render](fixture-insufficient_data-1.png)). The title is "We can’t make a plan yet", and the footer calls the file a "Gilir status report". The head gives the place, the weather point, the made date, the year asked about, and the answers. The status box is ink-black with "No plan yet. Some information a plan needs is missing." "What’s missing" names "Enough complete past seasons of weather" with its reason, says that making the plan again gives the same answer until new data exists, and ends "This is a status report. No calendar is shown, because no plan was made." There is no timeline, no plant or harvest row, no ranking, and no "Get ready". "Compared with last year" says last year could not be scored, gives the reason, and lists what the farmer said under its bold line, which is not left alone at the page's end. Nothing is clipped.
 
-**Page 2** ([render](fixture-insufficient_data-2.png)). The comparison ends with "Not sure: nothing recorded. 5 Jul 2025 to 30 Jun 2026 · 361 days". "How this was worked out" and "Assumptions" follow. "Sources, period and versions" says in words that the past seasons are unavailable: "Past seasons: A complete cohort was not assessed in this example." It does not print a period of zero seasons. The crop profile and every version follow, then the closing lines. Nothing is clipped. The footer reads "Page 2 of 2".
+**Page 2** ([render](fixture-insufficient_data-2.png)). The comparison ends with "Not sure: nothing recorded. 5 Jul 2025 to 30 Jun 2026 · 361 days". "How this was worked out" and "Assumptions" follow. "Sources, period and versions" says in words that the past seasons are unavailable: "Past seasons: A complete cohort was not assessed in this example." It does not print a period of zero seasons. "Calculation methods: synthetic-v1.", the crop profile and every version follow, then the closing lines. Nothing is clipped. The footer reads "Page 2 of 2".
 
 ## Opened offline in Chromium's PDF viewer
 
@@ -44,6 +44,15 @@ These were made outside this folder from fixtures and variants and are not kept.
 - **The plan fixture for a `vi-VN` reader, page 1.** The timeline labels the months 7 to 6 with numbers, all twelve, because the Vietnamese short names are wider than a month.
 - **The no_calendar_fit fixture with an assessed, unranked baseline, page 1.** "Compared with last year" gives the verdict and "How they compare: No numbers to compare." and has no "Changes from last year" and no "No changes" line.
 - **variant-manySources.pdf, as text (`pdftotext -layout`).** Each weather product line ends with "Version synthetic-v1." and the product's URL as plain text.
+
+## Pages looked at for the second review's fixes
+
+Made in scratch with `renderPdf` for an `en-GB` reader at 80 dpi and not kept. Each snapshot is a fixture or variant with one field changed.
+
+- **changedBaseline with `eligible: false`, page 3.** "Compared with last year" opens "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan." No line says the new plan ranked ahead.
+- **The no_calendar_fit fixture, page 1.** The status box says "Together they need at least 366 days; your year has 365." "Why they don’t fit" starts with "Each crop needs at least:", so the sentence is printed once.
+- **The service_error fixture, page 1.** The status box says "Example source did not respond." "What happened" starts with "No new plan was made. It wasn’t anything you did."
+- **no_calendar_fit from 29 February 2028, with the water answer "I’m not sure", page 1.** The head reads "Your year: 29 Feb 2028 to 27 Feb 2029", which is the 365 days the status box gives. The note under "Good to know" is headed "Only rain is counted".
 
 ## What this inspection does not show
 
