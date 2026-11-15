@@ -1,11 +1,11 @@
 import { parseIsoDate } from "@/contracts/common";
 import type { JobState } from "@/contracts/jobs";
-import { completedSnapshotSchema } from "@/contracts/result";
+import { completedSnapshotSchema, completedSnapshotV2Schema } from "@/contracts/result";
 import type {
   AssessmentMetric, CompletedSnapshot, EvidenceGap, Plan, PlanOccurrence, PlanResult, ResultDetails, ServiceFailure,
 } from "@/contracts/result";
 import { inputFixture, unsupportedHistoryFixture } from "./input";
-import { frozenRunFixture, replaySeasonFixture, syntheticLabel } from "./science";
+import { frozenRunFixture, replaySeasonFixture, syntheticLabel, syntheticRegistryFixture } from "./science";
 
 const cropPurposeId = inputFixture.cropPurposeIds[0];
 const horizon = { start: inputFixture.planningStart, endExclusive: parseIsoDate("2027-07-01") };
@@ -156,6 +156,17 @@ export const completedSnapshotsByState = Object.fromEntries(states.map(result =>
 export const completedSnapshotFixture: CompletedSnapshot = completedSnapshotSchema.parse({
   schemaVersion: 1, id: "synthetic-plan", completedAt: "2026-07-01T00:00:00Z", input: inputFixture, result: resultFixtures.plan,
 });
+
+export const completedSnapshotsV2ByState = Object.fromEntries(states.map(result => {
+  const snapshot = completedSnapshotV2Schema.parse({
+    ...completedSnapshotsByState[result.state],
+    schemaVersion: 2,
+    catalogue: syntheticRegistryFixture.catalogue,
+  });
+  return [result.state, snapshot];
+}));
+
+export const completedSnapshotV2Fixture = completedSnapshotsV2ByState.plan;
 
 export const jobFixtures = {
   queued: { state: "queued" },

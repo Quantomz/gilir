@@ -1,10 +1,11 @@
 import { openDB } from "idb";
 import type { DBSchema, IDBPDatabase, IDBPTransaction } from "idb";
-import { z } from "zod";
-import { farmInputSchema } from "@/contracts/input";
+import type { z } from "zod";
+import { farmInputSchema, farmInputSchemaVersion } from "@/contracts/input";
 import type { FarmInput } from "@/contracts/input";
+import { jobCapabilitySchema } from "@/contracts/jobs";
 import type { JobCapability } from "@/contracts/jobs";
-import { completedSnapshotSchema, runManifestSchema } from "@/contracts/result";
+import { completedSnapshotSchema, completedSnapshotSchemaVersion, runManifestSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 
 export interface LocalState {
@@ -95,8 +96,8 @@ const RECORD_VERSION = 1;
  * its writer's versions: F1's drafts hold no schemaVersion, and reading a draft drops answer keys it doesn't know.
  */
 const CONTRACTS = {
-  input: farmInputSchema.unwrap().shape.schemaVersion.value,
-  snapshot: completedSnapshotSchema.unwrap().shape.schemaVersion.value,
+  input: farmInputSchemaVersion,
+  snapshot: completedSnapshotSchemaVersion,
   manifest: runManifestSchema.unwrap().shape.schemaVersion.value,
 } as const;
 
@@ -192,15 +193,6 @@ interface PartReading<T> {
 const draftShape = farmInputSchema.unwrap().shape;
 const draftKeys = Object.keys(draftShape).filter((key): key is DraftKey => key !== "schemaVersion");
 
-/**
- * The contracts export no runtime schema for JobCapability, and the planner's private one requires a UUID, which the
- * fixture job "synthetic-job" is not.
- */
-const capabilityGuard = z.strictObject({
-  jobId: z.string().min(1).max(512),
-  token: z.string().min(1).max(512),
-}).readonly() satisfies z.ZodType<JobCapability>;
-
 const readPart: { readonly [K in keyof LocalState]: (raw: unknown) => PartReading<LocalState[K]> } = {
   // Each answer is parsed alone because zod's .partial() throws on a schema with refinements.
   draft: raw => {
@@ -223,7 +215,7 @@ const readPart: { readonly [K in keyof LocalState]: (raw: unknown) => PartReadin
     value: typeof raw === "number" && Number.isInteger(raw) && raw >= 1 && raw <= LAST_STEP ? raw : 1,
     leftOut: [],
   }),
-  activeJob: nullablePart(capabilityGuard, "activeJob"),
+  activeJob: nullablePart(jobCapabilitySchema, "activeJob"),
   snapshot: nullablePart(completedSnapshotSchema, "snapshot"),
 };
 

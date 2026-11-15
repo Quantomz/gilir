@@ -1,6 +1,6 @@
 # Frozen implementation contracts
 
-Contract version 1 is the shared starting point for all cards. `src/contracts/` is the authoritative executable/type definition. This guide names the same public entrypoints. No card begins by negotiating another person's payload.
+Contract version 1 is the shared starting point for all cards. New completed snapshots use outer schema version 2, while FarmInput, RunManifest, and FrozenRun retain their existing formats. `src/contracts/` is the authoritative executable/type definition. This guide names the same public entrypoints. No card begins by negotiating another person's payload.
 
 ## Public entrypoints and ownership
 
@@ -37,6 +37,40 @@ Global package changes and contract amendments belong to kyusuku. Card-specific 
 - This spec 1.1 amendment replaces the pre-release contract while retaining `schemaVersion: 1`. It breaks old starter inputs, completed snapshots, and registry artifacts containing retired fields or tuples. Strict parsers reject those artifacts. No automatic conversion, stored-data rewrite, or database migration is included. Old queued jobs require a separate compatibility decision before deployment into persisted starter data. Frozen inputs, hashes, manifests, and identities are never relabeled.
 - `RegistryRelease` supports explicitly synthetic fixtures in tests. `ReleasedRegistry` is the production-only type. B3 accepts only released registry data and actual provider snapshots. Catalogue/profile publication still requires source review.
 - Immutable FrozenRun includes normalized input, data cutoff, climate snapshot IDs, registry versions, engine/config versions, and settings. A retry cannot switch those values silently.
+
+### Saved snapshot compatibility and F4 handoff
+
+`jobCapabilitySchema` in `src/contracts/jobs.ts` is the authoritative strict capability parser. `JobCapability` is inferred from it. Job IDs are UUIDs. Tokens are untrimmed strings with lengths from 1 through 512. Planner responses and browser storage use the same parser. Synthetic successful submissions use valid UUIDs too.
+
+`farmInputSchemaVersion` is 1. `completedSnapshotSchemaVersion` is 2. These independent constants let browser storage protect a future input version 2 and a future snapshot version 3 without changing either record.
+
+`parseCompletedSnapshot` and `completedSnapshotSchema` accept two strict saved formats:
+
+- Version 1 retains exactly `schemaVersion`, `id`, `completedAt`, `input`, and `result`. A valid version 1 record stays version 1 and gains no catalogue or fabricated labels.
+- Version 2 adds the full public `catalogue`, using the exported `catalogueSchema`. Its result requires an available provenance manifest. The catalogue version matches that manifest's `catalogueVersion`, entry IDs are unique, and every selected input crop ID has an entry. Historical catalogue IDs can be absent. Unsupported history keeps the farmer's own label.
+
+This compatibility covers version 1 records valid under the current parser. It does not restore retired starter fields or missing required search metadata. No read conversion, stored-data rewrite, hash change, frozen-run change, or database migration is included.
+
+New `JobStore.complete(lease, completion, now)` writes version 2. `SnapshotCompletion` contains only `{ result, catalogue }` and is validated by `snapshotCompletionSchema`. The worker takes the catalogue from the exact immutable registry already verified for the claimed or frozen run. It never reads the latest catalogue as a fallback. The worker validates the full version 2 shape before completion, so malformed registry metadata follows the existing `processing_failed` path.
+
+The store parses the completion and uses one atomic SQL update. Existing active-lease, calculating-state, exact frozen-manifest, and terminal immutability requirements remain. The update also checks catalogue identity and selected-ID coverage against the stored input. The database owns the snapshot's ID, input, and completion timestamp. The worker's verified release establishes the origin of official label text. SQL checks identity and coverage rather than comparing labels with a catalogue table.
+
+The existing `completedSnapshotFixture` and `completedSnapshotsByState` exports remain version 1. `completedSnapshotV2Fixture` and `completedSnapshotsV2ByState` provide separate version 2 examples for F3 and F4. Both variant collections cover all six result states.
+
+F4 can build a label map from a saved version 2 catalogue within its existing PDF composition call:
+
+```ts
+const savedLabels = new Map(
+	snapshot.schemaVersion === 2
+		? snapshot.catalogue.entries.map(entry => [entry.id, entry.label])
+		: [],
+);
+const officialLabel = savedLabels.get(cropPurposeId);
+```
+
+F4 should apply its existing PDF text conversion to official labels and retain the display fallback for version 1 and absent historical IDs. No catalogue request or browser registry import is needed. PDF label consumption, layout, fonts, and the separately reported leap-day horizon correction remain F4-owned work. This shared follow-up changes storage imports, capability adoption, and independent version protection only.
+
+New readers accept versions 1 and 2. Old readers cannot consume version 2. Update web readers before enabling new worker writes. This change performs no deployment.
 
 ### E1 draft retirement
 

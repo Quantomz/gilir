@@ -81,7 +81,8 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     resolution = selectedResolution;
     const missing = resolution.gaps.filter(required);
     for (const id of run.input.cropPurposeIds) {
-      if (!resolution.profiles.some(profile => profile.cropPurposeId === id)) missing.push({ code: "crop_profile",
+      if (!resolution.profiles.some(profile => profile.cropPurposeId === id)
+        && !resolution.gaps.some(gap => gap.code === "crop_profile" && gap.cropPurposeIds.includes(id))) missing.push({ code: "crop_profile",
         reason: "A selected crop has no applicable released profile.", cropPurposeIds: [id], sourceIds: [] });
     }
     if (missing.length) return finish({ state: "insufficient_data", missing });

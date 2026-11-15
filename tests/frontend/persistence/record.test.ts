@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LocalState } from "@/client/storage";
-import { completedSnapshotSchema } from "@/contracts/result";
+import { farmInputSchemaVersion } from "@/contracts/input";
+import { completedSnapshotSchema, completedSnapshotSchemaVersion } from "@/contracts/result";
 import { inputFixture } from "@/fixtures/input";
-import { completedSnapshotFixture, completedSnapshotsByState, resultFixtures } from "@/fixtures/results";
+import { completedSnapshotFixture, completedSnapshotsByState, completedSnapshotsV2ByState, resultFixtures } from "@/fixtures/results";
 import { frozenRunFixture } from "@/fixtures/science";
 import { domError, freshStorage, memoryIdb } from "./support/memory-idb";
 import type { MemoryIdb } from "./support/memory-idb";
@@ -12,7 +13,7 @@ afterEach(() => {
   vi.doUnmock("idb");
 });
 
-const capability = { jobId: "synthetic-job", token: "synthetic-local-fixture-token" };
+const capability = { jobId: "00000000-0000-4000-8000-000000000001", token: "synthetic-local-fixture-token" };
 const { schemaVersion: _contractVersion, ...answers } = inputFixture;
 const partialDraft = { field: inputFixture.field, cropPurposeIds: inputFixture.cropPurposeIds, water: "rain_only" } as const;
 const empty: LocalState = { draft: null, step: 1, activeJob: null, snapshot: null };
@@ -23,8 +24,8 @@ function record(parts: Record<string, unknown>, version: unknown = 1) {
 }
 
 const contracts = {
-  input: inputFixture.schemaVersion,
-  snapshot: completedSnapshotFixture.schemaVersion,
+  input: farmInputSchemaVersion,
+  snapshot: completedSnapshotSchemaVersion,
   manifest: frozenRunFixture.manifest.schemaVersion,
 };
 const setAsideOf = (finds: readonly object[]) => ({ format: "gilir.set-aside", version: 1, contracts, finds });
@@ -89,9 +90,9 @@ describe("round trip", () => {
     expect(datetimes(stored)).toEqual(datetimes(fixture));
   });
 
-  it("each of the six completedSnapshotsByState round trips, still parses, and keeps an unavailable metric unavailable, never 0", async () => {
+  it("all six v1 and v2 snapshots round trip and preserve unavailable metrics separately from zero", async () => {
     const { localPlans } = await freshStorage();
-    for (const snapshot of Object.values(completedSnapshotsByState)) {
+    for (const snapshot of [...Object.values(completedSnapshotsByState), ...Object.values(completedSnapshotsV2ByState)]) {
       await localPlans.save({ ...empty, snapshot });
       const loaded = await localPlans.load();
       expect(loaded?.snapshot).toEqual(snapshot);
@@ -103,6 +104,17 @@ describe("round trip", () => {
     await localPlans.save({ ...empty, snapshot: fixture });
     const [zero] = (await localPlans.load())?.snapshot?.result.details.metrics ?? [];
     expect(zero?.value).toEqual({ kind: "available", value: 0 });
+  });
+
+  it("loading a valid raw version 1 record leaves it byte-for-byte unchanged", async () => {
+    const raw = record({ ...state, snapshot: fixture });
+    const bytes = JSON.stringify(raw);
+    const { localPlans, readStorageNotice, memory } = await seeded(raw);
+    expect(await localPlans.load()).toEqual(state);
+    expect(onDisk(memory, "state")).toBe(raw);
+    expect(JSON.stringify(onDisk(memory, "state"))).toBe(bytes);
+    expect(await readStorageNotice()).toBeNull();
+    expect(onDisk(memory, "set-aside")).toBeUndefined();
   });
 
   it("a draft without schemaVersion (as the input pages write it) and one with schemaVersion 1 both load", async () => {
@@ -152,13 +164,25 @@ describe("record versions", () => {
     expect(onDisk(memory, "set-aside")).toBeUndefined();
   });
 
-  it("a draft or snapshot whose schemaVersion is above this build's contract reads as newer, so an old tab never rewrites a newer build's data", async () => {
-    for (const newer of [record({ draft: { ...answers, schemaVersion: 2 } }), record({ snapshot: { ...fixture, schemaVersion: 2 } })]) {
-      const { localPlans, storageProblem, memory } = await seeded(newer);
-      expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("newer");
-      expect(storageProblem(await localPlans.save(state).catch(error => error)).reason).toBe("newer");
-      expect(onDisk(memory, "state")).toBe(newer);
-    }
+  it.each([
+    { name: "draft version 2", parts: { draft: { ...answers, schemaVersion: 2 }, snapshot: completedSnapshotsV2ByState.plan } },
+    { name: "snapshot version 3", parts: { draft: inputFixture, snapshot: { ...completedSnapshotsV2ByState.plan, schemaVersion: 3 } } },
+  ])("$name independently refuses every storage mutation", async ({ parts }) => {
+    const setAside = { format: "gilir.set-aside", version: 1, finds: [{ parts: ["activeJob"], answersKept: true, raw: "prior unreadable job" }] };
+    const { localPlans, storageProblem, readStorageNotice, memory } = await seeded(record({ draft: answers }), setAside);
+    const pendingNotice = await readStorageNotice();
+    expect(pendingNotice).not.toBeNull();
+    const newer = record(parts);
+    memory.databases.get("gilir")?.set("state", newer);
+    const bytes = JSON.stringify(newer);
+    expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("newer");
+    expect(storageProblem(await localPlans.save(state).catch(error => error)).reason).toBe("newer");
+    expect(storageProblem(await localPlans.clear().catch(error => error)).reason).toBe("newer");
+    await pendingNotice?.dismiss();
+    expect(await readStorageNotice()).toBeNull();
+    expect(onDisk(memory, "state")).toBe(newer);
+    expect(JSON.stringify(onDisk(memory, "state"))).toBe(bytes);
+    expect(onDisk(memory, "set-aside")).toBe(setAside);
   });
 
   it("a later build's data that kept schemaVersion 1 is set aside exactly as found, and the notice doesn't call it older", async () => {
@@ -175,7 +199,7 @@ describe("record versions", () => {
   });
 
   it("a record stamped with a newer FarmInput, CompletedSnapshot or RunManifest version rejects load, save and clear with newer, and nothing is written or dropped", async () => {
-    for (const stamp of [{ ...contracts, input: 2 }, { ...contracts, snapshot: 2 }, { ...contracts, manifest: 2 }]) {
+    for (const stamp of [{ ...contracts, input: contracts.input + 1 }, { ...contracts, snapshot: contracts.snapshot + 1 }, { ...contracts, manifest: contracts.manifest + 1 }]) {
       const newer = { ...record({ draft: { ...answers, soilKind: "clay", water: "rain_plus_tank" }, snapshot: fixture }), contracts: stamp };
       const { localPlans, storageProblem, memory } = await seeded(newer);
       for (const call of [() => localPlans.load(), () => localPlans.save(state), () => localPlans.clear()]) {
@@ -298,8 +322,8 @@ describe("parts this version cannot read", () => {
     }
   });
 
-  it("an activeJob with a missing token, an extra key or an empty jobId is left out; the fixture capability synthetic-job loads (no UUID check)", async () => {
-    const jobs = [{ jobId: "synthetic-job" }, { ...capability, expiresAt: "2026-07-02T00:00:00Z" }, { ...capability, jobId: "" }];
+  it("an invalid activeJob is left out and the valid UUID fixture capability loads", async () => {
+    const jobs = [{ jobId: "synthetic-job" }, { ...capability, jobId: "synthetic-job" }, { ...capability, expiresAt: "2026-07-02T00:00:00Z" }, { ...capability, jobId: "" }];
     for (const activeJob of jobs) {
       const { localPlans, memory } = await seeded(record({ draft: answers, activeJob }));
       expect(await localPlans.load()).toEqual({ ...empty, draft: answers });

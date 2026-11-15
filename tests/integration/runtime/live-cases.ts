@@ -11,9 +11,11 @@ export const boiseDryBeanCase = {
     },
     cropPurposeIds: ["common-bean-dry"], water: "rain_only", planningStart: "2027-06-01", history: { kind: "skipped" },
   }),
-  catalogueVersion: "fao56-reviewed-2026-11-15",
+  catalogueVersion: "fao56-hard-windows-2026-11-15",
+  ruleVersion: "no-rules-2026-11-14",
   profileId: "common-bean-dry-fao56-idaho-jun",
-  profileVersion: "reviewed-2026-11-15.1",
+  profileVersion: "reviewed-2026-11-15.2",
+  plantingWindow: { start: "2027-06-01", endInclusive: "2027-06-30" },
 };
 
 export const bangkokMissingProfileCase = {

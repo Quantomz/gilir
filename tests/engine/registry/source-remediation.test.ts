@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { latestReleaseVersion, readRegistryRelease, releasedVersions } from "@/registry";
 
 const reviewedVersion = "fao56-reviewed-2026-11-15";
+const hardWindowsVersion = "fao56-hard-windows-2026-11-15";
 const retiredVersions = [
   "fao56-2026-11-14",
   "fao56-temperature-2026-11-14",
@@ -11,10 +12,10 @@ const retiredVersions = [
 
 describe("E1 source correction", () => {
   it("publishes a new identity without rebuilding the retired drafts", () => {
-    expect(latestReleaseVersion).toBe(reviewedVersion);
-    expect(releasedVersions).toEqual(["v1-empty", reviewedVersion]);
+    expect(latestReleaseVersion).toBe(hardWindowsVersion);
+    expect(releasedVersions).toEqual(["v1-empty", reviewedVersion, hardWindowsVersion]);
     expect(readRegistryRelease().identity).toEqual({
-      catalogueVersion: reviewedVersion,
+      catalogueVersion: hardWindowsVersion,
       ruleVersion: "no-rules-2026-11-14",
     });
   });

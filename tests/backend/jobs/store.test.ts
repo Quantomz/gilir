@@ -5,12 +5,13 @@ import { fileURLToPath } from "node:url";
 import { Pool } from "pg";
 import { z } from "zod";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
-import { createPgJobStore } from "@/server/jobs";
+import { createPgJobStore, hashNormalizedInput } from "@/server/jobs";
+import { parseFarmInput } from "@/contracts/input";
 import { inputFixture } from "@/fixtures/input";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import { resultFixtures } from "@/fixtures/results";
-import { parsePlanResult } from "@/contracts/result";
-import { completedJobResultFixture, frozenJobRunFixture } from "./fixtures";
+import { parseCompletedSnapshot, parsePlanResult } from "@/contracts/result";
+import { completedJobResultFixture, frozenJobRunFixture, snapshotCompletionFixture } from "./fixtures";
 import type { JobCapability, JobStore } from "@/contracts/jobs";
 
 const connectionString = process.env.TEST_DATABASE_URL;
@@ -66,7 +67,7 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     const next = await claim("recovered-worker", later);
     expect(next?.lease.leaseId).not.toEqual(first.lease.leaseId);
     expect(await store.freeze(first.lease, run, later)).toBe(false);
-    expect(await store.complete(first.lease, resultFixtures.insufficient_data, later)).toBe(false);
+    expect(await store.complete(first.lease, snapshotCompletionFixture, later)).toBe(false);
     expect(await store.fail(first.lease, { code: "processing_failed", message: "Synthetic failure.", retryable: false }, later)).toBe(false);
   });
 
@@ -74,7 +75,7 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     await create();
     const current = await claim();
     if (!current) throw new Error("Expected a claim");
-    expect(await store.complete(current.lease, resultFixtures.insufficient_data, now)).toBe(false);
+    expect(await store.complete(current.lease, { ...snapshotCompletionFixture, result: resultFixtures.insufficient_data }, now)).toBe(false);
     expect(await store.freeze(current.lease, { ...run, manifest: { ...run.manifest, normalizedInputHash: "changed" } }, now)).toBe(false);
     expect(await store.freeze(current.lease, { ...run, input: { ...run.input, water: "unsure" } }, now)).toBe(false);
     expect(await store.freeze(current.lease, { ...run, manifest: { ...run.manifest, catalogueVersion: "changed" } }, now)).toBe(false);
@@ -98,9 +99,9 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     expect(recovered?.frozenRun).toEqual(run);
     if (!recovered) throw new Error("Expected recovery");
     expect(await store.renew(recovered.lease, later, 60)).toBe(true);
-    expect(await store.complete(recovered.lease, completedJobResultFixture, later)).toBe(true);
+    expect(await store.complete(recovered.lease, snapshotCompletionFixture, later)).toBe(true);
     const state = await store.get(capability);
-    expect(state).toMatchObject({ state: "completed", snapshot: { id: capability.jobId, input: inputFixture, result: completedJobResultFixture, completedAt: later } });
+    expect(state).toMatchObject({ state: "completed", snapshot: { schemaVersion: 2, catalogue: syntheticRegistryFixture.catalogue, id: capability.jobId, input: inputFixture, result: completedJobResultFixture, completedAt: later } });
     expect(await store.fail(recovered.lease, { code: "processing_failed", message: "Too late.", retryable: false }, later)).toBe(false);
     expect(await store.claim({ workerId: "extra", now: later, leaseSeconds: 30 })).toBeNull();
   });
@@ -152,7 +153,7 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     const current = await claim();
     if (!current) throw new Error("Expected a claim");
     expect(await store.freeze(current.lease, run, now)).toBe(true);
-    expect(await store.complete(current.lease, resultFixtures.insufficient_data, now)).toBe(false);
+    expect(await store.complete(current.lease, { ...snapshotCompletionFixture, result: resultFixtures.insufficient_data }, now)).toBe(false);
     const mismatched = {
       ...completedJobResultFixture,
       details: {
@@ -163,9 +164,76 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
         },
       },
     };
-    expect(await store.complete(current.lease, parsePlanResult(mismatched), now)).toBe(false);
+    expect(await store.complete(current.lease, { ...snapshotCompletionFixture, result: parsePlanResult(mismatched) }, now)).toBe(false);
     expect(await store.get(capability)).toEqual({ state: "calculating" });
-    expect(await store.complete(current.lease, completedJobResultFixture, now)).toBe(true);
+    expect(await store.complete(current.lease, snapshotCompletionFixture, now)).toBe(true);
+  });
+
+  test("rejects inconsistent catalogue metadata and uncovered selections before a single immutable v2 write", async () => {
+    const capability = await create();
+    const current = await claim();
+    if (!current) throw new Error("Expected a claim.");
+    expect(await store.freeze(current.lease, run, now)).toBe(true);
+    const before = (await pool.query("SELECT input::text AS input_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0];
+    const catalogue = syntheticRegistryFixture.catalogue;
+    const changedManifest = parsePlanResult({
+      ...completedJobResultFixture,
+      details: { ...completedJobResultFixture.details, provenance: {
+        ...completedJobResultFixture.details.provenance,
+        manifest: { kind: "available", value: { ...run.manifest, catalogueVersion: "changed" } },
+      } },
+    });
+    for (const completion of [
+      { ...snapshotCompletionFixture, catalogue: { ...catalogue, version: "changed" } },
+      { result: changedManifest, catalogue: { ...catalogue, version: "changed" } },
+      { ...snapshotCompletionFixture, catalogue: { ...catalogue, entries: [] } },
+      { ...snapshotCompletionFixture, catalogue: { ...catalogue, entries: [...catalogue.entries, ...catalogue.entries] } },
+    ]) {
+      expect(await store.complete(current.lease, completion, now)).toBe(false);
+      expect(await store.get(capability)).toEqual({ state: "calculating" });
+    }
+    expect(await store.complete(current.lease, snapshotCompletionFixture, now)).toBe(true);
+    const completed = await store.get(capability);
+    expect(completed).toMatchObject({ state: "completed", snapshot: { schemaVersion: 2, catalogue } });
+    expect(await store.complete(current.lease, snapshotCompletionFixture, now)).toBe(false);
+    await expect(pool.query("UPDATE jobs SET snapshot = snapshot || $2::jsonb WHERE id = $1", [capability.jobId, JSON.stringify({ catalogue: {} })])).rejects.toThrow("Terminal jobs are immutable");
+    const after = (await pool.query("SELECT input::text AS input_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0];
+    expect(after).toEqual(before);
+  });
+
+  test("completes an input with absent historical catalogue IDs without rewriting frozen bytes or its hash", async () => {
+    const input = parseFarmInput({
+      ...inputFixture,
+      history: { kind: "recorded", start: "2025-07-01", endExclusive: "2026-07-01", entries: [
+        { kind: "crop", id: "missing-history", crop: { kind: "catalogue", cropPurposeId: "absent-historical-crop" }, planted: "2025-07-01", harvested: "2025-07-04", plantedPrecision: "exact", harvestedPrecision: "exact" },
+      ] },
+    });
+    const historicalRun = { ...run, input, manifest: { ...run.manifest, normalizedInputHash: hashNormalizedInput(input) } };
+    const result = parsePlanResult({ ...completedJobResultFixture, details: {
+      ...completedJobResultFixture.details,
+      provenance: { ...completedJobResultFixture.details.provenance, manifest: { kind: "available", value: historicalRun.manifest } },
+    } });
+    const capability = await store.create({ input, registry: syntheticRegistryFixture.identity, cutoff: run.manifest.dataCutoff, createdAt: now });
+    const current = await claim();
+    if (!current) throw new Error("Expected a claim.");
+    expect(await store.freeze(current.lease, historicalRun, now)).toBe(true);
+    const before = (await pool.query("SELECT input::text AS input_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0];
+    expect(await store.complete(current.lease, { ...snapshotCompletionFixture, result }, now)).toBe(true);
+    expect(await store.get(capability)).toMatchObject({ state: "completed", snapshot: { schemaVersion: 2, input } });
+    expect((await pool.query("SELECT input::text AS input_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0]).toEqual(before);
+  });
+
+  test("reads an existing valid v1 terminal row without relabeling or rewriting it", async () => {
+    const capability = await create();
+    const current = await claim();
+    if (!current) throw new Error("Expected a claim.");
+    expect(await store.freeze(current.lease, run, now)).toBe(true);
+    const snapshot = parseCompletedSnapshot({ schemaVersion: 1, id: capability.jobId, completedAt: now, input: inputFixture, result: completedJobResultFixture });
+    await pool.query("UPDATE jobs SET state = 'completed', snapshot = $2::jsonb, terminal_at = $3::timestamptz, lease_owner = NULL, lease_id = NULL, lease_expires_at = NULL WHERE id = $1", [capability.jobId, JSON.stringify(snapshot), now]);
+    const before = (await pool.query("SELECT snapshot::text AS snapshot_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0];
+    expect(await store.get(capability)).toEqual({ state: "completed", snapshot });
+    expect((await pool.query("SELECT snapshot::text AS snapshot_bytes, input_hash, frozen_run::text AS frozen_bytes FROM jobs WHERE id = $1", [capability.jobId])).rows[0]).toEqual(before);
+    expect(await store.complete(current.lease, snapshotCompletionFixture, now)).toBe(false);
   });
 
   test("expiry removes terminal jobs only after 24 hours", async () => {

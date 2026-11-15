@@ -817,7 +817,12 @@ function vegetableRows(): Row[] {
   ];
 }
 
-function profileOf(row: Row) {
+interface ProfileBuild {
+  readonly windowBasis: "recommendation" | "hard_constraint";
+  readonly version: string;
+}
+
+function profileOf(row: Row, build: ProfileBuild) {
   const crop: Crop = crops[row.crop];
   const kc = row.kc ?? crop.kc;
   const [initial, development, middle, late] = row.stages;
@@ -831,7 +836,7 @@ function profileOf(row: Row) {
     status: "released",
     review: reviewRecord,
     id: `${crop.cropPurposeId}-fao56-${row.slug}`,
-    version: "reviewed-2026-11-15.1",
+    version: build.version,
     cropPurposeId: crop.cropPurposeId,
     commonName: crop.commonName,
     scientificName: crop.scientificName,
@@ -855,7 +860,7 @@ function profileOf(row: Row) {
       historicalStageAllocations: [stageDays],
       publishedDurationDays,
       plantingWindows: (row.plantingWindow === null ? [] : Array.isArray(row.plantingWindow) ? row.plantingWindow : [row.plantingWindow])
-        .map(window => ({ window, basis: "recommendation", sourceIds: table11 }) as const),
+        .map(window => ({ window, basis: build.windowBasis, sourceIds: table11 }) as const),
       turnaround: turnaroundAssumption,
     },
     kc: {
@@ -878,8 +883,8 @@ function profileOf(row: Row) {
   } as const;
 }
 
-export function buildProfiles() {
-  return rows.filter(row => row.publication.kind === "publish").map(profileOf);
+export function buildProfiles(build: ProfileBuild) {
+  return rows.filter(row => row.publication.kind === "publish").map(row => profileOf(row, build));
 }
 
 export function buildCatalogueEntries(profiles: ReturnType<typeof buildProfiles>) {

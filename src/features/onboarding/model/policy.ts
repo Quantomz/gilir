@@ -1,0 +1,55 @@
+// Every number F1 chooses for itself, in one place. None of them is a contract rule. Contract limits (12 crops,
+// 64 entries, 65536 bytes) come from `inputLimits` in "@/contracts" and are never restated here.
+
+/** The polling schedule, as a type so job tests can pass a short one. */
+export interface PollTiming {
+  readonly everyMs: number;
+  readonly backoffMs: readonly number[];
+  readonly rateLimitedMs: number;
+  readonly unreachableAfter: number;
+  readonly unknownStrikes: number;
+}
+
+export const policy = {
+  history: {
+    /** The catalogue the client reads has no season lengths, so every new bar starts at 90 days. */
+    newCropDays: 90,
+    /** A new crop goes into a gap shorter than its length only when the gap has at least this many days. */
+    minimumFitDays: 7,
+    /** A typed crop name is 1 to 80 letters. The contract allows 240. 80 is a reading choice. */
+    nameMaxChars: 80,
+    /** Pointer travel under this many CSS px is a tap, not a drag. */
+    dragThresholdPx: 5,
+  },
+  crops: {
+    /** Page 2 offers "Find a crop" once the list has this many crops, more than a phone shows at once. */
+    findFrom: 10,
+  },
+  save: {
+    /** Draft edits are written this long after the last change. Step, job and completion writes go at once. */
+    debounceMs: 150,
+    /** Loads tried at open before the flow starts empty, so one passing failure does not hide what is saved. */
+    openAttempts: 3,
+    /** A failed load is tried again only within this long of the open, so a storage that hangs is waited on once. */
+    openRetryWithinMs: 1_000,
+  },
+  timeoutMs: {
+    /** The HTTP client has no timeout or abort signal, so F1 races each call. */
+    catalogue: 15_000,
+    submit: 45_000,
+    read: 20_000,
+  },
+  poll: {
+    /** One farmer makes 24 reads a minute. The server allows 600 a minute for everyone. */
+    everyMs: 2_500,
+    /** Waits after 1, 2, 3 and 4 or more retryable read failures in a row. */
+    backoffMs: [2_500, 5_000, 10_000, 20_000],
+    /** The server sends Retry-After: 60 with rate_limited. The client does not expose it. */
+    rateLimitedMs: 60_000,
+    /** Making says it keeps trying after this many failed reads in a row. Retryable failures never end the wait. */
+    unreachableAfter: 3,
+    /** Reads that fail with no ServiceFailure (a malformed 200 body) end the wait after this many in a row. */
+    unknownStrikes: 5,
+  },
+  toast: { plainMs: 7_000, undoMs: 15_000 },
+} as const;
