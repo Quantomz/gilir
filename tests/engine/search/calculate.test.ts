@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { calculate } from "@/engine";
 import type { CalculateOptions } from "@/engine";
 import type { ClimateAssessment, FrozenRun, MetricInput } from "@/contracts/engine";
+import type { EvidenceGap } from "@/contracts/result";
 import { parsePlanResult } from "@/contracts/result";
 import { climateCohortFixture } from "@/fixtures/science";
 import { allocation, metrics, assessment, date, historyRun, id, options, profile, registry, run } from "./fixtures";
@@ -12,6 +13,38 @@ function resultFor(assess: (input: MetricInput) => ClimateAssessment, value = ru
 
 const missing = [{ code: "ranking_metric" as const, reason: "Synthetic required metric unavailable.", cropPurposeIds: [], sourceIds: [] }];
 const optional = { code: "temperature_rule" as const, reason: "No supported temperature threshold.", cropPurposeIds: [], sourceIds: [] };
+
+describe("missing selected-profile evidence", () => {
+  const cropA = profile();
+  const cropB = profile("crop-b");
+  const specific: EvidenceGap = { code: "crop_profile", reason: "No released crop-a profile applies at this location.",
+    cropPurposeIds: [cropA.cropPurposeId], sourceIds: cropA.sourceIds };
+  const otherSpecific: EvidenceGap = { ...specific, reason: "The crop-a applicability climate evidence is unavailable.", sourceIds: [] };
+  const grouped: EvidenceGap = { ...specific, reason: "No selected crop profile applies at this location.", cropPurposeIds: [cropA.cropPurposeId, cropB.cropPurposeId] };
+  const unrelated: EvidenceGap = { ...specific, code: "rotation_rule", reason: "A required rotation rule is unavailable." };
+  const fallbackA: EvidenceGap = { code: "crop_profile", reason: "A selected crop has no applicable released profile.",
+    cropPurposeIds: [cropA.cropPurposeId], sourceIds: [] };
+  const fallbackB: EvidenceGap = { ...fallbackA, cropPurposeIds: [cropB.cropPurposeId] };
+
+  it.each([
+    { label: "retains a specific gap once", selected: [cropA], gaps: [specific], missing: [specific], checks: [specific] },
+    { label: "covers a silently omitted profile", selected: [cropA], gaps: [], missing: [fallbackA], checks: [fallbackA] },
+    { label: "covers only the unreported crop", selected: [cropA, cropB], gaps: [specific],
+      missing: [specific, fallbackB], checks: [specific, fallbackB] },
+    { label: "retains a gap covering multiple crops", selected: [cropA, cropB], gaps: [grouped], missing: [grouped], checks: [grouped] },
+    { label: "preserves distinct specific reasons and sources", selected: [cropA], gaps: [specific, otherSpecific],
+      missing: [specific, otherSpecific], checks: [specific, otherSpecific] },
+    { label: "keeps unrelated required evidence and the profile fallback", selected: [cropA], gaps: [unrelated],
+      missing: [unrelated, fallbackA], checks: [unrelated, fallbackA] },
+    { label: "keeps optional evidence and the profile fallback", selected: [cropA], gaps: [optional],
+      missing: [fallbackA], checks: [fallbackA, optional] },
+  ])("$label", ({ selected, gaps, missing, checks }) => {
+    const result = calculate(run(selected), registry(selected), { ...options(),
+      resolveRegistry: () => ({ profiles: [], rules: [], gaps }) });
+    expect(result).toMatchObject({ state: "insufficient_data", missing, details: { unassessedChecks: checks } });
+    expect(parsePlanResult(result)).toEqual(result);
+  });
+});
 
 describe("composition and result states", () => {
   it("returns all six states with strict result payloads", () => {
