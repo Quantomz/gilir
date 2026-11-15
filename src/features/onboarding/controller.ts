@@ -137,6 +137,12 @@ function dropped(state: State, drop: Drop): State {
   return { ...state, outbox: { seq, focus: null, handOff: null }, said, toast };
 }
 
+/**
+ * Jobs whose plan this page load handed over. A job whose finishing save was refused stays saved, so a reload can still
+ * fetch its plan, but Change inputs must not reopen it and bounce back to Results.
+ */
+const handedOver = new Set<string>();
+
 function undoOf(note: EditNote): DraftEdit | null {
   return "undo" in note ? note.undo : null;
 }
@@ -163,7 +169,12 @@ export function useOnboardingController(props: OnboardingProps): Controller {
   useEffect(() => {
     let live = true;
     void saved.open().then(stored => {
-      if (live) dispatch({ kind: "opened", saved: stored, initialInput, focusTitle: document.activeElement?.id === domIdOf({ kind: "title" }) });
+      if (!live) return;
+      // Only Results hands back an initialInput within a page load.
+      const shown = initialInput !== null && stored !== null && stored.activeJob !== null && handedOver.has(stored.activeJob.jobId);
+      if (shown) saved.write({ activeJob: null }, "now");
+      const opened = stored !== null && shown ? { ...stored, activeJob: null } : stored;
+      dispatch({ kind: "opened", saved: opened, initialInput, focusTitle: document.activeElement?.id === domIdOf({ kind: "title" }) });
     });
     return () => {
       live = false;
@@ -254,6 +265,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     dispatch({ kind: "jobDone", jobId: capability.jobId });
     if (finished.current.has(capability.jobId)) return;
     finished.current.add(capability.jobId);
+    handedOver.add(capability.jobId);
     onCompleted(snapshot);
   }
 

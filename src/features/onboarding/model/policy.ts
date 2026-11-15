@@ -28,6 +28,8 @@ export const policy = {
   save: {
     /** Draft edits are written this long after the last change. Step, job and completion writes go at once. */
     debounceMs: 150,
+    /** Loads tried at open before the flow starts empty, so one passing failure does not hide what is saved. */
+    openAttempts: 3,
   },
   timeoutMs: {
     /** The HTTP client has no timeout or abort signal, so F1 races each call. */

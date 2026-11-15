@@ -86,6 +86,28 @@ describe("openFlow: the entry rule", () => {
     expect(flow.notices.keptNewer).toBe(true);
   });
 
+  it("[C6] a different saved draft with no saved plan, or an older one, is not newer than the plan: step 1 with draftOf(initialInput), no notice", () => {
+    const older: Partial<FarmInput> = { ...inputFixture, water: "unsure" };
+    const otherPlan: CompletedSnapshot = { ...completedSnapshotFixture, input: { ...inputFixture, water: "rain_plus_backup" } };
+    for (const snapshot of [null, otherPlan]) {
+      const { flow } = openFlow(saved({ draft: older, step: 3, snapshot }), inputFixture);
+      expect(stepOf(flow)).toBe(1);
+      expect(flow.editor.draft).toEqual(answers);
+      expect(flow.notices.keptNewer).toBe(false);
+    }
+  });
+
+  it("[B6] a saved service_error with a saved draft that has answers opens that draft at its saved page, so the farmer can try again", () => {
+    const { flow, handOff } = openFlow(saved({ draft: { ...inputFixture, water: "unsure" }, step: 3, snapshot: completedSnapshotsByState.service_error }), null);
+    expect(handOff).toBeNull();
+    expect(stepOf(flow)).toBe(3);
+    expect(flow.editor.draft.water).toBe("unsure");
+  });
+
+  it("[B6] a saved service_error with no answers saved opens Results with it", () => {
+    expect(openFlow(saved({ snapshot: completedSnapshotsByState.service_error }), null).handOff).toBe(completedSnapshotsByState.service_error);
+  });
+
   it("[C6] an empty saved draft with initialInput opens step 1 with draftOf(initialInput)", () => {
     for (const draft of [null, {}]) {
       const { flow } = openFlow(saved({ draft, step: 3 }), inputFixture);
@@ -118,6 +140,13 @@ describe("openFlow: the entry rule", () => {
     ];
     for (const [state, initialInput] of rows) expect(openFlow(state, initialInput).flow.earlierPlan).toBe(completedSnapshotFixture);
     expect(openFlow(null, null).flow.earlierPlan).toBeNull();
+  });
+
+  it("[B6] a saved service_error is no plan, so it is never the earlier plan", () => {
+    const error = completedSnapshotsByState.service_error;
+    for (const initialInput of [null, inputFixture]) {
+      expect(openFlow(saved({ activeJob: capability, snapshot: error }), initialInput).flow.earlierPlan).toBeNull();
+    }
   });
 
   it("a saved draft is repaired on open: an unusable year is dropped and entries are sorted", () => {

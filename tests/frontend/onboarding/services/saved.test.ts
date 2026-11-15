@@ -41,6 +41,15 @@ describe("open", () => {
     expect(health).toEqual(["failing"]);
   });
 
+  it("[B2] a load that fails once is tried again, so a passing failure does not hide what is saved", async () => {
+    const plans = memoryPlans(state({ draft: { water: "unsure" }, step: 3 }));
+    let loads = 0;
+    const saved = createSavedPlans({ ...plans, load: () => (++loads === 1 ? Promise.reject(new Error("Storage is busy.")) : plans.load()) });
+    const health = healthOf(saved);
+    await expect(saved.open()).resolves.toEqual(state({ draft: { water: "unsure" }, step: 3 }));
+    expect(health).toEqual(["working"]);
+  });
+
   it("a load that resolves null is nothing saved, with health working", async () => {
     const saved = createSavedPlans(memoryPlans(null));
     const health = healthOf(saved);

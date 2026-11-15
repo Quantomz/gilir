@@ -304,5 +304,11 @@ describe("the failed screen", () => {
     expect(withEarlier.onCompleted).toHaveBeenCalledTimes(1);
     expect(withEarlier.onCompleted).toHaveBeenCalledWith(completedSnapshotFixture);
   });
+
+  it("[B6] a saved service_error is no plan, so the failed screen never offers it as the earlier plan", async () => {
+    await open([{ reject: expired }], { saved: { ...restoring, snapshot: completedSnapshotsByState.service_error } });
+    expect(heading()).toBe("This plan request has expired");
+    expect(screen.queryByRole("button", { name: /^Open my earlier plan/ })).toBeNull();
+  });
 });
 

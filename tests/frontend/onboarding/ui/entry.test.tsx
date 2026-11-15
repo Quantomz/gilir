@@ -69,18 +69,29 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
     expect(client.submitted).toHaveLength(1);
   });
 
-  it("[B2] a load that fails once: the next answer never erases the saved answers or the running job the farmer was not shown", async () => {
+  it("[B2] a load that fails at open: the next answer never erases the saved answers or the running job the farmer was not shown", async () => {
     const stored = saved({ draft: answers, step: 3, activeJob: capability });
     const inner = memoryPlans(stored);
     let loads = 0;
-    setUp({ ...inner, load: () => (++loads === 1 ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
+    let failing = true;
+    setUp({ ...inner, load: () => (++loads, failing ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
     render(<Page />);
     await title("Where is your farm?");
+    failing = false;
     await userEvent.click(screen.getByRole("button", { name: "Use this field" }));
     await act(() => new Promise(resolve => setTimeout(resolve, 400)));
     expect(loads).toBeGreaterThan(1);
     expect(inner.latest()).toEqual(stored);
     expect(screen.getByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeTruthy();
+  });
+
+  it("[B2] a load that fails once at open is tried again: the saved draft opens at its page", async () => {
+    const inner = memoryPlans(saved({ draft: { water: "unsure" }, step: 3 }));
+    let loads = 0;
+    setUp({ ...inner, load: () => (++loads === 1 ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
+    render(<Page />);
+    await title("Where does your water come from?");
+    expect(screen.queryByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeNull();
   });
 
   it("while load is pending the page shows Opening Gilir… and no question", async () => {
@@ -92,7 +103,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
   });
 
   it("the first render equals the prerendered HTML, even with initialInput and a saved draft", async () => {
-    setUp(memoryPlans(saved({ draft: { water: "unsure" }, step: 3 })));
+    setUp(memoryPlans(saved({ draft: { water: "unsure" }, step: 3, snapshot: completedSnapshotFixture })));
     const element = <Onboarding client={scriptedClient({ catalogue })} initialInput={inputFixture} onCompleted={() => undefined} />;
     const container = document.createElement("div");
     container.innerHTML = renderToString(element);
@@ -199,6 +210,36 @@ describe("Results and Change inputs", () => {
     await userEvent.keyboard("{Enter}");
     const heading = await title("Where is your farm?");
     await waitFor(() => expect(document.activeElement).toBe(heading));
+  });
+
+  it("[B5] when storage refused to save the finished plan, Change inputs opens page 1 and does not reopen that job", async () => {
+    const inner = memoryPlans(null);
+    const { client } = setUp({ ...inner, save: state => (state.snapshot === null ? inner.save(state) : Promise.reject(new Error("QuotaExceededError"))) });
+    render(<Page />);
+    await fillFourPages({ water: "Rain only", start: "2027-03-01", history: "skip" });
+    await userEvent.click(screen.getByRole("button", { name: "Make my plan" }));
+    await screen.findByRole("heading", { name: "Plan synthetic-plan" });
+    expect(inner.latest()?.activeJob).toEqual(capability);
+    await userEvent.click(screen.getByRole("button", { name: "Change inputs" }));
+    await title("Where is your farm?");
+    await waitFor(() => expect(inner.latest()?.activeJob).toBeNull());
+    expect(client.reads).toHaveLength(1);
+    expect(screen.queryByRole("region", { name: "Results" })).toBeNull();
+  });
+
+  it("[C6] answers saved before a visit whose open failed are not newer than its plan: Change inputs opens that plan's answers, with no kept line", async () => {
+    const inner = memoryPlans(saved({ draft: { water: "unsure" }, step: 3 }));
+    let failing = true;
+    setUp({ ...inner, load: () => (failing ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
+    render(<Page />);
+    await fillFourPages({ water: "Rain + water when it’s dry", start: "2027-03-01", history: "skip" });
+    await userEvent.click(screen.getByRole("button", { name: "Make my plan" }));
+    await screen.findByRole("heading", { name: "Plan synthetic-plan" });
+    failing = false;
+    await userEvent.click(screen.getByRole("button", { name: "Change inputs" }));
+    await title("Where is your farm?");
+    expect(screen.queryByText("We kept the answers you changed after that plan was made.")).toBeNull();
+    expect(screen.getByText("Marked: Synthetic example field")).toBeTruthy();
   });
 
   it("[C6] after Change inputs, a newer different saved draft is kept at its page instead of the snapshot's input", async () => {

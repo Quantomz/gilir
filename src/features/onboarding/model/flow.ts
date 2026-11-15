@@ -93,7 +93,7 @@ export interface Flow {
   readonly check: boolean;
   readonly serverIssues: readonly PinnedIssue[];
   readonly sheet: Sheet | null;
-  /** The snapshot saved before this visit, for "Open my earlier plan" on the failed screen. */
+  /** The plan saved before this visit, for "Open my earlier plan" on the failed screen. Never a service_error. */
   readonly earlierPlan: CompletedSnapshot | null;
   readonly notices: Notices;
   /** Notices the farmer closed. They stay closed for the rest of the visit. */
@@ -105,7 +105,7 @@ export interface Flow {
 export type Msg =
   // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
   | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly focusTitle: boolean }
-  | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean } // retried: Try again
+  | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean }
   | { readonly kind: "storage"; readonly health: "working" | "failing" }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
   | { readonly kind: "edit"; readonly edit: DraftEdit }
@@ -156,13 +156,15 @@ const previousStep: Record<2 | 3 | 4, Step> = { 2: 1, 3: 2, 4: 3 };
 /**
  * The entry rule. Pure, so every row is a table test.
  *  1. saved.activeJob                          -> making (progress "queued" until the first read), whatever else is saved
- *  2. saved.snapshot && initialInput === null  -> handOff = snapshot (the controller calls onCompleted once)
+ *  2. saved.snapshot && initialInput === null  -> handOff = snapshot (the controller calls onCompleted once), except
+ *       a service_error with a saved draft that has answers -> that draft at its saved step, to try again
  *  3. initialInput !== null (Change inputs, the fixture lab):
- *       a saved draft with answers that differ  -> that draft at its saved step, notices.keptNewer
+ *       a saved draft with answers that differ, saved with the plan being changed -> that draft at its saved step,
+ *                                                                                    notices.keptNewer
  *       otherwise                               -> step 1 with draftOf(initialInput)
  *  4. a saved draft with answers               -> that draft at clampStep(saved.step)
  *  5. otherwise (nothing saved, or load threw) -> step 1, empty
- * earlierPlan is saved.snapshot in every row.
+ * earlierPlan is saved.snapshot in every row, unless it is a service_error, which is no plan.
  */
 export function openFlow(saved: LocalState | null, initialInput: FarmInput | null): {
   readonly flow: Flow;
@@ -170,7 +172,8 @@ export function openFlow(saved: LocalState | null, initialInput: FarmInput | nul
 } {
   const savedDraft = saved?.draft ? normalizeDraft(saved.draft) : {};
   const savedStep = clampStep(saved?.step ?? 1);
-  const base: Flow = { ...openingFlow, earlierPlan: saved?.snapshot ?? null };
+  const plan = saved?.snapshot?.result.state === "service_error" ? null : (saved?.snapshot ?? null);
+  const base: Flow = { ...openingFlow, earlierPlan: plan };
   const editing = (draft: Draft, step: Step, keptNewer = false): Flow =>
     ({ ...base, mode: { kind: "editing", step, asked: false, send: idle, job: null }, editor: { draft, setAside: null }, notices: { ...base.notices, keptNewer } });
 
@@ -179,10 +182,14 @@ export function openFlow(saved: LocalState | null, initialInput: FarmInput | nul
     const job: TrackedJob = { capability: saved.activeJob, progress: "queued", reachable: true };
     return { flow: { ...base, mode: { kind: "making", job }, editor: { draft, setAside: null } }, handOff: null };
   }
-  if (saved?.snapshot && initialInput === null) return { flow: editing(savedDraft, savedStep), handOff: saved.snapshot };
+  if (saved?.snapshot && initialInput === null && (plan !== null || !hasAnswers(savedDraft))) {
+    return { flow: editing(savedDraft, savedStep), handOff: saved.snapshot };
+  }
   if (initialInput !== null) {
     const seeded = draftOf(initialInput);
-    const newer = hasAnswers(savedDraft) && !sameAnswers(savedDraft, seeded);
+    // F1 saves the plan together with the draft of that moment, so only a draft saved beside this plan can be newer.
+    const withThisPlan = saved?.snapshot ? sameAnswers(draftOf(saved.snapshot.input), seeded) : false;
+    const newer = withThisPlan && hasAnswers(savedDraft) && !sameAnswers(savedDraft, seeded);
     return { flow: newer ? editing(savedDraft, savedStep, true) : editing(seeded, 1), handOff: null };
   }
   return { flow: hasAnswers(savedDraft) ? editing(savedDraft, savedStep) : editing({}, 1), handOff: null };
