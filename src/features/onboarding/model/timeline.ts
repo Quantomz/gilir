@@ -220,10 +220,11 @@ export function monthBands(coverage: Coverage): readonly { readonly span: Span; 
 }
 
 /**
- * The day under a pointer on a lane track. Day d sits at left + d / days * width, so this is the nearest day,
- * clamped to [0, days - 1]. The track excludes the two handle insets, because each handle sits outside its bar end,
- * so a drag subtracts its grab offset from clientX before asking.
+ * The day a drag asks for: the day it started on, plus the pointer's travel in whole days of the lane track. The
+ * track excludes the two handle insets, because each handle sits outside its bar end. Not clamped, so a bar a restored
+ * draft left outside the window moves with the pointer instead of jumping to the edge. stepEntry decides how far it
+ * may go.
  */
-export function dayAtPointer(clientX: number, track: { readonly left: number; readonly width: number }, days: number): number {
-  return Math.min(days - 1, Math.max(0, Math.round(((clientX - track.left) / track.width) * days)));
+export function dragDay(fromDay: number, travelPx: number, trackWidthPx: number, days: number): number {
+  return trackWidthPx > 0 ? fromDay + Math.round((travelPx / trackWidthPx) * days) : fromDay;
 }

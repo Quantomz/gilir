@@ -8,7 +8,7 @@ import type { PageIssue } from "./check";
 import { addDays, formatDay } from "./dates";
 import type { DatesProblem, Draft, EditNote } from "./draft";
 import type { Progress, Step } from "./flow";
-import type { CropEntry, Entry } from "./timeline";
+import type { CropEntry, Entry, Stop } from "./timeline";
 
 export const appName = "Gilir";
 
@@ -74,24 +74,29 @@ export const rotation = {
   dateHint: "The first day you can plant. Your plan covers one year from that day.",
   needDate: "Choose the date your field is ready first.",
   pastDate: "This date has passed. Is the year right?",
-  window: (first: string, last: string) => `Your plan covers ${first} to ${last}`,
+  /** "Your plan covers {first} to {last}", each date in bold. */
+  window: { lead: "Your plan covers", to: "to" },
   historyTitle: "What grew on this field in the 12 months before that?",
   historyHelp: (first: string, last: string) =>
     `From ${first} to ${last}. Add each crop, then drag the ends of its bar or tap Change dates. Times you leave as Not sure stay unknown. If you don’t know any of it, tap I don’t remember.`,
   waitForDate: "The timeline appears after you choose the date your field is ready.",
   emptyAllYear: "Your field was empty for all 12 months.",
-  skipped: "That’s fine. We make your plan without last year.",
+  skipped: { lead: "That’s fine.", rest: "We make your plan without last year." },
   showAgain: "Show last year’s entries again",
   addInstead: "Add last year’s crops instead",
-  noBars: "No crops yet. Tap Add a crop for each crop that grew here, in order.",
+  noBars: { before: "No crops yet. Tap", after: "for each crop that grew here, in order." },
   addCrop: "Add a crop",
   changeDates: "Change dates",
+  changeDatesFor: (crop: string) => `for ${crop.toLocaleLowerCase()}`,
+  lanes: "Crops in those 12 months",
   notOnList: "Not on our list: shown, but not scored",
   bar: (planted: string, harvested: string) => `Planted ${planted}, harvested ${harvested}`,
   about: (date: string, approximate: boolean) => (approximate ? `about ${date}` : date),
   spotsTitle: "Not sure and empty times",
   unsure: "Not sure",
   wholeYear: "The whole 12 months",
+  spotLine: (range: string, days: number) => `${range} · ${dayWord(days)}`,
+  spotFor: (range: string) => `: ${range}`,
   empty: "Empty",
   markEmpty: "The field was empty then",
   markUnsure: "Mark as not sure",
@@ -137,7 +142,7 @@ export const sheets = {
   approximateHint: "Leave this on unless you know the exact days.",
   length: (days: number) => `${dayWord(days)} in the field.`,
   save: "Save dates",
-  remove: (crop: string) => `Remove ${crop}`,
+  remove: (crop: string) => `Remove ${crop.toLocaleLowerCase()}`,
   gapTitle: (range: string) => `Not sure: ${range}`,
   gapBody: (days: number) => `${dayWord(days)}. If you don’t know, leave it as Not sure: it stays unknown and is not counted as empty.`,
   cropGrew: "A crop grew then",
@@ -300,8 +305,14 @@ export function noteWords(note: EditNote, names: CropNames): { readonly text: st
   }
 }
 
+/** What the status line says when a drag ends: why it stopped short, if it did, then the bar's dates. */
+export function dropWords(entry: Entry, stop: Stop | null, names: CropNames): string {
+  const dates = `${names.entry(entry)}: ${entryWords(entry)}.`;
+  return stop === null ? dates : `${stopWords(stop, entry, names)} ${dates}`;
+}
+
 /** Why a bar stopped moving, for the polite status line. */
-export function stopWords(stop: NonNullable<Extract<EditNote, { kind: "stepped" }>["stop"]>, entry: Entry, names: CropNames): string {
+export function stopWords(stop: Stop, entry: Entry, names: CropNames): string {
   const name = names.entry(entry);
   if (stop.kind === "edge") return `${name} stays inside the 12 months shown.`;
   if (stop.kind === "short") return `${name} needs at least one day in the field.`;

@@ -237,7 +237,7 @@ describe("classify: paths decide pages and words, never message text", () => {
 });
 
 describe("live entry issues", () => {
-  it("liveEntryIssues flags exactly the bars farmInputSchema calls outside or inverted, by id, before Make my plan", () => {
+  it("[I4] liveEntryIssues flags exactly the bars farmInputSchema flags on history.entries.i, by id and kind, before Make my plan", () => {
     const layouts: readonly (readonly Entry[])[] = [
       [crop("a", -5, 10)],
       [crop("a", 300, 365)],
@@ -245,15 +245,22 @@ describe("live entry issues", () => {
       [crop("a", 50, 40)],
       [crop("a", 10, 20), crop("b", 21, 30)],
       [crop("a", 10, 20), crop("b", 20, 30)],
+      [crop("a", 10, 20), fallow("b", 21, 30), crop("c", 30, 40)],
+      [fallow("a", 10, 20), crop("b", 19, 30)],
+      [crop("a", 10, 100), crop("b", 20, 30), crop("c", 40, 50)],
+      [crop("a", 10, 20), crop("b", 15, 400)],
     ];
     for (const entries of layouts) {
       const draft = withEntries(entries);
       const contract = farmInputSchema.safeParse({ schemaVersion: 1, ...draft });
-      const flagged = contract.success ? [] : contract.error.issues.map(issue => issue.path[2]);
-      const geometry = flagged.filter(index => typeof index === "number" && classify({ path: ["history", "entries", index], message: "" }, draft).kind === "entry_outside");
-      expect([...liveEntryIssues(draft).keys()], JSON.stringify(entries)).toEqual(geometry.map(index => entries[Number(index)].id));
+      const flagged = contract.success ? [] : contract.error.issues.flatMap(issue => (issue.path.length === 3 && typeof issue.path[2] === "number" ? [issue.path[2]] : []));
+      const expected = [...new Set(flagged)].sort((p, q) => p - q).map(index => {
+        const issue = classify({ path: ["history", "entries", index], message: "" }, draft);
+        return [issue.entryId, issue.kind];
+      });
+      expect(liveEntryIssues(draft).map(issue => [issue.entryId, issue.kind]), JSON.stringify(entries)).toEqual(expected);
     }
-    expect(liveEntryIssues({})).toEqual(new Map());
+    expect(liveEntryIssues({})).toEqual([]);
   });
 });
 

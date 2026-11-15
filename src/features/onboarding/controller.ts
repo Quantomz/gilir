@@ -7,11 +7,14 @@ import type { CompletedSnapshot, JobCapability, Submission } from "@/contracts";
 import type { OnboardingProps } from "../ports";
 import { checkDraft } from "./model/check";
 import type { PageIssue } from "./model/check";
+import { recordedEntries, windowOf } from "./model/draft";
 import type { DraftEdit, EditNote } from "./model/draft";
 import { activeJobOf, backOf, domIdOf, issuesFor, openingFlow, persistedOf, readyCatalogue, update } from "./model/flow";
 import type { FocusTarget, Flow, Msg, Notices, Sheet, Step } from "./model/flow";
 import { policy } from "./model/policy";
-import { making, namesFrom, noteWords, shell } from "./model/words";
+import { stepEntry } from "./model/timeline";
+import type { End } from "./model/timeline";
+import { dropWords, making, namesFrom, noteWords, shell } from "./model/words";
 import type { CropNames } from "./model/words";
 import { failureOf, unreachable, watchJob, withTimeout } from "./services/job";
 import type { JobEvent } from "./services/job";
@@ -54,8 +57,8 @@ export interface Controller {
   undo(): void;
   dismissToast(): void;
   dismissNotice(notice: keyof Notices): void;
-  /** For a drag that ended: say the bar's new dates or why it stopped. */
-  announce(text: string): void;
+  /** A drag that ended on `targetDay`: says why the bar stopped short, if it did, then its dates. */
+  dropped(entryId: string, end: End, targetDay: number): void;
 }
 
 interface State {
@@ -66,13 +69,14 @@ interface State {
   readonly toast: Toast | null;
 }
 
-type Action = Msg | { readonly kind: "toastGone" } | { readonly kind: "say"; readonly text: string };
+type Drop = { readonly kind: "dropped"; readonly entryId: string; readonly end: End; readonly targetDay: number };
+type Action = Msg | Drop | { readonly kind: "toastGone" };
 
 const opening: State = { flow: openingFlow, outbox: { seq: 0, focus: null, handOff: null }, said: "", toast: null };
 
 function reduce(state: State, action: Action): State {
   if (action.kind === "toastGone") return state.toast === null ? state : { ...state, toast: null };
-  if (action.kind === "say") return { ...state, said: action.text };
+  if (action.kind === "dropped") return { ...state, said: droppedSaid(state.flow, action) ?? state.said };
   const next = update(state.flow, action);
   if (next.flow === state.flow && next.focus === null && next.handOff === null && next.note.kind === "none") return state;
   const seq = state.outbox.seq + 1;
@@ -90,6 +94,17 @@ function makingSaid(before: Flow, after: Flow): string | null {
   const was = before.mode.kind === "making" ? before.mode.job : null;
   if (was !== null && was.progress === job.progress && was.reachable === job.reachable) return null;
   return job.reachable ? making.announce(job.progress) : making.reaching;
+}
+
+/** Read from the flow the reducer holds, because a view's closure can be one pointer event behind. */
+function droppedSaid(flow: Flow, drop: Drop): string | null {
+  const draft = flow.editor.draft;
+  const coverage = windowOf(draft);
+  const entries = recordedEntries(draft);
+  const entry = entries.find(other => other.id === drop.entryId);
+  if (coverage === null || entry === undefined) return null;
+  const { stop } = stepEntry(entries, entry.id, drop.end, drop.targetDay, coverage);
+  return dropWords(entry, stop, namesFrom(readyCatalogue(flow.catalogue), draft));
 }
 
 function undoOf(note: EditNote): DraftEdit | null {
@@ -278,7 +293,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     },
     dismissToast: () => dispatch({ kind: "toastGone" }),
     dismissNotice: notice => dispatch({ kind: "dismiss", notice }),
-    announce: text => dispatch({ kind: "say", text }),
+    dropped: (entryId, end, targetDay) => dispatch({ kind: "dropped", entryId, end, targetDay }),
   };
 }
 

@@ -11,7 +11,7 @@ import type { Catalogue, CropPurposeId, FarmInput, InputIssue } from "@/contract
 import { windowOf } from "./draft";
 import type { Draft } from "./draft";
 import type { Step } from "./flow";
-import { placementOf } from "./timeline";
+import { placementOf, spanOf } from "./timeline";
 
 export type IssueKind =
   | "field_missing"     // page 1, no field yet
@@ -164,9 +164,9 @@ export function stillPinned(issue: PinnedIssue, draft: Draft): boolean {
   return pinOf(issue, draft) === issue.pinnedTo;
 }
 
-/** Issues a lane shows at once, without waiting for Make my plan: outside or inverted bars (geometry only). */
-export function liveEntryIssues(draft: Draft): ReadonlyMap<string, "entry_outside"> {
-  return new Map(liveIssues(draft).flatMap(issue => (issue.entryId === null ? [] : [[issue.entryId, "entry_outside"] as const])));
+/** Issues a lane shows at once, without waiting for Make my plan: bars outside, inverted or overlapping. */
+export function liveEntryIssues(draft: Draft): readonly PageIssue[] {
+  return liveIssues(draft);
 }
 
 /** Lowest page first (summary-only issues last), then path order, so "Fix these first" and the first focus are stable. */
@@ -215,14 +215,21 @@ function membershipIssues(draft: Draft, catalogue: Catalogue | null): PageIssue[
     listed.has(id) ? [] : [{ kind: "crop_not_listed", page: 2, path: ["cropPurposeIds", i], entryId: null, cropId: id } as const]);
 }
 
+/**
+ * Entries are kept in start order (draft invariant I2), the order farmInputSchema compares them in, and like the schema
+ * an overlap is judged against the entry just before. With half-open spans its rule is one test: a.start < before.end.
+ */
 function liveIssues(draft: Draft): PageIssue[] {
   const window = windowOf(draft);
   if (window === null || draft.history?.kind !== "recorded") return [];
-  return draft.history.entries.flatMap((entry, i) => {
+  const entries = draft.history.entries;
+  return entries.flatMap((entry, i) => {
     const placed = placementOf(entry, window);
-    return placed.outside || placed.inverted
-      ? [{ kind: "entry_outside", page: 4, path: ["history", "entries", i], entryId: entry.id, cropId: null } as const]
-      : [];
+    const before = entries[i - 1];
+    const kind: IssueKind | null = placed.outside || placed.inverted ? "entry_outside"
+      : before !== undefined && spanOf(entry, window).a < spanOf(before, window).b ? "entry_overlap"
+      : null;
+    return kind === null ? [] : [{ kind, page: 4, path: ["history", "entries", i], entryId: entry.id, cropId: null } as const];
   });
 }
 

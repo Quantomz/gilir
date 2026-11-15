@@ -75,7 +75,7 @@ function OpenSheet(props: { readonly c: Controller }): ReactElement | null {
     case "add":
       return <AddSheet c={c} within={sheet.within} />;
     case "dates":
-      return <DatesSheet c={c} entryId={sheet.entryId} end={sheet.end} returnTo={domIdOf(sheet.returnTo)} />;
+      return <DatesSheet key={`${sheet.entryId} ${sheet.end}`} c={c} entryId={sheet.entryId} end={sheet.end} returnTo={domIdOf(sheet.returnTo)} />;
     case "gap":
       return <GapSheet c={c} gap={sheet.gap} />;
     case "empty":

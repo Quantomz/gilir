@@ -290,7 +290,7 @@
   .ly-seg-empty, .spot-empty { background: var(--raised); box-shadow: inset 0 0 0 2px var(--line-strong); }
   .ly-seg-empty b { background: transparent; color: var(--ink-2); }
   .ly-seg-crop { top: .3rem; bottom: .3rem; border-radius: 8px; background: var(--leaf); box-shadow: inset 0 0 0 2px rgba(20, 33, 22, .6); }
-  .ly-seg-other, .ly-bar-other { background: repeating-linear-gradient(45deg, var(--other-a) 0 8px, var(--other-b) 8px 16px); }
+  .ly-seg-other, .ly-bar.ly-bar-other { background: repeating-linear-gradient(45deg, var(--other-a) 0 8px, var(--other-b) 8px 16px); }
   /* lanes: one crop each */
   .ly-rows { display: grid; gap: var(--s4); }
   .ly-row { display: grid; gap: .45rem; padding-bottom: var(--s4); border-bottom: 1px solid var(--line); }
@@ -318,6 +318,9 @@
   .ly-bar:active { cursor: grabbing; }
   .ly-cut-l { border-top-left-radius: 0; border-bottom-left-radius: 0; }
   .ly-cut-r { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .ly-bar-art { display: grid; place-items: center; flex: none; width: 1.7rem; height: 1.7rem; margin-left: .25rem; border-radius: 50%; background: var(--raised); color: var(--leaf-text); line-height: 0; }
+  .ly-bar-art svg { width: 1.4rem; height: 1.4rem; }
+  .ly-seg .ly-bar-art { margin: 0; }
   .ly-h { position: absolute; top: 0; bottom: 0; z-index: 2; width: 48px; cursor: ew-resize; touch-action: none; border-radius: 12px; }
   .ly-h-plant { transform: translateX(-100%); }
   .ly-h i {
@@ -426,7 +429,8 @@
   .mk-track { fill: none; stroke: var(--line); stroke-width: 4; }
   .mk-bar { fill: none; stroke: var(--ring); stroke-width: 4; stroke-linecap: round; }
   .mk-mark { position: absolute; inset: 1.1rem; display: grid; place-items: center; border-radius: 50%; background: var(--raised); box-shadow: var(--shadow-pop), var(--card-edge); }
-  .mk-mark svg { width: 46%; height: 46%; }
+  .mk-mark .i { width: 46%; height: 46%; }
+  .mk-mark svg { width: 100%; height: 100%; }
   .track { display: grid; gap: var(--s4); }
   .tasks { display: grid; gap: 0; }
   .task { position: relative; display: grid; grid-template-columns: 2.4rem minmax(0, 1fr); gap: var(--s3); align-items: start; padding-bottom: 1rem; color: var(--ink-2); }

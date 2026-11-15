@@ -7,7 +7,7 @@ import { addDays, daysBetween } from "@/features/onboarding/model/dates";
 import { policy } from "@/features/onboarding/model/policy";
 import {
   coverageFor,
-  dayAtPointer,
+  dragDay,
   gapsOf,
   isEmptyAllYear,
   monthBands,
@@ -315,13 +315,13 @@ describe("month bands", () => {
 });
 
 describe("pointer to day", () => {
-  it("[H4] dayAtPointer maps the track's left edge to day 0, its right edge to day N - 1, and clamps outside the track", () => {
-    const track = { left: 100, width: 730 };
-    expect(dayAtPointer(100, track, 365)).toBe(0);
-    expect(dayAtPointer(100 + 2 * 10, track, 365)).toBe(10);
-    expect(dayAtPointer(830, track, 365)).toBe(364);
-    expect(dayAtPointer(40, track, 365)).toBe(0);
-    expect(dayAtPointer(2000, track, 365)).toBe(364);
+  it("[H4] dragDay moves by the pointer's travel in whole days of the track, both ways, and does not clamp", () => {
+    expect(dragDay(100, 0, 730, 365)).toBe(100);
+    expect(dragDay(100, 20, 730, 365)).toBe(110);
+    expect(dragDay(100, -22, 730, 365)).toBe(89);
+    expect(dragDay(-5, 4, 730, 365)).toBe(-3);
+    expect(dragDay(300, 730, 730, 365)).toBe(665);
+    expect(dragDay(40, 50, 0, 365)).toBe(40);
   });
 
   it("nextEntryId gives crop-N and empty-N one above the largest N in use, with no crypto.randomUUID", () => {
