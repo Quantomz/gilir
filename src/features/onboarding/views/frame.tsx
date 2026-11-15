@@ -14,11 +14,12 @@ import { policy } from "../model/policy";
 import { appName, notices as noticeWords, sheets, shell, stepCount, stepNames, titles } from "../model/words";
 import { applyReading, canSpeak, readReading, speak, stopSpeaking, textSizes } from "../services/reading";
 import type { ReadingPrefs, TextSize } from "../services/reading";
+import { setAsideNotice } from "../services/saved";
 import { Icon, Mark } from "./icons";
 
 /**
- * Public. The frame page.tsx wraps F3's Results in. No Back: Results offers Change inputs itself, and the phone's Back
- * leaves.
+ * Public. The frame page.tsx wraps F3's Results in, with the set-aside notice above it. No Back: Results offers Change
+ * inputs itself, and the phone's Back leaves.
  */
 export function AppFrame(props: { readonly children: ReactNode; readonly focusOnMount?: boolean }): ReactElement {
   const main = useRef<HTMLElement>(null);
@@ -33,12 +34,15 @@ export function AppFrame(props: { readonly children: ReactNode; readonly focusOn
     if (document.activeElement === document.body) document.getElementById(titleId)?.focus();
   }, []);
   return (
-    <div className="view">
-      <TopBar onBack={null} />
-      <main id="main" ref={main} className="page step-main" tabIndex={-1}>
-        {props.children}
-      </main>
-    </div>
+    <>
+      <SetAsideBar />
+      <div className="view">
+        <TopBar onBack={null} />
+        <main id="main" ref={main} className="page step-main" tabIndex={-1}>
+          {props.children}
+        </main>
+      </div>
+    </>
   );
 }
 
@@ -319,14 +323,15 @@ export function ToastBar(props: { readonly text: string; readonly onUndo: (() =>
 }
 
 /**
- * The quiet lines above the top bar. Storage not saving and kept newer answers each have Got it. The offline line
- * follows the browser's online and offline events and goes away by itself. None of them blocks input.
+ * The quiet lines above the top bar. Saved data set aside, storage not saving and kept newer answers each have Got it.
+ * The offline line follows the browser's online and offline events and goes away by itself. None of them blocks input.
  */
 export function StatusBars(props: { readonly notices: Notices; readonly onDismiss: (notice: keyof Notices) => void }): ReactElement {
   const offline = useSyncExternalStore(subscribeToConnection, () => !navigator.onLine, () => false);
+  const storageFailing = props.notices.storageFailing;
   function gotIt(notice: keyof Notices): void {
     props.onDismiss(notice);
-    (document.getElementById(titleId) ?? document.getElementById("main"))?.focus();
+    focusTitle();
   }
   return (
     <>
@@ -336,10 +341,31 @@ export function StatusBars(props: { readonly notices: Notices; readonly onDismis
           {noticeWords.offline}
         </div>
       ) : null}
-      {props.notices.storageFailing ? <NoticeBar text={noticeWords.notSaving} onGotIt={() => gotIt("storageFailing")} /> : null}
+      <SetAsideBar />
+      {storageFailing !== null ? <NoticeBar text={noticeWords.notSaving(storageFailing)} onGotIt={() => gotIt("storageFailing")} /> : null}
       {props.notices.keptNewer ? <NoticeBar text={noticeWords.keptNewer} onGotIt={() => gotIt("keptNewer")} /> : null}
     </>
   );
+}
+
+/** F4's words for saved data this version left out. Shown above every screen, so also on Results, until Got it. */
+function SetAsideBar(): ReactElement | null {
+  const notice = useSyncExternalStore(setAsideNotice.subscribe, setAsideNotice.current, () => null);
+  if (notice === null) return null;
+  return (
+    <NoticeBar
+      text={notice.text}
+      onGotIt={() => {
+        setAsideNotice.dismiss();
+        focusTitle();
+      }}
+    />
+  );
+}
+
+/** Got it removes its own line, so focus goes to the screen's title, or to main where a screen has none. */
+function focusTitle(): void {
+  (document.getElementById(titleId) ?? document.getElementById("main"))?.focus();
 }
 
 function NoticeBar(props: { readonly text: string; readonly onGotIt: () => void }): ReactElement {

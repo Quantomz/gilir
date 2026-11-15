@@ -62,7 +62,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
     const { client } = setUp(memoryPlans(null, "throws"));
     render(<Page />);
     await title("Where is your farm?");
-    expect(await screen.findByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeTruthy();
+    expect(await screen.findByText("This browser isn’t letting Gilir open or save your answers on this device. Your answers stay while this page is open.")).toBeTruthy();
     await fillFourPages({ water: "Rain only", start: "2027-03-01", history: "skip" });
     await userEvent.click(screen.getByRole("button", { name: "Make my plan" }));
     expect(await screen.findByRole("heading", { name: "Plan synthetic-plan" })).toBeTruthy();
@@ -82,7 +82,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
     await act(() => new Promise(resolve => setTimeout(resolve, 400)));
     expect(loads).toBeGreaterThan(1);
     expect(inner.latest()).toEqual(stored);
-    expect(screen.getByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeTruthy();
+    expect(screen.getByText("This browser isn’t letting Gilir open or save your answers on this device. Your answers stay while this page is open.")).toBeTruthy();
   });
 
   it("[B2] a load that fails once at open is tried again: the saved draft opens at its page", async () => {
@@ -91,7 +91,7 @@ describe("what opens: no landing page, no sign in, no sign up", () => {
     setUp({ ...inner, load: () => (++loads === 1 ? Promise.reject(new Error("Storage is busy.")) : inner.load()) });
     render(<Page />);
     await title("Where does your water come from?");
-    expect(screen.queryByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeNull();
+    expect(screen.queryByText("This browser isn’t letting Gilir open or save your answers on this device. Your answers stay while this page is open.")).toBeNull();
   });
 
   it("while load is pending the page shows Opening Gilir… and no question", async () => {

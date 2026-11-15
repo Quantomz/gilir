@@ -10,13 +10,14 @@
 //  - After an open that failed, the flow started empty without seeing what is stored. Writes stay skipped while the
 //    store holds a draft or a running job, so a passing failure never erases answers or a job F1 did not show.
 //  - Writes run one at a time and coalesce: at most one save in flight, the newest patch wins.
+//  - A failure reports F4's words for its reason. A write skipped after a failed open repeats the open's reason.
 // Nothing here rejects, so no caller needs try/catch around storage.
-import { localPlans } from "@/client/storage";
-import type { LocalPlans, LocalState } from "@/client/storage";
+import { localPlans, readStorageNotice, storageProblem } from "@/client/storage";
+import type { LocalPlans, LocalState, StorageNotice } from "@/client/storage";
 import type { CompletedSnapshot } from "@/contracts";
+import type { StorageHealth } from "../model/flow";
 import { policy } from "../model/policy";
 
-export type StorageHealth = "working" | "failing";
 export type SavedPatch = Partial<Pick<LocalState, "draft" | "step" | "activeJob">>;
 
 /** How a finished job was stored. `written` gates client.remove. */
@@ -36,7 +37,7 @@ export interface SavedPlans {
   finish(snapshot: CompletedSnapshot): Promise<Finished>;
   /** Write anything queued. Called on pagehide, when the tab is hidden, and on unmount. Safe to call twice. */
   flush(): Promise<void>;
-  /** Called after every settled storage call. The flow shows one quiet notice once health turns "failing". */
+  /** Called after every settled storage call. The flow shows one quiet notice with the first failure's words. */
   onHealth(listener: (health: StorageHealth) => void): () => void;
 }
 
@@ -45,7 +46,8 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
   let queue: Promise<void> = Promise.resolve();
   let timer: ReturnType<typeof setTimeout> | null = null;
   let opens = 0;
-  let unread = false;
+  /** Why the latest open could not read storage, or null once storage was read. */
+  let unread: string | null = null;
   const listeners = new Set<(health: StorageHealth) => void>();
   const report = (health: StorageHealth) => listeners.forEach(listener => listener(health));
 
@@ -71,15 +73,19 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
 
   async function saveOnce(): Promise<void> {
     if (pending === null) return;
-    const loaded = await port.load().then(state => ({ ok: true as const, state }), () => ({ ok: false as const }));
-    if (!loaded.ok || (unread && holdsF1State(loaded.state))) {
+    const loaded = await port.load().then(
+      state => ({ state, problem: null }),
+      (error: unknown) => ({ state: null, problem: problemOf(error) }),
+    );
+    const skipped = loaded.problem ?? (unread !== null && holdsF1State(loaded.state) ? unread : null);
+    if (skipped !== null) {
       const unsaved: Pending = pending;
       pending = { ...unsaved, waiters: [] };
-      report("failing");
+      report({ problem: skipped });
       unsaved.waiters.forEach(waiter => waiter({ kept: "new", written: false }));
       return;
     }
-    unread = false;
+    unread = null;
     const batch: Pending = pending;
     pending = null;
     const current = loaded.state ?? emptyLocalState;
@@ -87,9 +93,9 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
     const kept = batch.offer !== null && snapshot !== batch.offer ? "earlier" : "new";
     try {
       await port.save({ ...current, ...batch.patch, snapshot });
-    } catch {
+    } catch (error) {
       requeue(batch);
-      report("failing");
+      report({ problem: problemOf(error) });
       batch.waiters.forEach(waiter => waiter({ kept, written: false }));
       return;
     }
@@ -105,13 +111,15 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
       const load = (left: number): Promise<LocalState | null> => port.load().catch((error: unknown) => (retry(left) ? load(left - 1) : Promise.reject(error)));
       return load(policy.save.openAttempts).then(
         state => {
-          if (call === opens) unread = false;
+          if (call === opens) unread = null;
           report("working");
+          readSetAsideOnce();
           return state;
         },
-        () => {
-          if (call === opens) unread = true;
-          report("failing");
+        (error: unknown) => {
+          const problem = problemOf(error);
+          if (call === opens) unread = problem;
+          report({ problem });
           return null;
         },
       );
@@ -137,6 +145,43 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
       return () => listeners.delete(listener);
     },
   };
+}
+
+function problemOf(error: unknown): string {
+  return storageProblem(error).text;
+}
+
+/**
+ * Saved data F4 set aside and the farmer has not dismissed. Read once per page load, after the first open that read
+ * storage, because that load is what sets data aside. dismiss removes it for good; until then each visit shows it.
+ */
+export const setAsideNotice = {
+  subscribe(listener: () => void): () => void {
+    setAsideListeners.add(listener);
+    return () => setAsideListeners.delete(listener);
+  },
+  current(): StorageNotice | null {
+    return setAside;
+  },
+  dismiss(): void {
+    const shown = setAside;
+    setAside = null;
+    setAsideListeners.forEach(listener => listener());
+    void shown?.dismiss();
+  },
+};
+
+let setAside: StorageNotice | null = null;
+let setAsideRead = false;
+const setAsideListeners = new Set<() => void>();
+
+function readSetAsideOnce(): void {
+  if (setAsideRead) return;
+  setAsideRead = true;
+  void readStorageNotice().then(notice => {
+    setAside = notice;
+    setAsideListeners.forEach(listener => listener());
+  });
 }
 
 /** F1's fields waiting to be written, a finished job's snapshot, and the finish calls waiting on that write. */

@@ -56,8 +56,8 @@ export type CatalogueEntry = Catalogue["entries"][number];
 
 /** One quiet, dismissible line each. Never blocks input. */
 export interface Notices {
-  /** A load or save failed this visit. */
-  readonly storageFailing: boolean;
+  /** A load or save failed this visit: the farmer's words for why, from the first failure. */
+  readonly storageFailing: string | null;
   /** Change inputs found answers changed after that plan was made, and kept them. */
   readonly keptNewer: boolean;
 }
@@ -108,11 +108,14 @@ export interface Flow {
   readonly cropFilter: string;
 }
 
+/** After each storage call: it worked, or the farmer's words for why it failed (F4's storageProblem). */
+export type StorageHealth = "working" | { readonly problem: string };
+
 export type Msg =
   // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
   | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly shown: Shown | null; readonly focusTitle: boolean }
   | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean }
-  | { readonly kind: "storage"; readonly health: "working" | "failing" }
+  | { readonly kind: "storage"; readonly health: StorageHealth }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
   | { readonly kind: "edit"; readonly edit: DraftEdit }
   | { readonly kind: "filterCrops"; readonly text: string }                // "Find a crop" on page 2
@@ -148,7 +151,7 @@ export const openingFlow: Flow = {
   serverIssues: [],
   sheet: null,
   earlierPlan: null,
-  notices: { storageFailing: false, keptNewer: false },
+  notices: { storageFailing: null, keptNewer: false },
   dismissed: [],
   cropFilter: "",
 };
@@ -230,12 +233,13 @@ export function update(flow: Flow, msg: Msg): Update {
     }
 
     case "storage":
-      if (msg.health === "working" || flow.notices.storageFailing || flow.dismissed.includes("storageFailing")) return same;
-      return out({ ...flow, notices: { ...flow.notices, storageFailing: true } });
+      if (msg.health === "working" || flow.notices.storageFailing !== null || flow.dismissed.includes("storageFailing")) return same;
+      return out({ ...flow, notices: { ...flow.notices, storageFailing: msg.health.problem } });
 
     case "dismiss": {
       const dismissed = flow.dismissed.includes(msg.notice) ? flow.dismissed : [...flow.dismissed, msg.notice];
-      return out({ ...flow, notices: { ...flow.notices, [msg.notice]: false }, dismissed });
+      const notices: Notices = msg.notice === "storageFailing" ? { ...flow.notices, storageFailing: null } : { ...flow.notices, keptNewer: false };
+      return out({ ...flow, notices, dismissed });
     }
 
     case "filterCrops":

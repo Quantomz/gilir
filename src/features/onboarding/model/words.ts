@@ -197,8 +197,9 @@ export const failureWords: Record<ServiceFailure["code"], { readonly title: stri
 };
 
 export const notices = {
+  /** F4's words for why storage failed, then what it means for the answers on screen. */
+  notSaving: (problem: string) => `${problem} Your answers stay while this page is open.`,
   /** "kept", not "saved", because storage may not be saving. */
-  notSaving: "This browser isn’t saving your answers. They stay while this page is open.",
   keptNewer: "We kept the answers you changed after that plan was made.",
   offline: "You’re offline. Your answers stay on this page.",
   gotIt: "Got it",

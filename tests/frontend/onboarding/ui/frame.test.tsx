@@ -40,7 +40,7 @@ function page(step: 1 | 2 | 3 | 4, title: string, extra: { readonly onNext?: () 
   );
 }
 
-const quiet = { storageFailing: false, keptNewer: false } as const;
+const quiet = { storageFailing: null, keptNewer: false } as const;
 
 function htmlState() {
   return {
@@ -108,32 +108,32 @@ describe("frame", () => {
     expect(screen.getByRole("button", { name: "Back" })).toBeTruthy();
   });
 
-  it("[B3] a failing storage shows one quiet This browser isn’t saving your answers line (role status) with Got it; Next still works", async () => {
+  it("[B3] a failing storage shows one quiet line (role status) with F4's reason, that answers stay while the page is open, and Got it; Next still works", async () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
     const onNext = vi.fn();
-    const view = (storageFailing: boolean) => (
+    const view = (storageFailing: string | null) => (
       <>
         <StatusBars notices={{ storageFailing, keptNewer: false }} onDismiss={onDismiss} />
         {page(1, "Where is your farm?", { onNext })}
       </>
     );
-    const { rerender } = render(view(true));
-    const lines = screen.getAllByRole("status").filter(line => line.textContent?.includes("This browser isn’t saving your answers"));
-    expect(lines).toHaveLength(1);
+    const { rerender } = render(view("This device has no room left to save Gilir."));
+    const lines = screen.getAllByRole("status").filter(line => line.textContent?.includes("This device has no room left to save Gilir."));
+    expect(lines.map(line => line.textContent)).toEqual(["This device has no room left to save Gilir. Your answers stay while this page is open.Got it"]);
     await user.click(within(lines[0]!).getByRole("button", { name: "Got it" }));
     expect(onDismiss.mock.calls).toEqual([["storageFailing"]]);
     expect(document.activeElement?.id).toBe("main-title");
     await user.click(screen.getByRole("button", { name: "Next: crops" }));
     expect(onNext).toHaveBeenCalledTimes(1);
-    rerender(view(false));
-    expect(screen.queryByText(/isn’t saving your answers/)).toBeNull();
+    rerender(view(null));
+    expect(screen.queryByText(/no room left/)).toBeNull();
   });
 
   it("[C6] Change inputs over newer answers shows We kept the answers you changed after that plan was made.", async () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
-    render(<StatusBars notices={{ storageFailing: false, keptNewer: true }} onDismiss={onDismiss} />);
+    render(<StatusBars notices={{ storageFailing: null, keptNewer: true }} onDismiss={onDismiss} />);
     const line = screen.getByRole("status");
     expect(line.textContent).toContain("We kept the answers you changed after that plan was made.");
     await user.click(within(line).getByRole("button", { name: "Got it" }));

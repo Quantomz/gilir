@@ -1,18 +1,19 @@
 // Playwright, Chromium. Surface: "/" with the REAL HTTP client (src/client/planner.ts) on a stubbed network
 // (support/api.ts stubApi) and the development-only seed (support/api.ts seedInput), because the field picker slot
-// cannot emit a field yet and every storage call rejects. It is the only surface that can show a rejected
-// submission, a failed job, polling that moves, and a 404 on read.
+// cannot emit a field yet. It is the only surface that can show a rejected submission, a failed job, polling that
+// moves, and a 404 on read. Storage is F4's real IndexedDB, so the last block shows F4's storage words in Chromium.
 // Fixture evidence of F1 alone: the catalogue and the plan routes are stubs. Not live end-to-end evidence.
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { farmInputSchema } from "@/contracts";
 import type { ServiceFailure } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
-import { jobFixtures } from "@/fixtures/results";
+import { completedSnapshotFixture, jobFixtures } from "@/fixtures/results";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import { readCatalogue } from "@/registry";
 import { recordTitles, seedInput, stubApi, stubCapability, titlesSeen } from "./support/api";
 import type { ApiScript } from "./support/api";
+import { blockStorage, canFillDevice, fillDevice, readRaw, writeRaw } from "./support/idb";
 import { launchOptions } from "./support/launch";
 
 test.use({ launchOptions });
@@ -261,5 +262,97 @@ test.describe("journeys on / with stubbed /api routes", () => {
     await expect(page.getByRole("checkbox")).toHaveCount(0);
     await page.getByRole("button", { name: "Back" }).click();
     await expect(title(page, "Where is your farm?")).toBeVisible();
+  });
+});
+
+test.describe("[F4-D1] F4's storage words on / with the real IndexedDB", () => {
+  const quiet: ApiScript = { catalogue, submit: [{ kind: "accepted" }], reads: [jobFixtures.queued] };
+  const notices = (page: Page) => page.locator(".notice-bar");
+  const stay = "Your answers stay while this page is open.";
+  const ours = (state: object) => ({ format: "gilir.local-state", version: 1, state });
+  const { schemaVersion: _version, ...answers } = fixtureBody;
+  const snapshot = JSON.parse(JSON.stringify(completedSnapshotFixture));
+
+  async function settled(page: Page) {
+    await page.waitForTimeout(1_000);
+  }
+
+  test("a normal visit shows no notice line, and the answers are saved", async ({ page }) => {
+    await open(page, quiet);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect.poll(async () => ((await readRaw(page, "state")) as { state?: { step?: number } } | undefined)?.state?.step).toBe(2);
+    await settled(page);
+    await expect(notices(page)).toHaveCount(0);
+    expect(await readRaw(page, "set-aside")).toBeUndefined();
+  });
+
+  test("an old saved plan is set aside: the notice shows once, stays across pages, and Got it removes it for good", async ({ page }) => {
+    const words = "Your saved plan can’t be opened by this version of Gilir. Make the plan again to see it. Your answers are kept.";
+    await open(page, quiet, false);
+    await writeRaw(page, "state", ours({ draft: { water: "unsure" }, step: 3, activeJob: null, snapshot: { ...snapshot, schemaVersion: 1, result: "from an older Gilir" } }));
+    await page.reload();
+    await expect(title(page, "Where does your water come from?")).toBeVisible();
+    await expect(notices(page)).toHaveCount(1);
+    await expect(notices(page)).toHaveText(`${words}Got it`);
+    await expect(page.getByRole("radio", { name: "I’m not sure" })).toBeChecked();
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect(notices(page)).toHaveCount(1);
+
+    await notices(page).getByRole("button", { name: "Got it" }).click();
+    await expect(notices(page)).toHaveCount(0);
+    await expect(title(page, "Which crops do you want to grow?")).toBeFocused();
+    await expect.poll(() => readRaw(page, "set-aside")).toBeUndefined();
+
+    await page.reload();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await settled(page);
+    await expect(notices(page)).toHaveCount(0);
+  });
+
+  test("a saved plan whose job can't be followed opens Results with the notice above it; a reload without Got it shows it again", async ({ page }) => {
+    const words = "The plan that was being made can’t be followed any more. Make the plan again. Your answers are kept.";
+    await open(page, quiet, false);
+    await writeRaw(page, "state", ours({ draft: answers, step: 4, activeJob: { jobId: "not-a-job", token: "" }, snapshot }));
+    await page.reload();
+    await expect(resultsSlot(page)).toBeVisible();
+    await expect(notices(page)).toHaveText(`${words}Got it`);
+    await page.reload();
+    await expect(resultsSlot(page)).toBeVisible();
+    await expect(notices(page)).toHaveText(`${words}Got it`);
+    await notices(page).getByRole("button", { name: "Got it" }).click();
+    await expect(notices(page)).toHaveCount(0);
+    await expect(page.locator("#main")).toBeFocused();
+    await expect.poll(() => readRaw(page, "set-aside")).toBeUndefined();
+  });
+
+  test("blocked storage says this browser is not letting Gilir save, and the flow still works", async ({ page }) => {
+    await blockStorage(page);
+    await open(page, quiet);
+    await expect(notices(page)).toHaveText(`This browser isn’t letting Gilir open or save your answers on this device. ${stay}Got it`);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+  });
+
+  test("a full device says there is no room left, and the answers stay on screen", async ({ page }) => {
+    await canFillDevice(page);
+    await open(page, quiet);
+    await expect.poll(async () => ((await readRaw(page, "state")) as { state?: { step?: number } } | undefined)?.state?.step).toBe(1);
+    await fillDevice(page);
+    await expect(notices(page)).toHaveCount(0);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect(notices(page)).toHaveText(`This device has no room left to save Gilir. ${stay}Got it`);
+    expect(((await readRaw(page, "state")) as { state?: { step?: number } } | undefined)?.state?.step).toBe(1);
+    await expect(page.getByRole("checkbox", { name: "Synthetic crop" })).toBeChecked();
+  });
+
+  test("data from a newer Gilir says to close this page and open Gilir again", async ({ page }) => {
+    await open(page, quiet, false);
+    await writeRaw(page, "state", { format: "gilir.local-state", version: 2, state: {} });
+    await page.reload();
+    await expect(title(page, "Where is your farm?")).toBeVisible();
+    await expect(notices(page)).toHaveText(`Gilir has a newer version. Close this page and open Gilir again to see what you saved. ${stay}Got it`);
   });
 });

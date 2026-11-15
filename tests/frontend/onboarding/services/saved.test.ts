@@ -5,7 +5,6 @@ import { parseIsoDate } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
 import { completedSnapshotFixture, completedSnapshotsByState } from "@/fixtures/results";
 import { createSavedPlans, keepSnapshot } from "@/features/onboarding/services/saved";
-import type { StorageHealth } from "@/features/onboarding/services/saved";
 import { capability, memoryPlans } from "../support/harness";
 import type { MemoryPlans } from "../support/harness";
 
@@ -17,11 +16,25 @@ const plan = completedSnapshotFixture;
 const serviceError = completedSnapshotsByState.service_error;
 const state = (extra: Partial<LocalState>): LocalState => ({ draft: null, step: 1, activeJob: null, snapshot: null, ...extra });
 
-function healthOf(saved: ReturnType<typeof createSavedPlans>): StorageHealth[] {
-  const seen: StorageHealth[] = [];
-  saved.onHealth(health => seen.push(health));
+function healthOf(saved: ReturnType<typeof createSavedPlans>): ("working" | "failing")[] {
+  const seen: ("working" | "failing")[] = [];
+  saved.onHealth(health => seen.push(health === "working" ? "working" : "failing"));
   return seen;
 }
+
+function problemsOf(saved: ReturnType<typeof createSavedPlans>): string[] {
+  const seen: string[] = [];
+  saved.onHealth(health => {
+    if (health !== "working") seen.push(health.problem);
+  });
+  return seen;
+}
+
+const words = {
+  unavailable: "This browser isn’t letting Gilir open or save your answers on this device.",
+  full: "This device has no room left to save Gilir.",
+  newer: "Gilir has a newer version. Close this page and open Gilir again to see what you saved.",
+};
 
 /** A port whose next calls fail while `failing` says so, over a working memory store. */
 function flaky(plans: MemoryPlans, failing: { load: boolean; save: boolean }): LocalPlans {
@@ -283,5 +296,44 @@ describe("finish", () => {
     failing.save = false;
     await saved.flush();
     expect(plans.latest()).toEqual(state({ step: 4, snapshot: plan }));
+  });
+});
+
+describe("[F4-D1] storage words", () => {
+  it("each failure reports F4's words for its reason: a blocked load, a newer Gilir's data, a full device on save", async () => {
+    const blocked = createSavedPlans(memoryPlans(null, "throws"));
+    const blockedWords = problemsOf(blocked);
+    await blocked.open();
+    expect(blockedWords).toEqual([words.unavailable]);
+
+    const newer = createSavedPlans(memoryPlans(null, "newer"));
+    const newerWords = problemsOf(newer);
+    await newer.open();
+    expect(newerWords).toEqual([words.newer]);
+
+    const plans = memoryPlans(state({ draft: { water: "unsure" } }), "full");
+    const full = createSavedPlans(plans);
+    const fullWords = problemsOf(full);
+    await full.open();
+    full.write({ step: 3 }, "now");
+    await full.flush();
+    expect(fullWords.length).toBeGreaterThan(0);
+    expect(new Set(fullWords)).toEqual(new Set([words.full]));
+    expect(plans.latest()).toEqual(state({ draft: { water: "unsure" } }));
+  });
+
+  it("a write skipped because the open could not read storage repeats the open's reason, and writes nothing", async () => {
+    const stored = state({ draft: { water: "unsure" }, step: 3 });
+    const plans = memoryPlans(stored);
+    let failing = true;
+    const saved = createSavedPlans({ ...plans, load: () => (failing ? Promise.reject(new DOMException("", "VersionError")) : plans.load()) });
+    const seen = problemsOf(saved);
+    await expect(saved.open()).resolves.toBeNull();
+    failing = false;
+    saved.write({ step: 2 }, "now");
+    await saved.flush();
+    expect(seen.length).toBeGreaterThan(1);
+    expect(new Set(seen)).toEqual(new Set([words.newer]));
+    expect(plans.latest()).toBe(stored);
   });
 });

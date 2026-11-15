@@ -170,9 +170,9 @@ describe("update", () => {
   });
 
   it("opened keeps a storage failure and a crop list that arrived while opening", () => {
-    const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" }, retried: false });
+    const early = run(openingFlow, { kind: "storage", health: { problem: "No room." } }, { kind: "catalogue", state: { status: "loading" }, retried: false });
     const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null, shown: null, focusTitle: false });
-    expect(opened.flow.notices.storageFailing).toBe(true);
+    expect(opened.flow.notices.storageFailing).toBe("No room.");
     expect(opened.flow.catalogue).toEqual({ status: "loading" });
     expect(opened.focus).toBeNull();
   });
@@ -309,13 +309,14 @@ describe("update", () => {
     expect(ready.flow.catalogue).toEqual({ status: "ready", catalogue });
   });
 
-  it("[B3] storage failing sets notices.storageFailing; dismiss clears it and a later failure does not bring it back this visit", () => {
-    const failing = update(editingAt(1), { kind: "storage", health: "failing" });
-    expect(failing.flow.notices.storageFailing).toBe(true);
+  it("[B3] storage failing sets notices.storageFailing to the first failure's words; dismiss clears it and a later failure does not bring it back this visit", () => {
+    const failing = update(editingAt(1), { kind: "storage", health: { problem: "No room." } });
+    expect(failing.flow.notices.storageFailing).toBe("No room.");
     expect(update(failing.flow, { kind: "storage", health: "working" }).flow).toBe(failing.flow);
+    expect(update(failing.flow, { kind: "storage", health: { problem: "Blocked." } }).flow).toBe(failing.flow);
     const dismissed = update(failing.flow, { kind: "dismiss", notice: "storageFailing" });
-    expect(dismissed.flow.notices.storageFailing).toBe(false);
-    expect(update(dismissed.flow, { kind: "storage", health: "failing" }).flow.notices.storageFailing).toBe(false);
+    expect(dismissed.flow.notices.storageFailing).toBeNull();
+    expect(update(dismissed.flow, { kind: "storage", health: { problem: "Blocked." } }).flow.notices.storageFailing).toBeNull();
   });
 
   it("an edit closes the sheet it finished, keeps a refused date sheet open, and says where focus goes", () => {
