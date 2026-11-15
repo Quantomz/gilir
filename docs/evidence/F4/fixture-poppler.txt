@@ -446,4 +446,242 @@ endorsed by NASA.
 
 Gilir status report · Made 1 Jul 2026                                                Page 2 of 2
 Synthetic test data only. Values are invented and are not farm advice.
+===== variant-frozenLabels.pdf
+--- pdfinfo variant-frozenLabels.pdf
+Title:           Gilir crop plan, made 1 Jul 2026
+Subject:         Your plan, with warnings
+Creator:         Gilir
+Producer:        Gilir
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          no
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           6
+Encrypted:       no
+Page size:       595.28 x 841.89 pts (A4)
+Page rot:        0
+File size:       8872 bytes
+Optimized:       no
+PDF version:     1.7
+--- pdffonts variant-frozenLabels.pdf
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+Helvetica                            Type 1            WinAnsi          no  no  no       3  0
+Helvetica-Bold                       Type 1            WinAnsi          no  no  no       4  0
+--- pdftotext -layout variant-frozenLabels.pdf -
+Gilir · A crop plan from past seasons
+
+Your plan, with warnings
+Synthetic example field
+Weather point 15.005° N, 100.005° E
+Made 1 Jul 2026 · Your year: 1 Jul 2026 to 30 Jun 2027
+Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats
+(grain) · Water: Rain only · Last year: 1 crop
+
+
+    Synthetic test data only. Values are invented and are not farm advice.
+
+
+    With warnings.
+    In past seasons, rain fell short of what the crops need in about 5 in 10 weeks
+    and temperatures went outside the limits for synthetic maize (grain) on about
+    20% of checked days in a bad year.
+
+
+
+
+What we flagged
+We flag a crop if, in any past season, even one week had less rain than it needs,
+or a temperature outside its limits. The check is strict, so most plans have
+warnings.
+•     Rain fell short of what synthetic bean (dry grain) needs in past seasons
+      Synthetic rainfall warning for the first crop.
+•     Temperatures went outside the limits for synthetic maize (grain)
+      Synthetic heat warning for the second crop.
+A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It
+shows where past seasons fell short, so you know what to watch.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                         Page 1 of 6
+Synthetic test data only. Values are invented and are not farm advice.
+When to plant and harvest
+Jul     Aug      Sept    Oct      Nov     Dec    Jan    Feb   Mar        Apr   May     Jun
+
+           1              2           3                 5                      6
+
+                                                 4
+2026                                             2027
+
+       A crop, numbered as in the list below
+       After harvest, before the field is free
+       No planned crop
+
+1. Synthetic bean (dry grain)
+   Plant 1 Jul 2026 · Harvest 28 Sept 2026
+   90 days in the field. The field is free again on 6 Oct 2026.
+2. No planned crop
+   29 Sept to 15 Oct 2026 · 17 days
+   The first 7 days are the time after the synthetic bean (dry grain) harvest,
+   before the field is free.
+3. Synthetic maize (grain)
+   Plant 16 Oct 2026 · Harvest 24 Dec 2026
+   70 days in the field. The field is free again on 1 Jan 2027.
+4. No planned crop
+   25 Dec 2026 to 5 Jan 2027 · 12 days
+   The first 7 days are the time after the synthetic maize (grain) harvest, before
+   the field is free.
+5. Synthetic oats (grain)
+   Plant 6 Jan 2027 · Harvest 6 Mar 2027
+   60 days in the field. The field is free again on 14 Mar 2027.
+6. No planned crop
+   7 Mar to 30 Jun 2027 · 116 days
+   The first 7 days are the time after the synthetic oats (grain) harvest, before
+   the field is free.
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 2 of 6
+Synthetic test data only. Values are invented and are not farm advice.
+Why this plan ranked first
+Plans are compared in one fixed order: water first, then days without a crop.
+1. How often rain fell below what the crops need
+   About 5 in 10 weeks
+   In past seasons, for the crop with the most short weeks each season. Lower
+   is better.
+2. How big the shortfall was
+   About 20%
+   The average share of the crops’ need that rain didn’t cover. Weeks with
+   enough rain count as 0%. Lower is better.
+3. Days without a planned crop
+   145 days
+   Of the 365 days in your year, counting the days after each harvest. Fewer is
+   better.
+4. Longest stretch without a planned crop
+   116 days
+   Days in a row without a planned crop. Shorter is better.
+Shown, but not used to rank
+•   In a bad year
+    About 30%
+    Of the crops’ need, rain didn’t cover this much in a bad year: 9 in 10 past
+    seasons had this much shortfall or less.
+•   Heat and cold
+    About 20% of checked days
+    Outside a crop’s temperature limits in a bad year: 9 in 10 past seasons had
+    this share or less.
+    Outside the limits in past seasons: synthetic maize (grain).
+    No checked day outside the limits for synthetic bean (dry grain).
+    Not assessed for synthetic oats (grain).
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                        Page 3 of 6
+Synthetic test data only. Values are invented and are not farm advice.
+Checked against 1 past season, Jul 2000. From past seasons, not a prediction. Checked with
+rain alone: backup water is not counted.
+
+
+
+Compared with last year
+The new plan ranked ahead of last year’s rotation.
+How they compare
+•   Weeks with less rain than the crops need
+    This plan: 50%
+    Last year’s rotation: 60%
+    Lower with this plan (better)
+•   Days without a planned crop
+    This plan: 145 days
+    Last year’s rotation: 157 days
+    12 days fewer with this plan (better)
+•   Crop families
+    This plan: 3
+    Last year’s rotation: 2
+    1 more with this plan
+•   Shortfall in a bad year
+    This plan: 30%
+    Last year’s rotation: Not available
+    Not compared: One or both comparison values are unavailable.
+•   Bean-family plantings
+    This plan: 1
+    Last year’s rotation: 1
+    The same
+Changes from last year
+Last year’s dates are moved forward to this year to compare them.
+
+•   Added: synthetic oats (grain), 6 Jan to 6 Mar 2027.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                              Page 4 of 6
+Synthetic test data only. Values are invented and are not farm advice.
+•   Not in the new plan: synthetic old crop, 1 Mar to 9 Apr 2027 in last year’s
+    rotation.
+•   Plant synthetic bean (dry grain) 7 days later: 1 Jul 2026 instead of 24 Jun
+    2026.
+•   Plant synthetic maize (grain) on the same day, 16 Oct 2026; harvest 24 Dec
+    2026 instead of 19 Dec 2026.
+•   Synthetic maize (grain) moves from first to second in the order.
+
+
+
+Get ready
+1. Example preparation text for layout tests.
+
+
+
+What we couldn’t check
+•   Heat and cold limits for synthetic oats (grain)
+    No synthetic temperature rule applies to this invented crop.
+
+
+
+How this was worked out
+Synthetic result: the existing rotation ranks first in this example.
+
+
+
+Assumptions
+•   Synthetic test data only. Values are invented and are not farm advice.
+
+
+
+Sources, period and versions
+Checked against 1 past season, Jul 2000.
+
+Past seasons chosen with method synthetic-v1.
+
+Calculation methods: synthetic-v1.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                        Page 5 of 6
+Synthetic test data only. Values are invented and are not farm advice.
+Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1;
+Synthetic maize (grain) synthetic-synthetic-second-crop-profile synthetic-v1; Synthetic oats
+(grain) synthetic-synthetic-third-crop-profile synthetic-v1.
+
+Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules
+synthetic-rules, records before 1 Jan 2026.
+
+Weather records: synthetic-weather.
+
+
+
+From past seasons. Not a prediction for next season. Checked with rain alone: backup water
+is not counted. No fertilizer amounts, costs or soil tests.
+Gilir is an independent project for the NASA Space Apps Challenge 2026, not affiliated with or
+endorsed by NASA.
+
+
+
+
+Gilir crop plan · Made 1 Jul 2026                                                    Page 6 of 6
+Synthetic test data only. Values are invented and are not farm advice.
 

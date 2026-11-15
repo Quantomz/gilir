@@ -2,7 +2,7 @@
 
 This is fixture evidence. Every page below comes from a synthetic snapshot, and every page says so in its footer. No live backend ran.
 
-A person looked at every page of the three committed PDFs as PNG renders made with `pdftoppm -r 110 -png`. They also looked at the warning plan's first two pages in grayscale (`pdftoppm -r 110 -gray -png`) and at the files in Chromium's own PDF viewer with the network off. The files were made for an A4 reader (`en-GB`, UTC). The browser download and `tests/frontend/pdf/evidence.ts` write the same bytes.
+A person looked at every page of the four committed PDFs as PNG renders made with `pdftoppm -r 110 -png`. They also looked at the warning plan's first two pages in grayscale (`pdftoppm -r 110 -gray -png`) and at the files in Chromium's own PDF viewer with the network off. The files were made for an A4 reader (`en-GB`, UTC). The browser download and `tests/frontend/pdf/evidence.ts` write the same bytes.
 
 Each entry records clipping, warnings, source details, the data period, and readability.
 
@@ -32,6 +32,22 @@ Each entry records clipping, warnings, source details, the data period, and read
 
 **Page 2** ([render](fixture-insufficient_data-2.png)). The comparison ends with "Not sure: nothing recorded. 5 Jul 2025 to 30 Jun 2026 · 361 days". "How this was worked out" and "Assumptions" follow. "Sources, period and versions" says in words that the past seasons are unavailable: "Past seasons: A complete cohort was not assessed in this example." It does not print a period of zero seasons. "Calculation methods: synthetic-v1.", the crop profile and every version follow, then the closing lines. Nothing is clipped. The footer reads "Page 2 of 2".
 
+## variant-frozenLabels.pdf (warning plan from a version 2 snapshot, 6 pages)
+
+The snapshot is version 2. Its frozen catalogue names `synthetic-crop`, `synthetic-second-crop` and `synthetic-third-crop` "Synthetic bean (dry grain)", "Synthetic maize (grain)" and "Synthetic oats (grain)", labels that a name made from the ID can't produce. The old rotation's `synthetic-old-crop` is not in that catalogue. Each page was checked for a selected crop named from its ID, and none is: `pdftotext` finds no "synthetic crop", "synthetic second crop" or "synthetic third crop" ([text](fixture-poppler.txt)).
+
+**Page 1** ([render](variant-frozenLabels-1.png)). The title is "Your plan, with warnings". The answers line "Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats (grain) · Water: Rain only · Last year: 1 crop" wraps onto a second line, whole. The warn-brown status box says rain fell short in about 5 in 10 weeks "and temperatures went outside the limits for synthetic maize (grain) on about 20% of checked days in a bad year." "What we flagged" heads its two warnings "Rain fell short of what synthetic bean (dry grain) needs in past seasons" and "Temperatures went outside the limits for synthetic maize (grain)", each with the snapshot's message. Nothing is clipped.
+
+**Page 2** ([render](variant-frozenLabels-2.png)). The timeline has three crop bars, three after-harvest marks and the year's last no-crop stretch, numbered 1 to 6; the narrow stretch 4 has its number below the track. Rows 1, 3 and 5 are headed "Synthetic bean (dry grain)", "Synthetic maize (grain)" and "Synthetic oats (grain)". Each no-crop row says "The first 7 days are the time after the synthetic … harvest" with the label of the crop before it. Nothing is clipped.
+
+**Page 3** ([render](variant-frozenLabels-3.png)). "Why this plan ranked first" lists its four rows. Under "Shown, but not used to rank", "Heat and cold" ends "Outside the limits in past seasons: synthetic maize (grain).", "No checked day outside the limits for synthetic bean (dry grain)." and "Not assessed for synthetic oats (grain)." Nothing is clipped.
+
+**Page 4** ([render](variant-frozenLabels-4.png)). The period line, then "Compared with last year": the new plan ranked ahead, five comparison rows, and the first change "Added: synthetic oats (grain), 6 Jan to 6 Mar 2027." Nothing is clipped.
+
+**Page 5** ([render](variant-frozenLabels-5.png)). The changes go on: "Not in the new plan: synthetic old crop, 1 Mar to 9 Apr 2027 in last year’s rotation." names the crop the catalogue lacks from its ID, "Plant synthetic bean (dry grain) 7 days later", "Plant synthetic maize (grain) on the same day" and "Synthetic maize (grain) moves from first to second in the order." "What we couldn’t check" is headed "Heat and cold limits for synthetic oats (grain)". "How this was worked out" prints the fixture's own engine sentence, "the existing rotation ranks first in this example", which this variant inherits from `changedBaseline` and the PDF prints as written; it is not a crop name. Nothing is clipped.
+
+**Page 6** ([render](variant-frozenLabels-6.png)). "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain) …; Synthetic oats (grain) …", then the versions, with "crop list synthetic-catalogue", the frozen catalogue's version. The closing lines follow. The footer reads "Page 6 of 6".
+
 ## Opened offline in Chromium's PDF viewer
 
 `download.spec.ts` downloads each of the three files, saves it in the test's output folder, checks that it equals the node render byte for byte, turns the browser context's network off, and opens the saved file in Chromium's own PDF viewer. The viewer showed the file's title and page count: "Gilir crop plan, made 1 Jul 2026" with 4 pages for the plan and for the warning plan, and "Gilir status report, made 1 Jul 2026" with 2 pages for the missing-data file. [Warning plan in the viewer](fixture-plan_with_warnings-offline-viewer.png). [Missing data in the viewer](fixture-insufficient_data-offline-viewer.png). The viewer drew the text with a substitute for Helvetica, because the file embeds no font.
@@ -53,6 +69,15 @@ Made in scratch with `renderPdf` for an `en-GB` reader at 80 dpi and not kept. E
 - **The no_calendar_fit fixture, page 1.** The status box says "Together they need at least 366 days; your year has 365." "Why they don’t fit" starts with "Each crop needs at least:", so the sentence is printed once.
 - **The service_error fixture, page 1.** The status box says "Example source did not respond." "What happened" starts with "No new plan was made. It wasn’t anything you did."
 - **no_calendar_fit from 29 February 2028, with the water answer "I’m not sure", page 1.** The head reads "Your year: 29 Feb 2028 to 27 Feb 2029", which is the 365 days the status box gives. The note under "Good to know" is headed "Only rain is counted".
+
+## Pages looked at for the frozen labels
+
+Made in scratch with `renderPdf` for an `en-GB` reader at 80 dpi and not kept. Each is a fixture made version 2 with the test helper `frozen`, which the full `completedSnapshotV2Schema` accepts.
+
+- **insufficient_data, its one crop saved as "Synthetic bean (dry grain)", with a crop_profile gap and a last-year crop `synthetic-retired-crop` the catalogue lacks, pages 1 and 2.** The answers line, "Growing details for synthetic bean (dry grain) in this place" under "What’s missing", the first row of "What you told us about last year (not scored)" and the crop profile line all print the label. The retired crop's row is headed "Synthetic retired crop", from its ID.
+- **no_calendar_fit with the same label, page 1.** "Each crop needs at least:" lists "Synthetic bean (dry grain): at least 366 days", and last year's row is headed by the label.
+- **The plan fixture with the label "ถั่ว synthetic", page 1.** The fonts can't draw the Thai letters, so the answers line and calendar row print "Synthetic crop", from the ID, and no "?" appears.
+- **Every other committed page.** The three fixture PDFs hold version 1 snapshots and rendered byte-identical to the files committed before this change, and so did all 21 files `evidence.ts --all` wrote before it.
 
 ## What this inspection does not show
 
