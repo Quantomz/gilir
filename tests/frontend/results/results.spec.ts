@@ -141,6 +141,7 @@ for (const viewport of viewports) {
         const leftTheSite = page.waitForURL(oldUrl, { timeout: 1_000 }).then(() => true, () => false);
 
         await page.getByRole("button", { name: "Back to the result", exact: true }).nth(which).evaluate(control => {
+          if (!(control instanceof HTMLButtonElement)) throw new Error("Expected a Back button");
           control.click();
           control.click();
         });
