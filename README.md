@@ -9,10 +9,7 @@ A farmer marks a field, picks the crops for the coming year and says when the fi
 Gilir replays each possible planting calendar against past seasons of NASA rainfall and weather for that place.
 It answers with one planting calendar and the weeks where rain fell short, or with the specific reason it cannot make a plan.
 
-[Open the live site](https://gilir-web-production.up.railway.app) ·
-[Watch the real journey on a phone](docs/evidence/I3/demo-360.webm) ·
-[Read a real PDF plan](docs/evidence/I3/hosted-2026-11-15/live-360.pdf) ·
-[See what was verified](#what-is-verified)
+**Live site:** [gilir-web-production.up.railway.app](https://gilir-web-production.up.railway.app)
 
 <p>
   <img src="docs/evidence/I3/hosted-2026-11-15/screenshots/1280-globe-visible.png" width="32%" alt="Step 1 on the live site: a globe drawn with NASA Blue Marble imagery, showing Asia and Australia, with Zoom in and Zoom out buttons.">
