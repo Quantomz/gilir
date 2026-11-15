@@ -1,10 +1,10 @@
 "use client";
 // The shell around the pure picker: one hook. It holds the Picker, runs `update`, and carries a Step out. Views call
-// `send` and read `picker`; none of them keeps field state of its own. Written out because it holds the emission rule:
-// onChange is called inside `send`, during the farmer's own event, and never from an effect. So a parent that hands
-// the field straight back (F1, the lab's useState) sees one call per accepted edit, also in Strict Mode.
+// `send` and read `picker`; none of them keeps field state of its own. onChange is called inside `send`, during the
+// farmer's own event, and never from an effect. So a parent that hands the field straight back (F1, the lab's
+// useState) sees one call per accepted edit, also in Strict Mode.
 // Text that is not yet a value (the search box, the corner rows) and the short-lived search and location requests stay
-// in their own views (views/find.tsx, views/mark.tsx): the picker only hears the place or the parsed corners.
+// in their own views: the picker only hears the place or the parsed corners.
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { FieldPickerProps } from "../ports";
 import { openPicker, update } from "./picker";
@@ -12,7 +12,7 @@ import type { Action, Focus, Picker } from "./picker";
 import { readProvider } from "./provider";
 import type { Provider } from "./provider";
 
-/** The parts that need a DOM id. Built from useId, so the two pickers on the fixture lab page never share one (G10). */
+/** The parts that need a DOM id. Built from useId, so the two pickers on the fixture lab page never share one. */
 export type Part = "search" | "search-hint" | "results" | "locate" | "heading" | "list" | "list-hint" | "problem" | "plan";
 
 export interface Controller {
@@ -48,7 +48,7 @@ export function usePicker({ value, onChange }: FieldPickerProps): Controller {
     if (step.emit) latestOnChange.current(step.emit);
   }, []);
 
-  // The value prop, on mount and on every change (F1 restores a draft after mount, G12). On mount it is the value
+  // The value prop, on mount and on every change (F1 restores a draft after mount). On mount it is the value
   // openPicker already holds, so the picker returns the same object and nothing happens (P3).
   useEffect(() => { send({ kind: "adopt", field: value }); }, [send, value]);
 

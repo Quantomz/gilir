@@ -1,69 +1,196 @@
 "use client";
 // Finding a place: the search box, "Use my location", and the chosen place with "Mark my field".
-// The search box and the location panel own their short-lived state here (candidate 1's split). The picker only hears
-// the place they produce, through `pick`. Nothing here computes geometry.
-import type { ReactElement } from "react";
+// The search box and the location panel keep their short-lived state here. The picker only hears the place they
+// produce, through `pick`.
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent, ReactElement } from "react";
+import { classifyQuery, coordsText } from "../coordinates";
 import type { Axis, CoordError } from "../coordinates";
 import type { Controller } from "../controller";
-import type { LocateFailure, Place } from "../picker";
+import { round6, wrapLng } from "../outline";
+import { listShown } from "../picker";
+import type { FoundPlace, LocateFailure, Place } from "../picker";
+import { searchPlaces } from "../provider";
 import type { SearchAnswer } from "../provider";
+import { coordError, find, locate, locateFailed, search, searchFailed } from "../words";
+import { Icon } from "./parts";
 
-/**
- * The finding panel, top to bottom:
- *   1. SearchBox (always: with no key it still takes a typed position)
- *   2. <button class="btn btn-sub btn-block fp-way">Use my location</button> -> LocatePanel opens under it
- *   3. <p class="muted">Or turn the globe and tap near your farm.</p>   (only while the surface is the globe)
- *   4. <button class="btn btn-quiet" ref={focusRef("list_opener")}>Type your field’s corners instead</button>
- *      -> send list open
- * "Say the place" is not here: no voice (open decision 1).
- */
 export function FindPanel(props: { readonly c: Controller }): ReactElement {
-  throw new Error("not implemented");
+  const { c } = props;
+  return (
+    <div className="stack-s">
+      <SearchBox c={c} />
+      <LocatePanel c={c} />
+      {c.picker.surface.kind === "globe" ? <p className="muted fp-small">{find.tapHint}</p> : null}
+      {listShown(c.picker) ? null : (
+        <button className="btn btn-quiet fp-self-start" type="button" ref={c.focusRef("list_opener")} onClick={() => c.send({ kind: "list", open: true })}>
+          <Icon name="edit" />
+          {find.typeCorners}
+        </button>
+      )}
+    </div>
+  );
 }
 
-/** The search box's own state. Module-private: tests see fetch calls, rows and words, never this. */
 type SearchState =
   | { readonly kind: "idle" }
-  | { readonly kind: "short" }                                         // "Type at least 2 letters, then Search."
-  | { readonly kind: "sending"; readonly seq: number }                 // spinner in the button, "Searching…"
-  | { readonly kind: "answered"; readonly answer: SearchAnswer }       // rows, "No place found…", or a failure line
-  | { readonly kind: "no_key" }                                        // a name was typed and no key is set
+  | { readonly kind: "short" }
+  | { readonly kind: "sending" }
+  | { readonly kind: "answered"; readonly answer: SearchAnswer }
+  | { readonly kind: "no_key" }
   | { readonly kind: "bad_position"; readonly axis: Axis; readonly error: CoordError };
 
 /**
- * <form role="search" aria-label="Find your village or town" class="fp-search stack-xs" onSubmit>
- *   <label class="label" for={idOf("search")}>Village, town or area</label>
- *   <div class="search-row"><div class="input-wrap">                                (F1's classes)
- *     <input id={idOf("search")} ref={focusRef("search")} type="search" enterKeyHint="search" autoComplete="off"
- *            aria-describedby={idOf("search-hint")} placeholder="For example: Indramayu" />
- *     {text} <button type="button" class="fp-clear" aria-label="Clear">×</button>
- *   </div><button class="btn btn-primary fp-search-go" aria-busy={sending}>Search</button></div>
- *   <p id={idOf("search-hint")} class="hint">{keyed ? search.hint : search.hintNoKey}</p>
- *   rows: <ul id={idOf("results")} class="fp-results" aria-label="Places"> of <li><button class="fp-result"> (56 px):
- *         the name in bold, then "region, country". Tab reaches each row; Enter or a tap picks it (send pick).
- *         A plain list, not a combobox: nothing is suggested while typing, so there is no popup, and a row cannot
- *         close under a slow finger (candidate 2).
- *   one line instead of rows: short, none (none or nonePlan), the failure (searchFailed[why]), no_key (noKeyName),
- *         bad_position (coordError[axis][error])
- *   <p class="sr" role="status" aria-live="polite">Searching… | N places found. Choose one from the list. | No place found.</p>
- * </form>
- * The typed text is this component's own state; a keystroke is not an action, so nothing is ever sent while typing.
- * Submit: classifyQuery(text) ->
- *   short        -> short, nothing sent
- *   position     -> send pick { kind: "position", at } at once, with no request (works with no key)
- *   bad_position -> its words
- *   name         -> no key: no_key. Else abort the running request, seq + 1, sending, then
- *                   searchPlaces(key, text, signal).then(answer => keep it only if seq is still the latest).
- * Unmount aborts the running request. A failure is per request: the next press of Search tries again.
+ * Nothing is sent while the farmer types: a keystroke changes only this component's text. A typed position becomes a
+ * place at once, with no request, so it works with no key. A name is sent on Search or Enter only, and a late answer
+ * to an older search is dropped by its sequence number.
  */
 export function SearchBox(props: { readonly c: Controller }): ReactElement {
-  throw new Error("not implemented");
+  const { c } = props;
+  const [text, setText] = useState("");
+  const [state, setState] = useState<SearchState>({ kind: "idle" });
+  const latest = useRef(0);
+  const running = useRef<AbortController | null>(null);
+  const input = useRef<HTMLInputElement | null>(null);
+  const searchTarget = c.focusRef("search");
+  const inputRef = useCallback((element: HTMLInputElement | null) => {
+    input.current = element;
+    searchTarget(element);
+  }, [searchTarget]);
+
+  const stop = useCallback(() => {
+    latest.current += 1;
+    running.current?.abort();
+    running.current = null;
+  }, []);
+  useEffect(() => stop, [stop]);
+
+  function submit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    stop();
+    const query = classifyQuery(text);
+    switch (query.kind) {
+      case "short":
+        setState({ kind: "short" });
+        return;
+      case "bad_position":
+        setState({ kind: "bad_position", axis: query.axis, error: query.error });
+        return;
+      case "position":
+        setState({ kind: "idle" });
+        c.send({ kind: "pick", place: { kind: "position", at: query.at } });
+        return;
+      case "name": {
+        if (c.provider.kind !== "ready") {
+          setState({ kind: "no_key" });
+          return;
+        }
+        const seq = latest.current;
+        const request = new AbortController();
+        running.current = request;
+        setState({ kind: "sending" });
+        void searchPlaces(c.provider.key, query.text, request.signal).then(answer => {
+          if (seq !== latest.current) return;
+          running.current = null;
+          setState({ kind: "answered", answer });
+        });
+      }
+    }
+  }
+
+  function choose(place: FoundPlace): void {
+    setText(place.name);
+    setState({ kind: "idle" });
+    c.send({ kind: "pick", place });
+  }
+
+  function clear(): void {
+    stop();
+    setText("");
+    setState({ kind: "idle" });
+    input.current?.focus();
+  }
+
+  const places = state.kind === "answered" && state.answer.kind === "found" ? state.answer.places : null;
+  const line = lineOf(state, c.picker.surface.kind === "globe");
+  const said = state.kind === "sending" ? search.searching : places ? search.found(places.length) : "";
+  const failed = (state.kind === "answered" && state.answer.kind === "failed") || state.kind === "no_key" || state.kind === "bad_position";
+  return (
+    <form className="fp-search stack-xs" role="search" aria-label={search.form} noValidate onSubmit={submit}>
+      <label className="label" htmlFor={c.idOf("search")}>{search.label}</label>
+      <div className="search-row">
+        <div className="input-wrap">
+          <Icon name="search" />
+          <input
+            id={c.idOf("search")}
+            ref={inputRef}
+            type="search"
+            enterKeyHint="search"
+            autoComplete="off"
+            spellCheck={false}
+            aria-describedby={c.idOf("search-hint")}
+            placeholder={search.placeholder}
+            value={text}
+            onChange={event => setText(event.target.value)}
+          />
+          {text ? (
+            <button className="fp-clear" type="button" aria-label={search.clear} onClick={clear}>
+              <Icon name="close" />
+            </button>
+          ) : null}
+        </div>
+        <button className="btn btn-sub fp-search-go" type="submit" aria-busy={state.kind === "sending"}>
+          {state.kind === "sending" ? <span className="spinner" aria-hidden="true" /> : <Icon name="search" />}
+          {search.go}
+        </button>
+      </div>
+      <p id={c.idOf("search-hint")} className="muted fp-small">{c.provider.kind === "ready" ? search.hint : search.hintNoKey}</p>
+      {places ? (
+        <ul id={c.idOf("results")} className="fp-results" aria-label={search.list}>
+          {places.map((place, index) => (
+            <li key={`${index}-${place.name}`}>
+              <button className="fp-result" type="button" onClick={() => choose(place)}>
+                <Icon name="pin" />
+                <span>
+                  <b>{place.name}</b>
+                  {place.where ? <>{" "}<span>{place.where}</span></> : null}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <p className={line ? (failed ? "error-text error-soft" : "muted") : "sr"} role="status">
+        {line && failed ? <Icon name="alert" /> : null}
+        {line ? <span>{line}</span> : said}
+      </p>
+    </form>
+  );
 }
 
-/** The location panel's own state. */
+function lineOf(state: SearchState, globe: boolean): string | null {
+  switch (state.kind) {
+    case "idle":
+    case "sending":
+      return null;
+    case "short":
+      return search.short;
+    case "no_key":
+      return search.noKeyName;
+    case "bad_position":
+      return coordError[state.axis][state.error];
+    case "answered":
+      switch (state.answer.kind) {
+        case "found": return null;
+        case "none": return globe ? search.none : search.nonePlan;
+        case "failed": return searchFailed[state.answer.why];
+      }
+  }
+}
+
 type Locate =
   | { readonly kind: "idle" }
-  | { readonly kind: "asking" }                                        // the explanation is open, before the phone asks
+  | { readonly kind: "asking" }
   | { readonly kind: "finding" }
   | { readonly kind: "failed"; readonly why: LocateFailure };
 
@@ -71,37 +198,155 @@ export type LocateOutcome =
   | { readonly kind: "found"; readonly place: Extract<Place, { readonly kind: "gps" }> }
   | { readonly kind: "failed"; readonly why: LocateFailure };
 
-/** One fix, high accuracy, the prototype's 15 seconds. */
 export const locatePolicy = { timeoutMs: 15_000, highAccuracy: true } as const;
 
-/**
- * The phone's position, once. Never rejects. The fix goes to the picker and nowhere else: no geocoder, no log, so
- * "We use it once, to find your field." stays true.
- *   no navigator.geolocation -> unsupported; PERMISSION_DENIED -> denied; TIMEOUT -> timeout; anything else -> unavailable
- *   found -> { kind: "gps", at: [round6(longitude), round6(latitude)], accuracyM: coords.accuracy }
- */
+/** The phone's position, once. Never rejects. The fix goes to the picker and nowhere else, so "We use it once" stays true. */
 export function locateOnce(): Promise<LocateOutcome> {
-  throw new Error("not implemented");
+  const geolocation = typeof navigator === "undefined" ? undefined : navigator.geolocation;
+  if (!geolocation) return Promise.resolve({ kind: "failed", why: "unsupported" });
+  return new Promise(resolve => {
+    try {
+      geolocation.getCurrentPosition(
+        ({ coords }) => resolve({
+          kind: "found",
+          place: { kind: "gps", at: [round6(wrapLng(coords.longitude)), round6(coords.latitude)], accuracyM: coords.accuracy },
+        }),
+        error => resolve({ kind: "failed", why: error.code === 1 ? "denied" : error.code === 3 ? "timeout" : "unavailable" }),
+        { enableHighAccuracy: locatePolicy.highAccuracy, timeout: locatePolicy.timeoutMs, maximumAge: 0 },
+      );
+    } catch {
+      resolve({ kind: "failed", why: "unavailable" });
+    }
+  });
 }
 
 /**
- * "Use my location", in place (the prototype's GPS sheet without a modal):
- *   asking  -> <h3 tabIndex={-1}>Use your location</h3> (takes focus), "Stand in your field if you can.", the Allow
- *              sentence, <button class="btn btn-primary btn-block">Find my location</button>, "Close"
- *   finding -> the button shows a spinner and "Finding you…"; the status line says locate.findingSaid
- *   failed  -> the title, the body and, for "denied", the three numbered steps, then "Try again"
- *   found   -> send pick { gps } then send mark: the box goes straight onto the fix (prototype), and focus moves to
- *              the marking heading.
+ * "Use my location" explains first and asks the phone only on "Find my location". A fix puts the box straight on it,
+ * as "Mark my field" would, so focus moves to the marking heading.
  */
-export function LocatePanel(props: { readonly c: Controller }): ReactElement | null {
-  throw new Error("not implemented");
+export function LocatePanel(props: { readonly c: Controller }): ReactElement {
+  const { c } = props;
+  const [state, setState] = useState<Locate>({ kind: "idle" });
+  const run = useRef(0);
+  const opener = useRef<HTMLButtonElement>(null);
+  const title = useRef<HTMLHeadingElement>(null);
+  useEffect(() => () => {
+    run.current += 1;
+  }, []);
+  useEffect(() => {
+    if (state.kind === "asking" || state.kind === "failed") title.current?.focus();
+  }, [state.kind]);
+
+  async function findMe(): Promise<void> {
+    const mine = ++run.current;
+    setState({ kind: "finding" });
+    const outcome = await locateOnce();
+    if (mine !== run.current) return;
+    if (outcome.kind === "failed") {
+      setState({ kind: "failed", why: outcome.why });
+      return;
+    }
+    setState({ kind: "idle" });
+    c.send({ kind: "pick", place: outcome.place });
+    c.send({ kind: "mark" });
+  }
+
+  function close(): void {
+    run.current += 1;
+    setState({ kind: "idle" });
+    opener.current?.focus();
+  }
+
+  const open = state.kind !== "idle";
+  const failure = state.kind === "failed" ? locateFailed[state.why] : null;
+  const finding = state.kind === "finding";
+  return (
+    <div className="stack-s">
+      <button
+        ref={opener}
+        className="btn btn-sub btn-block fp-way"
+        type="button"
+        aria-expanded={open}
+        aria-controls={open ? c.idOf("locate") : undefined}
+        onClick={() => (open ? close() : setState({ kind: "asking" }))}
+      >
+        <Icon name="locate" />
+        {find.useLocation}
+      </button>
+      {open ? (
+        <section id={c.idOf("locate")} className="fp-locate" aria-labelledby={`${c.idOf("locate")}-title`}>
+          <div className="sheet-head">
+            <h3 id={`${c.idOf("locate")}-title`} className="sheet-title" tabIndex={-1} ref={title}>{failure ? failure.title : locate.title}</h3>
+            <button className="btn btn-small btn-close" type="button" onClick={close}>
+              <Icon name="close" />
+              {locate.close}
+            </button>
+          </div>
+          {failure ? (
+            <div className="stack-xs">
+              <p>{failure.body}</p>
+              {failure.steps.length > 0 ? (
+                <>
+                  <p className="label">{locate.turnOn}</p>
+                  <ol className="fp-steps">{failure.steps.map(step => <li key={step}>{step}</li>)}</ol>
+                </>
+              ) : null}
+            </div>
+          ) : (
+            <div className="fp-prime">
+              <span className="fp-prime-ic"><Icon name="locate" /></span>
+              <div className="stack-xs">
+                <p className="t-l"><b>{locate.stand}</b></p>
+                <p className="muted">{locate.allow}</p>
+              </div>
+            </div>
+          )}
+          {state.kind === "failed" && state.why === "unsupported" ? null : (
+            <button className="btn btn-primary btn-block" type="button" aria-busy={finding} onClick={() => void findMe()}>
+              {finding ? <span className="spinner" aria-hidden="true" /> : <Icon name={failure ? "refresh" : "locate"} />}
+              {finding ? locate.finding : failure ? locate.tryAgain : locate.go}
+            </button>
+          )}
+          <p className="sr" role="status">{finding ? locate.findingSaid : ""}</p>
+        </section>
+      ) : null}
+    </div>
+  );
 }
 
 /**
- * The chosen place, under the map while finding: the pin on a --warn-soft disc, placeLine(candidate) in bold, then
- * <button class="btn btn-block fp-go">Mark my field</button> (send mark). Nothing renders with no candidate.
- * Not .btn-primary: F1's dock holds the page's one primary button, "Next: crops" (open decision 8).
+ * The chosen place and "Mark my field". Not .btn-primary: F1's dock holds the page's one primary button. After a search
+ * row or a typed position, focus moves here.
  */
 export function PlaceCard(props: { readonly c: Controller }): ReactElement | null {
-  throw new Error("not implemented");
+  const { c } = props;
+  const { picker } = c;
+  const candidate = picker.stage === "finding" ? picker.candidate : null;
+  const button = useRef<HTMLButtonElement>(null);
+  const searched = picker.note?.kind === "place" && picker.note.place === candidate && (candidate.kind === "found" || candidate.kind === "position");
+  useEffect(() => {
+    if (!searched || !button.current) return;
+    button.current.focus({ preventScroll: true });
+    // Aligned to the bottom, just above F1's dock, the map and its pin stay in view above the button.
+    button.current.scrollIntoView?.({ block: "end" });
+  }, [searched, candidate]);
+  if (candidate === null) return null;
+  const [name, where] = candidate.kind === "found" ? [candidate.name, candidate.where]
+    : candidate.kind === "saved" ? [candidate.label, ""]
+    : [coordsText(candidate.at, 3), ""];
+  return (
+    <div className="stack-s">
+      <div className="fp-place">
+        <span className="fp-pinic"><Icon name="pin" /></span>
+        <p className="fp-place-tx">
+          <b>{name}</b>
+          {where ? <>{" "}<span className="muted">{where}</span></> : null}
+        </p>
+      </div>
+      <button ref={button} className="btn btn-block fp-go" type="button" onClick={() => c.send({ kind: "mark" })}>
+        {find.markField}
+        <Icon name="arrow" />
+      </button>
+    </div>
+  );
 }

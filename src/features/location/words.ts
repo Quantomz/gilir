@@ -103,6 +103,8 @@ export const map = {
   north: "N",
   weatherPoint: "Weather point",
   fieldPill: (areaM2: number) => `Your field: ${lowerFirst(areaText(areaM2))}`,
+  /** The scale bar: a round length, "50 m" or "2 km". */
+  scale: (metres: number) => metres < 1000 ? `${metres} m` : `${(metres / 1000).toLocaleString("en")} km`,
   loading: "Loading the globe…",
 } as const;
 

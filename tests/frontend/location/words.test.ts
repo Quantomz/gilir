@@ -135,6 +135,14 @@ describe("numbers into words", () => {
     expect(acrossText(0.2)).toBe("1 m across");
   });
 
+  it("the drawing's scale bar reads '50 m' under a kilometre and '2 km' or '1.5 km' from one", () => {
+    expect(words.map.scale(50)).toBe("50 m");
+    expect(words.map.scale(500)).toBe("500 m");
+    expect(words.map.scale(1_000)).toBe("1 km");
+    expect(words.map.scale(2_000)).toBe("2 km");
+    expect(words.map.scale(1_500)).toBe("1.5 km");
+  });
+
   it("placeLine: a found place by name and where; a saved place by its label; a typed, tapped or GPS place as '6.327° S, 108.320° E'", () => {
     expect(placeLine(places.found)).toBe("Indramayu, West Java, Indonesia");
     expect(placeLine({ ...places.found, where: "" })).toBe("Indramayu");
