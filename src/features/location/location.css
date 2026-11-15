@@ -15,12 +15,13 @@
   .fp-self-start { justify-self: start; }
   .fp-small { font-size: var(--fs-s); line-height: 1.4; }
 
-  /* When a 24rem column and a 22rem map both fit, the controls sit on the left and the map stays in view on the right. */
+  /* When a 24rem column and a 22rem map both fit, the controls sit on the left and the map stays in view on the right.
+     The stuck map gives way to its credits, so the whole of it fits between F1's bars. */
   @container fp-slot (min-width: 48rem) {
     .fp { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); grid-template-rows: repeat(6, auto) 1fr; column-gap: var(--s6); row-gap: 0; }
     .fp > * { grid-column: 1; margin-bottom: var(--s4); }
-    .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; align-self: start; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); }
-    .fp .fp-map { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
+    .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; align-self: start; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); display: flex; flex-direction: column; max-height: calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 24px); }
+    .fp > .fp-map-wrap > .fp-map { flex: 0 1 36rem; min-height: 0; }
   }
 
   .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
@@ -61,10 +62,10 @@
   .fp .fp-go { background: var(--mint); border-color: var(--ink); }
   .fp .fp-go:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
 
-  /* The canvas takes every touch, so the minimum height gives way before the map fills the band between F1's bars:
-     a thumb keeps 5rem of page to scroll by. */
-  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; height: min(55svh, 28rem); min-height: min(15rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 5rem)); overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
-  .big-text .fp-map { min-height: min(18rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 5rem)); }
+  /* The canvas takes every touch, so the map leaves 64px of the band between F1's bars to the page, for a thumb to
+     scroll by. In px, because a thumb does not grow with the text size. */
+  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; height: min(55svh, 28rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); min-height: min(15rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+  .big-text .fp-map { min-height: min(18rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); }
   .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
   [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
   [data-contrast="high"] .fp-map { border: 2px solid var(--ink); }

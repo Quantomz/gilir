@@ -514,49 +514,56 @@ test.describe("the globe on a 360x740 phone", () => {
   }
 });
 
-for (const textSize of ["normal", "large", "largest"] as const) {
-  test.describe(`${textSize} text on a 360x740 touch phone`, () => {
-    test.use({ viewport: { width: 360, height: 740 }, hasTouch: true });
+const phones = [{ width: 360, height: 740 }, { width: 320, height: 568 }, { width: 740, height: 360 }] as const;
 
-    test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }, testInfo) => {
+for (const viewport of phones) {
+  for (const textSize of ["normal", "large", "largest"] as const) {
+    test.describe(`${textSize} text on a ${viewport.width}x${viewport.height} touch phone`, () => {
+      test.use({ viewport, hasTouch: true });
+
+      test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }, testInfo) => {
+        await routeProviders(page);
+        await setTextSize(page, textSize);
+        const root = (await openPageOne(page)).first();
+        await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+        const box = root.getByRole("searchbox", { name: "Position of your farm" });
+        await box.fill("-6.326, 108.32");
+        await box.press("Enter");
+        await root.getByRole("button", { name: "Mark my field" }).click();
+        await expect(handles(root)).toHaveCount(4);
+        await mapArea(root).evaluate(element => element.scrollIntoView({ block: "start" }));
+        await settledCentre(handles(root).first());
+        const [map, dock] = await Promise.all([mapArea(root).boundingBox(), page.locator(".dock").first().boundingBox()]);
+        const strip = dock!.y - (map!.y + map!.height);
+        expect(strip, `the strip between the map and F1's dock at ${textSize} text`).toBeGreaterThanOrEqual(48);
+        if (textSize === "largest" && viewport.width === 360) await shoot(page, testInfo, "page-one-largest-marked-360");
+        const before = await page.evaluate(() => window.scrollY);
+        const from = { x: 180, y: map!.y + map!.height + strip / 2 };
+        await swipe(page, from, { x: from.x, y: from.y - 150 });
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 30);
+      });
+    });
+  }
+}
+
+for (const height of [800, 600]) {
+  test.describe(`the globe at 1280x${height}`, () => {
+    test.use({ viewport: { width: 1280, height } });
+
+    test("[R22][R5] in two columns the map, its credits and the privacy line stay in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
       await routeProviders(page);
-      await setTextSize(page, textSize);
-      const root = (await openPageOne(page)).first();
+      const root = (await openPageOne(page, inputFixture)).first();
       await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
-      const box = root.getByRole("searchbox", { name: "Position of your farm" });
-      await box.fill("-6.326, 108.32");
-      await box.press("Enter");
-      await root.getByRole("button", { name: "Mark my field" }).click();
-      await expect(handles(root)).toHaveCount(4);
-      await mapArea(root).evaluate(element => element.scrollIntoView({ block: "start" }));
-      await settledCentre(handles(root).first());
-      const [map, dock] = await Promise.all([mapArea(root).boundingBox(), page.locator(".dock").first().boundingBox()]);
-      const strip = dock!.y - (map!.y + map!.height);
-      expect(strip, `the strip between the map and F1's dock at ${textSize} text`).toBeGreaterThanOrEqual(48);
-      if (textSize === "largest") await shoot(page, testInfo, "page-one-largest-marked-360");
-      const before = await page.evaluate(() => window.scrollY);
-      const from = { x: 180, y: map!.y + map!.height + strip / 2 };
-      await swipe(page, from, { x: from.x, y: from.y - 150 });
-      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 30);
+      await root.getByRole("button", { name: "Type the corners" }).click();
+      const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+      await latitude.click();
+      await page.keyboard.press("End");
+      await page.keyboard.type("1");
+      await expect(latitude).toBeFocused();
+      await expect(root.locator(".fp-credits")).toBeVisible();
+      await expect.poll(() => betweenBars(page, root.locator(".fp-map-wrap")), { message: "the map and its credits are between F1's bar and dock" }).toBe(true);
+      await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+      if (height === 800) await shoot(page, testInfo, "page-one-typing-1280");
     });
   });
 }
-
-test.describe("the globe at 1280x800", () => {
-  test.use({ viewport: { width: 1280, height: 800 } });
-
-  test("[R22] in two columns the map stays in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
-    await routeProviders(page);
-    const root = (await openPageOne(page, inputFixture)).first();
-    await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
-    await root.getByRole("button", { name: "Type the corners" }).click();
-    const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
-    await latitude.click();
-    await page.keyboard.press("End");
-    await page.keyboard.type("1");
-    await expect(latitude).toBeFocused();
-    await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
-    await expect.poll(() => betweenBars(page, latitude)).toBe(true);
-    await shoot(page, testInfo, "page-one-typing-1280");
-  });
-});

@@ -8,6 +8,8 @@
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { providerPolicy } from "@/features/location/provider";
+import { readingKey } from "@/features/onboarding/services/reading";
+import { inputFixture } from "@/fixtures/input";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
 import {
@@ -324,3 +326,31 @@ test("[R16][R22] on F1's page 1 the answer to Search comes into view above F1's 
   await expect(reason).toBeVisible();
   await expect.poll(() => betweenBars(page, reason), { message: "the reason is between F1's bar and dock" }).toBe(true);
 });
+
+const twoColumns = [
+  { width: 1280, height: 720, textSize: "normal" },
+  { width: 1280, height: 720, textSize: "large" },
+  { width: 1280, height: 800, textSize: "large" },
+] as const;
+
+for (const { width, height, textSize } of twoColumns) {
+  test.describe(`${textSize} text at ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test("[R22][R5] in two columns the map, the NASA and MapTiler credits and the privacy line stay between F1's bar and dock while the farmer types corner 3", async ({ page }) => {
+      await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page, inputFixture)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      await root.getByRole("button", { name: "Type the corners" }).click();
+      const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+      await latitude.click();
+      await page.keyboard.press("End");
+      await page.keyboard.type("1");
+      await expect(latitude).toBeFocused();
+      await expect(root.locator(".fp-credits")).toContainText("MapTiler");
+      await expect.poll(() => betweenBars(page, root.locator(".fp-map-wrap")), { message: "the map and its credits are between F1's bar and dock" }).toBe(true);
+      await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+    });
+  });
+}
