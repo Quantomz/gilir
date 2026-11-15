@@ -77,13 +77,36 @@ describe("openFlow: the entry rule", () => {
     expect(flow.notices.keptNewer).toBe(false);
   });
 
-  it("[C6] a saved draft that differs from initialInput wins at its saved step and sets notices.keptNewer", () => {
-    const newer: Partial<FarmInput> = { ...inputFixture, planningStart: parseIsoDate("2027-02-01") };
-    const { flow, handOff } = openFlow(saved({ draft: newer, step: 4, snapshot: completedSnapshotFixture }), inputFixture);
+  it("[C6] answers shown at the hand-off that differ from initialInput win at their step and set notices.keptNewer", () => {
+    const newer = draftOf({ ...inputFixture, planningStart: parseIsoDate("2027-02-01") });
+    const { flow, handOff } = openFlow(saved({ draft: inputFixture, step: 1, snapshot: completedSnapshotFixture }), inputFixture, { draft: newer, step: 4 });
     expect(handOff).toBeNull();
     expect(stepOf(flow)).toBe(4);
     expect(flow.editor.draft.planningStart).toBe("2027-02-01");
     expect(flow.notices.keptNewer).toBe(true);
+  });
+
+  it("[C6] a different saved draft is never newer by itself: with no answers shown, or shown answers equal to initialInput, step 1 with draftOf(initialInput) and no notice", () => {
+    const older: Partial<FarmInput> = { ...inputFixture, water: "unsure" };
+    for (const shown of [null, { draft: answers, step: 4 as const }]) {
+      for (const snapshot of [null, completedSnapshotFixture]) {
+        const { flow } = openFlow(saved({ draft: older, step: 3, snapshot }), inputFixture, shown);
+        expect(stepOf(flow)).toBe(1);
+        expect(flow.editor.draft).toEqual(answers);
+        expect(flow.notices.keptNewer).toBe(false);
+      }
+    }
+  });
+
+  it("[B6] a saved service_error with a saved draft that has answers opens that draft at its saved page, so the farmer can try again", () => {
+    const { flow, handOff } = openFlow(saved({ draft: { ...inputFixture, water: "unsure" }, step: 3, snapshot: completedSnapshotsByState.service_error }), null);
+    expect(handOff).toBeNull();
+    expect(stepOf(flow)).toBe(3);
+    expect(flow.editor.draft.water).toBe("unsure");
+  });
+
+  it("[B6] a saved service_error with no answers saved opens Results with it", () => {
+    expect(openFlow(saved({ snapshot: completedSnapshotsByState.service_error }), null).handOff).toBe(completedSnapshotsByState.service_error);
   });
 
   it("[C6] an empty saved draft with initialInput opens step 1 with draftOf(initialInput)", () => {
@@ -120,6 +143,13 @@ describe("openFlow: the entry rule", () => {
     expect(openFlow(null, null).flow.earlierPlan).toBeNull();
   });
 
+  it("[B6] a saved service_error is no plan, so it is never the earlier plan", () => {
+    const error = completedSnapshotsByState.service_error;
+    for (const initialInput of [null, inputFixture]) {
+      expect(openFlow(saved({ activeJob: capability, snapshot: error }), initialInput).flow.earlierPlan).toBeNull();
+    }
+  });
+
   it("a saved draft is repaired on open: an unusable year is dropped and entries are sorted", () => {
     const history = inputFixture.history.kind === "recorded" ? inputFixture.history : null;
     if (history === null) throw new Error("fixture has recorded history");
@@ -133,15 +163,15 @@ describe("openFlow: the entry rule", () => {
 
 describe("update", () => {
   it("opened outside the opening mode returns the same flow (Strict Mode runs the open effect twice)", () => {
-    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture });
-    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null });
+    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture, shown: null, focusTitle: false });
+    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null, shown: null, focusTitle: false });
     expect(second.flow).toBe(first.flow);
     expect(second.handOff).toBeNull();
   });
 
   it("opened keeps a storage failure and a crop list that arrived while opening", () => {
-    const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" } });
-    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null });
+    const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" }, retried: false });
+    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null, shown: null, focusTitle: false });
     expect(opened.flow.notices.storageFailing).toBe(true);
     expect(opened.flow.catalogue).toEqual({ status: "loading" });
     expect(opened.focus).toBeNull();
@@ -239,7 +269,7 @@ describe("update", () => {
 
   it("[K5] jobFailed moves to failed and focuses the title", () => {
     const result = update(making(), { kind: "jobFailed", jobId: capability.jobId, failure: expired });
-    expect(result.flow.mode).toEqual({ kind: "failed", failure: expired });
+    expect(result.flow.mode).toEqual({ kind: "failed", failure: expired, sending: false });
     expect(result.focus).toEqual({ kind: "title" });
     expect(activeJobOf(result.flow)).toBeNull();
     const back = update(result.flow, { kind: "changeAnswers" });
@@ -273,9 +303,9 @@ describe("update", () => {
     const fresh = { ...editingAt(1, {}), catalogue: { status: "idle" } } as const;
     const two = update(fresh, { kind: "go", step: 2, focus: null });
     expect(two.flow.catalogue).toEqual({ status: "idle" });
-    const loading = update(two.flow, { kind: "catalogue", state: { status: "loading" } });
+    const loading = update(two.flow, { kind: "catalogue", state: { status: "loading" }, retried: false });
     expect(loading.flow.catalogue).toEqual({ status: "loading" });
-    const ready = update(loading.flow, { kind: "catalogue", state: { status: "ready", catalogue } });
+    const ready = update(loading.flow, { kind: "catalogue", state: { status: "ready", catalogue }, retried: false });
     expect(ready.flow.catalogue).toEqual({ status: "ready", catalogue });
   });
 
@@ -387,7 +417,7 @@ describe("backOf: one Back for the in-app button and the phone", () => {
   });
 
   it("failed goes to step 4", () => {
-    const failed: Flow = { ...editingAt(4), mode: { kind: "failed", failure: expired } };
+    const failed: Flow = { ...editingAt(4), mode: { kind: "failed", failure: expired, sending: false } };
     const msg = backOf(failed);
     expect(msg).toEqual({ kind: "changeAnswers" });
     if (msg === null) throw new Error("expected a Back message");

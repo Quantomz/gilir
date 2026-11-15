@@ -46,6 +46,8 @@ export const crops = {
   failedTitle: "We couldn’t load the crop list",
   failedBody: "Check your internet connection, then try again. Your answers are kept.",
   tryAgain: "Try again",
+  loaded: "The crop list is loaded.",
+  stillFailed: "We still couldn’t load the crop list.",
   emptyTitle: "No crops are available yet",
   emptyBody: "This version has no crops in its list, so a plan can’t be made yet. Please check again later. Your other answers are kept.",
   notListed: (label: string) => `${label} is not on the current crop list.`,
@@ -210,6 +212,7 @@ export const shell = {
   listen: "Listen",
   stop: "Stop",
   undo: "Undo",
+  undone: (text: string) => `Undone: ${text}.`,
   /** What the status line says for a toast, because the toast box itself is not a live region. */
   toastSaid: (text: string, undoable: boolean) => (undoable ? `${text}. You can undo this.` : text),
   broken: { title: "Something went wrong on our side", body: "This screen couldn’t open. It wasn’t anything you did.", action: "Open Gilir again" },
@@ -303,6 +306,7 @@ export function noteWords(note: EditNote, names: CropNames): { readonly text: st
       const entry = names.entryById(note.entryId);
       return note.stop === null || entry === null ? null : said(stopWords(note.stop, entry, names));
     }
+    case "listRetried": return said(note.loaded ? crops.loaded : crops.stillFailed);
   }
 }
 

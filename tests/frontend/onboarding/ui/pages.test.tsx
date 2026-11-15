@@ -219,6 +219,44 @@ describe("the note with Undo", () => {
     }
     expect(stops).toEqual(["Got it", "Undo", "Back"]);
   });
+
+  it("goes away when a later pick changes the crops, so Undo never drops a crop picked after the note", async () => {
+    open({ client: scriptedClient({ catalogue: catalogueOf(3) }) });
+    await toCrops();
+    await userEvent.click(await screen.findByRole("checkbox", { name: "Crop 1" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 2" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 1" }));
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 3" }));
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+    expect(["Crop 1", "Crop 2", "Crop 3"].map(name => checked("checkbox", name))).toEqual([false, true, true]);
+  });
+
+  it("stays while no answer changes, so typing in Find a crop keeps it, and Undo then says what it undid", async () => {
+    open({ client: scriptedClient({ catalogue: catalogueOf(12) }) });
+    await toCrops();
+    await userEvent.click(await screen.findByRole("checkbox", { name: "Crop 1" }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 1" }));
+    await userEvent.type(screen.getByRole("searchbox", { name: "Find a crop" }), "Crop 2");
+    await click("Undo");
+    expect(checked("checkbox", "Crop 1")).toBe(true);
+    expect(screen.getByRole("status").textContent).toBe("Undone: Crop 1 removed.");
+  });
+});
+
+describe("the status line", () => {
+  it("says a sentence again when it repeats, because a live region speaks only when its text changes", async () => {
+    open({ client: scriptedClient({ catalogue: catalogueOf(13) }) });
+    await toCrops();
+    for (let n = 1; n <= 12; n++) await userEvent.click(await screen.findByRole("checkbox", { name: `Crop ${n}` }));
+    const refused = "You can pick up to 12 crops. Remove one first.";
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 13" }));
+    const first = screen.getByRole("status").textContent ?? "";
+    await userEvent.click(screen.getByRole("checkbox", { name: "Crop 13" }));
+    const second = screen.getByRole("status").textContent ?? "";
+    expect([first.trim(), second.trim()]).toEqual([refused, refused]);
+    expect(second).not.toBe(first);
+  });
 });
 
 describe("Listen", () => {
@@ -325,6 +363,18 @@ describe("page 2", () => {
     expect(await screen.findByRole("checkbox", { name: "Synthetic crop" })).toBeTruthy();
     await click("Back");
     expect(screen.getByText("Marked: Synthetic example field")).toBeTruthy();
+  });
+
+  it("[E2] Try again by keyboard keeps focus on the page title, and the status line says when the list is loaded", async () => {
+    const client = scriptedClient({ catalogue });
+    vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);
+    open({ client });
+    await toCrops();
+    within(await screen.findByRole("alert")).getByRole("button", { name: "Try again" }).focus();
+    await userEvent.keyboard("{Enter}");
+    await screen.findByRole("checkbox", { name: "Synthetic crop" });
+    expect(document.activeElement).toBe(screen.getByRole("heading", { level: 1, name: "Which crops do you want to grow?" }));
+    expect(screen.getByRole("status").textContent).toBe("The crop list is loaded.");
   });
 
   it("[E3] an empty catalogue shows No crops are available yet, no count, and no Next", async () => {

@@ -113,6 +113,33 @@ describe("the field-ready date", () => {
     expect(within(dateCard()).getByText((_, element) => element?.tagName === "SPAN" && element.textContent === line)).toBeTruthy();
   });
 
+  it("[G2] one digit too many in the year stays in the input as typed, and the plan never uses a date the input does not show", async () => {
+    const { client } = await openAt4({ ...answers, history: { kind: "skipped" } });
+    fireEvent.change(dateInput(), { target: { value: "2027-07-01" } });
+    fireEvent.change(dateInput(), { target: { value: "20275-07-01" } });
+    expect(dateInput().value).toBe("20275-07-01");
+    expect(screen.queryByText(/^Your plan covers/)).toBeNull();
+    await click("Make my plan");
+    expect(client.submitted).toEqual([]);
+    expect(within(dateCard()).getByText("Choose the date your field is ready.")).toBeTruthy();
+    expect(dateInput().getAttribute("aria-invalid")).toBe("true");
+    expect([dateInput().min, dateInput().max]).toEqual(["0001-01-01", "9998-12-31"]);
+    fireEvent.change(dateInput(), { target: { value: "2027-07-01" } });
+    await click("Make my plan");
+    expect(client.submitted.map(input => input.planningStart)).toEqual(["2027-07-01"]);
+  });
+
+  it("[G2] a half-typed date (the browser reports bad input and no value) sends nothing and asks for the date", async () => {
+    const { client } = await openAt4({ ...dated, history: { kind: "skipped" } });
+    const input = dateInput();
+    Object.defineProperty(input, "validity", { configurable: true, value: { ...input.validity, badInput: true } });
+    fireEvent.change(input, { target: { value: "" } });
+    expect(screen.queryByText(/^Your plan covers/)).toBeNull();
+    await click("Make my plan");
+    expect(client.submitted).toEqual([]);
+    expect(within(dateCard()).getByText("Choose the date your field is ready.")).toBeTruthy();
+  });
+
   it("[G4] a past date shows This date has passed. Is the year right? and still submits", async () => {
     const { client } = await openAt4({ ...answers, history: { kind: "skipped" } });
     fireEvent.change(dateInput(), { target: { value: "2099-03-01" } });
@@ -228,6 +255,20 @@ describe("bars by keyboard and date sheets", () => {
     expect(within(lanes()[0]).getByText(`Planted about ${shown("2026-03-01")}, harvested about ${shown("2026-05-29")}`)).toBeTruthy();
   });
 
+  it("[H3] Try again in the Add sheet keeps focus inside the sheet, on its title, and the status line says when the list is loaded", async () => {
+    live.plans = memoryPlans({ draft: dated, step: 4, activeJob: null, snapshot: null });
+    const client = scriptedClient({ catalogue, read: ["hang"] });
+    vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);
+    render(<Onboarding client={client} initialInput={null} onCompleted={vi.fn()} />);
+    await title("Your rotation");
+    await click("Add a crop");
+    (await within(dialog()).findByRole("button", { name: "Try again" })).focus();
+    await userEvent.keyboard("{Enter}");
+    await within(dialog()).findByRole("button", { name: "Maize (grain)" });
+    expect(document.activeElement).toBe(within(dialog()).getByRole("heading", { level: 2, name: "Which crop grew here?" }));
+    expect(said()).toBe("The crop list is loaded.");
+  });
+
   it("[H8] A crop not on our list named Cassava is submitted as { kind: \"unsupported\", label: \"Cassava\" }; a blank name says Type the name of the crop.", async () => {
     const { client } = await openAt4(dated);
     await click("Add a crop");
@@ -326,6 +367,43 @@ describe("bars by keyboard and date sheets", () => {
     expect(twins.filter(twin => twin.startsWith("The field was empty then"))).toHaveLength(3);
     expect(twins).toContain(`Mark as not sure: ${shown("2026-07-20")} to ${shown("2026-08-14")}`);
     expect(twins).toContain("Change dates for maize (grain)");
+  });
+});
+
+describe("the note with Undo on page 4, and the status line", () => {
+  const gap = () => `${shown("2026-03-01")} to ${shown("2026-06-08")}`;
+
+  it("the note goes when a handle moves after it, so Undo never throws away a later step", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-06-09", "2026-08-07")));
+    await click(`The field was empty then: ${gap()}`);
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    const harvest = await harvestOf("Maize (grain)");
+    const before = value(harvest);
+    harvest.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+    expect(value(harvest)).toBe(before + 1);
+    expect(screen.getByRole("button", { name: `Mark as not sure: ${gap()}` })).toBeTruthy();
+  });
+
+  it("Undo says what it undid", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-06-09", "2026-08-07")));
+    await click(`The field was empty then: ${gap()}`);
+    await click("Undo");
+    expect(screen.getByRole("button", { name: `The field was empty then: ${gap()}` })).toBeTruthy();
+    expect(said()).toBe(`Undone: Marked as empty: ${gap()}.`);
+  });
+
+  it("a handle that stops at the same edge twice says so twice: the status line text changes each time", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-03-01", "2026-05-29")));
+    const planting = await plantingOf("Maize (grain)");
+    planting.focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    const first = said();
+    await userEvent.keyboard("{ArrowRight}{ArrowLeft}{ArrowLeft}");
+    const second = said();
+    expect([first.trim(), second.trim()]).toEqual(["Maize (grain) stays inside the 12 months shown.", "Maize (grain) stays inside the 12 months shown."]);
+    expect(second).not.toBe(first);
   });
 });
 

@@ -57,9 +57,10 @@ The other browser cases also passed.
 - **The capability token.** `[A10]` checks that the token is in no request URL, no page URL and no history state, and only in `Authorization`.
 - **The empty catalogue.** `[E3]` checks that it shows "No crops are available yet" and no Next.
 - **Layout and look.** `[L1]` finds no sideways scroll and no month label cut off in the overview strip, and `[L2]` finds no target under 48 x 48 CSS px. Both visit nine screens at Normal and at Largest text. `[L6]` checks the title contrast in light, dark and High contrast. Saved Largest and High contrast apply before the first paint.
-- **Small phones at Largest.** lab `[L2]` opens the Text size sheet at 360 x 640 and 320 x 568 with Largest saved: the title and all three sizes are in view and the chosen size has focus. A Not sure sheet too tall for 320 x 568 opens on its title at the top, and at 360 x 740 Normal on its main action.
+- **Small phones at Largest.** lab `[L2]` opens the Text size sheet at 360 x 640 and 320 x 568 with Largest saved: the title and all three sizes are in view and the chosen size has focus. A Not sure sheet too tall for 320 x 568 and 360 x 640 opens on its title at the top, and Shift+Tab from that title stays inside the sheet. At 360 x 740 Normal it opens on its main action.
 - **The page 2 dock.** lab `[E1]` checks that the picked crops are named on screen beside the count, on one line.
-- **A drag that stops.** lab `[H4]` drags the planting handle past the start of the 12 months. The handle stays on day 0 and a note says "Synthetic crop stays inside the 12 months shown."
+- **A drag that stops.** lab `[H4]` drags the planting handle past the start of the 12 months. The handle stays on day 0 and a note says "Synthetic crop stays inside the 12 months shown." When a note with Undo is showing, the same drag leaves that note and its Undo in place, and only the status line says the stop.
+- **The field-ready date.** lab `[G2][G4]` types one digit too many in the year. Chromium keeps four digits, so the date becomes a past year and "This date has passed" shows, and the field is never wiped. lab `[G2]` deletes the year by keyboard. The plan window line goes, and Make my plan stays on page 4 and asks for the date.
 - **High contrast progress.** lab `[L6]` checks that a step not reached yet is drawn differently from a step done.
 
 ## Bugs this run found, fixed in F1's files
@@ -77,7 +78,19 @@ An independent review of the branch led to these changes. Each new browser case 
 - **The page 2 dock** names the picked crops, so a farmer can check the picks without scrolling 40 crops. The recordings show "2 picked: maize (grain) and common …".
 - **Making** says "Keep this page open while we work." instead of promising a time, and its ring is at most 28% of the screen's height, so the first step starts on the first screen at 360 x 740.
 - **High contrast** draws steps not reached as white with a black edge, and the Making ring's track as a dotted line.
-- **Notes.** A stopped drag shows its reason as a note. A note with Undo goes when the page changes, and it now comes right after the quiet notices in the Tab order. No evidence case raises a note, so the focus-order files did not change.
+- **Notes.** A stopped drag shows its reason as a note, unless a note with Undo is showing. Then only the status line says the stop. A note with Undo goes when any answer changes or the page changes, and it comes right after the quiet notices in the Tab order. No evidence case raises a note, so the focus-order files did not change.
+
+## Fixes after the second review
+
+A second independent review of 75146ad, and two skeptics on its fix round, led to these changes. Each has a Vitest or Playwright case that failed before its fix.
+
+- **Undo.** The note with Undo goes when a later answer changes, so Undo never discards a later step. A drag that stops keeps that note. Undo says "Undone: …", and a sentence said twice in a row is said again.
+- **Focus.** Shift+Tab from a sheet's title stays inside the sheet. After Change inputs, focus lands on the title of the page that opens. Try again on the crop list keeps focus on the page or sheet title and says whether the list loaded. Listen is a plain button.
+- **Change inputs.** It never reopens a job whose plan was already shown. Answers count as newer than the plan only when this visit showed them at the hand-off to Results, so a draft from before a failed open is never kept, and answers changed while a job ran are. What it opens is saved at once.
+- **Storage at open.** A load that fails within 1 s of the open is tried again, up to three loads in all. A load that fails later is not tried again.
+- **Service errors.** A saved `service_error` is never offered as the earlier plan. With saved answers, it opens those answers instead of Results.
+- **Making and the failed screen.** Try again shows the busy button while it sends. Three failed reads of any kind show "We can't reach the planning service right now". The note goes when Making reopens on the same job.
+- **The field-ready date.** Text that is not a date stays in the input and clears the answer, so the plan never uses a date the input does not show. The input is bounded to four-digit years.
 
 ## Commands and observed results
 
@@ -89,13 +102,13 @@ One way to make that folder:
 mkdir -p "$HOME/pw-browsers/ffmpeg-1013" && ln -sf /usr/bin/ffmpeg "$HOME/pw-browsers/ffmpeg-1013/ffmpeg-linux"
 ```
 
-| Command | Observed (15 November 2026) |
+| Command | Observed (15 November 2026, at the head that adds this table) |
 | --- | --- |
-| `PW_CHROMIUM=/opt/pw-browsers/chromium PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/lab.spec.ts tests/frontend/onboarding/journey.spec.ts tests/frontend/onboarding/evidence.spec.ts` | 51 passed (3.7 min): lab 20, journey 11, evidence 20. Without `F1_EVIDENCE` it wrote nothing here. |
-| `PW_CHROMIUM=/opt/pw-browsers/chromium F1_EVIDENCE=1 PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/evidence.spec.ts` | 20 passed (4.9 min). It wrote every file in this folder except this README. Later changes touched only comments and one import path, so the screens these files show are unchanged. |
-| `npx vitest run tests/frontend/onboarding` | 15 files passed, 329 tests passed |
-| `npm run check` | Exit 0. 58 files passed and 5 skipped. 865 tests passed and 29 skipped. "Module boundaries passed." |
-| `npm run build` | Exit 0, with another `next dev` serving this checkout on port 3000. `/` is static, the prerendered `index.html` holds "Opening Gilir…", and `__gilirDevInput` is in no file under `.next/static`. |
+| `PW_CHROMIUM=/opt/pw-browsers/chromium PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/lab.spec.ts tests/frontend/onboarding/journey.spec.ts tests/frontend/onboarding/evidence.spec.ts` | 57 passed (3.8 min): lab 26, journey 11, evidence 20. Without `F1_EVIDENCE` it wrote nothing here. Its focus-order files equal the ones here, and its screenshots are byte-identical except the first-paint one, which differs only in the loading shimmer's phase. |
+| `PW_CHROMIUM=/opt/pw-browsers/chromium F1_EVIDENCE=1 PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/evidence.spec.ts` | Last run at 75146ad: 20 passed (4.9 min). It wrote every file in this folder except this README. It was not rerun after the second review, because the run above showed no screen these files show had changed. |
+| `npx vitest run tests/frontend/onboarding` | 15 files passed, 354 tests passed |
+| `npm run check` | Exit 0. 60 files passed and 5 skipped. 900 tests passed and 29 skipped. "Module boundaries passed." |
+| `npm run build` | Exit 0, with `next dev` stopped, because both use `.next`. `/` is static, the prerendered `index.html` holds "Opening Gilir…", and `__gilirDevInput` is in no file under `.next/static`. |
 
 CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes its files to `test-results/` only. With it, the spec stages them under `test-results/f1-evidence/` and copies them here after the last test, only when all 20 passed. A file written into the repository during the run makes `next dev` rebuild, and two earlier runs that wrote here directly got a 500 on `/` during that rebuild.
 
@@ -104,7 +117,7 @@ CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes i
 - **A real field.** Page 1 shows the field picker stub, and the field comes from the seed.
 - **Real storage.** Every storage call rejects, so a reload loses the answers.
 - **A live job.** It needs `DATABASE_URL` and the worker, and the plan routes here are stubs.
-- **The real Results.** The Results slot is still a stub that prints its prop names. The lab's Results slot cannot show which snapshot it got.
+- **The real Results.** The Results slot is still a stub that prints its prop names. The lab's Results slot cannot show which snapshot it got. So Change inputs, and every fix above that starts from it, has jsdom evidence through `src/app/page.tsx` only.
 - **Assistive technology and other browsers.** No screen reader was run. What Listen hands to speech was captured from a stub in Chromium and in jsdom, but no voice was heard. Drag was driven with a mouse, not a touch screen. Only Chromium was used, not Safari or Firefox.
 - **A production server.** Every browser run used `next dev`, because the seed exists only there. The build was checked separately.
 

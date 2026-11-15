@@ -4,7 +4,7 @@ import type { ServiceFailure } from "@/contracts";
 import type { Controller } from "../controller";
 import { formatInstant } from "../model/dates";
 import type { Progress, TrackedJob } from "../model/flow";
-import { failureWords, making, titles } from "../model/words";
+import { failureWords, makePlan, making, titles } from "../model/words";
 import { PlainFrame, Title } from "./frame";
 import { Icon, Mark } from "./icons";
 
@@ -64,8 +64,8 @@ export function Making(props: { readonly c: Controller; readonly job: TrackedJob
 }
 
 /** A request that ended without a plan. It never shows a plan and never calls onCompleted. */
-export function Failed(props: { readonly c: Controller; readonly failure: ServiceFailure }): ReactElement {
-  const { c, failure } = props;
+export function Failed(props: { readonly c: Controller; readonly failure: ServiceFailure; readonly sending: boolean }): ReactElement {
+  const { c, failure, sending } = props;
   const again = failure.code === "not_found" ? making.makeAgain : failure.retryable ? making.tryAgain : null;
   const earlier = c.flow.earlierPlan;
   return (
@@ -76,9 +76,9 @@ export function Failed(props: { readonly c: Controller; readonly failure: Servic
       <p className="t-s muted">{making.noPlan}</p>
       <div className="stack-s">
         {again ? (
-          <button className="btn btn-primary btn-block" type="button" onClick={c.makePlan}>
-            <Icon name="refresh" />
-            {again}
+          <button className="btn btn-primary btn-block" type="button" aria-busy={sending} onClick={c.makePlan}>
+            {sending ? <span className="spinner" aria-hidden="true" /> : <Icon name="refresh" />}
+            {sending ? makePlan.sending : again}
           </button>
         ) : null}
         <button className={again ? "btn btn-block" : "btn btn-primary btn-block"} type="button" onClick={c.changeAnswers}>

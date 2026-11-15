@@ -114,11 +114,11 @@ describe("watchJob", () => {
     expect(kinds(events)).toEqual(["queued"]);
   });
 
-  it("[K6] five rejections with no ServiceFailure (a ZodError) in a row end as failed with unreadable", async () => {
+  it("[K6] five rejections with no ServiceFailure (a ZodError) in a row end as failed with unreadable, after the third says the service is out of reach", async () => {
     const { events, readAt } = follow({ read: [{ reject: zodError }] });
     await vi.advanceTimersByTimeAsync(10 * 60_000);
     expect(readAt).toHaveLength(policy.poll.unknownStrikes);
-    expect(events).toEqual([{ kind: "failed", failure: unreadable }]);
+    expect(events).toEqual([{ kind: "reachable", reachable: false }, { kind: "failed", failure: unreadable }]);
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -131,11 +131,12 @@ describe("watchJob", () => {
     expect(kinds(events).at(-1)).toBe("fetching");
   });
 
-  it("[K6] outages that alternate with unreadable answers are never three in a row, so Making never says it cannot reach the service", async () => {
+  it("[K6] outages that alternate with unreadable answers (a captive portal) report reachable false after three failures in a row, and true again after a good read", async () => {
     const mixed = Array.from({ length: 8 }, (_, n) => (n % 2 === 0 ? { reject: outage } : { reject: zodError }));
-    const { events } = follow({ read: [...mixed, "fetching"] });
+    const { events, readAt } = follow({ read: [...mixed, "fetching"] });
     await vi.advanceTimersByTimeAsync(10 * 60_000);
-    expect(kinds(events)).toEqual(["fetching"]);
+    expect(readAt.length).toBeGreaterThan(mixed.length);
+    expect(kinds(events)).toEqual(["reachable false", "reachable true", "fetching"]);
   });
 
   it("a read that never settles is cut after 20 s and counts as retryable", async () => {
