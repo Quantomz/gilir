@@ -138,6 +138,53 @@ test.describe("useful messages, no silent loss", () => {
     expect(await load(page)).toEqual(other);
   });
 
+  test("full: a load that must set an unreadable plan aside on a device filled to its quota returns the readable answers, writes nothing, the notice names the plan, and clear still works", async ({ page, context, harness }) => {
+    await openHarness(page, `${harness.origin}/`);
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Storage.overrideQuotaForOrigin", { origin: harness.origin, quotaSize: 512 * 1024 });
+    const record = await page.evaluate(source => {
+      const bytes = crypto.getRandomValues(new Uint8Array(240));
+      const assumptions = Array.from({ length: 500 }, () => {
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, byte => String.fromCharCode(33 + (byte % 90))).join("");
+      });
+      const snapshot = source.state.snapshot;
+      return { ...source, state: { ...source.state, snapshot: { ...snapshot, result: { ...snapshot.result, details: { ...snapshot.result.details, assumptions } } } } };
+    }, recordWithRetiredPriority);
+    await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), record);
+
+    const fillerStopped = await page.evaluate(async () => {
+      let key = 0;
+      for (const size of [32_768, 8_192, 2_048, 512]) {
+        for (;;) {
+          const bytes = crypto.getRandomValues(new Uint8Array(size));
+          try {
+            await window.gilirF4.raw.write("filler", 1, { [`k${key++}`]: Array.from(bytes, byte => String.fromCharCode(33 + (byte % 90))).join("") });
+          } catch (error) {
+            if (size === 512) return (error as Error).name;
+            break;
+          }
+        }
+      }
+      return "never full";
+    });
+    expect(fillerStopped).toBe("QuotaExceededError");
+
+    const outcome = await page.evaluate(async () => {
+      const { localPlans, readStorageNotice, storageProblem } = window.gilirF4;
+      const loaded = await localPlans.load().catch((error: unknown) => storageProblem(error).reason);
+      const stored = await window.gilirF4.raw.read("gilir");
+      const notice = (await readStorageNotice())?.text ?? null;
+      const cleared = await localPlans.clear().then(() => "resolved", (error: unknown) => storageProblem(error).reason);
+      return { loaded, stored: stored?.records ?? null, notice, cleared, afterClear: (await window.gilirF4.raw.read("gilir"))?.records ?? null };
+    });
+    expect(outcome.loaded).toEqual({ draft: partialDraft, step: 2, activeJob: null, snapshot: null });
+    expect(outcome.stored).toEqual({ state: record });
+    expect(outcome.notice).toBe(words.oldPlanAnswersKept);
+    expect(outcome.cleared).toBe("resolved");
+    expect(outcome.afterClear).toEqual({});
+  });
+
   test("an old record: a version 1 record with a retired snapshot shape, written with raw indexedDB, loads the draft; the notice names the plan; the raw value sits in set-aside", async ({ page, harness }) => {
     await openHarness(page, `${harness.origin}/`);
     await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), recordWithRetiredPriority);
