@@ -17,13 +17,13 @@ import { launchOptions } from "../../frontend/onboarding/support/launch";
 import { evidencePath, recording, shot } from "./support/evidence";
 import { baseUrl, blocked, live, startWorker, stopWorker } from "./support/stack";
 import {
-  actions, answerAll, downloadPdf, fillRotation, makePlan, markField, openApp, pickCrops, pickWater, resultTitle, sizes,
+  actions, answerAll, downloadPdf, fieldSearchName, fillRotation, makePlan, markField, openApp, pickCrops, pickWater, resultTitle, sizes,
   tabTo, timeline, title, watchErrors,
 } from "./support/walk";
 import type { Answers } from "./support/walk";
 
 const reader = { locale: "en-US", timeZone: "UTC" } as const;
-test.use({ launchOptions, locale: reader.locale, timezoneId: reader.timeZone, ...(baseUrl === undefined ? {} : { baseURL: baseUrl }) });
+test.use({ launchOptions, trace: "off", locale: reader.locale, timezoneId: reader.timeZone, ...(baseUrl === undefined ? {} : { baseURL: baseUrl }) });
 test.skip(!live, blocked);
 
 const rice = "Rice (paddy)";
@@ -115,7 +115,7 @@ for (const size of sizes) {
       const reads = requests.filter(request => request.method === "GET");
       expect(reads.length).toBeGreaterThan(0);
       for (const read of reads) {
-        expect(read.auth, "the capability token travels in a header").toMatch(/^Bearer .{20,}/);
+        expect(/^Bearer .{20,}/.test(read.auth ?? ""), "the capability token travels in a header").toBe(true);
         expect(new URL(read.url).search, "and never in the address").toBe("");
       }
 
@@ -139,6 +139,13 @@ for (const size of sizes) {
     });
 
     test("[I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off", async ({ page }) => {
+      const submissions: string[] = [];
+      const reads: string[] = [];
+      page.on("request", request => {
+        const path = new URL(request.url()).pathname;
+        if (request.method() === "POST" && path === "/api/plans") submissions.push(path);
+        if (request.method() === "GET" && /^\/api\/plans\/[^/]+$/.test(path)) reads.push(path);
+      });
       await openApp(page);
       await answerAll(page, skippingLastYear);
       await makePlan(page);
@@ -146,6 +153,9 @@ for (const size of sizes) {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(new RegExp(`^(Making your plan|${planTitle.source.slice(1, -1)})$`), { timeout: 30_000 });
       const heading = await resultTitle(page);
       expect(heading).toMatch(planTitle);
+      expect(submissions).toHaveLength(1);
+      expect(reads.length).toBeGreaterThan(0);
+      expect(new Set(reads).size, "reload must keep the original job").toBe(1);
       const year = await timeline(page).getByText(/^Your year: /).innerText();
 
       await page.route("**/api/**", route => route.abort("connectionrefused"));
@@ -225,10 +235,8 @@ for (const size of sizes) {
       expect(pdf.getTitle()).toMatch(/^Gilir crop plan, made /);
 
       const poppler = spawnSync("pdftotext", ["-layout", path, "-"], { encoding: "utf8" });
-      if (poppler.error !== undefined || poppler.status !== 0) {
-        test.info().annotations.push({ type: "NOT RUN", description: "pdftotext is not installed, so the PDF's words were not compared with the screen." });
-        return;
-      }
+      expect(poppler.error, "pdftotext must be installed for the screen-to-PDF comparison").toBeUndefined();
+      expect(poppler.status, "pdftotext must successfully read the downloaded PDF").toBe(0);
       const words = squeeze(poppler.stdout);
       expect(words).toContain(heading);
       expect(words).toContain(year);
@@ -247,7 +255,7 @@ for (const size of sizes) {
 
     test("[I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF", async ({ page }) => {
       await openApp(page);
-      await tabTo(page, "searchbox", "Position of your farm");
+      await tabTo(page, "searchbox", fieldSearchName);
       await page.keyboard.type(skippingLastYear.position);
       await page.keyboard.press("Enter");
       await tabTo(page, "button", "Mark my field");

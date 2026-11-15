@@ -48,6 +48,10 @@ I3_LIVE=1 I3_BASE_URL=https://<the site> npx playwright test -c tests/integratio
 
 Each live case creates anonymous jobs through the public API with the synthetic field above, as any visitor would.
 
+The live PDF check requires Poppler's `pdftotext` on `PATH`. A missing executable or failed extraction fails the check. The browser harness accepts both the configured place-search label and the keyless coordinate-search label. It disables live traces even when invoked through the root Playwright configuration, and capability assertions do not print token values.
+
+Independent release review found and corrected those harness gaps before hosted verification. The console-error exception now applies only to failed resource requests whose reported URL belongs to MapTiler or NASA GIBS. Unexpected app resource errors remain failures. Provider connectivity needs its separate live check. The refresh case also requires one submission and reads of one job ID. The recorded local results above describe the original run; they do not establish hosted acceptance.
+
 ## What each live case shows
 
 Each case runs at 360x740 and at 1280x800.

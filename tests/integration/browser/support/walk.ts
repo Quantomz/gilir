@@ -8,6 +8,8 @@ export const sizes = [
   { name: "desktop 1280x800", key: "1280", viewport: { width: 1280, height: 800 } },
 ] as const;
 
+export const fieldSearchName = /^(Position of your farm|Village, town or area)$/;
+
 export type Water = "Rain only" | "Rain + water when it’s dry" | "I’m not sure";
 
 export interface Answers {
@@ -32,7 +34,7 @@ export async function openApp(page: Page): Promise<void> {
 }
 
 export async function markField(page: Page, position: string): Promise<void> {
-  await page.getByRole("searchbox", { name: "Position of your farm" }).fill(position);
+  await page.getByRole("searchbox", { name: fieldSearchName }).fill(position);
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByRole("button", { name: "Mark my field" }).click();
   await expect(page.getByText(/^Your field is marked: about .+, 4 corners\.$/).first()).toBeVisible();
@@ -102,15 +104,17 @@ export async function tabTo(page: Page, role: Parameters<Page["getByRole"]>[0], 
   throw new Error(`Tab never reached the ${role} "${String(name)}" in ${limit} presses.`);
 }
 
-/** Page errors and console errors that are the app's own; blocked map tiles are the network's, not the app's. */
+/** Provider connectivity is checked separately; app failures remain fatal here. */
 export function watchErrors(page: Page): string[] {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(`page error: ${error.message}`));
   page.on("console", message => {
     if (message.type() !== "error") return;
     const text = message.text();
-    if (/Failed to load resource|ERR_TUNNEL|ERR_INTERNET_DISCONNECTED|ERR_FAILED|net::/.test(text)) return;
-    errors.push(`console error: ${text}`);
+    const url = message.location().url;
+    if (/^https:\/\/(api\.maptiler\.com|gibs\.earthdata\.nasa\.gov)\//.test(url)
+      && /Failed to load resource|net::/.test(text)) return;
+    errors.push(`console error: ${text.replace(/([?&](?:key|token)=)[^&\s)]+/gi, "$1[redacted]")}`);
   });
   return errors;
 }
