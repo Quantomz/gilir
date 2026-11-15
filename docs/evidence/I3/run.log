@@ -1,0 +1,26 @@
+
+Running 21 tests using 1 worker
+
+  ✓   1 tests/integration/browser/fixture.spec.ts:31:5 › fixture, phone 360x740 › [I3-F1] a typed position, a crop, water and the rotation page reach a fixture plan with warnings; it is saved, opens details, downloads a PDF and reopens after a reload (10.8s)
+  ✓   2 tests/integration/browser/fixture.spec.ts:63:5 › fixture, phone 360x740 › [I3-F2] a fixture result with missing evidence shows its report with no timeline (2.4s)
+  ✓   3 tests/integration/browser/fixture.spec.ts:31:5 › fixture, desktop 1280x800 › [I3-F1] a typed position, a crop, water and the rotation page reach a fixture plan with warnings; it is saved, opens details, downloads a PDF and reopens after a reload (11.7s)
+  ✓   4 tests/integration/browser/fixture.spec.ts:63:5 › fixture, desktop 1280x800 › [I3-F2] a fixture result with missing evidence shows its report with no timeline (3.2s)
+  ✓   5 tests/integration/browser/live.spec.ts:76:5 › live, phone 360x740 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year (6.6s)
+  ✓   6 tests/integration/browser/live.spec.ts:141:5 › live, phone 360x740 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off (8.0s)
+  ✓   7 tests/integration/browser/live.spec.ts:159:5 › live, phone 360x740 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan (14.9s)
+  ✓   8 tests/integration/browser/live.spec.ts:197:5 › live, phone 360x740 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says (8.7s)
+  ✓   9 tests/integration/browser/live.spec.ts:248:5 › live, phone 360x740 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF (9.0s)
+  ✓  10 tests/integration/browser/live.spec.ts:303:5 › live, phone 360x740 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result (7.1s)
+  ✓  11 tests/integration/browser/live.spec.ts:327:5 › live, phone 360x740 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF (7.7s)
+  ✓  12 tests/integration/browser/live.spec.ts:343:5 › live, phone 360x740 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back (8.3s)
+  ✓  13 tests/integration/browser/live.spec.ts:76:5 › live, desktop 1280x800 › [I3-1] field, crops, water and last year's crop lead to one real result through the API, with details and the comparison with last year (10.2s)
+  ✓  14 tests/integration/browser/live.spec.ts:141:5 › live, desktop 1280x800 › [I3-2] a refresh while the plan is being made keeps the job, and a refresh after completion reopens the saved result with the server cut off (9.6s)
+  ✓  15 tests/integration/browser/live.spec.ts:159:5 › live, desktop 1280x800 › [I3-3] Clear saved data with Undo, then Change my answers keeps the answers and makes a new plan (16.4s)
+  ✓  16 tests/integration/browser/live.spec.ts:197:5 › live, desktop 1280x800 › [I3-4] the PDF downloads with the network off, is the file made from the API's snapshot, and says what the screen says (9.4s)
+  ✓  17 tests/integration/browser/live.spec.ts:248:5 › live, desktop 1280x800 › [I3-5] the keyboard alone marks the field, answers every page, makes the plan, opens details and downloads the PDF (12.9s)
+  ✓  18 tests/integration/browser/live.spec.ts:303:5 › live, desktop 1280x800 › [I3-6] a phone with no WebGL2 has no globe, and the drawing with the corner list still leads to a real result (7.2s)
+  ✓  19 tests/integration/browser/live.spec.ts:327:5 › live, desktop 1280x800 › [I3-7] a crop with no growing details for this place gets a report that says so, with no timeline, and its PDF (8.7s)
+  ✓  20 tests/integration/browser/live.spec.ts:343:5 › live, desktop 1280x800 › [I3-8] when the planning service can't be reached the answers are kept, and Make my plan works once it is back (9.8s)
+  ✓  21 tests/integration/browser/live.spec.ts:362:3 › live, a short recording of the real journey › [I3-demo] phone width: field, crop, water, rotation, the real result, details and the PDF (24.9s)
+
+  21 passed (3.5m)

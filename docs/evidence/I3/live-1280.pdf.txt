@@ -1,0 +1,243 @@
+Gilir · A crop plan from past seasons
+
+Your plan, with warnings
+Field at 13.75° N, 100.50° E
+Weather point 13.750° N, 100.500° E
+Made Nov 15, 2026 · Your year: May 6, 2027 to May 5, 2028
+Crops: Rice (paddy) · Water: Rain + water when it’s dry · Last year: 1 crop
+
+
+
+    With warnings.
+    In past seasons, rain fell short of what the crops need in about 9 in 10 weeks.
+
+
+
+
+What we flagged
+We flag a crop if, in any past season, even one week had less rain than it needs, or
+a temperature outside its limits. The check is strict, so most plans have warnings.
+•    Rain fell short of what Rice (paddy) needs in past seasons
+     In some replay seasons, rainfall fell below estimated crop demand in at least
+     one rolling window.
+A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It
+shows where past seasons fell short, so you know what to watch.
+
+
+
+Good to know
+•    About the growing details for Rice (paddy)
+     Paddy rice: the rainfall-demand screen excludes ponding, seepage and
+     percolation water requirements, so it understates the water a flooded paddy
+     needs.
+
+
+
+
+Gilir crop plan · Made Nov 15, 2026                                          Page 1 of 7
+•   About the growing details for Rice (paddy)
+    The FAO-56 cell 'Dec; May' with region 'Tropics; Mediterranean' is read as
+    December planting for the tropics.
+•   About the growing details for Rice (paddy)
+    FAO-56 also lists a 180-day tropical rice row (May planting); it is not released
+    because there is no stored rule for choosing between the two tropical rows.
+•   Your backup water isn’t counted
+    Reported backup water may provide additional protection. No backup supply
+    was assumed in calculations or ranking.
+•   Your dates for last year are estimates
+    Historical dates are estimates. Any historical comparison retains that
+    uncertainty.
+
+
+
+When to plant and harvest
+May    Jun      Jul      Aug     Sep      Oct    Nov   Dec   Jan    Feb   Mar    Apr
+
+                             1                                       2
+
+                                                                                        3
+2027                                                         2028
+
+       A crop, numbered as in the list below
+       After harvest, before the field is free
+       No planned crop
+
+1. No planned crop
+   May 6 to Nov 30, 2027 · 209 days
+2. Rice (paddy)
+   Plant Dec 1, 2027 · Harvest Apr 28, 2028
+   150 days in the field. The field is free again on May 6, 2028.
+
+
+
+
+Gilir crop plan · Made Nov 15, 2026                                             Page 2 of 7
+3. After harvest, before the field is free
+   Apr 29 to May 5, 2028 · 7 days
+   No planned crop: the days after the Rice (paddy) harvest.
+
+
+
+Why this plan ranked first
+Plans are compared in one fixed order: water first, then days without a crop.
+1. How often rain fell below what the crops need
+   About 9 in 10 weeks
+   In past seasons, for the crop with the most short weeks each season. Lower is
+   better.
+2. How big the shortfall was
+   About 84%
+   The average share of the crops’ need that rain didn’t cover. Weeks with
+   enough rain count as 0%. Lower is better.
+3. Days without a planned crop
+   216 days
+   Of the 366 days in your year, counting the days after each harvest. Fewer is
+   better.
+4. Longest stretch without a planned crop
+   209 days
+   Days in a row without a planned crop. Shorter is better.
+Shown, but not used to rank
+•   In a bad year
+    About 93%
+    Of the crops’ need, rain didn’t cover this much in a bad year: 9 in 10 past
+    seasons had this much shortfall or less.
+•   Heat and cold
+    Not assessed
+    Not assessed for Rice (paddy).
+
+
+Gilir crop plan · Made Nov 15, 2026                                        Page 3 of 7
+Checked against 25 past seasons, May 2001 to May 2026. From past seasons, not a prediction.
+Checked with rain alone: backup water is not counted.
+
+
+
+Compared with last year
+We couldn’t score last year’s rotation:
+•   The reported historical duration has no unambiguous released stage allocation.
+Your dates are estimates. You said some of last year’s dates are approximate.
+What you told us about last year (not scored)
+Rice (paddy)
+Planted about May 6, 2026 · Harvested about Aug 3, 2026
+Not sure: nothing recorded
+Aug 4, 2026 to May 5, 2027 · 275 days
+
+
+
+What we couldn’t check
+•   Heat and cold limits for Rice (paddy)
+    No released temperature rule; heat and cold exposure are unassessed, not
+    safe.
+
+
+
+How this was worked out
+This was the sole assessed eligible calendar; no advantage over another calendar
+was established.
+
+
+
+Assumptions
+•   Historical replay is a planning comparison, not a forecast or a prediction of
+    harvest success.
+
+
+
+Gilir crop plan · Made Nov 15, 2026                                              Page 4 of 7
+•   Rainfall alone supplies every candidate. No irrigation supply or farm soil-water
+    balance is assumed.
+•   Ranking minimizes frequency, relative mismatch, unplanted days, then longest
+    unplanted gap. Temperature indicators do not enter that tuple.
+•   Comparisons use 6 decimal places. Displayed assessment values remain
+    unrounded.
+•   Ranking dates use a 7-day grid plus window edges, baseline planting dates,
+    and earliest field availability. This does not establish daily optimality.
+•   The independent prefix budget is a deterministic safety bound. Representative
+    workload benchmarks remain pending.
+•   No pest or weed assessment, yield forecast, soil improvement, fertilizer
+    quantity, or cost estimate is made.
+•   The reported historical duration has no unambiguous released stage allocation.
+•   Stage lengths are FAO-56 Table 11 average examples for the stated region
+    and planting period, not local observations.
+•   FAO-56 Table 11 row used: Rice | 30 | 30 | 60 | 30 | 150 | Dec; May | Tropics;
+    Mediterranean (Tropics, December planting).
+•   Region rectangle is an approximate bounding box drawn around the place
+    named in FAO-56 Table 11; it is not a published boundary.
+•   FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about
+    2 m/s) under standard non-stressed conditions; no climatic adjustment is
+    applied.
+•   Table 12 'Rice' row; Kc ini 1.05 assumes 0.10-0.20 m standing water in a
+    sub-humid climate with light wind (Table 14 gives 1.00-1.20 by climate).
+•   Kc end 0.90 is the higher value of the Table 12 range 0.90-0.60, which has no
+    footnote; the higher value gives the more cautious water-demand estimate.
+•   Gilir planning assumption: 7 days to clear and prepare the field after harvest.
+    FAO-56 gives no turnaround; this is not a published agronomic value.
+
+
+Gilir crop plan · Made Nov 15, 2026                                        Page 5 of 7
+Sources, period and versions
+Checked against 25 past seasons, May 2001 to May 2026.
+
+Past seasons chosen with method replay-v2 (frozen cutoff, UTC, Feb29 to Feb28).
+declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one
+synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means).
+
+Calculation methods: rain-demand-window-v2; schedule-occupancy-v1;
+daily-temperature-rule-v2.
+
+FAO-56 Crop evapotranspiration, Chapter 6: Table 11, lengths of crop development stages.
+Chapter 6, Table 11 (lengths of crop development stages for various planting periods and
+climatic regions, days) and its footnotes. https://www.fao.org/4/x0490e/x0490e0b.htm
+
+FAO-56 Crop evapotranspiration, Chapter 6: Table 12, single crop coefficients. Chapter 6, Table
+12 crop and group rows (small vegetables, Solanum family, cucumber family, roots and tubers,
+legumes, cereals, oil crops) with footnotes 1, 2, 4, 6, 9, 10, 11 and 12, and Table 14 with the rice
+Kc ini paragraph. https://www.fao.org/4/x0490e/x0490e0b.htm
+
+NASA POWER, POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3,
+grid cell POWER_METEOROLOGY:lat208:lon449 (0.5° by 0.625°), much larger than a field.
+Version not recorded: POWER reports its API version but omits the underlying source release
+version.
+https://power.larc.nasa.gov/api/temporal/daily/point?parameters=T2M%2CT2M_MIN%2CT2M_M
+AX%2CRH2M%2CWS2M%2CPS&community=AG&longitude=100.625&latitude=14&start=2000
+0505&end=20260506&format=JSON&time-standard=UTC
+
+NASA POWER, POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3, grid cell
+POWER_SOLAR:lat103:lon280 (1° by 1°), much larger than a field. Version not recorded:
+POWER reports its API version but omits the underlying source release version.
+https://power.larc.nasa.gov/api/temporal/daily/point?parameters=ALLSKY_SFC_SW_DWN&com
+munity=AG&longitude=100.5&latitude=13.5&start=20000505&end=20260506&format=JSON&tim
+e-standard=UTC
+
+NASA POWER, POWER_IMERG [IMERG] via POWER Daily API v2.10.3, grid cell
+POWER_IMERG:lat1037:lon2805 (0.1° by 0.1°), much larger than a field. Version not recorded:
+POWER reports its API version but omits the underlying source release version.
+https://power.larc.nasa.gov/api/temporal/daily/point?parameters=IMERG_PRECTOT&community
+=AG&longitude=100.55&latitude=13.75&start=20000505&end=20260506&format=JSON&time-st
+andard=UTC
+
+
+
+
+Gilir crop plan · Made Nov 15, 2026                                                     Page 6 of 7
+Crop profiles: Rice (paddy) rice-paddy-fao56-tropics-dec reviewed-2026-11-15.2.
+
+Engine v1, settings v2, crop list fao56-hard-windows-2026-11-15, rules no-rules-2026-11-14,
+records before Nov 14, 2026.
+
+Weather records:
+power-118115612f44189987bd37983186c48164785eabe90cfcf9f57f3d992f647eb8,
+power-b83b59bdbda70ff4b88b9b7fb4b2cb49e177d4dcbb64625040c41cfe7f572e74,
+power-f72d954f783722b07ec5b1aa5168e5c6f8609c1aecb48061aa76aec6925582d6.
+
+
+
+From past seasons. Not a prediction for next season. Checked with rain alone: backup water is
+not counted. No fertilizer amounts, costs or soil tests.
+Gilir is an independent project for the NASA Space Apps Challenge 2026, not affiliated with or
+endorsed by NASA.
+
+
+
+
+Gilir crop plan · Made Nov 15, 2026                                                  Page 7 of 7
+
