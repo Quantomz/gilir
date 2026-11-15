@@ -154,11 +154,13 @@ describe("with no key and no WebGL", () => {
     expect(fetchCalls).not.toHaveBeenCalled();
   });
 
-  it("[R5] with the drawing and no key there are no map pictures and no place search, so no credit and no claim that NASA sees the area", async () => {
+  it("[R5] with the drawing and no key there are no map pictures and no place search, so no credit, no MapTiler logo and no claim that NASA sees the area", async () => {
     mount();
     await drawing();
     expect(screen.queryByText(/NASA EOSDIS GIBS|Map pictures|MapTiler/)).toBeNull();
     expect(screen.queryByText(/can see which area/)).toBeNull();
+    expect(screen.queryByRole("link", { name: /MapTiler/ })).toBeNull();
+    expect(screen.queryByRole("img", { name: /MapTiler/ })).toBeNull();
   });
 
   it("the root has data-surface='plan', and once marked data-lookup equals the emitted lookup", async () => {
@@ -488,6 +490,17 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
     expect(screen.queryByText(/NASA/)).toBeNull();
+  });
+
+  it("[R5] with a key the drawing carries MapTiler's logo: a link named 'MapTiler logo (opens in a new tab)' to https://www.maptiler.com/, its picture from api.maptiler.com with no key", async () => {
+    mount();
+    const plan = await drawing();
+    const link = screen.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+    expect(link.getAttribute("href")).toBe("https://www.maptiler.com/");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(within(link).getByRole("img", { name: "MapTiler" }).getAttribute("src")).toBe("https://api.maptiler.com/resources/logo.svg");
+    expect(plan.closest(".fp-map")?.contains(link)).toBe(true);
   });
 
   it("unmounting during a search aborts it and nothing is set afterwards", async () => {

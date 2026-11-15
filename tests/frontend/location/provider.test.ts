@@ -1,7 +1,7 @@
 // Node environment. fetch is stubbed with vi.stubGlobal and the key with vi.stubEnv: no network and no real key, so the
 // file passes with NEXT_PUBLIC_MAPTILER_KEY unset. No case prints a URL, because a real key would ride in it.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { creditsFor, picturesFor, placesOfResponse, providerPolicy, readProvider, searchPlaces, searchUrl } from "@/features/location/provider";
+import { creditsFor, logoFor, picturesFor, placesOfResponse, providerPolicy, readProvider, searchPlaces, searchUrl } from "@/features/location/provider";
 import type { BrowserKey, SearchAnswer } from "@/features/location/provider";
 
 const dummyKey = "dummy-key-0123";
@@ -96,6 +96,7 @@ describe("the search request", () => {
     const provider = readProvider();
     const shown = JSON.stringify([provider, picturesFor(provider), creditsFor(provider, true), creditsFor(provider, false)]);
     expect(shown).not.toMatch(/maptiler/i);
+    expect(logoFor(provider)).toBeNull();
     placesOfResponse({ features: [feature("Indramayu", [108.32, -6.33])] });
     searchUrl(keyOf(), "Indramayu");
     picturesFor(readProvider());
@@ -282,5 +283,9 @@ describe("pictures and credits", () => {
   it("[R5] with the flat drawing there are no pictures to credit: nothing with no key, and only the place search's © MapTiler and © OpenStreetMap contributors with one", () => {
     expect(creditsFor({ kind: "missing" }, false)).toEqual([]);
     expect(creditsFor({ kind: "ready", key: keyOf() }, false).map(credit => credit.text)).toEqual(["© MapTiler", "© OpenStreetMap contributors"]);
+  });
+
+  it("[R4][R5] with a key logoFor gives MapTiler's logo picture and its link, neither carrying the key", () => {
+    expect(logoFor({ kind: "ready", key: keyOf() })).toEqual({ src: "https://api.maptiler.com/resources/logo.svg", href: "https://www.maptiler.com/" });
   });
 });

@@ -13,8 +13,8 @@ import { inputFixture } from "@/fixtures/input";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
 import {
-  betweenBars, centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, openPageOne,
-  settledCentre, shoot,
+  betweenBars, centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, layoutProblems, lookupOf, mapArea,
+  openPageOne, settledCentre, shoot, withoutWebGL2,
 } from "./support/slot";
 import type { Point } from "./support/slot";
 
@@ -245,6 +245,9 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
     if (request.kind === "search") {
       expect(request.query).toBe("Indramayu");
       expect(params).toEqual(["autocomplete", "key", "language", "limit"]);
+    } else if (request.kind === "logo") {
+      expect(request.url.pathname).toBe("/resources/logo.svg");
+      expect(params).toEqual([]);
     } else {
       expect(request.url.pathname).toMatch(/(\/\d+\/\d+\/\d+\.\w+|\/tiles\.json)$/);
       expect(params).toEqual(request.kind === "gibs" ? [] : ["key"]);
@@ -253,6 +256,80 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
 });
 
 const picturesNotice = (root: Locator) => root.getByText(/^The map pictures didn’t load\./);
+
+const logoLink = (root: Locator) => root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+
+/** The logo links to MapTiler's site in a new tab, and its picture (the stand-in here) has loaded. */
+async function expectLinkedLogo(root: Locator, routes: ProviderRoutes): Promise<Locator> {
+  const link = logoLink(root);
+  await expect(link).toBeVisible();
+  await expect(link).toHaveAttribute("href", "https://www.maptiler.com/");
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect.poll(() => link.getByRole("img").evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);
+  expect(routes.of("logo").length).toBeGreaterThan(0);
+  return link;
+}
+
+/** No two boxes share a pixel. */
+const apart = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+  a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+
+const logoViews = [
+  { width: 360, height: 740, textSize: "normal" },
+  { width: 320, height: 568, textSize: "largest" },
+] as const;
+
+for (const { width, height, textSize } of logoViews) {
+  test.describe(`${textSize} text at ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test("[R5][R22] on F1's page 1 MapTiler's linked logo sits in the map's bottom left, at least 48 px; once a field is marked no corner handle or zoom button is under it", async ({ page }, testInfo) => {
+      const routes = await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      const link = await expectLinkedLogo(root, routes);
+      await searchBox(root).fill("-6.326, 108.32");
+      await searchBox(root).press("Enter");
+      await root.getByRole("button", { name: "Mark my field" }).click();
+      await expect(handles(root)).toHaveCount(4);
+      await mapArea(root).scrollIntoViewIfNeeded();
+      await settledCentre(handles(root).first());
+      const [map, logo] = [(await mapArea(root).boundingBox())!, (await link.boundingBox())!];
+      expect(Math.min(logo.width, logo.height)).toBeGreaterThanOrEqual(48);
+      expect(logo.x - map.x).toBeLessThanOrEqual(16);
+      expect(map.y + map.height - (logo.y + logo.height)).toBeLessThanOrEqual(16);
+      for (const name of ["Zoom in", "Zoom out"]) expect(apart(logo, (await root.getByRole("button", { name }).boundingBox())!), `${name} is clear of the logo`).toBe(true);
+      for (const [index, handle] of (await handles(root).all()).entries()) expect(apart(logo, (await handle.boundingBox())!), `corner ${index + 1} is clear of the logo`).toBe(true);
+      expect(await layoutProblems(page, root)).toEqual([]);
+      await shoot(page, testInfo, `provider-logo-${textSize}-${width}`, mapArea(root));
+    });
+  });
+}
+
+test.describe("with WebGL off", () => {
+  test.beforeEach(({ page }) => withoutWebGL2(page));
+
+  test("[R14][R5] the drawing credits the place search with the same linked logo, below the drawing's tag, and its corner numbers, scale and north stay clear of both", async ({ page }, testInfo) => {
+    const routes = await routeProviders(page, allAnswer);
+    await page.goto("/dev/fixtures");
+    const root = firstPicker(page);
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+    const link = await expectLinkedLogo(root, routes);
+    await mapArea(root).scrollIntoViewIfNeeded();
+    const logo = (await link.boundingBox())!;
+    const tag = (await root.getByText("A drawing, not a photo").boundingBox())!;
+    expect(tag.y + tag.height).toBeLessThanOrEqual(logo.y);
+    const words = mapArea(root).locator("svg text");
+    await expect(words, "4 corner numbers, the scale and north").toHaveCount(6);
+    for (const text of await words.all()) {
+      const box = (await text.boundingBox())!;
+      expect(apart(logo, box), `"${await text.textContent()}" is clear of the logo`).toBe(true);
+      expect(apart(tag, box), `"${await text.textContent()}" is clear of the drawing's tag`).toBe(true);
+    }
+    await shoot(page, testInfo, "provider-no-webgl-logo-360", mapArea(root));
+  });
+});
 
 test("[R16] on F1's page 1 with MapTiler's pictures refused (a bad key): the world view shows NASA's pictures with no notice; on the marked field 'The map pictures didn’t load. …' shows", async ({ page }, testInfo) => {
   const routes = await routeProviders(page, { ...allAnswer, maptiler: "refused" });

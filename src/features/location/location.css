@@ -80,6 +80,11 @@
   /* Messages on the map: a refused edit, the drawing's tag, the loading line. They never take a tap from the map. */
   .fp-map-foot { position: absolute; inset: auto 8px 8px; z-index: 5; display: grid; gap: 4px; justify-items: start; pointer-events: none; }
   .fp-map-foot .fp-notice { box-shadow: var(--shadow-pop), var(--card-edge); }
+  /* Last in the foot, so a message stacks above it. Light with a dark ring, as the corner handles are, so it reads on
+     satellite pictures in sun. It stays light in dark mode: the logo's colours are MapTiler's and cannot follow ours.
+     In px, because the picture does not grow with the text size, so its 48px target need not take more of the map. */
+  .fp-logo { pointer-events: auto; display: grid; place-items: center; min-width: 48px; min-height: 48px; padding: 0 8px; border-radius: var(--r-s); background: var(--mint-pill); box-shadow: 0 0 0 2px var(--night), var(--shadow-pop); }
+  .fp-logo img { display: block; width: 100px; height: 30px; object-fit: contain; }
   .fp-loading { display: flex; gap: .5rem; align-items: center; padding: .3rem .8rem; border-radius: var(--r-s); background: var(--raised); font-size: var(--fs-s); font-weight: 700; }
   .fp-pin { width: 48px; height: 62px; color: var(--pin); transform-origin: 50% 100%; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)); pointer-events: none; }
 

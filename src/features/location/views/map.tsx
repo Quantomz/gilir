@@ -10,8 +10,8 @@ import type { Globe } from "../globe";
 import { planOf } from "../outline";
 import { sceneOf } from "../picker";
 import type { Scene } from "../picker";
-import { creditsFor, picturesFor } from "../provider";
-import { credits, map, newTab } from "../words";
+import { creditsFor, logoFor, picturesFor } from "../provider";
+import { credits, logo as logoWords, map, newTab } from "../words";
 import { Icon, Notices } from "./parts";
 
 export function MapArea(props: { readonly c: Controller }): ReactElement {
@@ -20,6 +20,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
   const container = useRef<HTMLDivElement>(null);
   const [globe, setGlobe] = useState<Globe | null>(null);
   const surface = picker.surface.kind;
+  const logo = logoFor(provider);
 
   useEffect(() => {
     const element = container.current;
@@ -54,7 +55,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
   return (
     <div className="fp-map-wrap stack-xs">
       <div className="fp-map" ref={c.mapRef}>
-        {surface === "plan" ? <FlatPlan scene={sceneOf(picker)} describedBy={c.idOf("list")} /> : <div className="fp-map-gl" ref={container} />}
+        {surface === "plan" ? <FlatPlan scene={sceneOf(picker)} describedBy={c.idOf("list")} belowPx={logo ? logoRowPx : 0} /> : <div className="fp-map-gl" ref={container} />}
         {surface === "globe" && globe ? (
           <div className="fp-map-ctrls">
             <MapButton icon="plus" label={map.zoomIn} onClick={() => globe.zoomBy(1)} />
@@ -65,6 +66,11 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
           <Notices c={c} where="on" />
           {surface === "plan" ? <p className="fp-tag">{map.planTag}</p> : null}
           {surface === "starting" ? <p className="fp-loading"><span className="spinner" aria-hidden="true" />{map.loading}</p> : null}
+          {logo ? (
+            <a className="fp-logo" href={logo.href} target="_blank" rel="noopener noreferrer" aria-label={logoWords.link}>
+              <img src={logo.src} alt={logoWords.picture} width={100} height={30} />
+            </a>
+          ) : null}
         </div>
       </div>
       <Credits c={c} />
@@ -111,6 +117,8 @@ const selectedPx = 22;
 const numberOffsetPx = 18;
 /** Room around the outline for the scale bar, the north arrow and the tag. */
 const insetPx = 24;
+/** Kept clear under the outline for the logo's 48px chip and the foot's 4px gap (location.css), as the tag rises by it. */
+const logoRowPx = 52;
 
 /**
  * The 2D fallback: a drawing of the outline, north up, with a scale bar and the corners numbered as in the corner list.
@@ -118,11 +126,11 @@ const insetPx = 24;
  * size buttons, the search and the phone's location change it. A new pin wins over a field still marked, and shows its
  * coordinates on an empty grid, never an invented landscape.
  */
-function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }): ReactElement {
+function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string; readonly belowPx: number }): ReactElement {
   const { scene } = props;
   const frame = useRef<HTMLDivElement>(null);
   const { width, height } = useSize(frame);
-  const plan = scene.outline && !scene.pin ? planOf(scene.outline, width - 2 * insetPx, height - 2 * insetPx) : null;
+  const plan = scene.outline && !scene.pin ? planOf(scene.outline, width - 2 * insetPx, height - 2 * insetPx - props.belowPx) : null;
   const grid = (count: number) => Array.from({ length: Math.floor(count / gridStepPx) }, (_, index) => (index + 1) * gridStepPx);
   return (
     <div className="fp-plan" ref={frame}>
@@ -137,7 +145,7 @@ function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }
               <circle className="fp-plan-point" cx={plan.lookup.x} cy={plan.lookup.y} r={6} />
               {plan.corners.map(({ x, y }, index) => {
                 const side = index === scene.selected ? selectedPx : cornerPx;
-                const [dx, dy] = [x - width / 2 + insetPx, y - height / 2 + insetPx];
+                const [dx, dy] = [x - width / 2 + insetPx, y - (height - props.belowPx) / 2 + insetPx];
                 const away = Math.hypot(dx, dy) || 1;
                 return (
                   <Fragment key={index}>
