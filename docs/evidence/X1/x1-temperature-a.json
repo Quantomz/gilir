@@ -1,0 +1,1499 @@
+{
+  "audit": "X1 temperature partition A",
+  "status": "ISSUES",
+  "subjectSHA": "090626a6b172fb05901a5e4fafa15be497bcae7e",
+  "reviewedOn": "2026-11-15",
+  "method": "Read-only source comparison. Read spec 3.3 and 5.3, profiles.ts and sources.ts. Inventory used only to enumerate subject fields, never as an independent oracle. Read primary publisher/repository full texts where accessible; named abstract-only or blocked originals separately. Check Celsius number, predicate, actual measured variable, averaging/exposure duration, phenological stage, cultivar and geography. No tests, full check, build, code edits or remote comments.",
+  "workflow": {
+    "pstackPath": "/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md",
+    "playbook": "Investigation, swarm audit partition; no nested agents per coordinator brief",
+    "throughputCheckpoint": "n/a, read-only investigation"
+  },
+  "standard": "Spec 5.3 requires exact supported variable, period and stage. Transparent limitation prose does not establish scientific support for changing those dimensions. A treatment contrast cannot locate an unmeasured threshold.",
+  "counts": {
+    "cropPurposes": 13,
+    "uniqueRules": 19,
+    "unsupported": 15,
+    "unverified": 4,
+    "match": 0,
+    "qualified": 0
+  },
+  "sourcefactsResolution": "Each findings[].sourcefacts entry identifies facts by key in sources[sourceId].facts. The catalog avoids repeating shared source facts.",
+  "sources": {
+    "gourdji2013": {
+      "citationURL": "https://doi.org/10.1088/1748-9326/8/2/024041",
+      "section": "Methods, not independently accessible",
+      "observedprimaryaccess": "UNVERIFIED. DOI and IOP article/PDF variants returned robots or fetch denial. Search metadata and secondary reconstructions were excluded as proof.",
+      "facts": {
+        "access": "No primary full-text numerical, variable or reproductive-window verification obtained."
+      }
+    },
+    "teixeira2013": {
+      "citationURL": "https://www.ukm.my/ipi/wp-content/uploads/2013/07/6.2013Global-hot-spots-of-heat-stress-on-agricultural-crops-due-to-climate-change.pdf",
+      "section": "Section 2.3.1, Figure 1, Table 2, equations 1-2, printed p.208",
+      "observedprimaryaccess": "Published article full PDF opened and relevant section/table read on 2026-11-15. Institutional host, not merely search snippet.",
+      "facts": {
+        "variable": "Tday is deliberately used instead of daily Tmax.",
+        "periodStage": "Daily intensity is averaged within an assumed 30-day reproductive window centered at its midpoint.",
+        "thresholds": "Tcrit/Tlim in Celsius are maize 35/45, wetland rice 35/45, soybean 35/40 and bread wheat 27/40.",
+        "applicability": "Species parameters are approximate, without cultivar-specific parameterization."
+      }
+    },
+    "vargas2021": {
+      "citationURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0249859",
+      "section": "Introduction, Materials and methods, references 19 and 41",
+      "observedprimaryaccess": "Publisher full HTML opened and relevant sections read. PMC alternative initially challenged browser.",
+      "facts": {
+        "thresholds": "Introduction reports >30 C day or >20 C night, citing Rainey and Griffiths 2005.",
+        "periodStage": "That background statement specifies no single-day period or FAO middle stage.",
+        "applicability": "Own trial concerns Andean IJR x AFR298 lines at two Colombian field locations; it acknowledges location effects. Reference 19 is snap-bean reproductive inheritance."
+      }
+    },
+    "silva2020": {
+      "citationURL": "https://revistas.usp.br/sa/en/article/download/180745/167829/462901",
+      "section": "Abstract; Methods; Discussion, final page, printed p.9",
+      "observedprimaryaccess": "Publisher full PDF opened and relevant methods/discussion read.",
+      "facts": {
+        "thresholds": "Discussion attributes >30 C mean daily maximum and >20 C nighttime temperature in tropical beans to Porch et al. 2010.",
+        "periodStage": "Own experiment compares 25/20 versus 37/26 C day/night from V4 to physiological maturity in 12 genotypes.",
+        "applicability": "This is a sustained treatment contrast, not a fitted daily damage boundary; the quoted background lacks an averaging interval."
+      }
+    },
+    "frederiks2015": {
+      "citationURL": "https://era.dpi.qld.gov.au/id/eprint/4854/1/Post-head-emergence%20frost%20in%20wheat%20and%20barley.pdf",
+      "section": "Characterizing radiant frost, printed pp.3490-3491; Damage at different stages, pp.3491-3493",
+      "observedprimaryaccess": "Full published review PDF opened from author government repository after OUP access failed.",
+      "facts": {
+        "thresholds": "Post-head-emergence wheat damage can occur near -3.5 C canopy air; barley near -4 to -5 C.",
+        "variable": "Canopy air, plant and Stevenson-screen minima differ; screen temperatures can correlate poorly with plant temperatures during radiant frost.",
+        "stage": "Head emergence is a distinct sensitivity transition; vegetative cold-acclimation resistance does not establish reproductive resistance.",
+        "period": "Radiant frost occurs over a night; the review does not calibrate these numbers to a NASA 2 m daily-minimum rule."
+      }
+    },
+    "luo2011": {
+      "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+      "section": "Section 2.1 p.585; Table 2 p.589; section 3.2 p.593",
+      "observedprimaryaccess": "Full published review PDF opened from university host. Underlying experiments are distinct and not all accessible.",
+      "facts": {
+        "barley": "Range -17.3 to -12.9 C is LT50 across 20 barley cultivars, attributed to Prasil 2007 evaluations including hardened plants, not all-stage screen minima.",
+        "sorghum": "Table 2 gives a 40/30 C day/night failure regime for yield and reproductive traits, not an observed single-day mean boundary.",
+        "groundnut": "Review reports groundnut fruit set unaffected below air 37 C and declining above it; individual flowers are sensitive near opening.",
+        "cowpea": "Review places a sensitive period 7-9 days before anthesis and discusses high nights around 30 C, not a daily 24 C minimum threshold."
+      }
+    },
+    "prasad2015": {
+      "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2015.00820/pdf",
+      "section": "Methods pp.2-3; Results and Figures 1-4 pp.4-6; Discussion p.8",
+      "observedprimaryaccess": "Publisher full PDF opened; methods, fitted equations and discussion read.",
+      "facts": {
+        "regimes": "For DK28E, 36/26 C corresponds to a reported mean 31 C; 40/30 corresponds to 35 C.",
+        "period": "Threshold-temperature experiment applied each regime for 10 days at panicle emergence; separate duration experiments used multi-day exposures.",
+        "response": "Fertility decreases above mean 25 C; the fitted curve is not a step at 31 or 35 C.",
+        "stage": "Maximum fertility sensitivity is about 10 days before to 5 days after anthesis; stress after 10 days post-anthesis did not affect fertility.",
+        "applicability": "One heat-sensitive hybrid under watered controlled conditions; field thresholds may differ."
+      }
+    },
+    "prasad2006": {
+      "citationURL": "https://www.sciencedirect.com/science/article/pii/S016819230600164X",
+      "section": "Original full text unavailable in this audit",
+      "observedprimaryaccess": "UNVERIFIED full text. Publisher returned 403. Numeric facts from Luo or later papers remain secondary attribution.",
+      "facts": {
+        "access": "Season-long regime claims in subject were not independently verified from the original article."
+      }
+    },
+    "djanaguiraman2018": {
+      "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5904002/",
+      "section": "Abstract; Materials and methods, Hybridization procedure; Discussion",
+      "observedprimaryaccess": "NIH-hosted author manuscript full HTML opened and methods read.",
+      "facts": {
+        "regimes": "ATx399 and RTx430 were exposed to 30/20, 36/26 or 39/29 C day maximum/night minimum.",
+        "periodStage": "Treatments ran from booting through seven days after full anthesis, with 4-hour extrema and 8-hour transitions.",
+        "response": "Pollen damage at 36/26 and pistil damage at 39/29 were treatment observations, not proof of a universal daily mean >=31 C boundary."
+      }
+    },
+    "brooking1976": {
+      "citationURL": "https://connectsci.au/fp/article-abstract/3/5/589/13205/Male-Sterility-in-Sorghum-bicolor-L-Moench-Induced?redirectedFrom=PDF",
+      "section": "Publisher abstract",
+      "observedprimaryaccess": "Primary publisher abstract opened. Full PDF requires purchase and was not obtained.",
+      "facts": {
+        "regime": "CK60 x Tx415 exposed to five 25/10 C day/night cycles developed male sterility.",
+        "stage": "Greatest sensitivity was late archesporial/pollen-mother-cell development to leptotene. No single-night threshold is established by this accessible account."
+      }
+    },
+    "sita2017": {
+      "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2017.00744/full",
+      "section": "Introduction; Materials and methods, Reproductive biology; Controlled environment results, Table 10",
+      "observedprimaryaccess": "Publisher full HTML opened and relevant sections/table read.",
+      "facts": {
+        "thresholds": "Background >32/20 C max/min at flowering and pod filling cites Delahunty 2015.",
+        "period": "Field reproductive samples followed seven-day averaged max/min above 32/20 C.",
+        "regimes": "Chamber work compared paired day/night regimes from flowering; 35/25 C reduced pod numbers by genotype-dependent amounts.",
+        "applicability": "Tolerant and sensitive accessions differed; the paper does not isolate a single Tmax-only daily onset."
+      }
+    },
+    "bishop2016": {
+      "citationURL": "https://onlinelibrary.wiley.com/doi/10.1111/jac.12172",
+      "section": "Methods, Growing conditions; Results, subset yield mass; Discussion",
+      "observedprimaryaccess": "Publisher full HTML opened; repository PDF alternative was access denied.",
+      "facts": {
+        "regimes": "Winter faba cultivar Wizard received 5 days at 18/10, 22/14, 26/18, 30/22 or 34/26 C, 16-hour photoperiod.",
+        "thresholds": "About 28 C t50 concerns yield of flowers already present, not damage onset; pollen t50 was about 32 C.",
+        "stage": "Floral development/anthesis; whole-plant yield partly compensated at other nodes."
+      }
+    },
+    "alharbi2021": {
+      "citationURL": "https://www.mdpi.com/2223-7747/10/9/1925",
+      "section": "Sections 2.2, 2.3.2, 3.1 and 3.4.1",
+      "observedprimaryaccess": "Publisher full HTML opened and methods/results read.",
+      "facts": {
+        "events": "Narrabri airport minimum -3.9 C with eight freezing hours accompanied stem/pod damage; Dirab logger minimum -4.19 C accompanied abortion of tagged flowers.",
+        "applicability": "Field genotypes and frost types differed; the two event minima do not fit a universal -4 C threshold.",
+        "stage": "Flower, stem, pod and seedling responses were measured; flowering cannot be identified exactly by the entire FAO middle stage."
+      }
+    },
+    "priya2019": {
+      "citationURL": "https://www.nature.com/articles/s41598-019-44163-w",
+      "section": "Introduction; Methods, Raising of plants; Abstract",
+      "observedprimaryaccess": "Publisher full HTML opened and relevant sections read.",
+      "facts": {
+        "background": "Introduction attributes >36/28 C day/night reproductive stress to Kaur et al. 2015.",
+        "regime": "SML668 controls were 35/23 C; heat treatments ramped through 38/28, 40/30, 42/30 then held at 45/30 C until maturity.",
+        "inconsistency": "Abstract lists 45/28 C heat, while Methods specifies 45/30 C.",
+        "applicability": "One genotype, fully irrigated, sustained paired regime; no isolated >36 C daily Tmax boundary."
+      }
+    },
+    "patelhall1990": {
+      "citationURL": "https://acsess.onlinelibrary.wiley.com/doi/abs/10.2135/cropsci1990.0011183X003000030029x",
+      "section": "Primary publisher abstract",
+      "observedprimaryaccess": "Publisher search index exposed complete abstract, but direct publisher HTML returned 403. Full text not independently read. Numeric result is abstract-only evidence, explicitly limited.",
+      "facts": {
+        "contrast": "Six Imperial Valley summers averaged max/min 41/24 C under long photoperiods; selected genotypes at Riverside experienced 35/17 C.",
+        "applicability": "Accessions varied and long days enhanced heat effects. The 24 C is a site mean minimum paired with 41 C maximum, not an isolated daily Tmin threshold."
+      }
+    },
+    "kaya2025": {
+      "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12599371/",
+      "section": "Methods, Frost treatments; Results, Table 1 and adjacent prose",
+      "observedprimaryaccess": "Full published article HTML opened through PMC after PeerJ denied access.",
+      "facts": {
+        "regime": "Four hours at -4 C after staged cooling were applied only at V2/V4 across 14 hybrids.",
+        "response": "Mean dead plants were 4.1% and 19.4%.",
+        "inconsistency": "Table 1 gives SY Gibraltar V4 damaged 80.7%, dead 73.3%; adjacent prose calls 80.7% dead. Subject repeats that conflicted mortality maximum.",
+        "applicability": "A tested dose and two seedling stages do not establish all-stage daily Tmin <=-4 C damage onset."
+      }
+    },
+    "hnilickova2017": {
+      "citationURL": "https://pse.agriculturejournals.cz/pdfs/pse/2017/08/07.pdf",
+      "section": "Abstract; Material and methods, Plant material and growth design, pp.375-376",
+      "observedprimaryaccess": "Publisher full PDF opened and methods/results read.",
+      "facts": {
+        "regime": "A single -3 C night lasting ten hours at BBCH16-18 caused physiological changes and recovery after five days.",
+        "applicability": "Four recombinant lines and one wild genotype, not a general cultivated sunflower all-stage -4 C boundary."
+      }
+    },
+    "groundnut2000": {
+      "citationURL": "https://academic.oup.com/jxb/article-pdf/51/345/777/18025666/510777.pdf",
+      "section": "Publisher abstract, redirected to article 652573",
+      "observedprimaryaccess": "Primary publisher abstract opened. Full PDF redirected to purchase page.",
+      "facts": {
+        "experiment": "ICGV86015 exposed for 2, 4 or 6 days at selected day temperatures; fruit set was reduced by floral bud >36 C only in morning or whole-day heat, not afternoon-only."
+      }
+    }
+  },
+  "findings": [
+    {
+      "ruleId": "maize-heat-mid-tmax-35",
+      "cropPurposeId": "maize-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 35,
+        "sourceIds": [
+          "gourdji2013",
+          "teixeira2013"
+        ],
+        "limitations": [
+          "Onset of heat damage around silking and pollination (Gourdji et al. 2013 critical temperature; Teixeira et al. 2013 Tcrit).",
+          "Teixeira et al. 2013 apply 35 \u00b0C to daytime temperature, not daily maximum, and reach maximum damage at 45 \u00b0C; using daily maximum flags heat more often.",
+          "The source uses a 30-day reproductive window; this rule covers the whole FAO-56 mid-season stage, so it can count days outside that window and miss window days falling before mid-season.",
+          "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "gourdji2013",
+          "factRefs": [
+            "access"
+          ]
+        },
+        {
+          "sourceId": "teixeira2013",
+          "factRefs": [
+            "variable",
+            "periodStage",
+            "thresholds",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "gourdji2013",
+          "citationURL": "https://doi.org/10.1088/1748-9326/8/2/024041",
+          "section": "Methods, not independently accessible"
+        },
+        {
+          "sourceId": "teixeira2013",
+          "citationURL": "https://www.ukm.my/ipi/wp-content/uploads/2013/07/6.2013Global-hot-spots-of-heat-stress-on-agricultural-crops-due-to-climate-change.pdf",
+          "section": "Section 2.3.1, Figure 1, Table 2, equations 1-2, printed p.208"
+        }
+      ],
+      "observedprimaryaccess": {
+        "gourdji2013": "UNVERIFIED. DOI and IOP article/PDF variants returned robots or fetch denial. Search metadata and secondary reconstructions were excluded as proof.",
+        "teixeira2013": "Published article full PDF opened and relevant section/table read on 2026-11-15. Institutional host, not merely search snippet."
+      },
+      "outcome": "unverified",
+      "reason": "Teixeira numerically matches 35 but explicitly uses Tday and a 30-day reproductive window. Whole-middle daily Tmax mapping is unsupported by that paper. Gourdji primary full text remains unverified, so the complete two-source rule cannot receive a source-backed pass.",
+      "sourceComparison": {
+        "variable": "Teixeira daytime Tday, expressly not Tmax; Gourdji not verified",
+        "period": "Teixeira daily intensity averaged over 30 reproductive days; Gourdji not verified",
+        "stage": "Teixeira centered reproductive window, not entire FAO middle stage",
+        "operator": "Teixeira intensity is zero at Tcrit and rises above it; Gourdji not verified",
+        "cultivarGeography": "Teixeira approximate species parameters for global modeling; not cultivar-specific",
+        "numericMatch": "35 C equals Teixeira Tcrit; alleged Gourdji match remains unverified"
+      },
+      "issueCategory": "verification_gap"
+    },
+    {
+      "ruleId": "common-bean-heat-mid-tmax-30",
+      "cropPurposeId": "common-bean-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 30,
+        "sourceIds": [
+          "vargas2021",
+          "silva2020"
+        ],
+        "limitations": [
+          "Day temperatures above 30 \u00b0C are reported to reduce seed yield; a rule of thumb quoted in two peer-reviewed papers that credit different original studies, which were not read.",
+          "The quoted sources name no growth stage or window; applying the rule to the mid-season stage, which contains flowering and pod set, is a Gilir assumption.",
+          "Silva et al. 2020 state the effect for bean yield in the tropics.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "vargas2021",
+          "factRefs": [
+            "thresholds",
+            "periodStage",
+            "applicability"
+          ]
+        },
+        {
+          "sourceId": "silva2020",
+          "factRefs": [
+            "thresholds",
+            "periodStage",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "vargas2021",
+          "citationURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0249859",
+          "section": "Introduction, Materials and methods, references 19 and 41"
+        },
+        {
+          "sourceId": "silva2020",
+          "citationURL": "https://revistas.usp.br/sa/en/article/download/180745/167829/462901",
+          "section": "Abstract; Methods; Discussion, final page, printed p.9"
+        }
+      ],
+      "observedprimaryaccess": {
+        "vargas2021": "Publisher full HTML opened and relevant sections read. PMC alternative initially challenged browser.",
+        "silva2020": "Publisher full PDF opened and relevant methods/discussion read."
+      },
+      "outcome": "unsupported",
+      "reason": "The quoted 30 C day figure exists, but Silva specifies mean maximum daily temperature. Neither cited background statement establishes a one-day Tmax damage rule or the full FAO middle-stage scope. Own experiments are sustained treatments and genotype/region-specific.",
+      "sourceComparison": {
+        "variable": "Vargas day temperature; Silva mean maximum daily temperature; neither establishes instantaneous daily Tmax damage",
+        "period": "Background duration unspecified; Silva own treatment is V4 to maturity",
+        "stage": "Background threshold stage unspecified; own experiments span more than FAO middle",
+        "operator": "Background >30 C, same strict direction as subject",
+        "cultivarGeography": "Silva background applies in tropics; own 12 genotypes; Vargas Andean lines, Colombia",
+        "numericMatch": "30 C is quoted correctly but exact operational mapping is unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "common-bean-heat-mid-tmin-20",
+      "cropPurposeId": "common-bean-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "above",
+        "thresholdC": 20,
+        "sourceIds": [
+          "vargas2021",
+          "silva2020"
+        ],
+        "limitations": [
+          "Night temperatures above 20 \u00b0C are reported to reduce seed yield; a rule of thumb quoted in two peer-reviewed papers that credit different original studies, which were not read.",
+          "The quoted sources name no growth stage or window; applying the rule to the mid-season stage, which contains flowering and pod set, is a Gilir assumption.",
+          "Silva et al. 2020 state the effect for bean yield in the tropics.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "vargas2021",
+          "factRefs": [
+            "thresholds",
+            "periodStage",
+            "applicability"
+          ]
+        },
+        {
+          "sourceId": "silva2020",
+          "factRefs": [
+            "thresholds",
+            "periodStage",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "vargas2021",
+          "citationURL": "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0249859",
+          "section": "Introduction, Materials and methods, references 19 and 41"
+        },
+        {
+          "sourceId": "silva2020",
+          "citationURL": "https://revistas.usp.br/sa/en/article/download/180745/167829/462901",
+          "section": "Abstract; Methods; Discussion, final page, printed p.9"
+        }
+      ],
+      "observedprimaryaccess": {
+        "vargas2021": "Publisher full HTML opened and relevant sections read. PMC alternative initially challenged browser.",
+        "silva2020": "Publisher full PDF opened and relevant methods/discussion read."
+      },
+      "outcome": "unsupported",
+      "reason": "The quoted 20 C night figure exists. Night temperature is not established as daily Tmin and the averaging/exposure duration is unspecified. The middle-stage boundary is an implementation assumption, not the source-sensitive window.",
+      "sourceComparison": {
+        "variable": "Night temperature, not demonstrated to equal a daily minimum",
+        "period": "Background duration unspecified; experiments sustained",
+        "stage": "No exact FAO middle window given",
+        "operator": "Background >20 C, same strict direction as subject",
+        "cultivarGeography": "Tropics and genotype-dependent studies, with original Rainey snap bean citation",
+        "numericMatch": "20 C background quotation matches; no daily-minimum rule established"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "wheat-heat-mid-tmax-34",
+      "cropPurposeId": "wheat-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 34,
+        "sourceIds": [
+          "gourdji2013",
+          "teixeira2013"
+        ],
+        "limitations": [
+          "Critical temperature for wheat around heading (Gourdji et al. 2013, 30-day window centred about 5 days before heading).",
+          "Conflicting value: Teixeira et al. 2013 use 27 \u00b0C (onset) to 40 \u00b0C (maximum damage) on daytime temperature.",
+          "The source uses a 30-day reproductive window; this rule covers the whole FAO-56 mid-season stage, so it can count days outside that window and miss window days falling before mid-season.",
+          "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "gourdji2013",
+          "factRefs": [
+            "access"
+          ]
+        },
+        {
+          "sourceId": "teixeira2013",
+          "factRefs": [
+            "variable",
+            "periodStage",
+            "thresholds",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "gourdji2013",
+          "citationURL": "https://doi.org/10.1088/1748-9326/8/2/024041",
+          "section": "Methods, not independently accessible"
+        },
+        {
+          "sourceId": "teixeira2013",
+          "citationURL": "https://www.ukm.my/ipi/wp-content/uploads/2013/07/6.2013Global-hot-spots-of-heat-stress-on-agricultural-crops-due-to-climate-change.pdf",
+          "section": "Section 2.3.1, Figure 1, Table 2, equations 1-2, printed p.208"
+        }
+      ],
+      "observedprimaryaccess": {
+        "gourdji2013": "UNVERIFIED. DOI and IOP article/PDF variants returned robots or fetch denial. Search metadata and secondary reconstructions were excluded as proof.",
+        "teixeira2013": "Published article full PDF opened and relevant section/table read on 2026-11-15. Institutional host, not merely search snippet."
+      },
+      "outcome": "unverified",
+      "reason": "Teixeira uses Tday onset 27, not daily Tmax 34, within a 30-day window. Gourdji is the claimed source for 34 but its primary full text was inaccessible. No exact variable/window pass is established.",
+      "sourceComparison": {
+        "variable": "Teixeira daytime Tday, expressly not Tmax; Gourdji not verified",
+        "period": "Teixeira daily intensity averaged over 30 reproductive days; Gourdji not verified",
+        "stage": "Teixeira centered reproductive window, not entire FAO middle stage",
+        "operator": "Teixeira intensity is zero at Tcrit and rises above it; Gourdji not verified",
+        "cultivarGeography": "Teixeira approximate species parameters for global modeling; not cultivar-specific",
+        "numericMatch": "34 C differs from Teixeira Tcrit 27 C; alleged Gourdji match remains unverified"
+      },
+      "issueCategory": "verification_gap"
+    },
+    {
+      "ruleId": "wheat-frost-mid-tmin-minus3.5",
+      "cropPurposeId": "wheat-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -3.5,
+        "sourceIds": [
+          "frederiks2015"
+        ],
+        "limitations": [
+          "Frederiks et al. 2015: at crop canopy air temperatures of -3.5 to -4.5 \u00b0C and below, post-head-emergence wheat can suffer damage; the warmer end is used.",
+          "Canopy air temperature after head emergence, from a review; on radiant-frost nights the canopy runs colder than the weather screen and the source gives no screen-to-canopy offset, so a screen minimum at this value under-warns.",
+          "One night can cause damage. The FAO-56 mid-season stage can begin before head emergence.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "frederiks2015",
+          "factRefs": [
+            "thresholds",
+            "variable",
+            "stage",
+            "period"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "frederiks2015",
+          "citationURL": "https://era.dpi.qld.gov.au/id/eprint/4854/1/Post-head-emergence%20frost%20in%20wheat%20and%20barley.pdf",
+          "section": "Characterizing radiant frost, printed pp.3490-3491; Damage at different stages, pp.3491-3493"
+        }
+      ],
+      "observedprimaryaccess": {
+        "frederiks2015": "Full published review PDF opened from author government repository after OUP access failed."
+      },
+      "outcome": "unsupported",
+      "reason": "The numerical warmer endpoint is supported for canopy air after head emergence. NASA/weather-screen Tmin and the full FAO middle stage are different variables/stages. A limitation admitting this mismatch does not supply the missing transformation.",
+      "sourceComparison": {
+        "variable": "Crop canopy air minimum, distinct from screen and plant minimum",
+        "period": "Frost-night exposure, no calibrated 2 m daily Tmin substitution",
+        "stage": "Post-head-emergence wheat",
+        "operator": "Approximate damage range -3.5 to -4.5 C and below; subject chooses inclusive warm endpoint",
+        "cultivarGeography": "Review emphasizes radiant frost, particularly winter-grown spring-habit cereals; not universal 2 m rule",
+        "numericMatch": "Warm endpoint -3.5 C matches review"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "rice-heat-mid-tmax-36",
+      "cropPurposeId": "rice-paddy",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 36,
+        "sourceIds": [
+          "gourdji2013",
+          "teixeira2013"
+        ],
+        "limitations": [
+          "Critical temperature for rice around heading (Gourdji et al. 2013, 30-day window centred about 5 days before heading).",
+          "Teixeira et al. 2013 use 35 \u00b0C (onset) to 45 \u00b0C (maximum damage) on daytime temperature for wetland rice.",
+          "The source uses a 30-day reproductive window; this rule covers the whole FAO-56 mid-season stage, so it can count days outside that window and miss window days falling before mid-season.",
+          "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "gourdji2013",
+          "factRefs": [
+            "access"
+          ]
+        },
+        {
+          "sourceId": "teixeira2013",
+          "factRefs": [
+            "variable",
+            "periodStage",
+            "thresholds",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "gourdji2013",
+          "citationURL": "https://doi.org/10.1088/1748-9326/8/2/024041",
+          "section": "Methods, not independently accessible"
+        },
+        {
+          "sourceId": "teixeira2013",
+          "citationURL": "https://www.ukm.my/ipi/wp-content/uploads/2013/07/6.2013Global-hot-spots-of-heat-stress-on-agricultural-crops-due-to-climate-change.pdf",
+          "section": "Section 2.3.1, Figure 1, Table 2, equations 1-2, printed p.208"
+        }
+      ],
+      "observedprimaryaccess": {
+        "gourdji2013": "UNVERIFIED. DOI and IOP article/PDF variants returned robots or fetch denial. Search metadata and secondary reconstructions were excluded as proof.",
+        "teixeira2013": "Published article full PDF opened and relevant section/table read on 2026-11-15. Institutional host, not merely search snippet."
+      },
+      "outcome": "unverified",
+      "reason": "Teixeira uses wetland-rice Tday onset 35, not daily Tmax 36, within a 30-day window. Gourdji is the claimed source for 36 but its primary full text was inaccessible.",
+      "sourceComparison": {
+        "variable": "Teixeira daytime Tday, expressly not Tmax; Gourdji not verified",
+        "period": "Teixeira daily intensity averaged over 30 reproductive days; Gourdji not verified",
+        "stage": "Teixeira centered reproductive window, not entire FAO middle stage",
+        "operator": "Teixeira intensity is zero at Tcrit and rises above it; Gourdji not verified",
+        "cultivarGeography": "Teixeira approximate species parameters for global modeling; not cultivar-specific",
+        "numericMatch": "36 C differs from Teixeira Tcrit 35 C; alleged Gourdji match remains unverified"
+      },
+      "issueCategory": "verification_gap"
+    },
+    {
+      "ruleId": "barley-frost-whole-tmin-minus12.9",
+      "cropPurposeId": "barley-grain",
+      "subject": {
+        "scope": {
+          "kind": "whole_occurrence"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -12.9,
+        "sourceIds": [
+          "luo2011",
+          "frederiks2015"
+        ],
+        "limitations": [
+          "Lethal temperature (LT50) of cold-hardened winter barley in freezing tests across 20 cultivars (Luo 2011 Table 2, from Prasil et al. 2007; range -17.3 to -12.9 \u00b0C, warmest endpoint used).",
+          "Measured on hardened plants in freezing tests, not screen air. Spring-sown or dehardened barley dies at warmer temperatures, so this rule under-warns for those crops."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "luo2011",
+          "factRefs": [
+            "barley",
+            "sorghum",
+            "groundnut",
+            "cowpea"
+          ]
+        },
+        {
+          "sourceId": "frederiks2015",
+          "factRefs": [
+            "thresholds",
+            "variable",
+            "stage",
+            "period"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Section 2.1 p.585; Table 2 p.589; section 3.2 p.593"
+        },
+        {
+          "sourceId": "frederiks2015",
+          "citationURL": "https://era.dpi.qld.gov.au/id/eprint/4854/1/Post-head-emergence%20frost%20in%20wheat%20and%20barley.pdf",
+          "section": "Characterizing radiant frost, printed pp.3490-3491; Damage at different stages, pp.3491-3493"
+        }
+      ],
+      "observedprimaryaccess": {
+        "luo2011": "Full published review PDF opened from university host. Underlying experiments are distinct and not all accessible.",
+        "frederiks2015": "Full published review PDF opened from author government repository after OUP access failed."
+      },
+      "outcome": "unsupported",
+      "reason": "The -12.9 C number is the warm endpoint of cultivar-specific LT50 freezing tests, not a universal onset. Whole-occurrence use ignores hardening and growth habit. Neither review supports translating this directly into daily 2 m Tmin.",
+      "sourceComparison": {
+        "variable": "LT50 in freezing evaluations of hardened barley, not ordinary weather-screen Tmin",
+        "period": "Freezing-test/overwintering context; exact original test duration unverified",
+        "stage": "Hardening and winter survival, not all developmental stages",
+        "operator": "-12.9 C is warm end of cultivar LT50 range, not a <= onset boundary",
+        "cultivarGeography": "20 cultivar range reported by review; original Czech comparison covers 39 lines, hardening and methods differ",
+        "numericMatch": "-12.9 C endpoint matches Luo; universal application unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "barley-frost-mid-tmin-minus4",
+      "cropPurposeId": "barley-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -4,
+        "sourceIds": [
+          "frederiks2015"
+        ],
+        "limitations": [
+          "Frederiks et al. 2015: barley after head emergence suffers significant damage at crop canopy temperatures of about -4 to -5 \u00b0C; the warmer end is used.",
+          "Canopy air temperature after head emergence, from a review; on radiant-frost nights the canopy runs colder than the weather screen and the source gives no screen-to-canopy offset, so a screen minimum at this value under-warns.",
+          "One night can cause damage. The FAO-56 mid-season stage can begin before head emergence.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "frederiks2015",
+          "factRefs": [
+            "thresholds",
+            "variable",
+            "stage",
+            "period"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "frederiks2015",
+          "citationURL": "https://era.dpi.qld.gov.au/id/eprint/4854/1/Post-head-emergence%20frost%20in%20wheat%20and%20barley.pdf",
+          "section": "Characterizing radiant frost, printed pp.3490-3491; Damage at different stages, pp.3491-3493"
+        }
+      ],
+      "observedprimaryaccess": {
+        "frederiks2015": "Full published review PDF opened from author government repository after OUP access failed."
+      },
+      "outcome": "unsupported",
+      "reason": "The -4 C warmer endpoint is supported for post-head-emergence canopy air, not 2 m/screen daily Tmin. The full FAO middle stage can include other stages. No calibrated variable/stage conversion is supplied.",
+      "sourceComparison": {
+        "variable": "Canopy air temperature, not 2 m screen air",
+        "period": "Frost-night exposure; no universal calibrated screen daily Tmin",
+        "stage": "After head emergence",
+        "operator": "About -4 to -5 C damage range; subject chooses <=-4 C",
+        "cultivarGeography": "Review of wheat/barley frost, radiant frost context; growth stage matters",
+        "numericMatch": "-4 C warm endpoint matches review"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "sorghum-heat-mid-tmean-31",
+      "cropPurposeId": "sorghum-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "mean_c",
+        "predicate": "at_or_above",
+        "thresholdC": 31,
+        "sourceIds": [
+          "prasad2015",
+          "prasad2006",
+          "djanaguiraman2018"
+        ],
+        "limitations": [
+          "Lowest damaging chamber regime (36/26 \u00b0C, daily mean 31 \u00b0C) in three studies; the fitted curve gives about 73% floret fertility at a 31 \u00b0C mean after 10 days from panicle emergence.",
+          "Chamber diurnal range was 10 \u00b0C. The sensitive window (about 10 days before to 5 days after anthesis) is shorter than the mid-season stage.",
+          "Genotypes differ; in one study, field heat-tent decreases in pollen viability were smaller than chamber decreases (Djanaguiraman et al. 2018)."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "prasad2015",
+          "factRefs": [
+            "regimes",
+            "period",
+            "response",
+            "stage",
+            "applicability"
+          ]
+        },
+        {
+          "sourceId": "prasad2006",
+          "factRefs": [
+            "access"
+          ]
+        },
+        {
+          "sourceId": "djanaguiraman2018",
+          "factRefs": [
+            "regimes",
+            "periodStage",
+            "response"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "prasad2015",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2015.00820/pdf",
+          "section": "Methods pp.2-3; Results and Figures 1-4 pp.4-6; Discussion p.8"
+        },
+        {
+          "sourceId": "prasad2006",
+          "citationURL": "https://www.sciencedirect.com/science/article/pii/S016819230600164X",
+          "section": "Original full text unavailable in this audit"
+        },
+        {
+          "sourceId": "djanaguiraman2018",
+          "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC5904002/",
+          "section": "Abstract; Materials and methods, Hybridization procedure; Discussion"
+        }
+      ],
+      "observedprimaryaccess": {
+        "prasad2015": "Publisher full PDF opened; methods, fitted equations and discussion read.",
+        "prasad2006": "UNVERIFIED full text. Publisher returned 403. Numeric facts from Luo or later papers remain secondary attribution.",
+        "djanaguiraman2018": "NIH-hosted author manuscript full HTML opened and methods read."
+      },
+      "outcome": "unsupported",
+      "reason": "A daily mean 31 C is a tested 36/26 regime, not the fitted onset. Prasad applied it for multiple days and fitted fertility loss above 25 C. Djanaguiraman retained paired regimes from booting to seed set. One-day >=31 over all middle days changes period, stage and response.",
+      "sourceComparison": {
+        "variable": "Prasad reported 31 C daily mean of controlled 36/26 C maximum/minimum regime; Djanaguiraman paired regime",
+        "period": "Prasad temperature experiment ten days; separate sensitivity experiment five days; Djanaguiraman booting to seed set",
+        "stage": "Panicle emergence and about -10 to +5 days relative to anthesis for fertility sensitivity",
+        "operator": "31 C tested regime, not onset; fitted response above mean 25 C",
+        "cultivarGeography": "Prasad DK28E at Kansas facilities; Djanaguiraman ATx399 and RTx430; fully watered",
+        "numericMatch": "31 C arithmetic/tested regime matches; >=31 single-day boundary not established"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "sorghum-heat-mid-tmean-35",
+      "cropPurposeId": "sorghum-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "mean_c",
+        "predicate": "at_or_above",
+        "thresholdC": 35,
+        "sourceIds": [
+          "luo2011",
+          "prasad2015"
+        ],
+        "limitations": [
+          "Failure point (Tfp) of a season-long 40/30 \u00b0C chamber regime for grain yield, harvest index, pollen viability and seed set (mean 35 \u00b0C; Luo 2011 Table 2, from Prasad et al. 2006).",
+          "Prasad et al. 2006 report that 40/30 \u00b0C inhibited panicle emergence; a 10-day episode at a 35 \u00b0C mean cut floret fertility by about two-thirds (Prasad et al. 2015). The regime-to-mean mapping is arithmetic."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "luo2011",
+          "factRefs": [
+            "barley",
+            "sorghum",
+            "groundnut",
+            "cowpea"
+          ]
+        },
+        {
+          "sourceId": "prasad2015",
+          "factRefs": [
+            "regimes",
+            "period",
+            "response",
+            "stage",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Section 2.1 p.585; Table 2 p.589; section 3.2 p.593"
+        },
+        {
+          "sourceId": "prasad2015",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2015.00820/pdf",
+          "section": "Methods pp.2-3; Results and Figures 1-4 pp.4-6; Discussion p.8"
+        }
+      ],
+      "observedprimaryaccess": {
+        "luo2011": "Full published review PDF opened from university host. Underlying experiments are distinct and not all accessible.",
+        "prasad2015": "Publisher full PDF opened; methods, fitted equations and discussion read."
+      },
+      "outcome": "unsupported",
+      "reason": "Arithmetic conversion of 40/30 to 35 does not validate one-day mean >=35. The cited review describes a regime failure point, while Prasad 2015 uses ten-day exposure and a continuous response. Original Prasad 2006 was inaccessible.",
+      "sourceComparison": {
+        "variable": "40/30 C day/night regime converted arithmetically to mean 35 C",
+        "period": "Luo attributes failure to long regime; original Prasad2006 unverified; Prasad2015 ten days",
+        "stage": "Reproduction/panicle emergence with different endpoints, not all middle days",
+        "operator": "Failure-point regime is not an isolated daily >=35 C damage boundary",
+        "cultivarGeography": "Prasad2015 one hybrid, controlled water and environment; original2006 details unverified",
+        "numericMatch": "Arithmetic mean35 matches 40/30; scientific daily transformation unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "sorghum-cold-mid-tmin-10",
+      "cropPurposeId": "sorghum-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": 10,
+        "sourceIds": [
+          "brooking1976"
+        ],
+        "limitations": [
+          "Five 10 \u00b0C nights at the pollen-mother-cell stage caused male sterility in one hybrid in a controlled environment (Brooking 1976); one treatment only, so the onset temperature is not located.",
+          "Booting is mapped to the mid-season stage by inference and may fall in late development. The rule also fires on cool nights in grain fill, when this mechanism no longer applies."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "brooking1976",
+          "factRefs": [
+            "regime",
+            "stage"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "brooking1976",
+          "citationURL": "https://connectsci.au/fp/article-abstract/3/5/589/13205/Male-Sterility-in-Sorghum-bicolor-L-Moench-Induced?redirectedFrom=PDF",
+          "section": "Publisher abstract"
+        }
+      ],
+      "observedprimaryaccess": {
+        "brooking1976": "Primary publisher abstract opened. Full PDF requires purchase and was not obtained."
+      },
+      "outcome": "unsupported",
+      "reason": "Accessible primary abstract supports five cold nights in one hybrid at a narrow meiotic stage. It does not establish a single-night <=10 boundary over all middle days. Full original methods remain unavailable.",
+      "sourceComparison": {
+        "variable": "Controlled nighttime set point10 C paired with day25 C, not an arbitrary field minimum",
+        "period": "Five low-temperature nights",
+        "stage": "Late archesporial to pollen-mother-cell and leptotene; booting window",
+        "operator": "Test at10 C, not located <=10 C threshold",
+        "cultivarGeography": "CK60 x Tx415 hybrid; full original methods unavailable",
+        "numericMatch": "10 C treatment matches publisher abstract; rule boundary unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "soybean-heat-mid-tmax-39",
+      "cropPurposeId": "soybean-grain",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 39,
+        "sourceIds": [
+          "gourdji2013",
+          "teixeira2013"
+        ],
+        "limitations": [
+          "Critical temperature for soybean (Gourdji et al. 2013, 30-day window centred about 5 days before pod setting).",
+          "Conflicting value: Teixeira et al. 2013 use 35 \u00b0C (onset) to 40 \u00b0C (maximum damage) on daytime temperature.",
+          "The source uses a 30-day reproductive window; this rule covers the whole FAO-56 mid-season stage, so it can count days outside that window and miss window days falling before mid-season.",
+          "Gourdji et al. 2013 count reproductive days over the critical temperature using interpolated daily minimum and maximum temperature; the paper does not state which of the two is compared, and notes the values also vary by crop variety.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-2026-11-14",
+        "fao56-vegetables-2026-11-15",
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "gourdji2013",
+          "factRefs": [
+            "access"
+          ]
+        },
+        {
+          "sourceId": "teixeira2013",
+          "factRefs": [
+            "variable",
+            "periodStage",
+            "thresholds",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "gourdji2013",
+          "citationURL": "https://doi.org/10.1088/1748-9326/8/2/024041",
+          "section": "Methods, not independently accessible"
+        },
+        {
+          "sourceId": "teixeira2013",
+          "citationURL": "https://www.ukm.my/ipi/wp-content/uploads/2013/07/6.2013Global-hot-spots-of-heat-stress-on-agricultural-crops-due-to-climate-change.pdf",
+          "section": "Section 2.3.1, Figure 1, Table 2, equations 1-2, printed p.208"
+        }
+      ],
+      "observedprimaryaccess": {
+        "gourdji2013": "UNVERIFIED. DOI and IOP article/PDF variants returned robots or fetch denial. Search metadata and secondary reconstructions were excluded as proof.",
+        "teixeira2013": "Published article full PDF opened and relevant section/table read on 2026-11-15. Institutional host, not merely search snippet."
+      },
+      "outcome": "unverified",
+      "reason": "Teixeira uses soybean Tday onset 35 and limit 40, not daily Tmax 39, within a 30-day window. Gourdji is the claimed source for 39 but its primary full text was inaccessible.",
+      "sourceComparison": {
+        "variable": "Teixeira daytime Tday, expressly not Tmax; Gourdji not verified",
+        "period": "Teixeira daily intensity averaged over 30 reproductive days; Gourdji not verified",
+        "stage": "Teixeira centered reproductive window, not entire FAO middle stage",
+        "operator": "Teixeira intensity is zero at Tcrit and rises above it; Gourdji not verified",
+        "cultivarGeography": "Teixeira approximate species parameters for global modeling; not cultivar-specific",
+        "numericMatch": "39 C differs from Teixeira Tcrit 35 C and Tlim 40 C; alleged Gourdji match remains unverified"
+      },
+      "issueCategory": "verification_gap"
+    },
+    {
+      "ruleId": "groundnut-heat-mid-tmax-37",
+      "cropPurposeId": "groundnut",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 37,
+        "sourceIds": [
+          "luo2011"
+        ],
+        "limitations": [
+          "Luo 2011 section 3 (Vara Prasad et al. 2000): fruit set was not affected by air temperature below 37 \u00b0C and declined rapidly above it, with no fruit set at 44 \u00b0C.",
+          "The primary study (Vara Prasad et al. 2000, one cultivar, not cited here) used 2-6 day day-temperature episodes; fruit set fell with floral-bud temperatures above 36 \u00b0C in morning or whole-day heat, not afternoon-only.",
+          "So a daily-maximum rule can over-warn. Each flower is sensitive from 6 days before to 1 day after opening (Prasad et al. 2001, via Luo).",
+          "Luo also gives a yield failure point of 40 \u00b0C and an optimum below 31 \u00b0C for pollen viability and seed set (Prasad et al. 2003); season-long moderate warmth is not captured by this rule."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "luo2011",
+          "factRefs": [
+            "barley",
+            "sorghum",
+            "groundnut",
+            "cowpea"
+          ]
+        },
+        {
+          "sourceId": "groundnut2000",
+          "factRefs": [
+            "experiment"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Section 2.1 p.585; Table 2 p.589; section 3.2 p.593"
+        },
+        {
+          "sourceId": "groundnut2000",
+          "citationURL": "https://academic.oup.com/jxb/article-pdf/51/345/777/18025666/510777.pdf",
+          "section": "Publisher abstract, redirected to article 652573"
+        }
+      ],
+      "observedprimaryaccess": {
+        "luo2011": "Full published review PDF opened from university host. Underlying experiments are distinct and not all accessible.",
+        "groundnut2000": "Primary publisher abstract opened. Full PDF redirected to purchase page."
+      },
+      "outcome": "unsupported",
+      "reason": "The review gives a 37 C air value, but the original abstract specifies 2-6 day exposures, floral-bud temperatures and morning/whole-day versus afternoon effects. Daily Tmax across the full middle stage discards duration, timing and tissue/air distinctions.",
+      "sourceComparison": {
+        "variable": "Review air temperature37 C; original abstract separates floral-bud >36 C and time of day",
+        "period": "2,4 or6 day episodes; whole-day/morning versus afternoon response differs",
+        "stage": "Flowering; sensitive individual flower days around opening",
+        "operator": "Review says >37 C air; primary abstract reports floral-bud >36 C effect",
+        "cultivarGeography": "ICGV86015 controlled environments; general global profile mapping unsupported",
+        "numericMatch": "37 C matches review, not an unrestricted one-day Tmax threshold"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "lentil-heat-mid-tmax-32",
+      "cropPurposeId": "lentil-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 32,
+        "sourceIds": [
+          "sita2017"
+        ],
+        "limitations": [
+          "Field threshold stated as max/min above 32/20 \u00b0C (7-day means) during flowering and pod filling; only the maximum is encoded.",
+          "The 32/20 \u00b0C figure originates in a conference paper (Delahunty et al. 2015). In the chamber, 35/25 \u00b0C cut pods by 29-52%. Genotypes differ."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "sita2017",
+          "factRefs": [
+            "thresholds",
+            "period",
+            "regimes",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "sita2017",
+          "citationURL": "https://www.frontiersin.org/journals/plant-science/articles/10.3389/fpls.2017.00744/full",
+          "section": "Introduction; Materials and methods, Reproductive biology; Controlled environment results, Table 10"
+        }
+      ],
+      "observedprimaryaccess": {
+        "sita2017": "Publisher full HTML opened and relevant sections/table read."
+      },
+      "outcome": "unsupported",
+      "reason": "Seven-day paired max/min exposure above 32/20 C is changed into independent daily Tmax >32 C across the FAO middle stage. The numerical match alone does not support deleting the night requirement, averaging and flowering/pod-fill context.",
+      "sourceComparison": {
+        "variable": "Paired max/min32/20 C",
+        "period": "Seven-day mean max/min for sampled reproductive field tissues; chronic chamber contrast",
+        "stage": "Flowering and pod filling; sampled flowers at anthesis",
+        "operator": ">32/20 paired condition, not Tmax-only >32",
+        "cultivarGeography": "Indian outdoor/controlled accession screening with tolerant/sensitive groups",
+        "numericMatch": "32 is correct day value; night and duration dropped"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "faba-bean-heat-mid-tmax-28",
+      "cropPurposeId": "faba-bean-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "at_or_above",
+        "thresholdC": 28,
+        "sourceIds": [
+          "bishop2016"
+        ],
+        "limitations": [
+          "Bishop et al. 2016: t50 about 28 \u00b0C for the yield of flowers present during 5 days of chamber stress at floral development and anthesis; pollen germination halves at about 31.7 \u00b0C.",
+          "Day temperature with nights 8 \u00b0C lower; whole-plant yield partly compensated at higher nodes. Field nights are usually cooler, so the rule over-warns."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "bishop2016",
+          "factRefs": [
+            "regimes",
+            "thresholds",
+            "stage"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "bishop2016",
+          "citationURL": "https://onlinelibrary.wiley.com/doi/10.1111/jac.12172",
+          "section": "Methods, Growing conditions; Results, subset yield mass; Discussion"
+        }
+      ],
+      "observedprimaryaccess": {
+        "bishop2016": "Publisher full HTML opened; repository PDF alternative was access denied."
+      },
+      "outcome": "unsupported",
+      "reason": "The approximately 28 C t50 is a fitted yield-response midpoint after five-day paired chamber treatment of Wizard flowers. It is neither a one-day Tmax threshold nor damage onset. Full middle-stage applicability and other cultivar groups are unproved.",
+      "sourceComparison": {
+        "variable": "Chamber day temperature with night8 C lower",
+        "period": "Five-day treatment, not a one-day maximum",
+        "stage": "Floral development/anthesis, flowers already present",
+        "operator": "Approximately28 C t50 yield midpoint, not onset or inclusive daily boundary",
+        "cultivarGeography": "Winter faba Wizard in pots, Reading UK, excluding insect pollinators",
+        "numericMatch": "Approximate28 C t50 matches; meaning changed"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "faba-bean-frost-mid-tmin-minus4",
+      "cropPurposeId": "faba-bean-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -4,
+        "sourceIds": [
+          "alharbi2021"
+        ],
+        "limitations": [
+          "Two field frost events (a windy -4.19 \u00b0C frost aborted all tagged flowers; an airport-station minimum of -3.9 \u00b0C with 8 h below freezing damaged stems and pods), not a fitted threshold; damage may begin at warmer temperatures.",
+          "Alharbi et al. describe flowering as the most frost-sensitive stage, so the rule is limited to mid-season; seedling-stage frost damage was also observed, so it may under-warn before flowering.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "alharbi2021",
+          "factRefs": [
+            "events",
+            "applicability",
+            "stage"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "alharbi2021",
+          "citationURL": "https://www.mdpi.com/2223-7747/10/9/1925",
+          "section": "Sections 2.2, 2.3.2, 3.1 and 3.4.1"
+        }
+      ],
+      "observedprimaryaccess": {
+        "alharbi2021": "Publisher full HTML opened and methods/results read."
+      },
+      "outcome": "unsupported",
+      "reason": "The source reports two event doses, -4.19 and -3.9 C, not a fitted -4 C boundary. The rule misses the reported damaging -3.9 C event, discards eight-hour frost duration and substitutes the entire middle stage for organ/stage-specific observations.",
+      "sourceComparison": {
+        "variable": "Narrabri airport minimum -3.9 C; Dirab site logger -4.19 C",
+        "period": "Narrabri eight hours below freezing; field frost events",
+        "stage": "Specific flowers/stems/pods, plus separate seedling observations",
+        "operator": "Event minima, no <=-4 C fitted threshold",
+        "cultivarGeography": "Different genotypes, Australian radiation frost and Saudi advection frost",
+        "numericMatch": "Subject -4 C is a rounded interpolation, not published calibrated boundary; damaging -3.9 C is omitted by <=-4"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "mung-bean-heat-mid-tmax-36",
+      "cropPurposeId": "mung-bean-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "max_c",
+        "predicate": "above",
+        "thresholdC": 36,
+        "sourceIds": [
+          "priya2019"
+        ],
+        "limitations": [
+          "Literature threshold of above 36/28 \u00b0C at the reproductive stage (flower loss, poor pod set), cited by Priya et al. 2019 from Kaur et al. 2015, which was not read; only the day value is encoded.",
+          "The cited optimum is about 35/25 \u00b0C. In Priya et al.'s chamber study (one genotype), 45/30 \u00b0C from the reproductive stage to maturity cut pod set from 76.4% to 36.2%."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "priya2019",
+          "factRefs": [
+            "background",
+            "regime",
+            "inconsistency",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "priya2019",
+          "citationURL": "https://www.nature.com/articles/s41598-019-44163-w",
+          "section": "Introduction; Methods, Raising of plants; Abstract"
+        }
+      ],
+      "observedprimaryaccess": {
+        "priya2019": "Publisher full HTML opened and relevant sections read."
+      },
+      "outcome": "unsupported",
+      "reason": "The background says paired day/night >36/28 C. It does not isolate daytime Tmax or one-day duration. The experiment is chronic heat through maturity in SML668; it cannot identify a universal 36 C onset. Original Kaur 2015 remains unread.",
+      "sourceComparison": {
+        "variable": "Background >36/28 C day/night pair; experiment paired35/23 versus ramp to45/30 C",
+        "period": "Sustained treatment from reproductive initiation to pod maturity",
+        "stage": "Reproductive phase; no exact FAO middle correspondence",
+        "operator": "Paired >36/28, not independently identified daily Tmax >36",
+        "cultivarGeography": "SML668 at Chandigarh in pots, fully irrigated; underlying Kaur2015 unread",
+        "numericMatch": "36 C background day value exists; individual daily boundary unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "cowpea-heat-mid-tmin-24",
+      "cropPurposeId": "cowpea-dry",
+      "subject": {
+        "scope": {
+          "kind": "stage",
+          "stage": "middle"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_above",
+        "thresholdC": 24,
+        "sourceIds": [
+          "patelhall1990",
+          "luo2011"
+        ],
+        "limitations": [
+          "Mean daily minimum at a field site (mean max/min 41/24 \u00b0C) where heat-susceptible genotypes aborted floral buds; confounded with the 41 \u00b0C maximum and long photoperiods.",
+          "Damage may begin at cooler nights, so this rule can fire late. The most sensitive window is 7-9 days before anthesis (Ahmed et al. 1992, via Luo 2011); heat-tolerant genotypes differ."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "patelhall1990",
+          "factRefs": [
+            "contrast",
+            "applicability"
+          ]
+        },
+        {
+          "sourceId": "luo2011",
+          "factRefs": [
+            "barley",
+            "sorghum",
+            "groundnut",
+            "cowpea"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "patelhall1990",
+          "citationURL": "https://acsess.onlinelibrary.wiley.com/doi/abs/10.2135/cropsci1990.0011183X003000030029x",
+          "section": "Primary publisher abstract"
+        },
+        {
+          "sourceId": "luo2011",
+          "citationURL": "https://pagesperso.locean-ipsl.upmc.fr/escape/luo2011.climaticchange.pdf",
+          "section": "Section 2.1 p.585; Table 2 p.589; section 3.2 p.593"
+        }
+      ],
+      "observedprimaryaccess": {
+        "patelhall1990": "Publisher search index exposed complete abstract, but direct publisher HTML returned 403. Full text not independently read. Numeric result is abstract-only evidence, explicitly limited.",
+        "luo2011": "Full published review PDF opened from university host. Underlying experiments are distinct and not all accessible."
+      },
+      "outcome": "unsupported",
+      "reason": "The number 24 is a site mean daily minimum under paired 41 C maximum and long photoperiods. Treating each individual >=24 C night as an independent threshold deletes the confounded day temperature and genotype/photoperiod conditions. Original full text remains unread.",
+      "sourceComparison": {
+        "variable": "Mean daily minimum24 paired with mean maximum41 C at a field site",
+        "period": "Six summers of field comparisons, not isolated nights",
+        "stage": "Reproductive development with genotype-dependent floral-bud response",
+        "operator": "Site mean24 C is not an estimated inclusive >=24 C threshold",
+        "cultivarGeography": "Imperial Valley versus Riverside California, long photoperiod and diverse accessions",
+        "numericMatch": "24 C abstract site statistic matches; conversion to daily threshold unsupported"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    },
+    {
+      "ruleId": "sunflower-frost-whole-tmin-minus4",
+      "cropPurposeId": "sunflower-seed",
+      "subject": {
+        "scope": {
+          "kind": "whole_occurrence"
+        },
+        "period": "daily",
+        "variable": "min_c",
+        "predicate": "at_or_below",
+        "thresholdC": -4,
+        "sourceIds": [
+          "kaya2025",
+          "hnilickova2017"
+        ],
+        "limitations": [
+          "Chamber frost of -4 \u00b0C for 4 hours killed on average 4.1% (two leaves) and 19.4% (four leaves) of seedlings across 14 hybrids, up to 80.7% in the most sensitive hybrid; -3 \u00b0C for 10 hours caused only recoverable injury.",
+          "Mortality rose with leaf stage and no reproductive-stage value exists, so later frosts probably damage at warmer temperatures.",
+          "Uses screen air temperature from weather data, not canopy or plant tissue temperature."
+        ]
+      },
+      "seenInRegistryVersions": [
+        "fao56-temperature-rules-2026-11-15"
+      ],
+      "sourcefacts": [
+        {
+          "sourceId": "kaya2025",
+          "factRefs": [
+            "regime",
+            "response",
+            "inconsistency",
+            "applicability"
+          ]
+        },
+        {
+          "sourceId": "hnilickova2017",
+          "factRefs": [
+            "regime",
+            "applicability"
+          ]
+        }
+      ],
+      "citations": [
+        {
+          "sourceId": "kaya2025",
+          "citationURL": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12599371/",
+          "section": "Methods, Frost treatments; Results, Table 1 and adjacent prose"
+        },
+        {
+          "sourceId": "hnilickova2017",
+          "citationURL": "https://pse.agriculturejournals.cz/pdfs/pse/2017/08/07.pdf",
+          "section": "Abstract; Material and methods, Plant material and growth design, pp.375-376"
+        }
+      ],
+      "observedprimaryaccess": {
+        "kaya2025": "Full published article HTML opened through PMC after PeerJ denied access.",
+        "hnilickova2017": "Publisher full PDF opened and methods/results read."
+      },
+      "outcome": "unsupported",
+      "reason": "A four-hour chamber dose at V2/V4 is transformed into any daily Tmin <=-4 C over every stage. No duration or reproductive-stage support is supplied. The mortality maximum is also conflicted between source prose and Table 1.",
+      "sourceComparison": {
+        "variable": "Chamber air at -4 C; separate Hnilickova dose at -3 C",
+        "period": "Kaya4 hours plus cooling/recovery protocol; Hnilickova10-hour night",
+        "stage": "Kaya V2/V4 only; Hnilickova BBCH16-18; no whole-season support",
+        "operator": "Tested dose -4 C, no identified inclusive onset boundary",
+        "cultivarGeography": "Kaya14 hybrids, Hnilickova4 recombinant lines plus wild genotype",
+        "numericMatch": "-4 C dose matches; 4.1/19.4 mean mortality match; 80.7 maximum mortality conflicts with Table1 dead73.3"
+      },
+      "issueCategory": "source_mapping_acceptance"
+    }
+  ],
+  "remainingOriginalSourceGaps": [
+    "Gourdji et al. 2013 full text",
+    "Prasad et al. 2006 full text",
+    "Brooking 1976 full text",
+    "Patel and Hall 1990 full text",
+    "Vara Prasad et al. 2000 groundnut full text",
+    "Prasil et al. 2007 full text",
+    "Rainey and Griffiths 2005 original full text",
+    "Porch et al. 2010 original cited by Silva",
+    "Delahunty et al. 2015 original cited by Sita",
+    "Kaur et al. 2015 original cited by Priya"
+  ],
+  "interpretation": "ISSUES is an independent data/source-mapping finding, not a claim of human or agronomist approval. Four unverified rules have a proven Teixeira mismatch plus an inaccessible Gourdji source. Other rules have proven mismatches even when an underlying original remains unavailable.",
+  "evidenceNotes": {
+    "mappingAcceptance": "Exact source support is not established for the encoded variable, duration and stage combinations. Temperature is outside ranking; this is not evidence of ranking distortion or a reproduced production incident.",
+    "numericalQualifications": "Sunflower mortality prose conflicts with its table; Priya abstract and Methods differ on the treatment night temperature. Preserve source uncertainty rather than asserting a clean numerical match."
+  }
+}

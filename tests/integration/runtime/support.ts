@@ -9,10 +9,13 @@ import type { Readable } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
 import { Pool } from "pg";
 import { z } from "zod";
-import { defaultEngineSettings, parseFarmInput, parseIsoDate, releasedRegistrySchema, runManifestSchema } from "@/contracts";
+import { defaultEngineSettings, farmInputSchema, parseFarmInput, parseIsoDate, releasedRegistrySchema, runManifestSchema } from "@/contracts";
 import type { ClimateSnapshot, FrozenRun, JobCapability } from "@/contracts";
-import { createPrepareClimate } from "@/server/climate";
+import { createPrepareClimate, historicalPeriod } from "@/server/climate";
+import { addDays, dayDistance } from "@/server/climate/dates";
+import { products } from "@/server/climate/products";
 import { providerSnapshotSchema } from "@/server/cache/schema";
+import type { FrozenEvidence } from "./acceptance";
 import { migrate } from "../../../scripts/migrate";
 
 export const cutoff = parseIsoDate("2026-11-14");
@@ -39,13 +42,20 @@ export async function database() {
   assert.equal(new URL(connectionString).pathname, "/gilir_i1", "I1 must use its dedicated database.");
   const schema = "i1_" + randomUUID().replaceAll("-", "");
   const admin = new Pool({ connectionString });
-  await admin.query('CREATE SCHEMA "' + schema + '"');
+  try { await admin.query('CREATE SCHEMA "' + schema + '"'); }
+  catch (error) { await admin.end(); throw error; }
   const pool = poolForSchema(connectionString, schema);
   try { await migrate(pool); }
   catch (error) { await pool.end(); await admin.query('DROP SCHEMA "' + schema + '" CASCADE'); await admin.end(); throw error; }
   return {
     pool, schema, connectionString,
-    async close() { await pool.end(); await admin.query('DROP SCHEMA "' + schema + '" CASCADE'); await admin.end(); },
+    async close() {
+      try { await pool.end(); }
+      finally {
+        try { await admin.query('DROP SCHEMA "' + schema + '" CASCADE'); }
+        finally { await admin.end(); }
+      }
+    },
   };
 }
 
@@ -71,14 +81,69 @@ export async function savedPreparation() {
   return createPrepareClimate({ fetch: await savedProviderFetcher(), now: () => new Date("2026-11-14T12:00:00.000Z") });
 }
 
+export function sanitizedUrl(source: string): string {
+  const url = new URL(source);
+  url.username = "";
+  url.password = "";
+  url.search = "";
+  url.hash = "";
+  return url.toString();
+}
+
+export function providerEvidence(snapshot: Extract<ClimateSnapshot, { kind: "provider" }>) {
+  const firstDate = snapshot.days[0]?.date;
+  const lastDate = snapshot.days.at(-1)?.date;
+  return {
+    id: snapshot.id, contentHash: snapshot.contentHash, retrievedAt: snapshot.retrievedAt, cutoff: snapshot.cutoff,
+    period: { start: firstDate ?? "", endExclusive: lastDate ? addDays(lastDate, 1) : "" },
+    dayCount: snapshot.days.length,
+    dailySequenceComplete: firstDate !== undefined && snapshot.days.every((day, index) => day.date === addDays(firstDate, index)),
+    products: snapshot.products.map(product => ({
+      provider: product.provider, product: product.product, version: product.version, stream: product.stream,
+      cellId: product.cellId, gridDegrees: product.gridDegrees, timeStandard: product.timeStandard,
+      sourceUrl: sanitizedUrl(product.sourceUrl), fields: product.fields,
+      missingDayCounts: product.missingDatesByField.map(field => ({ field: field.field, missingDays: field.dates.length })),
+    })),
+  };
+}
+
+export function assertRequiredClimate(evidence: FrozenEvidence, period: { start: string; endExclusive: string }) {
+  assert.equal(evidence.syntheticSnapshots, 0, "Synthetic snapshots cannot satisfy I1.");
+  assert.equal(evidence.providerSnapshots, products.length, "Every required NASA product must be frozen.");
+  assert.deepEqual(evidence.snapshots.map(snapshot => snapshot.id), evidence.manifest.climateSnapshotIds, "Stored snapshots must match the frozen manifest identity.");
+  assert.deepEqual(evidence.snapshots.flatMap(snapshot => snapshot.products.map(product => product.cellId.match(/^([^:]+):/)?.[1])).sort(), products.map(product => product.id).sort(), "Every required NASA product must appear exactly once.");
+  const expectedDays = dayDistance(parseIsoDate(period.start), parseIsoDate(period.endExclusive));
+  for (const snapshot of evidence.snapshots) {
+    assert.deepEqual(snapshot.period, period, "Each frozen product must cover the full derived source period.");
+    assert.equal(snapshot.dayCount, expectedDays, "Each frozen product must contain every required day.");
+    assert.equal(snapshot.dailySequenceComplete, true, "Each frozen product must have consecutive unique daily records.");
+    assert.equal(snapshot.cutoff, evidence.manifest.dataCutoff);
+    assert.equal(snapshot.products.length, 1);
+    const actual = snapshot.products[0];
+    const expected = products.find(product => actual.cellId.startsWith(product.id + ":"));
+    assert.ok(expected);
+    assert.ok(actual.product === expected.id || actual.product.startsWith(expected.id + " ["), "A frozen product label must match its native cell identity.");
+    assert.deepEqual(actual.fields.map(field => field.field).sort(), expected.fields.map(field => field.field).sort());
+  }
+}
+
 const frozenSchema = z.object({
-  input: z.unknown(), manifest: runManifestSchema, climate: z.array(providerSnapshotSchema), settings: z.unknown(),
+  input: farmInputSchema, manifest: runManifestSchema,
+  climate: z.array(z.object({ kind: z.enum(["provider", "synthetic"]) }).passthrough()),
+  settings: z.object({ version: z.string(), targetSeasons: z.number().int().positive(), minimumUsableSeasons: z.number().int().positive() }).passthrough(),
 });
-export async function frozenEvidence(pool: Pool, capability: JobCapability) {
+export async function frozenEvidence(pool: Pool, capability: JobCapability): Promise<FrozenEvidence> {
   const row = (await pool.query("SELECT frozen_run FROM jobs WHERE id = $1", [capability.jobId])).rows[0];
   const run = frozenSchema.parse(row?.frozen_run);
-  const dates = run.climate.flatMap(snapshot => snapshot.days.map(day => day.date)).sort();
-  return { manifest: run.manifest, digest: digest(run), providerSnapshots: run.climate.length, syntheticSnapshots: 0, firstDate: dates[0] ?? "", lastDate: dates.at(-1) ?? "" };
+  const providers = run.climate.filter(snapshot => snapshot.kind === "provider").map(snapshot => providerSnapshotSchema.parse(snapshot));
+  const dates = providers.flatMap(snapshot => snapshot.days.map(day => day.date)).sort();
+  return {
+    manifest: run.manifest, digest: digest(run), providerSnapshots: providers.length,
+    syntheticSnapshots: run.climate.filter(snapshot => snapshot.kind === "synthetic").length,
+    firstDate: dates[0] ?? "", lastDate: dates.at(-1) ?? "", snapshots: providers.map(providerEvidence),
+    settings: { version: run.settings.version, targetSeasons: run.settings.targetSeasons, minimumUsableSeasons: run.settings.minimumUsableSeasons },
+    requiredSourcePeriod: historicalPeriod(run.input.planningStart, run.manifest.dataCutoff, { ...defaultEngineSettings, targetSeasons: run.settings.targetSeasons }),
+  };
 }
 
 export function digest(value: unknown): string {

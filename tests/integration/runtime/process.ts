@@ -1,20 +1,21 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
-import { defaultEngineSettings, parseFarmInput } from "@/contracts";
+import { defaultEngineSettings } from "@/contracts";
 import type { FrozenRun } from "@/contracts";
 import { calculate } from "@/engine";
 import { readRegistryRelease } from "@/registry";
 import { createPgClimateCache } from "@/server/cache";
 import { createPgJobStore, hashNormalizedInput } from "@/server/jobs";
 import { createPlanApi } from "@/server/jobs/http";
-import { prepareClimate } from "@/server/climate";
+import { createPrepareClimate, prepareClimate } from "@/server/climate";
 import { runWorkerOnce } from "@/server/runtime";
 import { executeInThread } from "../../../scripts/worker";
-import { controlledRegistry, cutoff, freezeLeaseSeconds, input, poolForSchema, replayLeaseSeconds, savedPreparation } from "./support";
+import { controlledRegistry, cutoff, freezeLeaseSeconds, poolForSchema, replayLeaseSeconds, savedPreparation } from "./support";
+import { boiseDryBeanCase } from "./live-cases";
 
 const config = z.object({ DATABASE_URL: z.url(), I1_SCHEMA: z.string().regex(/^i1_[a-z0-9_]+$/) }).parse(process.env);
-const mode = z.enum(["web-controlled", "web-live", "worker-freeze", "worker-replay", "worker-live", "worker-live-freeze", "worker-live-replay", "readiness", "engine-diagnostic"]).parse(process.argv[2]);
+const mode = z.enum(["web-controlled", "web-live", "worker-freeze", "worker-replay", "worker-live", "worker-live-freeze", "worker-live-replay", "worker-live-provider-outage", "readiness", "engine-diagnostic"]).parse(process.argv[2]);
 const pool = poolForSchema(config.DATABASE_URL, config.I1_SCHEMA);
 const jobs = createPgJobStore(pool);
 const event = (value: object) => { process.stdout.write(JSON.stringify(value) + "\n"); };
@@ -45,7 +46,7 @@ if (mode.startsWith("web-")) {
     readRegistryRelease();
     event({ event: "worker_ready" });
     if (mode === "engine-diagnostic") {
-      const liveInput = parseFarmInput({ ...input, cropPurposeIds: [z.string().min(1).parse(process.argv[3])] });
+      const liveInput = boiseDryBeanCase.input;
       const registry = readRegistryRelease();
       const climate = await prepareClimate({ input: liveInput, cutoff, settings: defaultEngineSettings, cache: createPgClimateCache(pool) });
       const run: FrozenRun = {
@@ -53,9 +54,11 @@ if (mode.startsWith("web-")) {
         manifest: { schemaVersion: 1, normalizedInputHash: hashNormalizedInput(liveInput), engineVersion: "v1", configurationVersion: defaultEngineSettings.version, ...registry.identity, climateSnapshotIds: climate.snapshots.map(snapshot => snapshot.id), dataCutoff: cutoff },
       };
       const diagnostic = await executeInThread(run, registry);
-      event({ event: "engine_diagnostic", state: diagnostic.state, ...(diagnostic.state === "service_error" ? { error: diagnostic.error } : {}) });
+      event({ event: "engine_diagnostic", state: diagnostic.state });
     } else if (mode !== "readiness") {
       const live = mode.startsWith("worker-live");
+      let providerAttempts = 0;
+      const outage = createPrepareClimate({ fetch: async () => { providerAttempts++; return new Response("Controlled provider outage", { status: 503 }); }, sleep: async () => {} });
       const originalFreeze = jobs.freeze;
       if (mode.endsWith("-freeze")) jobs.freeze = async (...args) => {
         const accepted = await originalFreeze(...args);
@@ -64,13 +67,14 @@ if (mode.startsWith("web-")) {
       };
       const result = await runWorkerOnce({
         jobs, climateCache: createPgClimateCache(pool),
-        prepareClimate: mode.endsWith("-replay") ? async () => { throw new Error("Replay attempted to replace frozen climate."); } : live ? prepareClimate : await savedPreparation(),
+        prepareClimate: mode.endsWith("-replay") ? async () => { throw new Error("Replay attempted to replace frozen climate."); } : mode === "worker-live-provider-outage" ? outage : live ? prepareClimate : await savedPreparation(),
         readRegistryRelease: live ? readRegistryRelease : () => controlledRegistry,
         calculate,
         executeCalculation: live ? executeInThread : (run, registry) => executeInThread(run, registry, fileURLToPath(new URL("./controlled-engine.ts", import.meta.url))),
         settings: defaultEngineSettings, workerId: "i1-" + mode, leaseSeconds: mode.endsWith("-freeze") ? freezeLeaseSeconds : replayLeaseSeconds, now: () => new Date().toISOString(),
       });
       event({ event: "tick", ...result });
+      if (mode === "worker-live-provider-outage") event({ event: "provider_outage", attempts: providerAttempts, status: 503 });
     }
   } finally { await pool.end(); }
 }

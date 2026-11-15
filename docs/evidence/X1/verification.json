@@ -1,0 +1,114 @@
+{
+  "recordKind": "summary of observed CLI output; not full stdout",
+  "observedOn": "2026-11-15",
+  "timezone": "Asia/Bangkok",
+  "auditIdentity": "X1 implementation files were uncommitted at this capture. auditRevision in provenance is the checkout base; implementation and evidence hashes identify the exact tested bytes. Independent PR review separately binds the final commit.",
+  "command": "TSX_DISABLE_CACHE=1 node --import tsx tests/overflow/profile-audit/run.ts --subject /Users/kyusuku/Hackathons/gilir-x1-e1-subject --expect-sha 090626a6b172fb05901a5e4fafa15be497bcae7e",
+  "execution": "complete",
+  "exitCode": 1,
+  "coverage": {
+    "expectedReleases": 2,
+    "validatedReleases": 2,
+    "expectedCoreProfileComparisons": 24,
+    "completedCoreProfileComparisons": 24,
+    "coreProfiles": 12,
+    "expandedProfileSourceReviews": 86,
+    "temperatureSourceReviews": 32,
+    "automatedSourceComparisonScope": "Only the twelve core profiles in the first and latest named releases. Other releases and 74 additional profile numbers are not compared by this runner."
+  },
+  "mechanicalChecks": 302,
+  "mechanicalOutcomes": {
+    "agreement": 302
+  },
+  "errors": [],
+  "sourceVerdict": "ISSUES",
+  "sourceReviewSummary": {
+    "profileSupport": {
+      "supported": 67,
+      "qualified": 14,
+      "discrepancy": 5
+    },
+    "temperatureOutcomes": {
+      "unverified": 4,
+      "unsupported": 28
+    },
+    "faoFindingIds": [
+      "FAO-TOTAL-SORGHUM",
+      "FAO-TOTAL-GREEN-GRAM-COWPEA",
+      "FAO-TOTAL-EGGPLANT",
+      "FAO-TOTAL-SWEET-MAIZE",
+      "FAO-FABA-PURPOSE",
+      "FAO-FABA-STALKS",
+      "FAO-PEPPER-MONTHS"
+    ]
+  },
+  "provenance": {
+    "nodeVersion": "v24.22.3",
+    "auditRevision": "cc264078d1da59a82510c919bc0cb77e8cb3361c",
+    "subjectSha": "090626a6b172fb05901a5e4fafa15be497bcae7e",
+    "subject": "/Users/kyusuku/Hackathons/gilir-x1-e1-subject",
+    "entrypoint": "/Users/kyusuku/Hackathons/gilir-x1-e1-subject/src/registry/index.ts",
+    "subjectTsconfig": "/Users/kyusuku/Hackathons/gilir-x1-e1-subject/tsconfig.json",
+    "dependencyDirectory": "/Users/kyusuku/Hackathons/gilir-x3/node_modules",
+    "loader": "/Users/kyusuku/Hackathons/gilir-x3/node_modules/tsx/dist/loader.mjs",
+    "dependencies": [
+      {
+        "name": "tsx",
+        "version": "4.23.15",
+        "packagePath": "/Users/kyusuku/Hackathons/gilir-x3/node_modules/tsx/package.json"
+      },
+      {
+        "name": "zod",
+        "version": "4.6.7",
+        "packagePath": "/Users/kyusuku/Hackathons/gilir-x3/node_modules/zod/package.json"
+      }
+    ],
+    "releases": [
+      "fao56-2026-11-14",
+      "fao56-temperature-rules-2026-11-15"
+    ],
+    "evidenceHashes": {
+      "core-source-worksheet.json": "c53cc62ccb3015ffb96090b2784f8b83f755a2eac6929f49fc70add39e367d3b",
+      "fao-source-comparison.json": "4f6f2b7432b84fdf3e4c4429c18bb97f4f4824922983e9acc44f23786cbc30fd",
+      "x1-temperature-a.json": "72e9d9e33defb17d0730d4d0ce67cbe832bf6641bdef6e649cc380a712d751cb",
+      "x1-temperature-b.json": "0fc2e0d70d52c29bf0fdccd94ef90ddcebf3027f871d2046d9e4bf3a320593d4"
+    },
+    "auditImplementationHashes": {
+      "audit.ts": "e741fd5b4dc4763550db10f8e91ad261094f1ab0826162d6e385dd2e3d445695",
+      "evidence.ts": "c4a04377073a71ea3bf4b72d96197139e6b71d3a7be0754d1692ab8fc0dd1132",
+      "run.ts": "88e54d9618c3e69858341f099bb2de66bb5c7f758203a331ebee930c12642caf"
+    },
+    "subjectVerifiedBeforeAndAfter": true
+  },
+  "completeStdoutSha256": "bf365274373b8a332c2811a3dfb373f1ef4a48b6b2b7210e38e4046c32ee41eb",
+  "wrongShaControl": {
+    "requestedSha": "0000000000000000000000000000000000000000",
+    "exitCode": 2,
+    "execution": "incomplete",
+    "completedCoreProfileComparisons": 0,
+    "sourceFindingsRetained": true
+  },
+  "repositoryChecks": {
+    "nodeVersion": "v24.22.3",
+    "scopedVitest": {
+      "passed": 21,
+      "realSubjectComparisons": 0
+    },
+    "npmRunCheck": {
+      "passed": 497,
+      "skipped": 1,
+      "skipReason": "I1 strict live acceptance is opt-in via I1_LIVE=1; not run by X1.",
+      "postgresql": "existing disposable PostgreSQL 18 instance",
+      "typecheck": "passed",
+      "moduleBoundaries": "passed"
+    },
+    "npmRunBuild": "passed"
+  },
+  "notClaimed": [
+    "human or agronomist approval",
+    "automated scientific comparison of the additional74profiles",
+    "live NASA retrieval in X1",
+    "end-to-end I1/I2/I3 acceptance",
+    "deployment"
+  ]
+}

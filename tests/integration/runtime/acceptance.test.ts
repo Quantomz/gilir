@@ -1,5 +1,7 @@
 import { expect, it, vi } from "vitest";
 import type { CompletedSnapshot } from "@/contracts";
+import { defaultEngineSettings } from "@/contracts";
+import { historicalPeriod } from "@/server/climate";
 import { hashNormalizedInput } from "@/server/jobs";
 import type { AcceptanceControls } from "./acceptance";
 import { verifyRestartedPipeline } from "./acceptance";
@@ -14,7 +16,7 @@ function controlledRun() {
 function injectedControls(result: CompletedSnapshot["result"]): AcceptanceControls {
   const run = controlledRun();
   const snapshot: CompletedSnapshot = { schemaVersion: 1, id: "controlled-job", completedAt: "2026-11-14T12:00:00.000Z", input, result };
-  const evidence = { manifest: run.manifest, digest: "controlled-frozen-digest", providerSnapshots: 3, syntheticSnapshots: 0, firstDate: "2000-06-30", lastDate: "2026-06-30" };
+  const evidence = { manifest: run.manifest, digest: "controlled-frozen-digest", providerSnapshots: 3, syntheticSnapshots: 0, firstDate: "2000-06-30", lastDate: "2026-06-30", snapshots: [], settings: defaultEngineSettings, requiredSourcePeriod: historicalPeriod(input.planningStart, run.manifest.dataCutoff, run.settings) };
   return {
     input, expectedState: result.state,
     client: { catalogue: async () => ({ version: "controlled-only", entries: [] }), submit: async () => ({ kind: "accepted", capability: { jobId: snapshot.id, token: "controlled-token" } }), read: async () => ({ state: "completed", snapshot }), remove: vi.fn(async () => {}) },

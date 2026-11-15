@@ -1,0 +1,1429 @@
+{
+  "schemaVersion": 1,
+  "status": "PASSED",
+  "exitCode": 0,
+  "caseId": "boise-dry-bean-june",
+  "expectedState": "plan_with_warnings",
+  "cutoff": "2026-11-14",
+  "startedAt": "2026-11-14T22:37:46.188Z",
+  "evidence": "Local production HTTP API, PostgreSQL, registry, engine, and separate workers with live NASA. Provider outage is separately identified controlled injection.",
+  "checks": {
+    "catalogue": {
+      "version": "fao56-reviewed-2026-11-15",
+      "entries": 40,
+      "selectedCropPresent": true
+    },
+    "postgresAndWorkerReadiness": "PASSED",
+    "primaryProgress": {
+      "jobId": "157d2368-e6d0-4318-b950-d62b7ddf4c0f",
+      "freezeWorkerExit": {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      "replayTick": {
+        "kind": "completed"
+      }
+    },
+    "requiredSourcePeriod": {
+      "start": "2000-05-31",
+      "endExclusive": "2026-06-02",
+      "horizonDays": 366,
+      "seasons": [
+        {
+          "start": "2001-06-01",
+          "endExclusive": "2002-06-02"
+        },
+        {
+          "start": "2002-06-01",
+          "endExclusive": "2003-06-02"
+        },
+        {
+          "start": "2003-06-01",
+          "endExclusive": "2004-06-01"
+        },
+        {
+          "start": "2004-06-01",
+          "endExclusive": "2005-06-02"
+        },
+        {
+          "start": "2005-06-01",
+          "endExclusive": "2006-06-02"
+        },
+        {
+          "start": "2006-06-01",
+          "endExclusive": "2007-06-02"
+        },
+        {
+          "start": "2007-06-01",
+          "endExclusive": "2008-06-01"
+        },
+        {
+          "start": "2008-06-01",
+          "endExclusive": "2009-06-02"
+        },
+        {
+          "start": "2009-06-01",
+          "endExclusive": "2010-06-02"
+        },
+        {
+          "start": "2010-06-01",
+          "endExclusive": "2011-06-02"
+        },
+        {
+          "start": "2011-06-01",
+          "endExclusive": "2012-06-01"
+        },
+        {
+          "start": "2012-06-01",
+          "endExclusive": "2013-06-02"
+        },
+        {
+          "start": "2013-06-01",
+          "endExclusive": "2014-06-02"
+        },
+        {
+          "start": "2014-06-01",
+          "endExclusive": "2015-06-02"
+        },
+        {
+          "start": "2015-06-01",
+          "endExclusive": "2016-06-01"
+        },
+        {
+          "start": "2016-06-01",
+          "endExclusive": "2017-06-02"
+        },
+        {
+          "start": "2017-06-01",
+          "endExclusive": "2018-06-02"
+        },
+        {
+          "start": "2018-06-01",
+          "endExclusive": "2019-06-02"
+        },
+        {
+          "start": "2019-06-01",
+          "endExclusive": "2020-06-01"
+        },
+        {
+          "start": "2020-06-01",
+          "endExclusive": "2021-06-02"
+        },
+        {
+          "start": "2021-06-01",
+          "endExclusive": "2022-06-02"
+        },
+        {
+          "start": "2022-06-01",
+          "endExclusive": "2023-06-02"
+        },
+        {
+          "start": "2023-06-01",
+          "endExclusive": "2024-06-01"
+        },
+        {
+          "start": "2024-06-01",
+          "endExclusive": "2025-06-02"
+        },
+        {
+          "start": "2025-06-01",
+          "endExclusive": "2026-06-02"
+        }
+      ],
+      "lookbackDays": 366,
+      "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+    },
+    "liveRestartAcceptance": {
+      "jobId": "157d2368-e6d0-4318-b950-d62b7ddf4c0f",
+      "state": "plan_with_warnings",
+      "manifest": {
+        "schemaVersion": 1,
+        "normalizedInputHash": "4cc73618d3cbeddc7c55382754897759054bfde3d091021d07a19c84da965ec6",
+        "engineVersion": "v1",
+        "configurationVersion": "v2",
+        "catalogueVersion": "fao56-reviewed-2026-11-15",
+        "ruleVersion": "no-rules-2026-11-14",
+        "climateSnapshotIds": [
+          "power-ca90922568c420697f565a3f0829a45fab86dacc80043e722a90582d5a580452",
+          "power-6f35c7687c78ca3d4d345b532b050aaf48605e574a1d7c93b517f43e6efc5ecd",
+          "power-37654e156f5b70256854375dfb0c7fe2d359630903cd27b2b3302127987b5a62"
+        ],
+        "dataCutoff": "2026-11-14"
+      },
+      "frozenDigest": "88aa84514ba9d5c057e43b1e7f5307af06f57336444b31e861347f457194a524",
+      "resultDigest": "b4d48bf054dc87a14ef7d695ee55179e1b6830eb7f3c5951332ba1b2dde5a126",
+      "sourcePeriod": {
+        "firstDate": "2000-05-31",
+        "lastDate": "2026-06-01"
+      },
+      "providerSnapshots": 3,
+      "syntheticSnapshots": 0,
+      "snapshots": [
+        {
+          "id": "power-ca90922568c420697f565a3f0829a45fab86dacc80043e722a90582d5a580452",
+          "contentHash": "7dfa10667b79c5584dd235e8456d3e60563f6688087317b73c97003ca4fa33ce",
+          "retrievedAt": "2026-11-14T22:37:49.829Z",
+          "cutoff": "2026-11-14",
+          "period": {
+            "start": "2000-05-31",
+            "endExclusive": "2026-06-02"
+          },
+          "dayCount": 9498,
+          "dailySequenceComplete": true,
+          "products": [
+            {
+              "provider": "NASA POWER",
+              "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_METEOROLOGY:lat267:lon102",
+              "gridDegrees": [
+                0.5,
+                0.625
+              ],
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+              "fields": [
+                {
+                  "field": "meanC",
+                  "providerField": "T2M",
+                  "originalUnit": "C",
+                  "canonicalUnit": "degC",
+                  "conversionVersion": "power-units-v1"
+                },
+                {
+                  "field": "minC",
+                  "providerField": "T2M_MIN",
+                  "originalUnit": "C",
+                  "canonicalUnit": "degC",
+                  "conversionVersion": "power-units-v1"
+                },
+                {
+                  "field": "maxC",
+                  "providerField": "T2M_MAX",
+                  "originalUnit": "C",
+                  "canonicalUnit": "degC",
+                  "conversionVersion": "power-units-v1"
+                },
+                {
+                  "field": "humidityPct",
+                  "providerField": "RH2M",
+                  "originalUnit": "%",
+                  "canonicalUnit": "%",
+                  "conversionVersion": "power-units-v1"
+                },
+                {
+                  "field": "wind2mMs",
+                  "providerField": "WS2M",
+                  "originalUnit": "m/s",
+                  "canonicalUnit": "m/s",
+                  "conversionVersion": "power-units-v1"
+                },
+                {
+                  "field": "pressureKpa",
+                  "providerField": "PS",
+                  "originalUnit": "kPa",
+                  "canonicalUnit": "kPa",
+                  "conversionVersion": "power-units-v1"
+                }
+              ],
+              "missingDayCounts": [
+                {
+                  "field": "meanC",
+                  "missingDays": 0
+                },
+                {
+                  "field": "minC",
+                  "missingDays": 0
+                },
+                {
+                  "field": "maxC",
+                  "missingDays": 0
+                },
+                {
+                  "field": "humidityPct",
+                  "missingDays": 0
+                },
+                {
+                  "field": "wind2mMs",
+                  "missingDays": 0
+                },
+                {
+                  "field": "pressureKpa",
+                  "missingDays": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "power-6f35c7687c78ca3d4d345b532b050aaf48605e574a1d7c93b517f43e6efc5ecd",
+          "contentHash": "abd0266e4ff51c3ae2687936fdd65041901a137845b38ab2890b1abf2d4915f7",
+          "retrievedAt": "2026-11-14T22:37:51.626Z",
+          "cutoff": "2026-11-14",
+          "period": {
+            "start": "2000-05-31",
+            "endExclusive": "2026-06-02"
+          },
+          "dayCount": 9498,
+          "dailySequenceComplete": true,
+          "products": [
+            {
+              "provider": "NASA POWER",
+              "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_SOLAR:lat133:lon63",
+              "gridDegrees": [
+                1,
+                1
+              ],
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+              "fields": [
+                {
+                  "field": "solarMjM2Day",
+                  "providerField": "ALLSKY_SFC_SW_DWN",
+                  "originalUnit": "MJ/m^2/day",
+                  "canonicalUnit": "MJ/m²/day",
+                  "conversionVersion": "power-units-v1"
+                }
+              ],
+              "missingDayCounts": [
+                {
+                  "field": "solarMjM2Day",
+                  "missingDays": 0
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "power-37654e156f5b70256854375dfb0c7fe2d359630903cd27b2b3302127987b5a62",
+          "contentHash": "c28b86a94dd7e9617b828cdaf2e7ef0aec4b1d906f7a26fd8a8d8a5169fb7fc1",
+          "retrievedAt": "2026-11-14T22:37:53.445Z",
+          "cutoff": "2026-11-14",
+          "period": {
+            "start": "2000-05-31",
+            "endExclusive": "2026-06-02"
+          },
+          "dayCount": 9498,
+          "dailySequenceComplete": true,
+          "products": [
+            {
+              "provider": "NASA POWER",
+              "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+              "version": {
+                "kind": "unavailable",
+                "reason": "POWER reports its API version but omits the underlying source release version."
+              },
+              "stream": {
+                "kind": "unavailable",
+                "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+              },
+              "cellId": "POWER_IMERG:lat1336:lon638",
+              "gridDegrees": [
+                0.1,
+                0.1
+              ],
+              "timeStandard": "UTC",
+              "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+              "fields": [
+                {
+                  "field": "rainMm",
+                  "providerField": "IMERG_PRECTOT",
+                  "originalUnit": "mm/day",
+                  "canonicalUnit": "mm/day",
+                  "conversionVersion": "power-units-v1"
+                }
+              ],
+              "missingDayCounts": [
+                {
+                  "field": "rainMm",
+                  "missingDays": 0
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "settings": {
+        "version": "v2",
+        "targetSeasons": 25,
+        "minimumUsableSeasons": 15
+      },
+      "requiredSourcePeriod": {
+        "start": "2000-05-31",
+        "endExclusive": "2026-06-02",
+        "horizonDays": 366,
+        "seasons": [
+          {
+            "start": "2001-06-01",
+            "endExclusive": "2002-06-02"
+          },
+          {
+            "start": "2002-06-01",
+            "endExclusive": "2003-06-02"
+          },
+          {
+            "start": "2003-06-01",
+            "endExclusive": "2004-06-01"
+          },
+          {
+            "start": "2004-06-01",
+            "endExclusive": "2005-06-02"
+          },
+          {
+            "start": "2005-06-01",
+            "endExclusive": "2006-06-02"
+          },
+          {
+            "start": "2006-06-01",
+            "endExclusive": "2007-06-02"
+          },
+          {
+            "start": "2007-06-01",
+            "endExclusive": "2008-06-01"
+          },
+          {
+            "start": "2008-06-01",
+            "endExclusive": "2009-06-02"
+          },
+          {
+            "start": "2009-06-01",
+            "endExclusive": "2010-06-02"
+          },
+          {
+            "start": "2010-06-01",
+            "endExclusive": "2011-06-02"
+          },
+          {
+            "start": "2011-06-01",
+            "endExclusive": "2012-06-01"
+          },
+          {
+            "start": "2012-06-01",
+            "endExclusive": "2013-06-02"
+          },
+          {
+            "start": "2013-06-01",
+            "endExclusive": "2014-06-02"
+          },
+          {
+            "start": "2014-06-01",
+            "endExclusive": "2015-06-02"
+          },
+          {
+            "start": "2015-06-01",
+            "endExclusive": "2016-06-01"
+          },
+          {
+            "start": "2016-06-01",
+            "endExclusive": "2017-06-02"
+          },
+          {
+            "start": "2017-06-01",
+            "endExclusive": "2018-06-02"
+          },
+          {
+            "start": "2018-06-01",
+            "endExclusive": "2019-06-02"
+          },
+          {
+            "start": "2019-06-01",
+            "endExclusive": "2020-06-01"
+          },
+          {
+            "start": "2020-06-01",
+            "endExclusive": "2021-06-02"
+          },
+          {
+            "start": "2021-06-01",
+            "endExclusive": "2022-06-02"
+          },
+          {
+            "start": "2022-06-01",
+            "endExclusive": "2023-06-02"
+          },
+          {
+            "start": "2023-06-01",
+            "endExclusive": "2024-06-01"
+          },
+          {
+            "start": "2024-06-01",
+            "endExclusive": "2025-06-02"
+          },
+          {
+            "start": "2025-06-01",
+            "endExclusive": "2026-06-02"
+          }
+        ],
+        "lookbackDays": 366,
+        "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+      },
+      "scientific": {
+        "state": "plan_with_warnings",
+        "profiles": [
+          {
+            "id": "common-bean-dry-fao56-idaho-jun",
+            "version": "reviewed-2026-11-15.1",
+            "cropPurposeId": "common-bean-dry",
+            "sourceIds": [
+              "fao56-table11",
+              "fao56-table12"
+            ]
+          }
+        ],
+        "sources": [
+          {
+            "id": "fao56-table11",
+            "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 11, lengths of crop development stages",
+            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+            "section": "Chapter 6, Table 11 (lengths of crop development stages for various planting periods and climatic regions, days) and its footnotes",
+            "publishedOn": {
+              "kind": "unavailable",
+              "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+            },
+            "extractedOn": "2026-11-14"
+          },
+          {
+            "id": "fao56-table12",
+            "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 12, single crop coefficients",
+            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+            "section": "Chapter 6, Table 12 crop and group rows (small vegetables, Solanum family, cucumber family, roots and tubers, legumes, cereals, oil crops) with footnotes 1, 2, 4, 6, 9, 10, 11 and 12, and Table 14 with the rice Kc ini paragraph",
+            "publishedOn": {
+              "kind": "unavailable",
+              "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+            },
+            "extractedOn": "2026-11-14"
+          }
+        ],
+        "cohort": {
+          "kind": "available",
+          "value": {
+            "targetSeasons": 25,
+            "minimumUsableSeasons": 15,
+            "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+            "seasons": [
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2025-06-01",
+                  "endExclusive": "2026-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2024-06-01",
+                  "endExclusive": "2025-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2023-06-01",
+                  "endExclusive": "2024-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2022-06-01",
+                  "endExclusive": "2023-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2021-06-01",
+                  "endExclusive": "2022-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2020-06-01",
+                  "endExclusive": "2021-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2019-06-01",
+                  "endExclusive": "2020-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2018-06-01",
+                  "endExclusive": "2019-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2017-06-01",
+                  "endExclusive": "2018-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2016-06-01",
+                  "endExclusive": "2017-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2015-06-01",
+                  "endExclusive": "2016-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2014-06-01",
+                  "endExclusive": "2015-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2013-06-01",
+                  "endExclusive": "2014-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2012-06-01",
+                  "endExclusive": "2013-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2011-06-01",
+                  "endExclusive": "2012-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2010-06-01",
+                  "endExclusive": "2011-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2009-06-01",
+                  "endExclusive": "2010-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2008-06-01",
+                  "endExclusive": "2009-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2007-06-01",
+                  "endExclusive": "2008-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2006-06-01",
+                  "endExclusive": "2007-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2005-06-01",
+                  "endExclusive": "2006-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2004-06-01",
+                  "endExclusive": "2005-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2003-06-01",
+                  "endExclusive": "2004-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2002-06-01",
+                  "endExclusive": "2003-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2001-06-01",
+                  "endExclusive": "2002-06-02"
+                }
+              }
+            ]
+          }
+        },
+        "usableSeasons": 25,
+        "unassessedChecks": [
+          {
+            "code": "temperature_rule",
+            "reason": "No released temperature rule; heat and cold exposure are unassessed, not safe.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "sourceIds": []
+          }
+        ],
+        "missing": [],
+        "hasPlan": true,
+        "occurrences": [
+          {
+            "cropPurposeId": "common-bean-dry",
+            "profileId": "common-bean-dry-fao56-idaho-jun",
+            "profileVersion": "reviewed-2026-11-15.1",
+            "planted": "2027-11-09",
+            "lastOccupied": "2028-02-16",
+            "fieldAvailable": "2028-02-24"
+          }
+        ],
+        "warnings": [
+          {
+            "code": "rainfall_mismatch",
+            "message": "In some replay seasons, rainfall fell below estimated crop demand in at least one rolling window.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "ruleIds": [],
+            "metricIds": [
+              "frequency",
+              "mismatch",
+              "mean_frequency",
+              "mean_mismatch"
+            ]
+          }
+        ],
+        "search": {
+          "structural": "witness",
+          "ranking": "grid_complete",
+          "structuralExpandedStates": 1,
+          "gridExpandedStates": 455,
+          "scoredCandidates": 453,
+          "structuralExpansionLimit": 2000000,
+          "gridExpansionLimit": 2000000,
+          "scoredCandidateLimit": 100000,
+          "gridStepDays": 7
+        }
+      },
+      "workerRestartPreservedFrozenRun": true,
+      "webRestartPreservedResult": true,
+      "unauthorizedReadsAndDeletesRejected": true,
+      "privateValuesAbsentFromLogs": true
+    },
+    "missingProfileControl": {
+      "caseId": "bangkok-dry-bean-missing-profile",
+      "expectedState": "insufficient_data",
+      "jobId": "7bb7b324-9979-40f7-9292-9852b69d1062",
+      "workerTick": {
+        "kind": "completed"
+      },
+      "jobState": "completed",
+      "frozen": {
+        "manifest": {
+          "schemaVersion": 1,
+          "normalizedInputHash": "cf803d120dbb4908343a16761183cc5373161aebfb527631733026c1e1e9b6fa",
+          "engineVersion": "v1",
+          "configurationVersion": "v2",
+          "catalogueVersion": "fao56-reviewed-2026-11-15",
+          "ruleVersion": "no-rules-2026-11-14",
+          "climateSnapshotIds": [
+            "power-5348117f04b5a9c783030715b3de51bfd633f8dbb23e3eb75a0abfdf9030e457",
+            "power-d02a6a3171107e3ab14df5932d0b0c9edbb55afed05f6f4978c77e48a7e99dcf",
+            "power-ab736a8fe3eac3fa055ebf0150fa9f9ecdd05b5154a218e99ebe7a7a23667708"
+          ],
+          "dataCutoff": "2026-11-14"
+        },
+        "digest": "b09eef97705361098fb501e8301825e2ced3e67c2891b7865dda229166c00937",
+        "providerSnapshots": 3,
+        "syntheticSnapshots": 0,
+        "firstDate": "2000-05-31",
+        "lastDate": "2026-06-01",
+        "snapshots": [
+          {
+            "id": "power-5348117f04b5a9c783030715b3de51bfd633f8dbb23e3eb75a0abfdf9030e457",
+            "contentHash": "24c702069d6ac7fb6db4c2e932d3679e2403760d127f1db1ca64cb3c78468cbc",
+            "retrievedAt": "2026-11-14T22:38:06.314Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_METEOROLOGY:lat208:lon449",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "meanC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "minC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "maxC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "humidityPct",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "power-d02a6a3171107e3ab14df5932d0b0c9edbb55afed05f6f4978c77e48a7e99dcf",
+            "contentHash": "f612b3437dc806cb9bfd8c806bb4793c03d09e6a52f2245dd90b0905ffbe089b",
+            "retrievedAt": "2026-11-14T22:38:08.058Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_SOLAR:lat103:lon280",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "solarMjM2Day",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "power-ab736a8fe3eac3fa055ebf0150fa9f9ecdd05b5154a218e99ebe7a7a23667708",
+            "contentHash": "ef5251b860768b83cfe03cf81682d15d4804d434a1bf1408347ac126aeaa6087",
+            "retrievedAt": "2026-11-14T22:38:10.331Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_IMERG:lat1037:lon2805",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "rainMm",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "settings": {
+          "version": "v2",
+          "targetSeasons": 25,
+          "minimumUsableSeasons": 15
+        },
+        "requiredSourcePeriod": {
+          "start": "2000-05-31",
+          "endExclusive": "2026-06-02",
+          "horizonDays": 366,
+          "seasons": [
+            {
+              "start": "2001-06-01",
+              "endExclusive": "2002-06-02"
+            },
+            {
+              "start": "2002-06-01",
+              "endExclusive": "2003-06-02"
+            },
+            {
+              "start": "2003-06-01",
+              "endExclusive": "2004-06-01"
+            },
+            {
+              "start": "2004-06-01",
+              "endExclusive": "2005-06-02"
+            },
+            {
+              "start": "2005-06-01",
+              "endExclusive": "2006-06-02"
+            },
+            {
+              "start": "2006-06-01",
+              "endExclusive": "2007-06-02"
+            },
+            {
+              "start": "2007-06-01",
+              "endExclusive": "2008-06-01"
+            },
+            {
+              "start": "2008-06-01",
+              "endExclusive": "2009-06-02"
+            },
+            {
+              "start": "2009-06-01",
+              "endExclusive": "2010-06-02"
+            },
+            {
+              "start": "2010-06-01",
+              "endExclusive": "2011-06-02"
+            },
+            {
+              "start": "2011-06-01",
+              "endExclusive": "2012-06-01"
+            },
+            {
+              "start": "2012-06-01",
+              "endExclusive": "2013-06-02"
+            },
+            {
+              "start": "2013-06-01",
+              "endExclusive": "2014-06-02"
+            },
+            {
+              "start": "2014-06-01",
+              "endExclusive": "2015-06-02"
+            },
+            {
+              "start": "2015-06-01",
+              "endExclusive": "2016-06-01"
+            },
+            {
+              "start": "2016-06-01",
+              "endExclusive": "2017-06-02"
+            },
+            {
+              "start": "2017-06-01",
+              "endExclusive": "2018-06-02"
+            },
+            {
+              "start": "2018-06-01",
+              "endExclusive": "2019-06-02"
+            },
+            {
+              "start": "2019-06-01",
+              "endExclusive": "2020-06-01"
+            },
+            {
+              "start": "2020-06-01",
+              "endExclusive": "2021-06-02"
+            },
+            {
+              "start": "2021-06-01",
+              "endExclusive": "2022-06-02"
+            },
+            {
+              "start": "2022-06-01",
+              "endExclusive": "2023-06-02"
+            },
+            {
+              "start": "2023-06-01",
+              "endExclusive": "2024-06-01"
+            },
+            {
+              "start": "2024-06-01",
+              "endExclusive": "2025-06-02"
+            },
+            {
+              "start": "2025-06-01",
+              "endExclusive": "2026-06-02"
+            }
+          ],
+          "lookbackDays": 366,
+          "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+        }
+      },
+      "scientific": {
+        "state": "insufficient_data",
+        "profiles": [],
+        "sources": [
+          {
+            "id": "fao56-table11",
+            "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 11, lengths of crop development stages",
+            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+            "section": "Chapter 6, Table 11 (lengths of crop development stages for various planting periods and climatic regions, days) and its footnotes",
+            "publishedOn": {
+              "kind": "unavailable",
+              "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+            },
+            "extractedOn": "2026-11-14"
+          },
+          {
+            "id": "fao56-table12",
+            "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 12, single crop coefficients",
+            "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+            "section": "Chapter 6, Table 12 crop and group rows (small vegetables, Solanum family, cucumber family, roots and tubers, legumes, cereals, oil crops) with footnotes 1, 2, 4, 6, 9, 10, 11 and 12, and Table 14 with the rice Kc ini paragraph",
+            "publishedOn": {
+              "kind": "unavailable",
+              "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+            },
+            "extractedOn": "2026-11-14"
+          }
+        ],
+        "cohort": {
+          "kind": "available",
+          "value": {
+            "targetSeasons": 25,
+            "minimumUsableSeasons": 15,
+            "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+            "seasons": [
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2025-06-01",
+                  "endExclusive": "2026-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2024-06-01",
+                  "endExclusive": "2025-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2023-06-01",
+                  "endExclusive": "2024-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2022-06-01",
+                  "endExclusive": "2023-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2021-06-01",
+                  "endExclusive": "2022-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2020-06-01",
+                  "endExclusive": "2021-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2019-06-01",
+                  "endExclusive": "2020-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2018-06-01",
+                  "endExclusive": "2019-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2017-06-01",
+                  "endExclusive": "2018-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2016-06-01",
+                  "endExclusive": "2017-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2015-06-01",
+                  "endExclusive": "2016-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2014-06-01",
+                  "endExclusive": "2015-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2013-06-01",
+                  "endExclusive": "2014-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2012-06-01",
+                  "endExclusive": "2013-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2011-06-01",
+                  "endExclusive": "2012-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2010-06-01",
+                  "endExclusive": "2011-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2009-06-01",
+                  "endExclusive": "2010-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2008-06-01",
+                  "endExclusive": "2009-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2007-06-01",
+                  "endExclusive": "2008-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2006-06-01",
+                  "endExclusive": "2007-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2005-06-01",
+                  "endExclusive": "2006-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2004-06-01",
+                  "endExclusive": "2005-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2003-06-01",
+                  "endExclusive": "2004-06-01"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2002-06-01",
+                  "endExclusive": "2003-06-02"
+                }
+              },
+              {
+                "status": "usable",
+                "interval": {
+                  "start": "2001-06-01",
+                  "endExclusive": "2002-06-02"
+                }
+              }
+            ]
+          }
+        },
+        "usableSeasons": 25,
+        "unassessedChecks": [
+          {
+            "code": "crop_profile",
+            "reason": "No released common-bean-dry profile applies at this location.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "sourceIds": []
+          },
+          {
+            "code": "crop_profile",
+            "reason": "A selected crop has no applicable released profile.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "sourceIds": []
+          }
+        ],
+        "missing": [
+          {
+            "code": "crop_profile",
+            "reason": "No released common-bean-dry profile applies at this location.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "sourceIds": []
+          },
+          {
+            "code": "crop_profile",
+            "reason": "A selected crop has no applicable released profile.",
+            "cropPurposeIds": [
+              "common-bean-dry"
+            ],
+            "sourceIds": []
+          }
+        ],
+        "hasPlan": false,
+        "occurrences": [],
+        "warnings": [],
+        "search": {
+          "structural": "not_started",
+          "ranking": "not_started",
+          "structuralExpandedStates": 0,
+          "gridExpandedStates": 0,
+          "scoredCandidates": 0,
+          "structuralExpansionLimit": 2000000,
+          "gridExpansionLimit": 2000000,
+          "scoredCandidateLimit": 100000,
+          "gridStepDays": 7
+        }
+      },
+      "resultDigest": "ae8752de20174349305561394d6fc1342969661a21cceb3a08344b5c56d79f39",
+      "status": "PASSED"
+    },
+    "providerOutageControl": {
+      "kind": "controlled_provider_http_503",
+      "composition": "Production HTTP, PostgreSQL, registry, worker, and engine executor with provider-only injection. Preparation fails before calculation.",
+      "freshCacheSchema": true,
+      "jobId": "bb406d4a-eb21-46ad-884c-b7c5d59f5902",
+      "workerTick": {
+        "kind": "failed"
+      },
+      "provider": {
+        "attempts": 3,
+        "status": 503
+      },
+      "state": "failed",
+      "failureCode": "retrieval_failed",
+      "status": "PASSED"
+    },
+    "processLogPrivacy": "PASSED",
+    "artifactPrivacy": "PASSED"
+  },
+  "blockers": [],
+  "cleanup": {
+    "processesStopped": true,
+    "schemaRemoved": true,
+    "processExits": [
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": null,
+        "signal": "SIGKILL"
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "codeIdentity": {
+    "commit": "2e7e1b90bdff2d69831c02fcc54583a1f876991a",
+    "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trackedChanges": false
+  },
+  "finishedAt": "2026-11-14T22:38:12.040Z"
+}

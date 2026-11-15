@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "testedCodeCommit": "2e7e1b90bdff2d69831c02fcc54583a1f876991a",
+  "e1MainCommit": "1c448946c5ed3b63cc9e38be084c2ddc76b51fcb",
+  "strictLive": {
+    "status": "PASSED",
+    "passed": 22,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "fullCheck": {
+    "passed": 574,
+    "skipped": 1,
+    "skip": "strict live opt-in; satisfied separately",
+    "databaseSuites": "enabled",
+    "exitCode": 0
+  },
+  "build": {
+    "exitCode": 0
+  },
+  "directCleanup": {
+    "baselineI1Schemas": 0,
+    "afterFailedRunI1Schemas": 0,
+    "afterSuccessfulRunAndFullCheckI1Schemas": 0,
+    "ownedRuntimeProcesses": 0,
+    "schemaQuery": "SELECT count(*) FROM pg_namespace WHERE nspname LIKE 'i1_%';"
+  },
+  "artifactSha256": {
+    "live-2026-11-15.json": "9a66cd8c77e9c77f5c6c2f440d6afb40f0376a58006af30f5309aa1c4d4f2227",
+    "final-live-test.log": "5dc67ec5febcc6ae2adefc880ad23e7e5e4b8eccbadf41b3215ad865a764039d",
+    "final-check.log": "6f3e7f711358f0da6adfbf2e26c4a26b1a3e180d1f50c833f5d06f6e100bb8f2",
+    "final-build.log": "6438f72a5dbd80a3bfb3d8b0686ff9eab587e5c6a9d1d0481743f60de5268c0f",
+    "failed-product-identity-2026-11-15.json": "84f7880603323e257e4ad804503dcb07ac79ac00532a490342e8f752aee6e7e8",
+    "failed-product-identity-test.log": "eedf97ca092ad040afb9b2e792194bb9e07168b826c52bb8fba2530b5cc0f65f"
+  },
+  "reviewGate": "Independent exact-head verdict and green CI required before merge.",
+  "limitations": [
+    "Public illustrative inputs, not surveyed farms.",
+    "Idaho bean winter dates and unassessed temperature require I2 scientific review.",
+    "Local production adapters do not establish deployed behavior.",
+    "Underlying NASA product release and per-day stream metadata remain unavailable as returned by POWER."
+  ],
+  "logNormalization": {
+    "operation": "Normalize carriage returns, trailing whitespace, and final blank lines only. Test outcome text is unchanged. Original bytes remain in earlier commits.",
+    "files": [
+      {
+        "file": "failed-product-identity-test.log",
+        "originalSha256": "bbac45a6438f32082d9ce6c3569c69fb717e8eaec6ecb7e1add1286fb41090d6",
+        "normalizedSha256": "eedf97ca092ad040afb9b2e792194bb9e07168b826c52bb8fba2530b5cc0f65f"
+      },
+      {
+        "file": "final-build.log",
+        "originalSha256": "388626baaeb13d381f4131296caba673cef76e10bd74b31e3a75551734d5a8ef",
+        "normalizedSha256": "6438f72a5dbd80a3bfb3d8b0686ff9eab587e5c6a9d1d0481743f60de5268c0f"
+      },
+      {
+        "file": "final-live-test.log",
+        "originalSha256": "6431f6a0aff474bf5de6a1f85556131293eda29593d29352202cf50e216ddbee",
+        "normalizedSha256": "5dc67ec5febcc6ae2adefc880ad23e7e5e4b8eccbadf41b3215ad865a764039d"
+      }
+    ]
+  }
+}

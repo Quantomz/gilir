@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "status": "FAILED",
+  "exitCode": 1,
+  "caseId": "boise-dry-bean-june",
+  "expectedState": "plan_with_warnings",
+  "cutoff": "2026-11-14",
+  "startedAt": "2026-11-14T22:29:37.072Z",
+  "evidence": "Local production HTTP API, PostgreSQL, registry, engine, and separate workers with live NASA. Provider outage is separately identified controlled injection.",
+  "checks": {
+    "catalogue": {
+      "version": "fao56-reviewed-2026-11-15",
+      "entries": 40,
+      "selectedCropPresent": true
+    },
+    "postgresAndWorkerReadiness": "PASSED",
+    "primaryProgress": {
+      "jobId": "cffb5112-2c7a-4f89-b176-cb7aa56cf075",
+      "frozen": {
+        "manifest": {
+          "schemaVersion": 1,
+          "normalizedInputHash": "4cc73618d3cbeddc7c55382754897759054bfde3d091021d07a19c84da965ec6",
+          "engineVersion": "v1",
+          "configurationVersion": "v2",
+          "catalogueVersion": "fao56-reviewed-2026-11-15",
+          "ruleVersion": "no-rules-2026-11-14",
+          "climateSnapshotIds": [
+            "power-6c3501fd875130c4f13798dc7932dbe6ba5fb787d4eb52029246a61ad247c482",
+            "power-8b05464530b1dacb50727e4b513fa3232cccaffaa00d2995a68fe49a379966df",
+            "power-316e9fe1d90c83e812da44fb2a08ba27bc08c9f18014340cda8dea2491e59c46"
+          ],
+          "dataCutoff": "2026-11-14"
+        },
+        "digest": "417627124727c018bebe0fc2acdfc93e0382298cf26358c8c0d097b3cc840c73",
+        "providerSnapshots": 3,
+        "syntheticSnapshots": 0,
+        "firstDate": "2000-05-31",
+        "lastDate": "2026-06-01",
+        "snapshots": [
+          {
+            "id": "power-6c3501fd875130c4f13798dc7932dbe6ba5fb787d4eb52029246a61ad247c482",
+            "contentHash": "cd27ca05f93863a499f16559d4c99d81fa9db1478c3e0a400e4bdddb47222d49",
+            "retrievedAt": "2026-11-14T22:29:40.617Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_METEOROLOGY [MERRA2,POWER] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_METEOROLOGY:lat267:lon102",
+                "gridDegrees": [
+                  0.5,
+                  0.625
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "meanC",
+                    "providerField": "T2M",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "minC",
+                    "providerField": "T2M_MIN",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "maxC",
+                    "providerField": "T2M_MAX",
+                    "originalUnit": "C",
+                    "canonicalUnit": "degC",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "humidityPct",
+                    "providerField": "RH2M",
+                    "originalUnit": "%",
+                    "canonicalUnit": "%",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "providerField": "WS2M",
+                    "originalUnit": "m/s",
+                    "canonicalUnit": "m/s",
+                    "conversionVersion": "power-units-v1"
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "providerField": "PS",
+                    "originalUnit": "kPa",
+                    "canonicalUnit": "kPa",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "meanC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "minC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "maxC",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "humidityPct",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "wind2mMs",
+                    "missingDays": 0
+                  },
+                  {
+                    "field": "pressureKpa",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "power-8b05464530b1dacb50727e4b513fa3232cccaffaa00d2995a68fe49a379966df",
+            "contentHash": "a3ee0d9d612c4bf19f681246083f7051a3a26643f64b61297b2d7d6f87157140",
+            "retrievedAt": "2026-11-14T22:29:42.384Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_SOLAR [SRB,SYN1DEG] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_SOLAR:lat133:lon63",
+                "gridDegrees": [
+                  1,
+                  1
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "solarMjM2Day",
+                    "providerField": "ALLSKY_SFC_SW_DWN",
+                    "originalUnit": "MJ/m^2/day",
+                    "canonicalUnit": "MJ/m²/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "solarMjM2Day",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "power-316e9fe1d90c83e812da44fb2a08ba27bc08c9f18014340cda8dea2491e59c46",
+            "contentHash": "bc7c003723fc547decc7e7d16e624b8801379106281b6625418071c46bdbd2d6",
+            "retrievedAt": "2026-11-14T22:29:44.737Z",
+            "cutoff": "2026-11-14",
+            "period": {
+              "start": "2000-05-31",
+              "endExclusive": "2026-06-02"
+            },
+            "dayCount": 9498,
+            "dailySequenceComplete": true,
+            "products": [
+              {
+                "provider": "NASA POWER",
+                "product": "POWER_IMERG [IMERG] via POWER Daily API v2.10.3",
+                "version": {
+                  "kind": "unavailable",
+                  "reason": "POWER reports its API version but omits the underlying source release version."
+                },
+                "stream": {
+                  "kind": "unavailable",
+                  "reason": "POWER does not identify the actual source stream per day; Final/Late or near-real-time attribution is unavailable."
+                },
+                "cellId": "POWER_IMERG:lat1336:lon638",
+                "gridDegrees": [
+                  0.1,
+                  0.1
+                ],
+                "timeStandard": "UTC",
+                "sourceUrl": "https://power.larc.nasa.gov/api/temporal/daily/point",
+                "fields": [
+                  {
+                    "field": "rainMm",
+                    "providerField": "IMERG_PRECTOT",
+                    "originalUnit": "mm/day",
+                    "canonicalUnit": "mm/day",
+                    "conversionVersion": "power-units-v1"
+                  }
+                ],
+                "missingDayCounts": [
+                  {
+                    "field": "rainMm",
+                    "missingDays": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "settings": {
+          "version": "v2",
+          "targetSeasons": 25,
+          "minimumUsableSeasons": 15
+        },
+        "requiredSourcePeriod": {
+          "start": "2000-05-31",
+          "endExclusive": "2026-06-02",
+          "horizonDays": 366,
+          "seasons": [
+            {
+              "start": "2001-06-01",
+              "endExclusive": "2002-06-02"
+            },
+            {
+              "start": "2002-06-01",
+              "endExclusive": "2003-06-02"
+            },
+            {
+              "start": "2003-06-01",
+              "endExclusive": "2004-06-01"
+            },
+            {
+              "start": "2004-06-01",
+              "endExclusive": "2005-06-02"
+            },
+            {
+              "start": "2005-06-01",
+              "endExclusive": "2006-06-02"
+            },
+            {
+              "start": "2006-06-01",
+              "endExclusive": "2007-06-02"
+            },
+            {
+              "start": "2007-06-01",
+              "endExclusive": "2008-06-01"
+            },
+            {
+              "start": "2008-06-01",
+              "endExclusive": "2009-06-02"
+            },
+            {
+              "start": "2009-06-01",
+              "endExclusive": "2010-06-02"
+            },
+            {
+              "start": "2010-06-01",
+              "endExclusive": "2011-06-02"
+            },
+            {
+              "start": "2011-06-01",
+              "endExclusive": "2012-06-01"
+            },
+            {
+              "start": "2012-06-01",
+              "endExclusive": "2013-06-02"
+            },
+            {
+              "start": "2013-06-01",
+              "endExclusive": "2014-06-02"
+            },
+            {
+              "start": "2014-06-01",
+              "endExclusive": "2015-06-02"
+            },
+            {
+              "start": "2015-06-01",
+              "endExclusive": "2016-06-01"
+            },
+            {
+              "start": "2016-06-01",
+              "endExclusive": "2017-06-02"
+            },
+            {
+              "start": "2017-06-01",
+              "endExclusive": "2018-06-02"
+            },
+            {
+              "start": "2018-06-01",
+              "endExclusive": "2019-06-02"
+            },
+            {
+              "start": "2019-06-01",
+              "endExclusive": "2020-06-01"
+            },
+            {
+              "start": "2020-06-01",
+              "endExclusive": "2021-06-02"
+            },
+            {
+              "start": "2021-06-01",
+              "endExclusive": "2022-06-02"
+            },
+            {
+              "start": "2022-06-01",
+              "endExclusive": "2023-06-02"
+            },
+            {
+              "start": "2023-06-01",
+              "endExclusive": "2024-06-01"
+            },
+            {
+              "start": "2024-06-01",
+              "endExclusive": "2025-06-02"
+            },
+            {
+              "start": "2025-06-01",
+              "endExclusive": "2026-06-02"
+            }
+          ],
+          "lookbackDays": 366,
+          "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+        }
+      }
+    },
+    "requiredSourcePeriod": {
+      "start": "2000-05-31",
+      "endExclusive": "2026-06-02",
+      "horizonDays": 366,
+      "seasons": [
+        {
+          "start": "2001-06-01",
+          "endExclusive": "2002-06-02"
+        },
+        {
+          "start": "2002-06-01",
+          "endExclusive": "2003-06-02"
+        },
+        {
+          "start": "2003-06-01",
+          "endExclusive": "2004-06-01"
+        },
+        {
+          "start": "2004-06-01",
+          "endExclusive": "2005-06-02"
+        },
+        {
+          "start": "2005-06-01",
+          "endExclusive": "2006-06-02"
+        },
+        {
+          "start": "2006-06-01",
+          "endExclusive": "2007-06-02"
+        },
+        {
+          "start": "2007-06-01",
+          "endExclusive": "2008-06-01"
+        },
+        {
+          "start": "2008-06-01",
+          "endExclusive": "2009-06-02"
+        },
+        {
+          "start": "2009-06-01",
+          "endExclusive": "2010-06-02"
+        },
+        {
+          "start": "2010-06-01",
+          "endExclusive": "2011-06-02"
+        },
+        {
+          "start": "2011-06-01",
+          "endExclusive": "2012-06-01"
+        },
+        {
+          "start": "2012-06-01",
+          "endExclusive": "2013-06-02"
+        },
+        {
+          "start": "2013-06-01",
+          "endExclusive": "2014-06-02"
+        },
+        {
+          "start": "2014-06-01",
+          "endExclusive": "2015-06-02"
+        },
+        {
+          "start": "2015-06-01",
+          "endExclusive": "2016-06-01"
+        },
+        {
+          "start": "2016-06-01",
+          "endExclusive": "2017-06-02"
+        },
+        {
+          "start": "2017-06-01",
+          "endExclusive": "2018-06-02"
+        },
+        {
+          "start": "2018-06-01",
+          "endExclusive": "2019-06-02"
+        },
+        {
+          "start": "2019-06-01",
+          "endExclusive": "2020-06-01"
+        },
+        {
+          "start": "2020-06-01",
+          "endExclusive": "2021-06-02"
+        },
+        {
+          "start": "2021-06-01",
+          "endExclusive": "2022-06-02"
+        },
+        {
+          "start": "2022-06-01",
+          "endExclusive": "2023-06-02"
+        },
+        {
+          "start": "2023-06-01",
+          "endExclusive": "2024-06-01"
+        },
+        {
+          "start": "2024-06-01",
+          "endExclusive": "2025-06-02"
+        },
+        {
+          "start": "2025-06-01",
+          "endExclusive": "2026-06-02"
+        }
+      ],
+      "lookbackDays": 366,
+      "method": "calendar-anchor-feb29-to-feb28-fixed-horizon-days-v1"
+    },
+    "processLogPrivacy": "PASSED",
+    "artifactPrivacy": "PASSED"
+  },
+  "blockers": [],
+  "cleanup": {
+    "processesStopped": true,
+    "schemaRemoved": true,
+    "processExits": [
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": null,
+        "signal": "SIGTERM"
+      }
+    ]
+  },
+  "codeIdentity": {
+    "commit": "6a75bbd5da8a4e54431ee41670bd969e85d8a856",
+    "trackedDiffDigest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "trackedChanges": false
+  },
+  "failure": {
+    "stage": "primary_restart_acceptance",
+    "code": "assertion_failed"
+  },
+  "finishedAt": "2026-11-14T22:29:45.826Z"
+}
