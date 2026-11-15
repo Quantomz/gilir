@@ -416,8 +416,8 @@ describe("each sentence is true of the result it prints", () => {
     expect(water("unsure", "Water availability is uncertain. Every calculation assumes rainfall alone.")).toBe("Only rain is counted");
   });
 
-  it("a 29 February 2028 start ends the year on 27 Feb 2029 on a no-plan report, as the engine's year does", () => {
-    for (const state of ["no_calendar_fit", "insufficient_data"] as const) {
+  it("a 29 February 2028 start ends the year on 27 Feb 2029 on each no-plan report, as the engine's year does", () => {
+    for (const state of ["insufficient_data", "no_calendar_fit", "search_incomplete", "service_error"] as const) {
       const doc = compose(withDetails(completedSnapshotsByState[state], {}, { planningStart: "2028-02-29" }), britishReader);
       expect(doc.head.lines[1], state).toBe("Made 1 Jul 2026 · Your year: 29 Feb 2028 to 27 Feb 2029");
     }
