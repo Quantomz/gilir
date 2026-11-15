@@ -1,0 +1,26 @@
+[
+  {
+    "width": 360,
+    "theme": "dark",
+    "webglDisabled": true,
+    "successfulSearches": 1,
+    "providerErrors": 0,
+    "coordinateEditChangesLookup": true,
+    "cornerNumbersClear": true,
+    "linkedLogoLoaded": true,
+    "advancedToCrops": true,
+    "horizontalOverflow": false
+  },
+  {
+    "width": 1280,
+    "theme": "dark",
+    "webglDisabled": true,
+    "successfulSearches": 1,
+    "providerErrors": 0,
+    "coordinateEditChangesLookup": true,
+    "cornerNumbersClear": true,
+    "linkedLogoLoaded": true,
+    "advancedToCrops": true,
+    "horizontalOverflow": false
+  }
+]

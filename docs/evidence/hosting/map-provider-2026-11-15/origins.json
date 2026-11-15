@@ -1,0 +1,22 @@
+[
+  {
+    "name": "production_tiles",
+    "status": 200
+  },
+  {
+    "name": "production_search",
+    "status": 200
+  },
+  {
+    "name": "localhost_tiles",
+    "status": 403
+  },
+  {
+    "name": "unknown_origin_tiles",
+    "status": 403
+  },
+  {
+    "name": "no_origin_tiles",
+    "status": 403
+  }
+]

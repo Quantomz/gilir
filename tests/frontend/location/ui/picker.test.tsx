@@ -162,6 +162,7 @@ describe("with no key and no WebGL", () => {
     await drawing();
     expect(screen.getByText(/^Map pictures:\s*NASA EOSDIS GIBS$/)).toBeTruthy();
     expect(screen.queryByText(/MapTiler/)).toBeNull();
+    expect(screen.queryByRole("link", { name: "MapTiler logo (opens in a new tab)" })).toBeNull();
   });
 
   it("the root has data-surface='plan', and once marked data-lookup equals the emitted lookup", async () => {
@@ -446,7 +447,10 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     const osm = screen.getByRole("link", { name: "© OpenStreetMap contributors (opens in a new tab)" });
     expect(maptiler.getAttribute("href")).toMatch(/^https:\/\/www\.maptiler\.com\//);
     expect(osm.getAttribute("href")).toMatch(/^https:\/\/www\.openstreetmap\.org\//);
-    for (const link of [maptiler, osm]) {
+    const logo = screen.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+    expect(logo.getAttribute("href")).toBe("https://www.maptiler.com");
+    expect(within(logo).getByRole("img", { name: "MapTiler logo" }).getAttribute("src")).toBe("/maptiler-logo.svg");
+    for (const link of [maptiler, osm, logo]) {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { z } from "zod";
-import { defaultEngineSettings, parseIsoDate } from "@/contracts";
+import { completedSnapshotV2Schema, defaultEngineSettings, parseIsoDate } from "@/contracts";
 import type { JobCapability } from "@/contracts";
 import { createPlannerClient } from "@/client/planner";
 import { createPgClimateCache } from "@/server/cache";
@@ -66,8 +66,11 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
           const state = await client.read(capability);
           assert.equal(state.state, "completed");
           if (state.state !== "completed") throw new Error("Restart did not complete.");
-          expect(state.snapshot.result.details.explanation).toContain("Controlled adapter evidence only");
-          return state.snapshot;
+          const snapshot = completedSnapshotV2Schema.parse(state.snapshot);
+          expect(snapshot.id).toBe(capability.jobId);
+          expect(snapshot.catalogue).toEqual(controlledRegistry.catalogue);
+          expect(snapshot.result.details.explanation).toContain("Controlled adapter evidence only");
+          return snapshot;
         },
         readFrozen: capability => frozenEvidence(db.pool, capability),
         restartWeb: async () => {

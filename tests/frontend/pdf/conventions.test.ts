@@ -21,16 +21,16 @@ describe("the PDF module boundary", () => {
   });
 
   it("only src/client/pdf/render.ts imports pdf-lib, and nothing imports @pdf-lib/standard-fonts", () => {
-    const pdfLib = sourceFiles("src").filter(path => moduleUses(path).some(use => use.specifier === "pdf-lib" || use.specifier.startsWith("pdf-lib/")));
+    const pdfLib = sourceFiles("src", "pdf-lib").filter(path => moduleUses(path).some(use => use.specifier === "pdf-lib" || use.specifier.startsWith("pdf-lib/")));
     expect(pdfLib).toEqual(["src/client/pdf/render.ts"]);
-    const standardFonts = [...sourceFiles("src"), ...sourceFiles("tests")]
+    const standardFonts = [...sourceFiles("src", "@pdf-lib/"), ...sourceFiles("tests", "@pdf-lib/")]
       .filter(path => moduleUses(path).some(use => use.specifier.startsWith("@pdf-lib/")));
     expect(standardFonts).toEqual([]);
   });
 
   it("only src/client/pdf/text.ts makes PdfText: no `as PdfText` anywhere else", () => {
     const casts: string[] = [];
-    for (const path of [...sourceFiles("src"), ...sourceFiles("tests")]) {
+    for (const path of [...sourceFiles("src", "PdfText"), ...sourceFiles("tests", "PdfText")]) {
       if (path === "src/client/pdf/text.ts") continue;
       walk(parse(path), node => {
         if ((ts.isAsExpression(node) || ts.isTypeAssertionExpression(node)) && /\bPdfText\b/.test(node.type.getText())) {
@@ -42,7 +42,7 @@ describe("the PDF module boundary", () => {
   });
 
   it("no file under src/ outside src/client/pdf.ts and src/client/pdf/ imports src/client/pdf/*", () => {
-    const outside = sourceFiles("src").filter(path => !isPdfModule(path))
+    const outside = sourceFiles("src", "pdf").filter(path => !isPdfModule(path))
       .filter(path => moduleUses(path).some(use => use.local?.startsWith("src/client/pdf/")));
     expect(outside).toEqual([]);
   });

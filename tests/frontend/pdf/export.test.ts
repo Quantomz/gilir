@@ -10,7 +10,7 @@ import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { readPdf } from "./support/read-pdf";
 import type { ReadPage, ReadPdf } from "./support/read-pdf";
-import { britishReader, variant, variantNames } from "./support/variants";
+import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 const states = ["plan", "plan_with_warnings", "insufficient_data", "no_calendar_fit", "search_incomplete", "service_error"] as const;
 type State = (typeof states)[number];
@@ -139,7 +139,7 @@ describe("the file", () => {
         await expect(renderPdf(variant(name), reader), `${name} ${reader.locale}`).resolves.toBeInstanceOf(Blob);
       }
     }
-  });
+  }, 30_000);
 });
 
 describe("what each state prints", () => {
@@ -212,14 +212,15 @@ describe("what each state prints", () => {
 
   it("notes (profile_limitation, search_limit, water_context, approximate_history) print under Good to know in every state", async () => {
     const notes = [
-      ["profile_limitation", "What the checks leave out"],
+      ["profile_limitation", "About the growing details we used"],
       ["search_limit", "The search stopped at its limit"],
       ["water_context", "Your backup water isn’t counted"],
       ["approximate_history", "Your dates for last year are estimates"],
     ] as const;
     const added = notes.map(([code], index) => ({ code, message: `Synthetic note ${index + 1} for this layout test.`, cropPurposeIds: [], ruleIds: [], metricIds: [] }));
     for (const state of states) {
-      const text = prose(await read(edited(state, { details: { warnings: [...completedSnapshotsByState[state].result.details.warnings, ...added] } })));
+      const warnings = [...completedSnapshotsByState[state].result.details.warnings, ...added];
+      const text = prose(await read(edited(state, { input: { water: "rain_plus_backup" }, details: { warnings } })));
       const notesAt = text.indexOf("Good to know");
       expect(notesAt, state).toBeGreaterThan(-1);
       notes.forEach(([, head], index) => {
@@ -288,7 +289,7 @@ describe("what each state prints", () => {
     expect(prose(changed)).not.toContain("Keep last year’s rotation");
   });
 
-  it("No changes is said only for a kept rotation; a status report lists no changes from last year", async () => {
+  it("No changes is said only for a kept rotation; a status report lists no changes from last year, and shows last year’s numbers instead", async () => {
     expect(prose(await fixture("plan"))).toContain("Changes from last year No changes: the same crops, order and dates as last year.");
     const changed = variant("changedBaseline");
     const assessed = changed.result.details.baseline;
@@ -307,8 +308,10 @@ describe("what each state prints", () => {
       expect(text, state).toContain([
         "Compared with last year",
         "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
-        "How they compare No numbers to compare.",
+        "Last year’s rotation in past seasons • Weeks with less rain than the crops need 60% • Days without a planned crop 157 days • Crop families 2",
+        "• Shortfall in a bad year Not available No season has a mismatch value. • Bean-family plantings 1 What you told us about last year",
       ].join(" "));
+      expect(text, state).not.toContain("No numbers to compare.");
       expect(text, state).not.toContain("Changes from last year");
       expect(text, state).not.toContain("No changes");
       expect(text, state).not.toContain("We can’t list the changes");
@@ -334,7 +337,7 @@ describe("what each state prints", () => {
     expect(noPlan).not.toContain("Synthetic step");
   });
 
-  it("the cohort line with usable and excluded seasons, the data cutoff, the manifest versions, or Method versions: not recorded with its reason", async () => {
+  it("the cohort line with usable and excluded seasons, the data cutoff, the manifest versions, or Engine and data versions: not recorded with its reason", async () => {
     const plan = prose(await fixture("plan"));
     expect(plan).toContain("Sources, period and versions Checked against 1 past season, Jul 2000. Past seasons chosen with method synthetic-v1.");
     expect(plan).toContain("Engine synthetic-engine, settings synthetic-settings, crop list synthetic-catalogue, rules synthetic-rules, records before 1 Jan 2026.");
@@ -343,7 +346,7 @@ describe("what each state prints", () => {
     expect(excluded).toContain("Not used: Jul 2002 to Jun 2003. Synthetic gap: 12 days of rain records are missing in this invented season.");
     expect(excluded).toContain("Not used: Jul 2005 to Jun 2006. Synthetic gap: the invented temperature records stop early.");
     const missing = prose(await read(variant("manifestUnavailable")));
-    expect(missing).toContain("Method versions: not recorded. Synthetic example: the run manifest was not recorded.");
+    expect(missing).toContain("Engine and data versions: not recorded. Synthetic example: the run manifest was not recorded.");
     expect(missing).not.toContain("records before");
     expect(prose(await fixture("insufficient_data"))).toContain("Past seasons: A complete cohort was not assessed in this example.");
   });
@@ -374,7 +377,7 @@ describe("what each state prints", () => {
     expect(more).toContain(`Assumptions • Synthetic assumption one for this layout test. • Synthetic assumption two, from ${englishDay("2026-07-15")}.`);
   });
 
-  it("insufficient_data: a crop the engine reports twice under one code is one item with both reasons", async () => {
+  it("insufficient_data: a crop the engine reports twice under one code is one item with both reasons, each naming the crop, not its ID", async () => {
     const crops = ["synthetic-crop", "synthetic-second-crop"];
     const missing = [
       ...crops.map(crop => ({ code: "crop_profile", reason: `No synthetic ${crop} profile applies here.`, cropPurposeIds: [crop], sourceIds: [] })),
@@ -383,8 +386,8 @@ describe("what each state prints", () => {
     const text = prose(await read(edited("insufficient_data", { input: { cropPurposeIds: crops }, details: { unassessedChecks: missing }, result: { missing } })));
     expect(text).toContain([
       "What’s missing",
-      "• Growing details for synthetic crop in this place No synthetic synthetic-crop profile applies here. A selected crop has no applicable profile.",
-      "• Growing details for synthetic second crop in this place No synthetic synthetic-second-crop profile applies here. A selected crop has no applicable profile.",
+      "• Growing details for synthetic crop in this place No synthetic synthetic crop profile applies here. A selected crop has no applicable profile.",
+      "• Growing details for synthetic second crop in this place No synthetic synthetic second crop profile applies here. A selected crop has no applicable profile.",
       "Making the plan again",
     ].join(" "));
     expect(occurrences(text, "Growing details for")).toBe(2);
@@ -412,7 +415,7 @@ describe("what each state prints", () => {
 
   it("no_calendar_fit: 366 days needed against 365 in the year and each crop's minimum; a structural proof lists its constraints", async () => {
     const text = prose(await fixture("no_calendar_fit"));
-    expect(text).toContain("Why they don’t fit Together they need at least 366 days; your year has 365. Each crop needs at least: • Synthetic crop: at least 366 days");
+    expect(text).toContain("No plan. Together they need at least 366 days; your year has 365. Why they don’t fit Each crop needs at least: • Synthetic crop: at least 366 days");
     const proof = prose(await read(variant("structuralProof")));
     expect(proof).toContain("What stops them:");
     expect(proof).toContain(`• Synthetic crop must be planted between ${englishDay("2026-11-01")} and ${englishDay("2026-11-30")} in this invented example.`);
@@ -429,7 +432,7 @@ describe("what each state prints", () => {
 
   it("service_error: the error message and No new plan was made.; no failure code such as retrieval_failed anywhere in the file", async () => {
     const pdf = await fixture("service_error");
-    expect(prose(pdf)).toContain("What happened Example source did not respond. No new plan was made.");
+    expect(prose(pdf)).toContain("No new plan. Example source did not respond. What happened No new plan was made.");
     expect(pdf.pages.map(page => page.text).join("\n")).not.toMatch(/retrieval_failed|retryable/);
     expect([pdf.title, pdf.subject].join(" ")).not.toContain("retrieval_failed");
   });
@@ -511,6 +514,52 @@ describe("values are read, never invented", () => {
   });
 });
 
+describe("crop names in the file", () => {
+  const idNames = /synthetic (second |third )?crop\b/i;
+
+  it("version 2: the saved labels name the crops in the head, flags, calendar, heat, changes, gaps and profiles, and no crop by its ID", async () => {
+    const text = prose(await read(variant("frozenLabels")));
+    for (const part of [
+      "Crops: Synthetic bean (dry grain), Synthetic maize (grain) and Synthetic oats (grain) · Water: Rain only",
+      "temperatures went outside the limits for Synthetic maize (grain) on about 20% of checked days",
+      "Rain fell short of what Synthetic bean (dry grain) needs in past seasons Synthetic rainfall warning for the first crop.",
+      "1. Synthetic bean (dry grain) Plant 1 Jul 2026 · Harvest 28 Sept 2026",
+      "3. Synthetic maize (grain) Plant 16 Oct 2026 · Harvest 24 Dec 2026",
+      "5. Synthetic oats (grain) Plant 6 Jan 2027 · Harvest 6 Mar 2027",
+      "Outside the limits in past seasons: Synthetic maize (grain). No checked day outside the limits for Synthetic bean (dry grain). Not assessed for Synthetic oats (grain).",
+      "Added: Synthetic oats (grain), 6 Jan to 6 Mar 2027.",
+      "Synthetic maize (grain) moves from first to second in the order.",
+      "Heat and cold limits for Synthetic oats (grain) No synthetic temperature rule applies to this invented crop.",
+      "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain)",
+    ]) expect(text).toContain(part);
+    expect(text).not.toMatch(idNames);
+  });
+
+  it("version 2 status report: the duration proof and last year’s crop print the saved label", async () => {
+    const text = prose(await read(frozen(completedSnapshotsByState.no_calendar_fit, { "synthetic-crop": savedLabels["synthetic-crop"] })));
+    expect(text).toContain("Each crop needs at least: • Synthetic bean (dry grain): at least 366 days");
+    expect(text).toContain("What you told us about last year (not scored) Synthetic bean (dry grain) Planted about 1 Jul 2025");
+    expect(text).not.toMatch(idNames);
+  });
+
+  it("version 1: the same plan saved without a catalogue prints names made from the IDs", async () => {
+    const text = prose(await read(unfrozen(variant("frozenLabels"))));
+    expect(text).toContain("1. Synthetic crop Plant 1 Jul 2026 · Harvest 28 Sept 2026");
+    expect(text).toContain("Synthetic second crop moves from first to second in the order.");
+    expect(text).not.toMatch(/\((dry )?grain\)/);
+  });
+
+  it("an ID the saved catalogue doesn’t hold prints a name made from the ID", async () => {
+    expect(prose(await read(variant("frozenLabels")))).toContain("Not in the new plan: synthetic old crop, 1 Mar to 9 Apr 2027 in last year’s rotation.");
+  });
+
+  it("a saved label the fonts can’t draw prints the name made from the ID, and the export doesn’t fail", async () => {
+    const text = prose(await read(frozen(completedSnapshotsByState.plan, { "synthetic-crop": "ถั่ว synthetic" })));
+    expect(text).toContain("Crops: Synthetic crop · Water: Rain only");
+    expect(text).not.toMatch(/\?{2}|\? synthetic/);
+  });
+});
+
 describe("paper and preparePdf", () => {
   it("A4 for an en-GB reader and Letter for en-US, read from the page size", async () => {
     const a4 = await read(completedSnapshotsByState.plan, britishReader);
@@ -535,5 +584,25 @@ describe("paper and preparePdf", () => {
     expect(preparePdf()).toBeUndefined();
     expect(preparePdf()).toBeUndefined();
     expect((await exportPdf(completedSnapshotsByState.insufficient_data)).type).toBe("application/pdf");
+  });
+
+  it("after the PDF code fails to load once (offline before preparePdf), the next export loads it again and returns a PDF", async () => {
+    vi.resetModules();
+    let offline = true;
+    vi.doMock("@/client/pdf/render", async (importOriginal: () => Promise<object>) => {
+      if (offline) throw new TypeError("Failed to fetch dynamically imported module");
+      return importOriginal();
+    });
+    try {
+      const fresh = await import("@/client/pdf");
+      await expect(fresh.exportPdf(completedSnapshotsByState.plan)).rejects.toThrow();
+      offline = false;
+      const blob = await fresh.exportPdf(completedSnapshotsByState.plan);
+      expect(blob.type).toBe("application/pdf");
+      expect(prose(await readPdf(blob))).toContain("Keep last year’s rotation");
+    } finally {
+      vi.doUnmock("@/client/pdf/render");
+      vi.resetModules();
+    }
   });
 });

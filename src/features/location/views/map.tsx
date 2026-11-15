@@ -10,7 +10,7 @@ import type { Globe } from "../globe";
 import { planOf } from "../outline";
 import { sceneOf } from "../picker";
 import type { Scene } from "../picker";
-import { creditsFor, picturesFor } from "../provider";
+import { creditsFor, maptilerLogo, picturesFor } from "../provider";
 import { credits, map, newTab } from "../words";
 import { Icon, Notices } from "./parts";
 
@@ -65,6 +65,11 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
           <Notices c={c} where="on" />
           {surface === "plan" ? <p className="fp-tag">{map.planTag}</p> : null}
           {surface === "starting" ? <p className="fp-loading"><span className="spinner" aria-hidden="true" />{map.loading}</p> : null}
+          {provider.kind === "ready" ? (
+            <a className="fp-provider-logo" href={maptilerLogo.href} target="_blank" rel="noopener noreferrer" aria-label={newTab(maptilerLogo.alt)}>
+              <img src={maptilerLogo.src} width={67} height={20} alt={maptilerLogo.alt} />
+            </a>
+          ) : null}
         </div>
       </div>
       <Credits c={c} />

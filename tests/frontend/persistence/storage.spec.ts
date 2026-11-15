@@ -138,6 +138,53 @@ test.describe("useful messages, no silent loss", () => {
     expect(await load(page)).toEqual(other);
   });
 
+  test("full: a load that must set an unreadable plan aside on a device filled to its quota returns the readable answers, writes nothing, the notice names the plan, and clear still works", async ({ page, context, harness }) => {
+    await openHarness(page, `${harness.origin}/`);
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Storage.overrideQuotaForOrigin", { origin: harness.origin, quotaSize: 512 * 1024 });
+    const record = await page.evaluate(source => {
+      const bytes = crypto.getRandomValues(new Uint8Array(240));
+      const assumptions = Array.from({ length: 500 }, () => {
+        crypto.getRandomValues(bytes);
+        return Array.from(bytes, byte => String.fromCharCode(33 + (byte % 90))).join("");
+      });
+      const snapshot = source.state.snapshot;
+      return { ...source, state: { ...source.state, snapshot: { ...snapshot, result: { ...snapshot.result, details: { ...snapshot.result.details, assumptions } } } } };
+    }, recordWithRetiredPriority);
+    await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), record);
+
+    const fillerStopped = await page.evaluate(async () => {
+      let key = 0;
+      for (const size of [32_768, 8_192, 2_048, 512]) {
+        for (;;) {
+          const bytes = crypto.getRandomValues(new Uint8Array(size));
+          try {
+            await window.gilirF4.raw.write("filler", 1, { [`k${key++}`]: Array.from(bytes, byte => String.fromCharCode(33 + (byte % 90))).join("") });
+          } catch (error) {
+            if (size === 512) return (error as Error).name;
+            break;
+          }
+        }
+      }
+      return "never full";
+    });
+    expect(fillerStopped).toBe("QuotaExceededError");
+
+    const outcome = await page.evaluate(async () => {
+      const { localPlans, readStorageNotice, storageProblem } = window.gilirF4;
+      const loaded = await localPlans.load().catch((error: unknown) => storageProblem(error).reason);
+      const stored = await window.gilirF4.raw.read("gilir");
+      const notice = (await readStorageNotice())?.text ?? null;
+      const cleared = await localPlans.clear().then(() => "resolved", (error: unknown) => storageProblem(error).reason);
+      return { loaded, stored: stored?.records ?? null, notice, cleared, afterClear: (await window.gilirF4.raw.read("gilir"))?.records ?? null };
+    });
+    expect(outcome.loaded).toEqual({ draft: partialDraft, step: 2, activeJob: null, snapshot: null });
+    expect(outcome.stored).toEqual({ state: record });
+    expect(outcome.notice).toBe(words.oldPlanAnswersKept);
+    expect(outcome.cleared).toBe("resolved");
+    expect(outcome.afterClear).toEqual({});
+  });
+
   test("an old record: a version 1 record with a retired snapshot shape, written with raw indexedDB, loads the draft; the notice names the plan; the raw value sits in set-aside", async ({ page, harness }) => {
     await openHarness(page, `${harness.origin}/`);
     await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), recordWithRetiredPriority);
@@ -147,6 +194,24 @@ test.describe("useful messages, no silent loss", () => {
     const stored = await page.evaluate(() => window.gilirF4.raw.read("gilir"));
     const finds = (stored?.records["set-aside"] as { finds: { raw: unknown }[] } | undefined)?.finds ?? [];
     expect(finds.map(find => find.raw)).toEqual([recordWithRetiredPriority]);
+  });
+
+  test("the notice and a load called in the same tick, notice first or load first: the notice names the plan that load set aside, and after a dismiss it doesn't come back", async ({ page, harness }) => {
+    await openHarness(page, `${harness.origin}/`);
+    for (const noticeFirst of [true, false]) {
+      await page.evaluate(() => window.gilirF4.localPlans.clear());
+      await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), recordWithRetiredPriority);
+      const outcome = await page.evaluate(async noticeFirst => {
+        const { localPlans, readStorageNotice } = window.gilirF4;
+        const notice = noticeFirst ? readStorageNotice() : null;
+        const loaded = localPlans.load();
+        const shown = await (notice ?? readStorageNotice());
+        const snapshot = (await loaded)?.snapshot ?? null;
+        await shown?.dismiss();
+        return { text: shown?.text ?? null, snapshot, afterDismiss: (await readStorageNotice())?.text ?? null };
+      }, noticeFirst);
+      expect(outcome, noticeFirst ? "notice first" : "load first").toEqual({ text: words.oldPlanAnswersKept, snapshot: null, afterDismiss: null });
+    }
   });
 
   test("the notice survives a restart until dismissed, and after dismiss and a restart it does not return", async ({ harness }) => {
@@ -333,7 +398,9 @@ function phoneSizedSnapshot(): CompletedSnapshot {
   });
 }
 
-test.describe("a phone-speed load", () => {
+test.describe("a phone-speed load and write", () => {
+  const median = (values: number[]) => values.toSorted((a, b) => a - b)[Math.floor(values.length / 2)];
+
   test("load of a 300 KB synthetic snapshot under Chromium's 6x CPU throttle settles inside the 5 s limit with the whole snapshot (timings attached)", async ({ page, context, harness }, testInfo) => {
     const big = phoneSizedSnapshot();
     const bytes = JSON.stringify(big).length;
@@ -362,7 +429,6 @@ test.describe("a phone-speed load", () => {
       expect(smallRun.id).toBe("synthetic-plan");
       runs.push({ big: bigRun.ms, small: smallRun.ms });
     }
-    const median = (values: number[]) => values.toSorted((a, b) => a - b)[Math.floor(values.length / 2)];
     const timings = {
       snapshotBytes: bytes, cpuThrottle: 6, coldFirstLoadMs: cold.ms,
       warmBigMedianMs: median(runs.map(run => run.big)), warmSmallMedianMs: median(runs.map(run => run.small)), runs,
@@ -372,5 +438,41 @@ test.describe("a phone-speed load", () => {
     expect(cold).toMatchObject({ id: "synthetic-phone-sized", bytes });
     expect(cold.ms).toBeLessThan(5_000);
     expect(Math.max(...runs.map(run => run.big))).toBeLessThan(5_000);
+  });
+
+  test("F1's write of that state, a load and then a save, under the 6x throttle settles inside the 5 s limit and keeps the snapshot (timings attached)", async ({ page, context, harness }, testInfo) => {
+    const big = phoneSizedSnapshot();
+    const bytes = JSON.stringify(big).length;
+    const farm = await openHarness(page, `${harness.origin}/`);
+    await save(farm, { draft: partialDraft, step: 4, activeJob: null, snapshot: big });
+    await farm.reload();
+    await farm.waitForFunction(() => window.gilirF4 !== undefined);
+    await (await context.newCDPSession(farm)).send("Emulation.setCPUThrottlingRate", { rate: 6 });
+
+    const runs = await farm.evaluate(async () => {
+      const { localPlans } = window.gilirF4;
+      await localPlans.load();
+      const writes: { load: number; save: number }[] = [];
+      for (let run = 0; run < 7; run += 1) {
+        const started = performance.now();
+        const current = await localPlans.load();
+        const loaded = performance.now();
+        if (current === null) throw new Error("The saved state did not load.");
+        await localPlans.save({ ...current, step: 1 + (run % 4) });
+        writes.push({ load: loaded - started, save: performance.now() - loaded });
+      }
+      return writes;
+    });
+    const timings = {
+      snapshotBytes: bytes, cpuThrottle: 6,
+      loadMedianMs: median(runs.map(run => run.load)), saveMedianMs: median(runs.map(run => run.save)),
+      writeMedianMs: median(runs.map(run => run.load + run.save)), runs,
+    };
+    await testInfo.attach("write-timings.json", { body: JSON.stringify(timings, null, 2), contentType: "application/json" });
+
+    const after = await load(farm);
+    expect(after?.step).toBe(3);
+    expect(JSON.stringify(after?.snapshot).length).toBe(bytes);
+    expect(Math.max(...runs.map(run => run.load + run.save))).toBeLessThan(5_000);
   });
 });

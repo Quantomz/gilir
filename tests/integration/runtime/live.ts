@@ -7,7 +7,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { createPlannerClient } from "@/client/planner";
-import { defaultEngineSettings } from "@/contracts";
+import { completedSnapshotV2Schema, defaultEngineSettings } from "@/contracts";
 import type { FarmInput, JobCapability } from "@/contracts";
 import { createPgClimateCache } from "@/server/cache";
 import { prepareClimate } from "@/server/climate";
@@ -41,7 +41,7 @@ export async function runLiveAcceptance(preflight = false, reportPath = process.
     schemaVersion: 1, status: "FAILED", exitCode: 1, caseId: boiseDryBeanCase.id, expectedState: "plan_with_warnings", cutoff,
     startedAt: new Date().toISOString(),
     evidence: "Local production HTTP API, PostgreSQL, registry, engine, and separate workers with live NASA. Provider outage is separately identified controlled injection.",
-    checks: {}, blockers: [], cleanup: { processesStopped: false, schemaRemoved: false, processExits: [] },
+    checks: { expectedRelease: { catalogueVersion: boiseDryBeanCase.catalogueVersion, ruleVersion: boiseDryBeanCase.ruleVersion, profileId: boiseDryBeanCase.profileId, profileVersion: boiseDryBeanCase.profileVersion, plantingWindow: boiseDryBeanCase.plantingWindow } }, blockers: [], cleanup: { processesStopped: false, schemaRemoved: false, processExits: [] },
   };
   const checks = report.checks;
   const processes: ReturnType<typeof startProcess>[] = [];
@@ -93,7 +93,7 @@ export async function runLiveAcceptance(preflight = false, reportPath = process.
       report.blockers.push({ owner: "I1 / kyusuku", reason: "Preflight does not execute strict live restart acceptance." });
       report.status = "BLOCKED";
     } else {
-      assert.equal(catalogue.version, boiseDryBeanCase.catalogueVersion, "The corrected reviewed E1 release is required.");
+      assert.equal(catalogue.version, boiseDryBeanCase.catalogueVersion, "The current hard-window E1 release is required.");
       assert.ok(catalogue.entries.some(entry => entry.id === boiseDryBeanCase.input.cropPurposeIds[0]), "The named live crop must be present in the released catalogue.");
       const unauthorized = async (capability: JobCapability) => {
         secrets.add(capability.token);
@@ -154,7 +154,14 @@ export async function runLiveAcceptance(preflight = false, reportPath = process.
           primaryProgress.jobState = completed.state;
           assert.equal(completed.state, "completed");
           if (completed.state !== "completed") throw new Error("Live job did not complete.");
-          return completed.snapshot;
+          const snapshot = completedSnapshotV2Schema.parse(completed.snapshot);
+          checks.savedSnapshot = {
+            schemaVersion: snapshot.schemaVersion, id: snapshot.id, catalogueVersion: snapshot.catalogue.version,
+            catalogueDigest: digest(snapshot.catalogue),
+            selectedOfficialLabels: snapshot.catalogue.entries.filter(entry => snapshot.input.cropPurposeIds.includes(entry.id)).map(({ id, label }) => ({ id, label })),
+          };
+          assert.deepEqual(snapshot.catalogue, catalogue, "The saved catalogue must preserve the initial HTTP catalogue.");
+          return snapshot;
         },
         readFrozen: capability => frozenEvidence(activeDb.pool, capability),
         restartWeb: async () => {
@@ -169,7 +176,16 @@ export async function runLiveAcceptance(preflight = false, reportPath = process.
         },
       });
       checks.liveRestartAcceptance = primary;
+      assert.equal(primary.manifest.catalogueVersion, boiseDryBeanCase.catalogueVersion);
+      assert.equal(primary.manifest.ruleVersion, boiseDryBeanCase.ruleVersion);
       assert.deepEqual(primary.scientific.profiles.map(profile => ({ id: profile.id, version: profile.version })), [{ id: boiseDryBeanCase.profileId, version: boiseDryBeanCase.profileVersion }]);
+      assert.deepEqual([...new Set(primary.scientific.occurrences.map(occurrence => occurrence.cropPurposeId))].sort(), [...boiseDryBeanCase.input.cropPurposeIds].sort(), "The live plan must include every selected crop.");
+      for (const occurrence of primary.scientific.occurrences) {
+        assert.equal(occurrence.profileId, boiseDryBeanCase.profileId);
+        assert.equal(occurrence.profileVersion, boiseDryBeanCase.profileVersion);
+        assert.ok(occurrence.planted >= boiseDryBeanCase.plantingWindow.start && occurrence.planted <= boiseDryBeanCase.plantingWindow.endInclusive, "Every live occurrence must start inside the released June planting window.");
+      }
+      assert.ok(primary.scientific.warnings.some(warning => warning.code === "rainfall_mismatch"), "The real result must disclose rainfall mismatch.");
       assert.ok(primary.scientific.unassessedChecks.some(check => check.code === "temperature_rule"), "The real result must disclose unassessed temperature.");
       assert.equal(primary.scientific.cohort.kind, "available");
       if (primary.scientific.cohort.kind !== "available") throw new Error("The live plan has no real cohort.");

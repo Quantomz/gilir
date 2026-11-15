@@ -1,0 +1,69 @@
+{
+  "scope": "deployment",
+  "deploymentId": "64f49c43-a106-40af-a8d8-dad4e0e448b8",
+  "serviceId": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+  "environmentId": "05626386-ac59-4759-9f42-2118d6941513",
+  "status": "SUCCESS",
+  "deploy": [
+    {
+      "timestamp": "2026-11-15T07:46:31.044699211Z",
+      "severity": "info",
+      "message": "Starting Container",
+      "attributes": [
+        {
+          "key": "level",
+          "value": "\"info\""
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-15T08:04:27.010872846Z",
+      "severity": "info",
+      "message": "Starting Container",
+      "attributes": [
+        {
+          "key": "level",
+          "value": "\"info\""
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-15T08:04:27.350510852Z",
+      "severity": "info",
+      "message": "",
+      "attributes": [
+        {
+          "key": "level",
+          "value": "\"info\""
+        },
+        {
+          "key": "event",
+          "value": "\"expired_jobs_purged\""
+        },
+        {
+          "key": "count",
+          "value": "0"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-11-15T08:05:38.149782332Z",
+      "severity": "info",
+      "message": "",
+      "attributes": [
+        {
+          "key": "level",
+          "value": "\"info\""
+        },
+        {
+          "key": "event",
+          "value": "\"expired_jobs_purged\""
+        },
+        {
+          "key": "count",
+          "value": "0"
+        }
+      ]
+    }
+  ]
+}

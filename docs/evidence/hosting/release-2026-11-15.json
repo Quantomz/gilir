@@ -1,0 +1,245 @@
+{
+  "observedAt": "2026-11-15T07:48:28.041Z",
+  "workspaceId": "b092dee0-34fb-4b63-9189-e0217fa75aa3",
+  "projectId": "a110cf19-bdbc-45eb-9769-e4c98ffeee82",
+  "environmentId": "05626386-ac59-4759-9f42-2118d6941513",
+  "commit": "ec2ef2255ba76d6383d81dad43ff98a70584a850",
+  "services": {
+    "web": {
+      "id": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+      "name": "gilir-web",
+      "deployment": {
+        "id": "e5ebb8f2-b6f6-49fc-9f3e-16f2ccb703ce",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-15T07:42:40.060Z",
+        "url": null,
+        "serviceId": "a35f0405-2be2-479f-9e3d-31fa92a0dcb8",
+        "updatedAt": "2026-11-15T07:44:05.469Z",
+        "meta": {
+          "reason": "deploy",
+          "commitMessage": "test(i1): verify current hard-window release and saved catalogue (#46)",
+          "commitHash": "ec2ef2255ba76d6383d81dad43ff98a70584a850",
+          "branch": "main"
+        },
+        "regions": [
+          "asia-southeast1-eqsg3a"
+        ]
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "buildEnvironment": "V3",
+        "dockerfilePath": "Dockerfile"
+      },
+      "deploy": {
+        "startCommand": "sh deploy/start.sh web",
+        "preDeployCommand": [
+          "sh deploy/start.sh migrate"
+        ],
+        "preDeployTimeoutSeconds": 120,
+        "healthcheckPath": "/",
+        "healthcheckTimeout": 120,
+        "useLegacyStacker": false,
+        "ipv6EgressEnabled": false,
+        "runtime": "V2",
+        "multiRegionConfig": {
+          "asia-southeast1-eqsg3a": {
+            "numReplicas": 1
+          }
+        },
+        "drainingSeconds": 30,
+        "overlapSeconds": 0
+      },
+      "domains": {
+        "serviceDomains": [
+          {
+            "id": "f10a5182-0ea8-4126-bbc3-39ee10a305ef",
+            "domain": "gilir-web-production.up.railway.app",
+            "targetPort": 8080
+          }
+        ],
+        "customDomains": []
+      },
+      "tcpProxies": [],
+      "staged": null
+    },
+    "worker": {
+      "id": "1bcb4429-f681-49f1-abfc-c36922c2398e",
+      "name": "nefalos_nasa_hackathon Copy",
+      "deployment": {
+        "id": "652ffd0e-a3a6-48e2-a294-52c6ce94af44",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-15T07:45:16.811Z",
+        "url": null,
+        "serviceId": "1bcb4429-f681-49f1-abfc-c36922c2398e",
+        "updatedAt": "2026-11-15T07:46:40.671Z",
+        "meta": {
+          "reason": "deploy",
+          "commitMessage": "test(i1): verify current hard-window release and saved catalogue (#46)",
+          "commitHash": "ec2ef2255ba76d6383d81dad43ff98a70584a850",
+          "branch": "main"
+        },
+        "regions": [
+          "asia-southeast1-eqsg3a"
+        ]
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "buildEnvironment": "V3",
+        "dockerfilePath": "Dockerfile"
+      },
+      "deploy": {
+        "startCommand": "sh deploy/start.sh worker",
+        "preDeployCommand": [
+          "sh deploy/start.sh migrate"
+        ],
+        "preDeployTimeoutSeconds": 120,
+        "useLegacyStacker": false,
+        "ipv6EgressEnabled": false,
+        "runtime": "V2",
+        "multiRegionConfig": {
+          "asia-southeast1-eqsg3a": {
+            "numReplicas": 1
+          }
+        },
+        "drainingSeconds": 300,
+        "overlapSeconds": 0
+      },
+      "domains": {
+        "serviceDomains": [],
+        "customDomains": []
+      },
+      "tcpProxies": [],
+      "staged": null
+    },
+    "cleanup": {
+      "id": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+      "name": "nefalos_nasa_hackathon Copy Copy",
+      "deployment": {
+        "id": "64f49c43-a106-40af-a8d8-dad4e0e448b8",
+        "status": "SUCCESS",
+        "createdAt": "2026-11-15T07:45:16.809Z",
+        "url": null,
+        "serviceId": "3fb355c3-e57d-44ae-9d90-5dd3c05773ce",
+        "updatedAt": "2026-11-15T07:46:38.330Z",
+        "meta": {
+          "reason": "deploy",
+          "commitMessage": "test(i1): verify current hard-window release and saved catalogue (#46)",
+          "commitHash": "ec2ef2255ba76d6383d81dad43ff98a70584a850",
+          "branch": "main"
+        },
+        "regions": [
+          "asia-southeast1-eqsg3a"
+        ]
+      },
+      "source": {
+        "repo": "Quantomz/nefalos_nasa_hackathon",
+        "branch": "main",
+        "commitSha": "ec2ef2255ba76d6383d81dad43ff98a70584a850"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "buildEnvironment": "V3",
+        "dockerfilePath": "Dockerfile"
+      },
+      "deploy": {
+        "startCommand": "sh deploy/start.sh cleanup",
+        "preDeployCommand": [
+          "sh deploy/start.sh migrate"
+        ],
+        "preDeployTimeoutSeconds": 120,
+        "restartPolicyType": "NEVER",
+        "useLegacyStacker": false,
+        "ipv6EgressEnabled": false,
+        "cronSchedule": "0 * * * *",
+        "runtime": "V2",
+        "multiRegionConfig": {
+          "asia-southeast1-eqsg3a": {
+            "numReplicas": 1
+          }
+        },
+        "drainingSeconds": 30,
+        "overlapSeconds": 0
+      },
+      "domains": {
+        "serviceDomains": [],
+        "customDomains": []
+      },
+      "tcpProxies": [],
+      "staged": null
+    }
+  },
+  "postgres": {
+    "id": "cc47e8e9-8f7f-4c00-b889-a05ae72f583a",
+    "deployment": {
+      "id": "67dd7e71-45de-4770-801e-aaff7d030f10",
+      "status": "SUCCESS",
+      "createdAt": "2026-11-14T13:37:06.925Z",
+      "url": null
+    },
+    "volumes": [
+      {
+        "id": "77a46806-0e31-4b7e-808e-e6a298065bee",
+        "name": "postgres-volume",
+        "mountPath": "/var/lib/postgresql/data",
+        "sizeMB": 5000,
+        "region": "asia-southeast1-eqsg3a",
+        "state": "live"
+      }
+    ],
+    "domains": {
+      "serviceDomains": [],
+      "customDomains": []
+    },
+    "tcpProxies": []
+  },
+  "cutoff": {
+    "value": "2026-11-14",
+    "proof": "Set on web; read back in the completed hosted job manifest."
+  },
+  "localImageSmoke": {
+    "productionCode": "f79ffd7920f46db9c59828b6d017e12413f8c1b2",
+    "imageId": "sha256:0bd3b180605d6d6d42a1aca7467c00ec9997256bf00cb01f720a7e393a324922",
+    "status": "PASSED",
+    "checks": [
+      "non-root runtime",
+      "migrations twice",
+      "worker readiness",
+      "cleanup exit",
+      "web HTTP200",
+      "fixtures HTTP404",
+      "catalogue40",
+      "idle worker SIGTERM0"
+    ]
+  },
+  "cleanupExecution": {
+    "status": "PASSED",
+    "deploymentId": "64f49c43-a106-40af-a8d8-dad4e0e448b8",
+    "observedAt": "2026-11-15T08:06:09Z",
+    "events": [
+      {
+        "timestamp": "2026-11-15T08:04:27.350510852Z",
+        "event": "expired_jobs_purged",
+        "count": 0
+      },
+      {
+        "timestamp": "2026-11-15T08:05:38.149782332Z",
+        "event": "expired_jobs_purged",
+        "count": 0
+      }
+    ],
+    "verificationMethod": "Read logs for the deployed image after the scheduled interval and one explicitly owner-approved manual restart. Logs do not label trigger origin.",
+    "schedule": "0 * * * *",
+    "scheduleChanged": false,
+    "approvalNote": "Automatic review rejected the first restart attempt. The owner then explicitly approved one cleanup restart; that single approved restart was performed."
+  }
+}

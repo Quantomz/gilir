@@ -3,6 +3,8 @@ import type { PDFFont } from "pdf-lib";
 import { beforeAll, describe, expect, it } from "vitest";
 import { parseCropPurposeId, parseIsoDate } from "@/contracts/common";
 import { coordinates, cropName, engineText, ownName, pdfText, sayFor } from "@/client/pdf/text";
+import { completedSnapshotsByState } from "@/fixtures/results";
+import { frozen } from "./support/variants";
 
 let fonts: readonly PDFFont[] = [];
 beforeAll(async () => {
@@ -169,10 +171,23 @@ describe("sayFor", () => {
 });
 
 describe("names, places and engine text", () => {
-  it("cropName('maize-grain') is Maize grain and cropName('synthetic-crop') is Synthetic crop", () => {
-    expect(cropName(parseCropPurposeId("maize-grain"))).toBe("Maize grain");
-    expect(cropName(parseCropPurposeId("synthetic-crop"))).toBe("Synthetic crop");
-    expect(cropName(parseCropPurposeId("rice_paddy:wet-season"))).toBe("Rice paddy wet season");
+  it("cropName: a version 1 snapshot names maize-grain maize grain, from the ID, in lower case for the middle of a sentence", () => {
+    const version1 = completedSnapshotsByState.plan;
+    expect(cropName(version1, parseCropPurposeId("maize-grain"))).toBe("maize grain");
+    expect(cropName(version1, parseCropPurposeId("synthetic-crop"))).toBe("synthetic crop");
+    expect(cropName(version1, parseCropPurposeId("rice_paddy:wet-season"))).toBe("rice paddy wet season");
+  });
+
+  it("cropName: a version 2 snapshot uses its saved label made printable with its own capitals, and an ID that catalogue lacks is named from the ID", () => {
+    const version2 = frozen(completedSnapshotsByState.plan, {
+      "synthetic-crop": "Synthetic bean (dry grain)", "maize-grain": "Maïs ≥ 90 days (Łódź)", "sorghum-grain": "ข้าวฟ่าง (grain)",
+      "brussels-sprouts": "Brussels sprouts",
+    });
+    expect(cropName(version2, parseCropPurposeId("synthetic-crop"))).toBe("Synthetic bean (dry grain)");
+    expect(cropName(version2, parseCropPurposeId("maize-grain"))).toBe("Maïs >= 90 days (Lódz)");
+    expect(cropName(version2, parseCropPurposeId("brussels-sprouts"))).toBe("Brussels sprouts");
+    expect(cropName(version2, parseCropPurposeId("rice_paddy:wet-season"))).toBe("rice paddy wet season");
+    expect(cropName(version2, parseCropPurposeId("sorghum-grain"))).toBe("sorghum grain");
   });
 
   it("coordinates([100.005, 15.005]) is 15.005° N, 100.005° E; negative values say S and W", () => {
@@ -185,5 +200,16 @@ describe("names, places and engine text", () => {
     expect(engineText(text, sayFor({ locale: "en-GB", timeZone: "UTC" })))
       .toBe("Prepare the land before 1 Jul 2026. Records before 1 Jan 2025 near Lódz; not a date: 2026-02-30.");
     expect(engineText("Planted 2026-07-01.", sayFor({ locale: "en-US", timeZone: "Asia/Tokyo" }))).toBe("Planted Jul 1, 2026.");
+  });
+
+  it("engineText leaves a date that is part of an ID as it is: a catalogue version, a profile version, a datetime", () => {
+    const say = sayFor({ locale: "en-GB", timeZone: "UTC" });
+    for (const text of [
+      "teff-grain is not in catalogue fao56-hard-windows-2026-11-15.",
+      "Crop profile rice-paddy-fao56-tropics-dec (reviewed-2026-11-15.2) was not supplied.",
+      "Completed at 2026-11-15T03:00:00Z.",
+    ]) expect(engineText(text, say)).toBe(text);
+    expect(engineText("Records end 2026-11-15; the next season (2027-01-01) is not used.", say))
+      .toBe("Records end 15 Nov 2026; the next season (1 Jan 2027) is not used.");
   });
 });
