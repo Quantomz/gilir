@@ -149,7 +149,7 @@ test.describe("useful messages, no silent loss", () => {
     expect(finds.map(find => find.raw)).toEqual([recordWithRetiredPriority]);
   });
 
-  test("the notice and a load called in the same tick, notice first or load first: the notice names the plan that load set aside", async ({ page, harness }) => {
+  test("the notice and a load called in the same tick, notice first or load first: the notice names the plan that load set aside, and after a dismiss it doesn't come back", async ({ page, harness }) => {
     await openHarness(page, `${harness.origin}/`);
     for (const noticeFirst of [true, false]) {
       await page.evaluate(() => window.gilirF4.localPlans.clear());
@@ -158,10 +158,12 @@ test.describe("useful messages, no silent loss", () => {
         const { localPlans, readStorageNotice } = window.gilirF4;
         const notice = noticeFirst ? readStorageNotice() : null;
         const loaded = localPlans.load();
-        const text = (await (notice ?? readStorageNotice()))?.text ?? null;
-        return { text, snapshot: (await loaded)?.snapshot ?? null };
+        const shown = await (notice ?? readStorageNotice());
+        const snapshot = (await loaded)?.snapshot ?? null;
+        await shown?.dismiss();
+        return { text: shown?.text ?? null, snapshot, afterDismiss: (await readStorageNotice())?.text ?? null };
       }, noticeFirst);
-      expect(outcome, noticeFirst ? "notice first" : "load first").toEqual({ text: words.oldPlanAnswersKept, snapshot: null });
+      expect(outcome, noticeFirst ? "notice first" : "load first").toEqual({ text: words.oldPlanAnswersKept, snapshot: null, afterDismiss: null });
     }
   });
 

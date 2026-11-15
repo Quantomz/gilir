@@ -391,6 +391,25 @@ describe("set aside, never lost", () => {
     expect(leftOut(memory)).toEqual([["snapshot"]]);
   });
 
+  it("only a full device lets load skip that write: an UnknownError at commit rejects unavailable, and nothing is written or dropped", async () => {
+    const raw = record({ ...state, snapshot: retiredPriority });
+    const { localPlans, storageProblem, memory } = await seeded(raw);
+    memory.failNext("commit", domError("UnknownError"));
+    const outcome = await localPlans.load().then(loaded => ({ loaded }), (error: unknown) => storageProblem(error).reason);
+    expect(outcome).toBe("unavailable");
+    expect(onDisk(memory, "state")).toBe(raw);
+    expect(onDisk(memory, "set-aside")).toBeUndefined();
+  });
+
+  it("an AbortError at that commit is retried once on a fresh connection, and the retry sets the part aside", async () => {
+    const raw = record({ ...state, snapshot: retiredPriority });
+    const { localPlans, memory } = await seeded(raw);
+    memory.failNext("commit", domError("AbortError"));
+    expect(await localPlans.load()).toEqual({ ...state, snapshot: null });
+    expect(memory.opened.get("gilir")).toBe(2);
+    expect(leftOut(memory)).toEqual([["snapshot"]]);
+  });
+
   it("a save after that load sets the unreadable part aside before it replaces the state; while that doesn't fit, save rejects full and the old record stays", async () => {
     const raw = record({ ...state, snapshot: retiredPriority });
     const { localPlans, storageProblem, memory } = await seeded(raw);
@@ -511,6 +530,18 @@ describe("the notice in the farmer's words", () => {
         : await Promise.all([localPlans.load(), readStorageNotice()]).then(([state, text]) => [text, state] as const);
       expect(loaded, noticeFirst ? "notice first" : "load first").toEqual({ ...empty, draft: answers });
       expect(notice?.text, noticeFirst ? "notice first" : "load first").toBe(`${words.snapshot} ${words.kept}`);
+    }
+  });
+
+  it("a notice read in the same tick as a load, then dismissed, doesn’t come back: the dismiss removes what that load set aside", async () => {
+    for (const noticeFirst of [true, false]) {
+      const { localPlans, readStorageNotice, memory } = await seeded(record({ draft: answers, snapshot: retiredPriority }));
+      const [notice] = noticeFirst
+        ? await Promise.all([readStorageNotice(), localPlans.load()])
+        : await Promise.all([localPlans.load(), readStorageNotice()]).then(([, text]) => [text] as const);
+      await notice?.dismiss();
+      expect(await readStorageNotice(), noticeFirst ? "notice first" : "load first").toBeNull();
+      expect(onDisk(memory, "set-aside"), noticeFirst ? "notice first" : "load first").toBeUndefined();
     }
   });
 
