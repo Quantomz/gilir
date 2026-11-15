@@ -21,6 +21,10 @@ export const policy = {
     /** Pointer travel under this many CSS px is a tap, not a drag. */
     dragThresholdPx: 5,
   },
+  crops: {
+    /** Page 2 offers "Find a crop" once the list has this many crops, more than a phone shows at once. */
+    findFrom: 10,
+  },
   save: {
     /** Draft edits are written this long after the last change. Step, job and completion writes go at once. */
     debounceMs: 150,

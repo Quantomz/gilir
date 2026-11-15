@@ -168,12 +168,12 @@ describe("Terrace tokens", () => {
     expect(parseFloat(tapMin) * 16 * 1.25).toBeGreaterThanOrEqual(48);
   });
 
-  it("[L7] no rule sits outside :root blocks, @theme, @custom-variant, @source, @import or @layer, so no unlayered rule can beat a utility", () => {
+  it("[L7] no rule sits outside :root blocks (alone or in @media), @theme, @custom-variant, @source, @import or @layer, so no unlayered rule can beat a utility", () => {
     const stray = topLevel.filter(rule => {
       if (/^@(import|custom-variant|source)\b/.test(rule.prelude) && rule.body === null) return false;
       if (/^@(theme|layer)\b/.test(rule.prelude)) return false;
       if (/^:root\b/.test(rule.prelude)) return false;
-      if (rule.prelude === "@media (prefers-color-scheme: dark)" && rule.body) return !rulesOf(rule.body).every(inner => inner.prelude.startsWith(":root"));
+      if (rule.prelude.startsWith("@media ") && rule.body) return !rulesOf(rule.body).every(inner => inner.prelude.startsWith(":root"));
       return true;
     });
     expect(stray.map(rule => rule.prelude)).toEqual([]);

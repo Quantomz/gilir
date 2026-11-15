@@ -189,10 +189,8 @@ describe("names and lists", () => {
       .toEqual(["", "rice", "rice and maize", "rice, maize and beans"]);
   });
 
-  it("the crop filter words say how many crops show and that a picked crop can be hidden", () => {
+  it("the crop filter words say how many crops show and when nothing matches", () => {
     expect(crops.filterCount(3, 40)).toBe("3 of 40 crops shown");
     expect(crops.filterNone(" rice ")).toBe("No crop on the list matches “rice”.");
-    expect(crops.filterHidden(1)).toBe("1 crop you picked is not shown. Show all crops to see it.");
-    expect(crops.filterHidden(2)).toBe("2 crops you picked are not shown. Show all crops to see them.");
   });
 });

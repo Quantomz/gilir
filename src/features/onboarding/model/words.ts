@@ -30,7 +30,6 @@ export const next: Record<1 | 2 | 3, string> = { 1: "Next: crops", 2: "Next: wat
 export const makePlan = { idle: "Make my plan", sending: "Sending your answers…" } as const;
 
 export const farm = {
-  lead: "Find your farm, then mark your field.",
   needField: "Mark your field to go on.",
 } as const;
 
@@ -56,8 +55,6 @@ export const crops = {
   filterClear: "Show all crops",
   filterCount: (shown: number, total: number) => `${shown} of ${total} crops shown`,
   filterNone: (text: string) => `No crop on the list matches “${text.trim()}”.`,
-  filterHidden: (n: number) =>
-    n === 1 ? "1 crop you picked is not shown. Show all crops to see it." : `${n} crops you picked are not shown. Show all crops to see them.`,
 } as const;
 
 /** The spec's water labels, with typographic apostrophes as the prototype shows them. */
@@ -165,6 +162,7 @@ const makingSteps: Record<Progress, string> = {
 export const making = {
   lead: (place: string | null) => `This usually takes less than a minute.${place ? ` ${place}.` : ""}`,
   steps: makingSteps,
+  stepsLabel: "Steps",
   status: { done: "Done", now: "Working on it", wait: "Waiting" },
   /** The one sentence the polite status line says, never the whole list. */
   announce: (progress: Progress) => `Step ${progressIndex(progress) + 1} of 3: ${makingSteps[progress]}.`,

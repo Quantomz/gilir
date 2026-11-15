@@ -1,72 +1,293 @@
 "use client";
-// Pages 1 to 3. One primary task and one primary button each (docs/cards/F1.md:34, spec.md:35).
-// Page 4 is views/rotation.tsx because it holds the history editor.
-// Next is never a disabled button: a disabled control cannot be focused or say why. Pressed without the page's
-// minimum (model/check.ts stepComplete), it shows the page's "needs" words as role="alert" in the dock and moves focus
-// to the missing control (flow Mode.editing.asked).
-import type { ReactElement } from "react";
+// Pages 1 to 3: one question and one primary button each. Page 4 is views/rotation.tsx.
+// Next is never a disabled button, because a disabled control cannot be focused or say why. Pressed before the page
+// is answered, it says what is missing in the dock and focuses the control that needs it.
+import { useRef } from "react";
+import type { ReactElement, ReactNode } from "react";
+import { waterAnswerSchema } from "@/contracts";
+import type { CropPurposeId, WaterAnswer } from "@/contracts";
 import { FieldPicker } from "@/features/location";
 import type { Controller } from "../controller";
+import { stepComplete } from "../model/check";
+import type { PageIssue } from "../model/check";
+import { domIdOf, matchCrops, readyCatalogue } from "../model/flow";
+import type { CatalogueEntry } from "../model/flow";
+import { policy } from "../model/policy";
+import { crops, farm, issueWords, listWords, next, sheets, titles, water, waterLabels } from "../model/words";
+import { StepFrame } from "./frame";
+import { Icon } from "./icons";
+import type { IconName } from "./icons";
 
-/**
- * The F2 slot, with exactly its frozen props (src/features/ports.ts:2). Search, globe, GPS, voice, the field box and
- * typed corners are F2's, behind the slot. The slot cannot emit null, so a marked field can be replaced, not cleared.
- * Written out in full: tsc checks the slot's props here.
- */
+/** The F2 slot with exactly its two props. The slot never emits null, so a marked field is replaced, never cleared. */
 export function FieldSlot(props: { readonly c: Controller }): ReactElement {
   const { c } = props;
   return <FieldPicker value={c.flow.editor.draft.field ?? null} onChange={field => c.edit({ kind: "field", field })} />;
 }
 
-/**
- * Page 1, "Where is your farm?". F1 owns the frame, the title, field issues and "Next: crops":
- *
- *   <section aria-labelledby="main-title" id={domIdOf({ kind: "pageControl", page: 1 })} tabIndex={-1}>
- *     <FieldSlot c={c} />
- *   </section>
- *   <IssueList c={c} page={1} />
- *   dock: {asked && <p class="error-text" role="alert">Mark your field to go on.</p>}
- *         <button class="btn btn-primary btn-block" onClick={c.next}>Next: crops</button>
- *
- * On "/" today the F2 stub never emits a field (src/features/location/index.tsx:3-5), so production waits on page 1
- * until F2 lands. Tests mock @/features/location. The browser run seeds initialInput (src/app/page.tsx devInput).
- * No Back on page 1: there is no page before it and no landing page. The brand shows instead (prototype TopBar).
- */
+/** Page 1, "Where is your farm?". Search, the globe and the field box are F2's, inside the slot. */
 export function FieldPage(props: { readonly c: Controller }): ReactElement {
-  throw new Error("not implemented");
+  const { c } = props;
+  return (
+    <StepFrame
+      step={1}
+      title={titles.farm}
+      onBack={null}
+      width="wide"
+      dock={<NextDock c={c} step={1} needs={farm.needField} />}
+    >
+      <IssueList c={c} page={1} />
+      <section id={domIdOf({ kind: "pageControl", page: 1 })} tabIndex={-1} aria-labelledby="main-title">
+        <FieldSlot c={c} />
+      </section>
+    </StepFrame>
+  );
 }
 
 /**
- * Page 2, "Which crops do you want to grow?". Loads the list on first entry (flow.catalogue idle -> loading).
- *  idle/loading -> "Loading the crop list…" (role="status") and 6 skeleton cards (aria-hidden)
- *  failed       -> note-warn (role="alert"): "We couldn’t load the crop list" + body + "Try again" (c.retryCatalogue)
- *  ready, empty -> note: "No crops are available yet" + body. No dock count and no Next (known issue 11). This is what
- *                  production shows first: the released catalogue is empty (src/registry/index.ts:9).
- *  ready        -> one list <ul class="crop-grid" role="list"> of cards. Each card is a real checkbox stretched over a
- *                  label: a sprout mark (no crop art: the catalogue has only id, label, purpose, src/contracts/registry.ts:7-13),
- *                  the label, "Grown for food" / "Cover crop" (aria-describedby), and when picked a 3px ink ring, a
- *                  badge and the word "Picked", so state never rests on colour. Cover crops count the same (spec.md:272).
- *                  Picked ids the list lacks show above it: "{id} is not on the current crop list." + "Remove {id}".
- *                  They are never removed for the farmer (docs/cards/F1.md:36).
- *  dock (ready and non-empty only): "{n} picked" (aria-live polite, sr list of names), the needs alert, "Next: water".
- *  A 13th pick is refused with a toast (inputLimits.selectedCrops). Removing a pick toasts Undo.
- * No "Often grown near" grouping and no "Say your crops" (no zone data; voice is F2's).
+ * Page 2, "Which crops do you want to grow?". Each card is a real checkbox under a text card: no pictures, because
+ * the list holds only a name and a purpose. A long list gets "Find a crop", which never hides a crop already picked.
+ * A picked crop the list no longer has stays picked, with its own Remove, until the farmer removes it.
  */
 export function CropsPage(props: { readonly c: Controller }): ReactElement {
-  throw new Error("not implemented");
+  const { c } = props;
+  const state = c.flow.catalogue;
+  const entries = readyCatalogue(state)?.entries ?? [];
+  const listed = new Set<string>(entries.map(entry => entry.id));
+  const picked = c.flow.editor.draft.cropPurposeIds ?? [];
+  const unlisted = state.status === "ready" ? picked.filter(id => !listed.has(id)) : [];
+  const offered = state.status === "ready" && entries.length > 0;
+  const hidesUnlisted = (issue: PageIssue) => issue.kind === "crop_not_listed" && issue.cropId !== null && unlisted.includes(issue.cropId);
+  return (
+    <StepFrame
+      step={2}
+      title={titles.crops}
+      lead={crops.lead}
+      onBack={c.back}
+      width="wide"
+      dock={offered ? <CropsDock c={c} picked={picked.filter(id => listed.has(id))} /> : null}
+    >
+      <IssueList c={c} page={2} omit={hidesUnlisted} />
+      {unlisted.map(id => (
+        <div className="note note-warn cat-state" key={id}>
+          <Icon name="alert" />
+          <div className="stack-xs">
+            <p>{crops.notListed(c.names.crop(id))}</p>
+            <button className="btn btn-small justify-self-start" type="button" onClick={() => c.edit({ kind: "removeCrop", id })}>
+              {crops.removeNotListed(c.names.crop(id))}
+            </button>
+          </div>
+        </div>
+      ))}
+      {state.status === "failed" ? (
+        <div className="note note-warn cat-state" role="alert">
+          <Icon name="alert" />
+          <div className="stack-s">
+            <p className="banner-t">{crops.failedTitle}</p>
+            <p>{crops.failedBody}</p>
+            <button className="btn btn-primary justify-self-start" type="button" onClick={c.retryCatalogue}>
+              <Icon name="refresh" />
+              {crops.tryAgain}
+            </button>
+          </div>
+        </div>
+      ) : state.status === "ready" && entries.length === 0 ? (
+        <div className="note cat-state">
+          <Icon name="info" />
+          <div className="stack-xs">
+            <p className="banner-t">{crops.emptyTitle}</p>
+            <p>{crops.emptyBody}</p>
+          </div>
+        </div>
+      ) : state.status === "ready" ? (
+        <CropList c={c} entries={entries} picked={picked} />
+      ) : (
+        <div className="stack-s" role="status">
+          <p className="row muted">
+            <span className="spinner" aria-hidden="true" />
+            {crops.loading}
+          </p>
+          <ul className="crop-grid" aria-hidden="true">
+            {[0, 1, 2, 3, 4, 5].map(n => <li className="skel crop-skel" key={n} />)}
+          </ul>
+        </div>
+      )}
+    </StepFrame>
+  );
 }
 
-/**
- * Page 3, "Where does your water come from?". <fieldset class="choices"> with an sr-only legend (the title) and three
- * real radios name="water" stretched over choice cards: Rain only / Rain + water when it’s dry / I’m not sure, each with
- * its one-line detail. Checked: mint fill, 3px ink ring, filled tick. Lead: "We plan with rain alone…" (spec.md:20).
- * Choosing writes only `water` (model/draft.ts I6). Dock: the needs alert, "Next: your rotation".
- */
+function CropList(props: { readonly c: Controller; readonly entries: readonly CatalogueEntry[]; readonly picked: readonly CropPurposeId[] }): ReactElement {
+  const { c, entries, picked } = props;
+  const finder = useRef<HTMLInputElement>(null);
+  const text = c.flow.cropFilter;
+  const filtering = text.trim() !== "";
+  const matched = new Set<string>(matchCrops(entries, text).map(entry => entry.id));
+  const shown = entries.filter(entry => matched.has(entry.id) || picked.includes(entry.id));
+  const findable = entries.length >= policy.crops.findFrom;
+  return (
+    <>
+      {findable ? (
+        <div className="field crop-find">
+          <label className="label" htmlFor="crop-find">{crops.filterLabel}</label>
+          <p className="hint" id="crop-find-hint">{crops.filterHint}</p>
+          <div className="input-wrap">
+            <Icon name="search" />
+            <input
+              ref={finder}
+              id="crop-find"
+              type="search"
+              autoComplete="off"
+              enterKeyHint="search"
+              aria-describedby="crop-find-hint"
+              value={text}
+              onChange={event => c.filterCrops(event.target.value)}
+            />
+          </div>
+          <div className="row crop-find-row">
+            <p className="crop-find-count" aria-live="polite">
+              {!filtering ? "" : matched.size === 0 ? crops.filterNone(text) : crops.filterCount(shown.length, entries.length)}
+            </p>
+            {filtering ? (
+              <button
+                className="btn btn-small"
+                type="button"
+                onClick={() => {
+                  c.filterCrops("");
+                  finder.current?.focus();
+                }}
+              >
+                {crops.filterClear}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+      <ul className="crop-grid" role="list" id={domIdOf({ kind: "pageControl", page: 2 })} tabIndex={-1} aria-label={sheets.allCrops}>
+        {shown.map(entry => (
+          <CropCard key={entry.id} entry={entry} on={picked.includes(entry.id)} onToggle={() => c.edit({ kind: "toggleCrop", id: entry.id })} />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+function CropCard(props: { readonly entry: CatalogueEntry; readonly on: boolean; readonly onToggle: () => void }): ReactElement {
+  const { entry } = props;
+  const id = domIdOf({ kind: "crop", id: entry.id });
+  return (
+    <li className="crop">
+      <input type="checkbox" id={id} checked={props.on} onChange={props.onToggle} aria-labelledby={`${id}-n`} aria-describedby={`${id}-d`} />
+      <label className="crop-box" htmlFor={id}>
+        <span className="crop-badge" aria-hidden="true"><Icon name="check" /></span>
+        <span className="crop-mark"><Icon name="sprout" /></span>
+        <span className="crop-name" id={`${id}-n`}>{entry.label}</span>
+        <span className={entry.purpose === "cover" ? "crop-purpose crop-cover" : "crop-purpose"} id={`${id}-d`}>{crops.purpose[entry.purpose]}</span>
+        <span className="crop-picked" aria-hidden="true">
+          <Icon name="check" />
+          {crops.picked}
+        </span>
+      </label>
+    </li>
+  );
+}
+
+function CropsDock(props: { readonly c: Controller; readonly picked: readonly CropPurposeId[] }): ReactElement {
+  const { c, picked } = props;
+  return (
+    <NextDock c={c} step={2} needs={crops.needOne}>
+      <p className="pick-count" aria-live="polite">
+        <b className="num">{crops.count(picked.length)}</b>
+        {picked.length > 0 ? (
+          <>
+            <span className="sr">: {listWords(picked.map(id => c.names.crop(id).toLocaleLowerCase()))}</span>.
+          </>
+        ) : (
+          <>
+            . <span className="muted">{crops.tapToPick}</span>
+          </>
+        )}
+      </p>
+    </NextDock>
+  );
+}
+
+const waterIcons: Readonly<Record<WaterAnswer, IconName>> = { rain_only: "rain", rain_plus_backup: "can", unsure: "help" };
+
+/** Page 3, "Where does your water come from?". Three radio cards. Choosing one writes only the water answer. */
 export function WaterPage(props: { readonly c: Controller }): ReactElement {
-  throw new Error("not implemented");
+  const { c } = props;
+  const chosen = c.flow.editor.draft.water;
+  return (
+    <StepFrame step={3} title={titles.water} lead={water.lead} onBack={c.back} dock={<NextDock c={c} step={3} needs={water.needOne} />}>
+      <IssueList c={c} page={3} />
+      <fieldset className="choices" id={domIdOf({ kind: "pageControl", page: 3 })} tabIndex={-1}>
+        <legend className="sr">{titles.water}</legend>
+        {waterAnswerSchema.options.map(answer => (
+          <label className="choice" key={answer}>
+            <input
+              type="radio"
+              name="water"
+              value={answer}
+              checked={chosen === answer}
+              onChange={() => c.edit({ kind: "water", water: answer })}
+              aria-labelledby={`water-${answer}-t`}
+              aria-describedby={`water-${answer}-d`}
+            />
+            <span className="choice-box" data-say="">
+              <span className={answer === "rain_only" ? "choice-ic choice-ic-water" : "choice-ic"}>
+                <Icon name={waterIcons[answer]} />
+              </span>
+              <span className="choice-tx">
+                <span className="choice-t" id={`water-${answer}-t`}>{waterLabels[answer].label}</span>
+                <span className="choice-d" id={`water-${answer}-d`}>{waterLabels[answer].detail}</span>
+              </span>
+              <span className="tick"><Icon name="check" /></span>
+            </span>
+          </label>
+        ))}
+      </fieldset>
+    </StepFrame>
+  );
 }
 
-/** A page's issues beside its control: <div class="issues" id tabIndex={-1}> of error-text lines with an alert icon. */
-export function IssueList(props: { readonly c: Controller; readonly page: 1 | 2 | 3 | 4 }): ReactElement | null {
-  throw new Error("not implemented");
+/** The dock of pages 1 to 3: the page's own words, what is missing once Next was pressed too early, then Next. */
+function NextDock(props: { readonly c: Controller; readonly step: 1 | 2 | 3; readonly needs: string; readonly children?: ReactNode }): ReactElement {
+  const { c, step } = props;
+  const mode = c.flow.mode;
+  const missing = mode.kind === "editing" && mode.asked && !stepComplete(c.flow.editor.draft, step, readyCatalogue(c.flow.catalogue));
+  return (
+    <>
+      {props.children}
+      {missing ? (
+        <p className="error-text" role="alert">
+          <Icon name="alert" />
+          {props.needs}
+        </p>
+      ) : null}
+      <button className="btn btn-primary btn-block" type="button" onClick={c.next}>
+        {next[step]}
+        <Icon name="arrow" />
+      </button>
+    </>
+  );
+}
+
+/** A page's issues beside its control, once Make my plan found them or the planner sent them back. */
+export function IssueList(props: {
+  readonly c: Controller;
+  readonly page: 1 | 2 | 3 | 4;
+  readonly omit?: (issue: PageIssue) => boolean;
+}): ReactElement | null {
+  const { c, page, omit } = props;
+  const issues = c.issues(page).filter(issue => !omit?.(issue));
+  if (issues.length === 0) return null;
+  return (
+    <div className="issues" id={domIdOf({ kind: "pageIssues", page })} tabIndex={-1}>
+      {issues.map(issue => (
+        <p className="error-text" key={`${issue.kind} ${issue.path.join(".")}`}>
+          <Icon name="alert" />
+          <span>{issueWords(issue, c.names)}</span>
+        </p>
+      ))}
+    </div>
+  );
 }

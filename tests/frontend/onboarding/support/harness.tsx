@@ -5,7 +5,10 @@
 //  - cleanup() in afterEach, because Testing Library's auto cleanup needs Vitest globals, which are off;
 //  - plain expect, because jest-dom is not installed;
 //  - with fake timers, advance(ms) then getBy*, because findBy* hangs on its own faked timers.
+import { act, fireEvent, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
+import { vi } from "vitest";
 import type { LocalPlans, LocalState } from "@/client/storage";
 import { parseCropPurposeId } from "@/contracts";
 import type { Catalogue, FarmInput, JobCapability, JobState, PlannerClient, ServiceFailure, Submission } from "@/contracts";
@@ -120,24 +123,68 @@ export function memoryPlans(
   };
 }
 
-/** vi.mock factory for "@/client/storage": `{ localPlans: plans }`. */
-export function storageMock(plans: MemoryPlans): { readonly localPlans: LocalPlans } {
-  return { localPlans: plans };
+/**
+ * vi.mock factory for "@/client/storage". It forwards to whatever `current()` returns at call time, so one mock
+ * serves every test in a file: set the plans in each test.
+ */
+export function storageMock(current: () => LocalPlans | undefined): { readonly localPlans: LocalPlans } {
+  const plans = () => current() ?? missing("plans");
+  return { localPlans: { load: () => plans().load(), save: state => plans().save(state), clear: () => plans().clear() } };
 }
 
-/** vi.mock factory for "@/features/location": a FieldPicker stub with a "Use this field" button that emits `field`. */
+/** vi.mock factory for "@/client/planner", forwarding like storageMock. */
+export function plannerMock(current: () => PlannerClient | undefined): { readonly plannerClient: PlannerClient } {
+  const client = () => current() ?? missing("client");
+  return {
+    plannerClient: {
+      catalogue: () => client().catalogue(),
+      submit: input => client().submit(input),
+      read: capability => client().read(capability),
+      remove: capability => client().remove(capability),
+    },
+  };
+}
+
+function missing(what: string): never {
+  throw new Error(`The test set no ${what} before the code used it.`);
+}
+
+/**
+ * vi.mock factory for "@/features/location": a FieldPicker stub that shows what it was given and has a "Use this
+ * field" button that emits `field`. `data-props` lists the prop names it received.
+ */
 export function fieldPickerStub(field: FarmInput["field"]): { FieldPicker: (props: FieldPickerProps) => ReactElement } {
-  throw new Error("not implemented");
+  return {
+    FieldPicker(props) {
+      return (
+        <section aria-label="Field picker" data-props={Object.keys(props).sort().join(",")}>
+          <p>{props.value === null ? "No field marked" : `Marked: ${props.value.label}`}</p>
+          <button type="button" onClick={() => props.onChange(field)}>Use this field</button>
+        </section>
+      );
+    },
+  };
 }
 
 /** vi.mock factory for "@/features/results": shows the snapshot id and a "Change inputs" button. */
 export function resultsStub(): { Results: (props: ResultsProps) => ReactElement } {
-  throw new Error("not implemented");
+  return {
+    Results(props) {
+      return (
+        <section aria-label="Results" data-props={Object.keys(props).sort().join(",")}>
+          <h2>{`Plan ${props.snapshot.id}`}</h2>
+          <button type="button" onClick={() => props.onChangeInputs(props.snapshot.input)}>Change inputs</button>
+        </section>
+      );
+    },
+  };
 }
 
-/** Fake-timer step that flushes promises: `await act(async () => { await vi.advanceTimersByTimeAsync(ms) })`. */
+/** Fake-timer step that flushes promises and React updates. */
 export async function advance(ms: number): Promise<void> {
-  throw new Error("not implemented");
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(ms);
+  });
 }
 
 /** A catalogue with n listed crops "crop-1".."crop-n", the last one a cover crop, for the 12-crop limit. */
@@ -152,13 +199,26 @@ export function catalogueOf(n: number): Catalogue {
   };
 }
 
-/** Walks pages 1 to 4 by keyboard and returns when "Make my plan" is on screen. */
-export function fillFourPages(options: {
+/**
+ * Answers pages 1 to 4 as a farmer would, with the fieldPickerStub on page 1 and a list that has `crop`, and returns
+ * when "Make my plan" is on screen. Real timers only.
+ */
+export async function fillFourPages(options: {
+  readonly crop?: string;
   readonly water: "Rain only" | "Rain + water when it’s dry" | "I’m not sure";
   readonly start: string;
-  readonly history: "skip" | "empty year" | "one crop";
+  readonly history: "skip" | "empty year";
 }): Promise<void> {
-  throw new Error("not implemented");
+  const user = userEvent.setup();
+  await user.click(await screen.findByRole("button", { name: "Use this field" }));
+  await user.click(screen.getByRole("button", { name: "Next: crops" }));
+  await user.click(await screen.findByRole("checkbox", { name: options.crop ?? "Synthetic crop" }));
+  await user.click(screen.getByRole("button", { name: "Next: water" }));
+  await user.click(screen.getByRole("radio", { name: options.water }));
+  await user.click(screen.getByRole("button", { name: "Next: your rotation" }));
+  fireEvent.change(screen.getByLabelText("When is your field ready to plant?", { selector: "input" }), { target: { value: options.start } });
+  await user.click(screen.getByRole("button", { name: options.history === "skip" ? /^I don’t remember/ : /^My field was empty all year/ }));
+  screen.getByRole("button", { name: "Make my plan" });
 }
 
 /** The six FarmInput keys, sorted. A submitted input must have exactly these (Done-when 2). */

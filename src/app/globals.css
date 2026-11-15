@@ -96,6 +96,14 @@
   --gutter-r: max(16px, env(safe-area-inset-right, 0px));
 }
 
+/* Desktop: a comfortable gutter. */
+@media (min-width: 900px) {
+  :root {
+    --gutter-l: max(clamp(16px, 4vw, 56px), env(safe-area-inset-left, 0px));
+    --gutter-r: max(clamp(16px, 4vw, 56px), env(safe-area-inset-right, 0px));
+  }
+}
+
 /* Dark follows the phone. There is no theme switch, so the values are written once. High contrast wins over dark. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-contrast="high"]) {
