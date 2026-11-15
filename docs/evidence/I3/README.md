@@ -35,8 +35,8 @@ All with Node 24.
 | `I3_EVIDENCE=1 I3_LIVE=1 I3_BASE_URL=http://127.0.0.1:3700 npx playwright test -c tests/integration/browser/playwright.config.ts` | **21 passed** (3.6 min): 16 live cases (8 at each width), 4 fixture cases (2 at each width) and the recording. Log: [run.log](run.log) |
 | `npx playwright test -c tests/integration/browser/playwright.config.ts` with no `I3_LIVE` | 4 passed, 17 skipped (40 s): the fixture cases on the config's own `next dev` on port 3300, and every live case skipped as BLOCKED |
 | `I3_LIVE=1 DATABASE_URL=… npx playwright test -c tests/integration/browser/playwright.config.ts live.spec.ts`, two cases | 2 passed (31 s), run with `-g "phone 360x740 \[I3-[14]\]"`: the spec applied the migrations and started its own worker, and the config started `next dev` |
-| `npm run check` | CHECK_ROW |
-| `npm run build` | BUILD_ROW |
+| `npm run check` | Passed: 1,762 tests passed, 33 skipped, "Module boundaries passed." |
+| `npm run build` | Passed |
 
 Without `I3_LIVE=1` and a stack, every live case skips with the reason "BLOCKED: the live phase needs I3_LIVE=1 with DATABASE_URL … or with I3_BASE_URL naming a running Gilir."
 
