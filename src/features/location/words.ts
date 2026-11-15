@@ -1,11 +1,6 @@
-// Every farmer-facing word in F2, in one file. Ported from the prototype's page 1 (threefield-web src/app.js: Farm,
-// Search, PlaceCard, GpsSheet, CornersSheet, SizeCtl, parseCoord, cornersField, areaText, sideText, fieldLabel; Help's
-// weather square answer; map.js fallback), read by function name. Changed only where the box became an editable
-// outline, where the repo has no reverse geocoder, voice or Help page, or where a known issue is fixed.
-// Tables keyed by a union are Records, so a new state fails the build here instead of showing nothing.
-// Voice (conventions.test.ts and words.test.ts): short sentences, "you" and "your field", typographic apostrophes, no
-// "will", no long dash, no claim that the weather is for the field. F1 owns "Where is your farm?", its lead and
-// "Next: crops"; nothing here repeats them.
+// Every farmer-facing word in F2, in one file. Tables keyed by a union are Records, so a new state fails the build here
+// instead of showing nothing. Voice: short sentences, "you" and "your field", typographic apostrophes, no "will", no long
+// dash, no claim that the weather is for the field. F1 owns "Where is your farm?", its lead and "Next: crops".
 import { coordsText } from "./coordinates";
 import type { Axis, CoordError } from "./coordinates";
 import { limits, metresBetween } from "./outline";
@@ -13,9 +8,9 @@ import type { LngLat, ShapeProblem } from "./outline";
 import type { LocateFailure, Note, Notice, Outline, Phase, Place } from "./picker";
 import type { Provider, SearchFailure } from "./provider";
 
-/** The slot's own heading while marking (an h2 under F1's h1). It takes focus when marking starts. */
+/** The slot's own heading while marking, an h2 under F1's h1. */
 export const heading: Record<Exclude<Phase, "finding">, string> = {
-  box: "Put your field in the box",                      // prototype
+  box: "Put your field in the box",
   corners: "Fit the corners to your field",
 };
 
@@ -26,7 +21,7 @@ export const lead = {
 } as const;
 
 export const search = {
-  form: "Find your village or town",                     // the form's name
+  form: "Find your village or town",
   label: "Village, town or area",
   placeholder: "For example: Indramayu",
   go: "Search",
@@ -57,7 +52,7 @@ export const find = {
   backToField: "Back to my field",
 } as const;
 
-/** "Use my location": the prototype's sheet, shown in place. The fix stays on the phone, so "once" stays true. */
+/** The fix goes to no service, so "We use it once" stays true. */
 export const locate = {
   title: "Use your location",
   stand: "Stand in your field if you can.",
@@ -67,6 +62,7 @@ export const locate = {
   findingSaid: "Finding you. This can take up to 15 seconds outdoors.",
   tryAgain: "Try again",
   close: "Close",
+  turnOn: "To turn location on",
 } as const;
 
 export const locateFailed: Record<LocateFailure, { readonly title: string; readonly body: string; readonly steps: readonly string[] }> = {
@@ -121,7 +117,6 @@ export const mark = {
   status: (areaM2: number, corners: number) => `Your field is marked: ${lowerFirst(areaText(areaM2))}, ${corners} corners.`,
 } as const;
 
-/** The corner list (the prototype's "Type the corners" sheet, shown in place, with 3 to 256 corners). */
 export const list = {
   title: "Type the corners of your field",
   hint: "Go round the field in order. Use degrees with decimals, from your phone’s map or GPS. Latitude: minus or S for south. Longitude: minus or W for west.",
@@ -136,7 +131,6 @@ export const list = {
   saved: (n: number) => `Your field now has the ${n} corners you typed.`,
 } as const;
 
-/** One typed number (prototype parseCoord). */
 export const coordError: Record<Axis, Record<CoordError, string>> = {
   latitude: {
     empty: "Type the latitude.",
@@ -154,7 +148,6 @@ export const coordError: Record<Axis, Record<CoordError, string>> = {
   },
 };
 
-/** Why typed corners are not a field (prototype cornersField, plus the cases a polygon adds). */
 export const problemTyped: Record<ShapeProblem, string> = {
   too_few: "A field needs at least 3 corners.",
   too_many: `A field can have up to ${limits.corners} corners. Remove some first.`,
@@ -178,7 +171,7 @@ export const problemOnMap: Record<ShapeProblem, string> = {
   tiny: "That would leave no field, so the corner went back.",
 };
 
-/** A visible explanation for each thing that is not available (docs/cards/F2.md:34). Each names a way that still works. */
+/** Each names a way that still works. */
 export function noticeWords(notice: Notice): string {
   switch (notice.kind) {
     case "no_key": return "Search by name and close-up pictures aren’t set up on this site. Type a position, use your location, or type your field’s corners.";
@@ -208,10 +201,7 @@ export function noteWords(note: Note, outline: Outline | null): string {
   }
 }
 
-/**
- * "Source location precision" (docs/cards/F2.md:33): how the outline got where it is. It never suggests the weather
- * becomes field-resolution: weatherGrid always follows it.
- */
+/** How the outline got where it is. weatherGrid always follows it, so it never suggests field-level weather. */
 export function precisionWords(outline: Outline): string {
   const { made, place } = outline;
   switch (made.kind) {
@@ -232,10 +222,9 @@ function boxOn(place: Place): string {
   }
 }
 
-/** Always shown with the precision sentence (spec.md:93: a precise boundary does not improve climate resolution). */
 export const weatherGrid = "Weather comes from NASA records on a grid much larger than a field. Every farm in the same grid square shares the same records, so marking your field more exactly doesn’t make the weather records finer.";
 
-/** The credits line's lead and what it tells the farmer about who sees what. Keyed by the provider, so each is true. */
+/** Keyed by the provider, so what it says about who sees what is true for each. */
 export const credits: Record<Provider["kind"], { readonly lead: string; readonly privacy: string }> = {
   missing: {
     lead: "Map pictures:",
@@ -251,18 +240,21 @@ export const credits: Record<Provider["kind"], { readonly lead: string; readonly
 // Numbers into words
 // ---------------------------------------------------------------------------------------------------------------------
 
-/**
- * "About 1 hectare" (prototype areaText, metric only: spec.md:64). Never square metres and never more than two
- * decimals: under 1 ha two decimals, under 10 ha one, else whole hectares; "About a quarter hectare" and "About half
- * a hectare" for 0.25 and 0.5. The fixture's 1,194,276 m² reads "About 119 hectares".
- */
 export function areaText(areaM2: number): string {
-  throw new Error("not implemented");
+  const hectares = areaM2 / 10_000;
+  const shown = hectares < 1 ? Math.round(hectares * 100) / 100 : hectares < 10 ? Math.round(hectares * 10) / 10 : Math.round(hectares);
+  if (shown === 0) return "Less than 0.01 hectares";
+  if (shown === 0.25) return "About a quarter hectare";
+  if (shown === 0.5) return "About half a hectare";
+  return `About ${shown.toLocaleString("en")} ${shown === 1 ? "hectare" : "hectares"}`;
 }
 
-/** "100 m across" (prototype sideText): to 5 m under 100 m, else to 10 m; from 1,000 m in kilometres, "1.5 km across". */
 export function acrossText(spanM: number): string {
-  throw new Error("not implemented");
+  const step = spanM < 10 ? 1 : spanM < 100 ? 5 : 10;
+  const metres = Math.max(1, Math.round(spanM / step) * step);
+  if (metres < 1000) return `${metres} m across`;
+  const kilometres = metres < 10_000 ? Math.round(metres / 100) / 10 : Math.round(metres / 1000);
+  return `${kilometres.toLocaleString("en")} km across`;
 }
 
 /** The place card and the notes: "Indramayu, West Java, Indonesia", the saved label, or "6.327° S, 108.320° E". */
@@ -276,16 +268,13 @@ export function placeLine(place: Place): string {
   }
 }
 
-/**
- * The field's label (prototype fieldLabel). "Field near {name, where}" for a found place within limits.nearPlaceM of
- * the lookup (the distance wraps across 180°, so a Fiji field is never named after Tonga); a saved place's own label
- * within the same distance; else "Field at 6.33° S, 108.32° E" (2 decimals). Cut to 240 code points with Array.from,
- * then trimmed, so it passes the contract's `labels` (src/contracts/common.ts:5) even with emoji in a place name.
- * The label is the only text from a place that leaves the browser, inside F1's submission.
- */
+/** The contract counts a label's length in code points, so it is cut with Array.from, never String.slice. */
 export function labelFor(place: Place | null, lookup: LngLat): string {
-  throw new Error("not implemented");
-  // TODO: uses metresBetween (imported above) and coordsText(lookup, 2)
+  const near = place !== null && metresBetween(place.at, lookup) < limits.nearPlaceM;
+  const label = near && place.kind === "found" ? `Field near ${placeLine(place)}`
+    : near && place.kind === "saved" ? place.label
+    : `Field at ${coordsText(lookup, 2)}`;
+  return Array.from(label).slice(0, 240).join("").trim();
 }
 
 function roundAccuracy(accuracyM: number): number {

@@ -1,28 +1,18 @@
-// The picker as one value and one pure function. No React, no MapLibre, no network.
-//
-//   update(picker, action) -> { picker, emit, focus }
-//
-// The globe, the flat plan and the corner list are three views of `Picker`, and all of them send `Action`s. The two
-// outputs are derived in one function each, never set branch by branch:
-//   emit   `emitted`: a farmer's action left a different field in `outline`. `adopt` never emits.
-//   focus  `focusAfter`: the stage changed, the corner list opened or closed, or typed corners were refused.
-// controller.ts carries a Step out inside the farmer's own event, so onChange runs once per accepted edit, also in
-// React Strict Mode, and never from an effect.
-//
+// The picker as one value and one pure function: update(picker, action) -> { picker, emit, focus }. No React, no
+// MapLibre, no network and no key. The globe, the flat plan and the corner list are three views of one Picker and send
+// the same Actions. A keystroke is not an action, so nothing can be sent while the farmer types.
+// `emit` and `focus` are derived after each transition, never set branch by branch, so a new action cannot forget to
+// emit. controller.ts calls onChange inside the farmer's own event, never from an effect.
 // Invariants (tests/frontend/location/picker.test.ts):
-//  P1 `stage: "marking"` always holds an Outline: the type says so. An edit that would break it is refused. The outline
-//     stays the same object and the note says why, so the map, the plan, the corner list and the parent's value always
-//     show the same valid field.
-//  P2 `emit` is non-null exactly when an action other than adopt left a different field in `outline`, and it equals
-//     fieldOf(outline). Every accepted farmer edit therefore reaches the parent, and nothing else does.
-//  P3 Adopting the field the picker already holds returns the same picker object (no echo, no loop).
-//  P4 "Search again" keeps the outline. The parent keeps it too, until "Mark my field" or typed corners replace it, and
-//     "Back to my field" returns to that same object (Smaller and Bigger still work on a box).
+//  P1 Marking always holds a valid outline. A refused edit keeps the same outline object and the note says why, so the
+//     map, the plan, the corner list and the parent's value always show the same field.
+//  P2 emit is the outline's field exactly when an action other than adopt left a different field there.
+//  P3 Adopting the field the picker already holds returns the same picker, so a parent's echo causes nothing.
+//  P4 "Search again" keeps the outline, and so does the parent, until "Mark my field" or typed corners replace it.
 //  P5 look.seq rises only when the camera should move: adopt, pick, a tap while finding, mark, back, resize, typed.
-//     Dragging, adding or removing a corner never moves the camera.
-//  P6 No action reads the key, a URL or the map. A keystroke in the search box or the corner list is not an action.
+//  P6 No action reads the key, a URL or the map.
 import { boxAround, insertCorner, markOutline, markSaved, moveCorner, removeCorner, sameField, stepSize, withinPolicy } from "./outline";
-import type { BoxSize, Corners, Field, LngLat, Marked, ShapeProblem } from "./outline";
+import type { BoxSize, Corners, Field, LngLat, LookupRule, Marked, MarkResult, ShapeProblem } from "./outline";
 import { labelFor } from "./words";
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -30,8 +20,8 @@ import { labelFor } from "./words";
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * Where the farmer said the farm is. The kind decides the precision words (docs/cards/F2.md:33) and the label.
- * No kind is ever sent to a geocoder: there is no reverse lookup of a tapped, typed, located or saved point.
+ * Where the farmer said the farm is. The kind decides the precision words and the label. No kind is ever sent to a
+ * geocoder: there is no reverse lookup of a tapped, typed, located or saved point.
  */
 export type Place =
   /** A search row: the middle of a named place, from MapTiler. */
@@ -47,7 +37,7 @@ export type Place =
 
 export type FoundPlace = Extract<Place, { readonly kind: "found" }>;
 
-/** Why the phone's location could not be read. views/find.tsx LocatePanel holds this; words.ts says each. */
+/** Why the phone's location could not be read. */
 export type LocateFailure = "denied" | "timeout" | "unavailable" | "unsupported";
 
 /** How the outline on screen came to be. Decides the heading, the tools, what a tap does and the precision sentence. */
@@ -75,7 +65,7 @@ export interface Outline {
 // The rest of the state
 // ---------------------------------------------------------------------------------------------------------------------
 
-/** What the map area is. Reported by views/map.tsx and globe.ts. A plan never turns back into a globe in one visit. */
+/** What the map area is. A plan never turns back into a globe in one visit. */
 export type Surface =
   | { readonly kind: "starting" }
   /** pictures: "none" when no picture source is configured; "failed" when the pictures did not load. */
@@ -83,7 +73,7 @@ export type Surface =
   /** The flat plan stands in: no WebGL2, the WebGL context was lost, or the map could not start. */
   | { readonly kind: "plan"; readonly why: "no_webgl" | "lost" | "failed" };
 
-/** The last thing the picker said. Shown where it belongs and in the live region. The next action clears or replaces it. */
+/** The last thing the picker said. Shown where it belongs and in the live region, until the farmer acts again. */
 export type Note =
   | { readonly kind: "place"; readonly place: Place }
   | { readonly kind: "marked" }
@@ -140,7 +130,7 @@ export type Action =
   | { readonly kind: "insert" }
   /** "Remove corner N". */
   | { readonly kind: "remove"; readonly corner: number }
-  /** "Use these corners": the list, already parsed (coordinates.ts cornersOfRows). */
+  /** "Use these corners": the list, already parsed. */
   | { readonly kind: "typed"; readonly corners: Corners }
   /** "Type the corners" or "Type your field’s corners instead" (true), "Close" (false). */
   | { readonly kind: "list"; readonly open: boolean }
@@ -170,59 +160,176 @@ export interface Step {
 // ---------------------------------------------------------------------------------------------------------------------
 
 /**
- * The picker as it opens.
- *  value null      -> finding, nothing marked, the world in view.
- *  value drawable  -> marking it: markSaved keeps ring, lookup and label exactly; made saved; place { saved }. No emit.
- *  value refused   -> finding with candidate { saved, label, at: lookup } and note saved_unusable: the farmer is told,
- *                     "Mark my field" puts a box where the saved field was, and the parent's value is left alone.
+ * The picker as it opens. A saved value that can be drawn is marked exactly as given and never emitted. One that cannot
+ * be drawn leaves the parent's value alone: its place becomes the candidate, so "Mark my field" puts a box there.
  */
 export function openPicker(value: Field | null): Picker {
-  throw new Error("not implemented");
+  return opened(value, { surface: { kind: "starting" }, listOpen: false }, 0);
 }
 
 /** Every transition, plus the two derived outputs. Pure and total. */
 export function update(picker: Picker, action: Action): Step {
-  const next = transition(picker, action);
+  const changed = transition(picker, action);
+  const next = sameEntries(picker, changed) ? picker : changed;
   return { picker: next, emit: emitted(picker, next, action), focus: focusAfter(picker, next, action) };
 }
 
+type Finding = Extract<Picker, { readonly stage: "finding" }>;
+type Marking = Extract<Picker, { readonly stage: "marking" }>;
+
 /**
- * Pure and total. An action that does not apply in the current stage returns the SAME picker object, so a late or
- * doubled action (Strict Mode, a drag that ends after "Search again") changes nothing.
- *
- *  adopt(null)      finding, no outline, no candidate, look world
- *  adopt(field)     outline and sameField(field, fieldOf(outline)): unchanged (P3). Else as openPicker(field), keeping
- *                   surface and listOpen; look field (or place when the value cannot be drawn)
- *  pick(place)      finding: candidate place, note place, look place
- *  tap(at)          finding: candidate { tapped, at }, note place, look place
- *                   marking a box: box at `at` with the same size, made.on "tap", place kept, note marked
- *                   marking anything else: selected null. A tap never moves corners the farmer placed.
- *  mark             finding with a candidate: box(candidate.at, 1 ha), place candidate, label labelFor(candidate,
- *                   lookup) -> marking, note marked, look field. It replaces the held outline.
- *  back             finding with an outline: marking that same Outline object, candidate dropped, look field
- *  again            marking: finding, the same outline, candidate null. The camera stays.
- *  resize(step)     marking a box: stepSize null -> note size_end (the button is never disabled: it says why);
- *                   else box(lookup, next size), label kept, note marked, look field
- *  select(corner)   marking: selected (out of range -> null)
- *  move             marking: markOutline(moveCorner(corners, corner, to), keep lookup), then withinPolicy
- *  insert           marking: at limits.corners refused too_many; else markOutline(insertCorner(corners, selected),
- *                   keep lookup); selected = the new corner
- *  remove(corner)   marking: at 3 corners refused too_few; else markOutline(removeCorner(...), keep lookup); selected null
- *                   move, insert and remove: ok -> made drawn, label kept, note marked; refused -> note refused "map"
- *  typed(corners)   markOutline(corners, choose), then withinPolicy. ok -> marking { made typed, place = candidate ??
- *                   outline?.place ?? null, label labelFor(place, lookup) }, listOpen false, note typed, look field.
- *                   refused -> note refused "typed", nothing else changes
- *  list(open)       listOpen
- *  surface(s)       surface. A plan stays a plan: a "globe" report after "plan" is dropped.
- *  pictures(state)  globe surface: pictures = state; otherwise unchanged
- * A box is markOutline(boxAround(at, hectares), keep at): its lookup is exactly the place's point or the tap.
- * Every applied action clears `note` unless it sets one.
+ * An action that does not apply in the current stage returns the same picker, so a late or doubled action (Strict
+ * Mode, a drag that ends after "Search again") changes nothing. A farmer's action clears the note unless it sets one.
+ * A surface or pictures report keeps it: the map finishing loading must not hide why the last edit was refused.
  */
 function transition(picker: Picker, action: Action): Picker {
-  throw new Error("not implemented");
-  // TODO: one exhaustive switch on action.kind with a `never` default. It calls only the outline functions imported
-  //       above (boxAround, insertCorner, markOutline, markSaved, moveCorner, removeCorner, stepSize, withinPolicy),
-  //       sameField and labelFor.
+  switch (action.kind) {
+    case "adopt":
+      return adopt(picker, action.field);
+    case "pick":
+      if (picker.stage !== "finding") return picker;
+      return finding(picker, picker.outline, action.place, { kind: "place", place: action.place }, moved(picker, "place"));
+    case "tap":
+      return tap(picker, action.at);
+    case "mark":
+      return picker.stage === "finding" && picker.candidate ? markAt(picker, picker.candidate) : picker;
+    case "back":
+      return picker.stage === "finding" && picker.outline ? marking(picker, picker.outline, null, moved(picker, "field")) : picker;
+    case "again":
+      return picker.stage === "marking" ? finding(picker, picker.outline, null, null, picker.look) : picker;
+    case "resize":
+      return picker.stage === "marking" ? resize(picker, action.step) : picker;
+    case "select":
+      if (picker.stage !== "marking") return picker;
+      return { ...picker, selected: action.corner !== null && holds(picker, action.corner) ? action.corner : null, note: null };
+    case "move":
+      if (picker.stage !== "marking" || !holds(picker, action.corner)) return picker;
+      return drawn(picker, moveCorner(picker.outline.marked.corners, action.corner, action.to), picker.selected);
+    case "insert": {
+      if (picker.stage !== "marking") return picker;
+      const inserted = insertCorner(picker.outline.marked.corners, picker.selected);
+      return drawn(picker, inserted.corners, inserted.index);
+    }
+    case "remove":
+      if (picker.stage !== "marking" || !holds(picker, action.corner)) return picker;
+      return drawn(picker, removeCorner(picker.outline.marked.corners, action.corner), null);
+    case "typed":
+      return typed(picker, action.corners);
+    case "list":
+      return { ...picker, listOpen: action.open, note: null };
+    case "surface":
+      if (picker.surface.kind === "plan" && action.surface.kind !== "plan") return picker;
+      return sameEntries(picker.surface, action.surface) ? picker : { ...picker, surface: action.surface };
+    case "pictures":
+      if (picker.surface.kind !== "globe" || picker.surface.pictures === action.state) return picker;
+      return { ...picker, surface: { kind: "globe", pictures: action.state } };
+  }
+}
+
+function opened(value: Field | null, keep: Pick<Picker, "surface" | "listOpen">, seq: number): Picker {
+  const { surface, listOpen } = keep;
+  if (value === null) {
+    return { surface, listOpen, note: null, look: { seq, at: "world" }, stage: "finding", outline: null, candidate: null };
+  }
+  const place: Place = { kind: "saved", label: value.label, at: value.lookup };
+  const result = markSaved(value);
+  if (!result.ok) {
+    const note: Note = { kind: "saved_unusable", problem: result.problem };
+    return { surface, listOpen, note, look: { seq, at: "place" }, stage: "finding", outline: null, candidate: place };
+  }
+  const outline: Outline = { marked: result.marked, label: value.label, made: { kind: "saved" }, place };
+  return { surface, listOpen, note: null, look: { seq, at: "field" }, stage: "marking", outline, selected: null };
+}
+
+/** A null value drops only what came from a value: the farmer's own new place survives it. */
+function adopt(picker: Picker, field: Field | null): Picker {
+  if (field === null && picker.stage === "finding" && !picker.outline && picker.candidate?.kind !== "saved") return picker;
+  if (field !== null && picker.outline !== null && sameField(field, fieldOf(picker.outline))) return picker;
+  return opened(field, picker, picker.look.seq + 1);
+}
+
+function tap(picker: Picker, at: LngLat): Picker {
+  if (picker.stage === "finding") {
+    const place: Place = { kind: "tapped", at };
+    return finding(picker, picker.outline, place, { kind: "place", place }, moved(picker, "place"));
+  }
+  const { outline } = picker;
+  if (outline.made.kind !== "box") return { ...picker, selected: null, note: null };
+  const made: Made = { ...outline.made, on: "tap" };
+  const result = judged(boxAround(at, outline.made.hectares), { kind: "keep", at });
+  if (!result.ok) return { ...picker, note: refusal("map", result) };
+  const label = labelFor(outline.place, result.marked.lookup);
+  return marking(picker, { ...outline, marked: result.marked, label, made }, { kind: "marked" }, picker.look, null);
+}
+
+function markAt(picker: Finding, place: Place): Picker {
+  const result = judged(boxAround(place.at, 1), { kind: "keep", at: place.at });
+  if (!result.ok) return { ...picker, note: refusal("map", result) };
+  const { marked } = result;
+  const outline: Outline = { marked, label: labelFor(place, marked.lookup), made: { kind: "box", hectares: 1, on: "place" }, place };
+  return marking(picker, outline, { kind: "marked" }, moved(picker, "field"));
+}
+
+/** Smaller and Bigger. At an end the button still answers, in words, instead of being disabled. */
+function resize(picker: Marking, step: -1 | 1): Picker {
+  const { outline } = picker;
+  if (outline.made.kind !== "box") return picker;
+  const hectares = stepSize(outline.made.hectares, step);
+  if (hectares === null) return { ...picker, note: { kind: "size_end", step } };
+  const at = outline.marked.lookup;
+  const result = judged(boxAround(at, hectares), { kind: "keep", at });
+  if (!result.ok) return { ...picker, note: refusal("map", result) };
+  const made: Made = { ...outline.made, hectares };
+  return marking(picker, { ...outline, marked: result.marked, made }, { kind: "marked" }, moved(picker, "field"), picker.selected);
+}
+
+/** A corner moved, added or removed on the map. From then on the corners are the farmer's, so taps and sizes stop. */
+function drawn(picker: Marking, corners: Corners, selected: number | null): Picker {
+  const { outline } = picker;
+  const result = judged(corners, { kind: "keep", at: outline.marked.lookup });
+  if (!result.ok) return { ...picker, note: refusal("map", result) };
+  return marking(picker, { ...outline, marked: result.marked, made: { kind: "drawn" } }, { kind: "marked" }, picker.look, selected);
+}
+
+function typed(picker: Picker, corners: Corners): Picker {
+  const result = judged(corners, { kind: "choose" });
+  if (!result.ok) return { ...picker, note: refusal("typed", result) };
+  const place = picker.stage === "finding" ? picker.candidate ?? picker.outline?.place ?? null : picker.outline.place;
+  const outline: Outline = { marked: result.marked, label: labelFor(place, result.marked.lookup), made: { kind: "typed" }, place };
+  return marking({ ...picker, listOpen: false }, outline, { kind: "typed", corners: corners.length }, moved(picker, "field"));
+}
+
+/** markOutline, then F2's own size policy: every outline the farmer makes goes through both. */
+function judged(corners: Corners, rule: LookupRule): MarkResult {
+  const result = markOutline(corners, rule);
+  if (!result.ok) return result;
+  const problem = withinPolicy(result.marked);
+  return problem ? { ok: false, problem, corner: null } : result;
+}
+
+function refusal(from: "map" | "typed", result: Extract<MarkResult, { ok: false }>): Note {
+  return { kind: "refused", from, problem: result.problem, corner: result.corner };
+}
+
+function finding(from: Picker, outline: Outline | null, candidate: Place | null, note: Note | null, look: Look): Finding {
+  return { surface: from.surface, listOpen: from.listOpen, note, look, stage: "finding", outline, candidate };
+}
+
+function marking(from: Picker, outline: Outline, note: Note | null, look: Look, selected: number | null = null): Marking {
+  return { surface: from.surface, listOpen: from.listOpen, note, look, stage: "marking", outline, selected };
+}
+
+function moved(picker: Picker, at: Look["at"]): Look {
+  return { seq: picker.look.seq + 1, at };
+}
+
+function holds(picker: Marking, corner: number): boolean {
+  return Number.isInteger(corner) && corner >= 0 && corner < picker.outline.marked.corners.length;
+}
+
+function sameEntries<T extends object>(a: T, b: T): boolean {
+  const keys = Object.keys(a) as (keyof T)[];
+  return keys.length === Object.keys(b).length && keys.every(key => Object.is(a[key], b[key]));
 }
 
 /** The emission rule, in one place (P2). */
@@ -232,17 +339,14 @@ function emitted(before: Picker, after: Picker, action: Action): Field | null {
   return before.outline !== null && sameField(field, fieldOf(before.outline)) ? null : field;
 }
 
-/**
- * The focus rule, in one place:
- *  typed accepted, or finding -> marking   "heading"
- *  marking -> finding                      "search"
- *  the list opened                         "list"
- *  the list closed by list(false)          "list_opener"
- *  a new note refused from "typed"         "problem"
- *  anything else                           null (focus stays where the farmer put it, also after adopt)
- */
+/** Focus follows the farmer's place on the page; adopt never moves it. */
 function focusAfter(before: Picker, after: Picker, action: Action): Focus | null {
-  throw new Error("not implemented");
+  if (action.kind === "adopt" || after === before) return null;
+  if (after.note !== before.note && after.note?.kind === "refused" && after.note.from === "typed") return "problem";
+  if (action.kind === "typed" || (before.stage === "finding" && after.stage === "marking")) return "heading";
+  if (before.stage === "marking" && after.stage === "finding") return "search";
+  if (action.kind === "list" && after.listOpen !== before.listOpen) return action.open ? "list" : "list_opener";
+  return null;
 }
 
 /** The wire value of an outline. The only place a FarmInput["field"] is assembled. */
@@ -280,7 +384,11 @@ export interface Scene {
 }
 
 export function sceneOf(picker: Picker): Scene {
-  throw new Error("not implemented");
+  if (picker.stage === "finding") {
+    return { pin: picker.candidate?.at ?? null, outline: null, selected: null, boxFollowsTap: false, look: picker.look };
+  }
+  const { outline } = picker;
+  return { pin: null, outline: outline.marked, selected: picker.selected, boxFollowsTap: outline.made.kind === "box", look: picker.look };
 }
 
 /** A visible explanation. Derived from the state, so a notice can never outlive its cause. */
@@ -298,5 +406,13 @@ export type Notice =
 
 /** Every explanation that applies now, most important first. `keyed`: the provider key is set (provider.ts). */
 export function noticesOf(picker: Picker, keyed: boolean): readonly Notice[] {
-  throw new Error("not implemented");
+  const { surface, note } = picker;
+  const notices: Notice[] = [];
+  if (!keyed) notices.push({ kind: "no_key" });
+  if (surface.kind === "plan") notices.push({ kind: "no_globe", why: surface.why });
+  if (surface.kind === "globe" && surface.pictures === "failed") notices.push({ kind: "no_pictures" });
+  if (note?.kind === "saved_unusable") notices.push({ kind: "saved_unusable", problem: note.problem });
+  if (note?.kind === "refused" && note.from === "map") notices.push({ kind: "refused", problem: note.problem });
+  if (picker.stage === "finding" && picker.outline) notices.push({ kind: "still_marked", label: picker.outline.label });
+  return notices;
 }
