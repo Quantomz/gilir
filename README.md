@@ -1,111 +1,141 @@
 # Gilir
 
-**Plan a year of crops with NASA climate history.**
+**Plan a year of crops, checked against 25 years of NASA weather.**
 
-A crop can fit on a calendar and still face dry weeks at peak water demand.
-Gilir compares crop sequences and planting dates against historical NASA climate records.
-It returns one explained plan or a specific reason it cannot produce one.
-Every selected crop must fit, one at a time, within a year of the chosen start date.
+Gilir is our entry for the **NASA Space Apps Challenge 2026** hackathon, in the challenge
+**[Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/)**.
 
-Built for the 2026 NASA Space Apps Challenge,
-[Field Shift: Adapting Farms with NASA Data](https://www.spaceappschallenge.org/2026/challenges/field-shift-adapting-farms-with-nasa-data/).
+A farmer marks a field, picks the crops for the coming year and says when the field is ready.
+Gilir replays each possible planting calendar against past seasons of NASA rainfall and weather for that place.
+It answers with one planting calendar and the weeks where rain fell short, or with the specific reason it cannot make a plan.
 
-[Watch the phone walkthrough](docs/evidence/F1/flow-360.webm) ·
-[Watch the desktop walkthrough](docs/evidence/F1/flow-1280.webm) ·
-[Inspect calculated results](docs/evidence/I2/released-run.json) ·
-[Run locally](#run-locally)
+[Open the live site](https://gilir-web-production.up.railway.app) ·
+[Watch the real journey on a phone](docs/evidence/I3/demo-360.webm) ·
+[Read a real PDF plan](docs/evidence/I3/hosted-2026-11-15/live-360.pdf) ·
+[See what was verified](#what-is-verified)
 
-![Gilir's desktop crop-selection page with a crop search, four-step progress bar, selected maize, and a Next water button.](docs/evidence/F1/1280-page2-light.png)
+<p>
+  <img src="docs/evidence/I3/hosted-2026-11-15/screenshots/1280-globe-visible.png" width="32%" alt="Step 1 on the live site: a globe drawn with NASA Blue Marble imagery, showing Asia and Australia, with Zoom in and Zoom out buttons.">
+  <img src="docs/evidence/I3/hosted-2026-11-15/screenshots/1280-field-after-drag.png" width="32%" alt="A field outline with four corner handles drawn over satellite imagery, with the map credits for NASA, MapTiler and OpenStreetMap below it.">
+  <img src="docs/evidence/I3/hosted-2026-11-15/screenshots/360-result.png" width="18%" alt="A phone showing a real result: Your plan, with warnings. In past seasons, rain fell short of what the crops need in about 9 in 10 weeks. Rice (paddy), rain only, for the year from May 6, 2027.">
+</p>
 
-*Fixture preview with a synthetic field, released crop list, and mocked jobs.
-The recordings show onboarding and editable history.*
+*The public site on 15 November 2026: the NASA globe, a test field marked over satellite imagery, and a real result on a phone.
+The field is a test box at a public place in Bangkok, not a farm.*
 
-## What works today
+## The problem
 
-The calculator, NASA ingestion, PostgreSQL job service, worker, and four input pages are implemented.
-The current catalogue contains **75 source-reviewed profiles for 40 food-crop purposes**.
-Gilir enforces the release's planting windows as hard constraints. Profiles without a published window remain windowless.
+A crop can fit on the calendar and still meet dry weeks when it needs the most water.
+Rainfall is shifting, and a planting date that worked for a farmer's parents may no longer be the safe one.
+The record that could show this is public, but it comes as decades of daily numbers on a grid, which is no use to a farmer holding a phone in a field.
 
-The [hosted preview](https://gilir-web-production.up.railway.app) serves the current 40-crop catalogue.
-A [live API and worker check](docs/evidence/hosting/current-release.md) completed the Boise bean case
-with a saved plan and rainfall warnings on 15 November 2026.
-Full browser-journey acceptance, map-provider setup, results presentation, and remaining PDF/recovery work
-are separate frontend tasks. The recordings above demonstrate the verified fixture flow.
+Gilir turns that record into one answer a farmer can read: what to plant, when, and what past seasons say to watch.
+
+## What a farmer does
+
+Gilir is built for farmers aged 50 to 80 on low-cost phones in bright sun. There is no account, no sign-in and no landing page: the site opens on the first question.
+
+1. **Where is your farm?** Turn the NASA globe or search for a place, then fit a box to the field. A position can be typed instead, and a list of corners works with no map at all.
+2. **Which crops do you want to grow?** Pick from 40 food crops. Every plan includes every crop picked.
+3. **Where does your water come from?** Rain only, rain plus backup water, or not sure.
+4. **Your rotation.** The day the field is ready, and what grew there in the last 12 months. "I don't remember" is an accepted answer.
+
+Then the farmer taps **Make my plan** and gets one of these:
+
+| Result | What it means |
+| --- | --- |
+| Your plan | A planting calendar for the year that passed every check Gilir could run |
+| Your plan, with warnings | A calendar that fits, with what fell short of a crop's needs in past seasons |
+| We can't make a plan yet | Growing details or weather records are missing for this place or crop, and the page says which |
+| Your crops don't all fit in one year | No calendar fits, and the page says whether the crops need too many days or their planting times collide |
+| We couldn't finish the search | The search hit its limit first. This is not proof that the crops cannot fit |
+| Something went wrong | The service failed. The farmer's answers are kept |
+
+The result stays on the phone and reopens with no connection. It downloads as a PDF with the same plan, warnings and source period.
+Text size and high contrast settings and a read-aloud button are in the top bar, and every step works by keyboard alone.
+
+<img src="docs/evidence/I3/pdf-page-2.png" width="55%" alt="Page 2 of a downloaded PDF plan: a twelve-month timeline with one rice crop planted on December 1 and harvested on April 28, a legend, and the list of periods with their dates and day counts.">
+
+*Page 2 of a real downloaded PDF: the year's timeline and each period with its dates.*
+
+## Where NASA data enters
+
+| NASA data | Fields | What Gilir does with it |
+| --- | --- | --- |
+| [POWER](https://power.larc.nasa.gov/docs/services/api/temporal/daily/) meteorology | `T2M`, `T2M_MIN`, `T2M_MAX`, `RH2M`, `WS2M`, `PS` | Temperature, humidity, wind and pressure for reference evapotranspiration |
+| POWER solar radiation | `ALLSKY_SFC_SW_DWN` | Solar energy for reference evapotranspiration |
+| IMERG precipitation through POWER | `IMERG_PRECTOT` | Daily rainfall, compared with what each crop needs |
+| [GIBS](https://nasa-gibs.github.io/gibs-api-docs/) Blue Marble imagery | Map tiles | The globe a farmer turns to find the farm |
+
+Gilir fetches daily records for the field's grid cell and builds up to 25 past seasons from them. At least 15 complete seasons are required.
+FAO-56 Penman-Monteith gives daily reference evapotranspiration, `ET0`, and released crop coefficients give each crop's demand, `ETc = Kc × ET0`.
+Stage lengths, planting periods and crop coefficients come from [FAO-56 Tables 11 and 12](https://www.fao.org/4/x0490e/x0490e0b.htm).
+For each calendar and each past season, Gilir compares rainfall with crop demand in rolling seven-day windows.
+
+Every result records its sources, units, grid cell, missing days and method versions, and **View details** shows them.
+A field outline does not make NASA's grid finer: every farm in the same cell shares the same records, and the page says so.
+See [POWER's meteorological sources](https://power.larc.nasa.gov/docs/methodology/data/sources_meteorology/) and the [product definitions in the code](src/server/climate/products.ts).
 
 ## How a plan is chosen
 
-The engine freezes crop profiles and weather snapshots for the submitted location, crops,
-start date, water answer, and optional history. It searches calendars that respect planting
-windows and avoid overlap, then replays them against the same historical seasons.
-
-The engine first prefers calendars without environmental flags. It then compares candidates
-in one fixed order, with lower values winning.
+The engine freezes the crop profiles and weather records for the request. It searches calendars that respect each crop's planting period, grow one crop at a time and fit inside one year from the chosen date.
+It prefers calendars without warnings, then compares candidates in one fixed order, lower winning. The farmer does not choose the order.
 
 | Order | What Gilir compares |
 | --- | --- |
-| 1 | Frequency of rainfall falling below estimated demand in rolling seven-day windows |
-| 2 | Average relative size of that shortfall |
+| 1 | How often rain fell below estimated crop demand, in rolling seven-day windows |
+| 2 | The average size of that shortfall |
 | 3 | Days without a planned crop |
-| 4 | Longest gap without a planned crop |
+| 4 | The longest stretch without a planned crop |
 
-If every assessed calendar has environmental flags, Gilir returns a warning plan.
-Missing evidence produces insights without a plan. Calendar conflicts and unfinished searches
-have distinct result states. Bounded search does not establish a global optimum.
+Rainfall is the only water supply in the calculation. Saying there is backup water changes the explanation, never the numbers or the ranking.
+The same request always gives the same result, and there is no language model in the running product.
+A search that stops at its limit does not establish the best possible calendar, and the result says so.
 
-Rainfall is the only modeled water supply. Reporting backup water changes the explanation, not the
-assumed supply or ranking. Calculations and explanations are deterministic, with no runtime LLM.
+## Try it
 
-## Where NASA data enters the calculation
+Open [gilir-web-production.up.railway.app](https://gilir-web-production.up.railway.app). These inputs gave a plan in our checks:
 
-Gilir retrieves daily UTC records through the
-[NASA POWER daily API](https://power.larc.nasa.gov/docs/services/api/temporal/daily/).
+| Place | Crops | Field ready | Result |
+| --- | --- | --- | --- |
+| Madrid, Spain | Radish and Barley (grain) | 1 March 2027 | Plan with warnings: radish from 1 March, barley from 12 April |
+| Bangkok, Thailand | Rice (paddy) | 6 May 2027 | Plan with warnings: rice planted on 1 December |
+| Boise, USA | Common bean (dry grain) | 1 June 2027 | Plan with warnings: beans planted on 1 June |
 
-| NASA data | Fields | Use |
-| --- | --- | --- |
-| POWER meteorology | `T2M`, `T2M_MIN`, `T2M_MAX`, `RH2M`, `WS2M`, `PS` | Temperature, humidity, wind, and pressure for reference evapotranspiration |
-| POWER solar radiation | `ALLSKY_SFC_SW_DWN` | Solar energy for reference evapotranspiration |
-| IMERG precipitation through POWER | `IMERG_PRECTOT` | Rainfall compared with estimated crop demand |
+Growing details are regional, so the place matters. The released catalogue has details for 34 of the 40 crops in Madrid and 28 in Cairo, but for 2 in Bangkok and Java and for none in São Paulo or Sydney.
+Where a picked crop has none, Gilir says so and makes no plan.
 
-FAO-56 Penman-Monteith gives daily reference evapotranspiration, `ET0`.
-Released crop coefficients give estimated demand, `ETc = Kc × ET0`.
-Stage lengths, planting periods, and crop coefficients come from
-[FAO-56 Tables 11 and 12](https://www.fao.org/4/x0490e/x0490e0b.htm).
-Gilir separately assumes seven days to clear and prepare the field after harvest.
-The engine evaluates rolling seven-day rainfall-demand shortfalls across up to 25 historical
-seasons. At least 15 complete seasons are required under the current release policy.
-
-Snapshots retain units, conversions, missingness, native cells, provenance, and available versions.
-Unreported versions remain unavailable. Field outlines do not improve NASA's native grid resolution.
-See [POWER meteorological sources](https://power.larc.nasa.gov/docs/methodology/data/sources_meteorology/)
-and the [implemented product definitions](src/server/climate/products.ts).
-
-## Reproducible results
-
-These direct-engine cases use real recorded NASA observations and release
-`fao56-hard-windows-2026-11-15`. All six had 25 usable seasons and identical hashes on repeat calculation.
-The locations are illustrative, not surveyed farms.
-
-| Case | Observed result |
-| --- | --- |
-| Boise, dry beans | Warning plan. Occupancy runs from 1 June through 8 September 2027. |
-| Madrid, radish and barley | Warning plan. Planting starts on 1 March and 12 April 2027, respectively. |
-| Madrid, wheat and maize | No calendar fit under the released planting windows. |
-| Boise, maize, dry beans, and wheat | No calendar fit. Required durations exceed the one-year horizon. |
-| Bangkok dry beans; Ibadan maize | Missing applicable crop profiles. No plan. |
-
-Both plans respect their planting windows and disclose rainfall-demand mismatch.
-The [science report](docs/evidence/I2/README.md) includes an independent FAO calculation
-that matches Boise's per-season metrics. These checks do not establish harvest success or agronomist approval.
+## What is verified
 
 | Evidence | What it establishes |
 | --- | --- |
-| [Current-release science cases](docs/evidence/I2/README.md) | Six actual-engine cases, repeat hashes, and independent recomputation |
-| [Live runtime acceptance](docs/evidence/I1/README.md) | 28 passing checks with real NASA, HTTP, PostgreSQL, separate workers, restart recovery, and snapshot v2 on the current hard-window release. |
-| [Crop-source review](docs/evidence/E1/README.md) | Published parameters, applicability decisions, withheld rows, and release history |
-| [Climate coverage](docs/evidence/X2/README.md) and [reference calculations](docs/evidence/X3/README.md) | Additional location checks and independent metric examples |
-| [Interface evidence](docs/evidence/F1/README.md) | 51 Chromium fixture cases covering input flows, keyboard controls, and failures |
+| [Hosted acceptance](docs/evidence/I3/hosted.md) | On the public site, 17 browser cases passed at phone and desktop widths on 15 November 2026: the full journey to a real result, reload during planning, a saved result reopened with the server refused, the PDF, keyboard-only use, no WebGL, missing crop evidence, and a refused request |
+| [Assembled journey](docs/evidence/I3/README.md) | The same cases on a local run of the real stack, with screenshots, the downloaded PDFs and a recording |
+| [Live runtime acceptance](docs/evidence/I1/README.md) | 28 checks with real NASA data, HTTP, PostgreSQL, separate workers and restart recovery |
+| [Science cases](docs/evidence/I2/README.md) | Six actual-engine cases on recorded NASA observations, with identical hashes on repeat and an independent FAO calculation that matches Boise's per-season numbers |
+| [Crop-source review](docs/evidence/E1/README.md) | 75 source-reviewed profiles for 40 food crops, with applicability decisions and withheld rows |
+| [Climate coverage](docs/evidence/X2/README.md) and [reference calculations](docs/evidence/X3/README.md) | More locations and independent metric examples |
+| Interface evidence: [input flow](docs/evidence/F1/README.md), [field picker](docs/evidence/F2/README.md), [results](docs/evidence/F3/README.md), [saved work and PDF](docs/evidence/F4/README.md) | Browser runs of each part at 360 and 1280 px, with screenshots |
 
-Runtime and science evidence cover different paths. The [hosted API check](docs/evidence/hosting/current-release.md) adds deployed worker evidence; a complete deployed browser journey remains a separate gate.
+`npm run check` passes with 1,765 tests. The hosted site runs a reviewed, pinned release, so `main` can be ahead of it.
+These checks do not establish harvest success or an agronomist's approval. The test fields are illustrative places, not surveyed farms.
+
+## Limits
+
+- **Past seasons, not a forecast.** A plan compares calendars against history. It does not predict next season or a yield.
+- **Coverage is regional and narrow.** See the counts above. Source review does not establish worldwide agronomic coverage or field validation.
+- **Planting periods are strict.** Each crop may be planted only in the one or two months its source gives. Two crops often cannot both fit in one year: rice and soybean in Bangkok return "don't all fit". In our runs every real plan came back with warnings.
+- **Rain only.** The water check leaves out soil-water storage, runoff, irrigation volumes and the standing water a rice paddy needs.
+- **Heat and cold are not assessed.** Temperature feeds evapotranspiration, but the release has no heat, frost or crop-order rules yet, and the result says "not assessed".
+- **Not measured.** Gilir does not measure soil health or assess pests and weeds. SMAP soil moisture, vegetation imagery and climate projections are not integrated.
+- **English only**, with metric units.
+
+## Privacy
+
+There is no account. The field's corners stay in the browser until the farmer asks for a plan.
+A plan request is anonymous and protected by a random token sent in a header, never in an address.
+The browser deletes its request from the server once it holds the result, and the server's cleanup removes finished requests after 24 hours.
+Map pictures come from NASA and MapTiler, so they can see which area is being viewed, and the page says this beside the map.
 
 ## Run locally
 
@@ -118,8 +148,7 @@ npm ci
 cp .env.example .env
 ```
 
-Edit `.env`. Choose a local `POSTGRES_PASSWORD` and an available `POSTGRES_PORT`.
-Match them in `DATABASE_URL` and `TEST_DATABASE_URL`. Keep credentials out of Git.
+Edit `.env`. Choose a local `POSTGRES_PASSWORD` and an available `POSTGRES_PORT`, and match them in `DATABASE_URL` and `TEST_DATABASE_URL`. Keep credentials out of Git.
 
 ```sh
 docker compose up -d --wait postgres
@@ -127,78 +156,60 @@ npm run migrate
 npm run dev
 ```
 
-In a second terminal, start the worker.
+In a second terminal, start the worker. It needs `WORKER_ID`; the example file's `GILIR_WORKER_ID` does not set it.
 
 ```sh
 WORKER_ID=local-worker npm run worker
 ```
 
-The worker requires `WORKER_ID`; the example file's `GILIR_WORKER_ID` does not set it.
-Open [the fixture lab](http://localhost:3000/dev/fixtures) for onboarding with a seeded field.
-Field selection at `/` is unfinished. The lab uses invented data and is unavailable in production.
+Open [http://localhost:3000](http://localhost:3000) and follow the four steps.
+With no `NEXT_PUBLIC_MAPTILER_KEY`, the globe still shows NASA imagery and the farm is found by typing a position such as `40.4, -3.7`. The key adds place-name search and satellite close-ups.
 
-Replay the science cases against committed NASA snapshots without PostgreSQL or new provider requests.
+Replay the science cases against committed NASA snapshots, with no database and no provider requests:
 
 ```sh
 npx vitest run tests/integration/science
 ```
 
-Run the repository checks and production build.
+Run the repository checks, the production build and the browser journey on fixtures:
 
 ```sh
 npm run check
 npm run build
+npx playwright test -c tests/integration/browser/playwright.config.ts
 ```
 
-Database-backed suites require `TEST_DATABASE_URL`, `B3_TEST_DATABASE_URL`, and
-`I1_TEST_DATABASE_URL` in the process environment. Without them, those suites skip.
-The I1 suites require a dedicated database named `gilir_i1`.
-The [runtime reproduction guide](docs/evidence/I1/README.md#reproduce) describes the separate
-live NASA opt-in and dedicated test database. The build downloads Google Fonts and needs network access.
+The same browser journey runs against the real stack with `I3_LIVE=1`; see the [journey evidence](docs/evidence/I3/README.md).
+Database-backed suites need `TEST_DATABASE_URL`, `B3_TEST_DATABASE_URL` and `I1_TEST_DATABASE_URL`, and skip without them. The I1 suites need a dedicated database named `gilir_i1`; the [runtime guide](docs/evidence/I1/README.md#reproduce) describes it. The build downloads Google Fonts and needs network access.
 
-## Architecture and next steps
+## Architecture
 
 ```mermaid
 flowchart LR
-    API[Next.js API] --> Jobs[PostgreSQL jobs]
+    Browser[Browser: four steps, result, saved copy, PDF] --> API[Next.js API]
+    API --> Jobs[PostgreSQL jobs]
     Jobs --> Worker[Node worker]
     NASA[NASA POWER] --> Cache[Validated climate snapshots]
     Cache --> Worker
     Profiles[Versioned crop profiles] --> Engine[Deterministic engine]
     Worker --> Engine
     Engine --> Result[Plan or explicit no-plan result]
+    Result --> Browser
 ```
 
-React and Tailwind power the interface. Durable jobs outlive HTTP requests.
-Frozen inputs and source identities keep retries reproducible.
-
-The next delivery work is the [field picker](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/2),
-[results screen](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/3),
-[local save and PDF](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/4), and
-[complete browser acceptance](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/13).
-See the [specification](spec.md), [contracts](docs/contracts.md), [build plan](docs/build-plan.md),
-and [contributor instructions](AGENTS.md). Planning documents retain some historical status.
-
-## Limits and responsible interpretation
-
-Historical replay is a planning comparison, not a forecast or yield prediction.
-The rainfall screen excludes soil-water storage, runoff, irrigation volumes, and paddy losses.
-Temperature contributes to `ET0`, but the current release has no operational heat, frost, or
-rotation rules. Heat and frost suitability remain unassessed. Source review does not establish worldwide
-agronomic coverage or field validation.
-
-Gilir does not measure soil health or assess pests and weeds. Soil benefits and farmer outcomes
-need future field evaluation. SMAP, vegetation imagery, and future climate projections are not integrated.
+React and Tailwind draw the interface, MapLibre draws the globe, and the result is stored in the browser's IndexedDB.
+Jobs outlive HTTP requests, and frozen inputs and source identities keep retries reproducible.
+See the [specification](spec.md), [contracts](docs/contracts.md), [build plan](docs/build-plan.md) and [contributor instructions](AGENTS.md). Planning documents keep some historical status.
 
 ## Team and acknowledgments
 
 | Contributor | Work |
 | --- | --- |
-| [@kyusuku](https://github.com/kyusuku) | Backend, NASA ingestion, durable runtime, and deterministic search |
-| [@yslee1106](https://github.com/yslee1106) | Crop registry, climate metrics, and scientific verification |
-| [@Quantomz](https://github.com/Quantomz) | Farmer interface and onboarding |
+| [@kyusuku](https://github.com/kyusuku) | Backend, NASA ingestion, durable runtime, deterministic search and hosting |
+| [@yslee1106](https://github.com/yslee1106) | Crop registry, climate metrics and scientific verification |
+| [@Quantomz](https://github.com/Quantomz) | Farmer interface: field picker, the four steps, results, saved work, PDF and the browser journey tests |
 
-Thanks to NASA POWER, IMERG, and FAO for the cited data and methods.
-Acknowledgment does not imply endorsement. The team used AI-assisted development tools.
+Thanks to NASA POWER, IMERG, GIBS and FAO for the cited data and methods, and to MapTiler and OpenStreetMap contributors for place search and satellite close-ups.
+Acknowledgment does not imply endorsement by NASA or anyone else. The team used AI-assisted development tools.
 
-Code is licensed under [Apache 2.0](LICENSE). Referenced data and publications retain their own terms.
+Code is licensed under [Apache 2.0](LICENSE). Referenced data and publications keep their own terms.
