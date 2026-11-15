@@ -401,9 +401,9 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     const user = userEvent.setup();
     mount(inputFixture.field);
     await screen.findByRole("button", { name: "Zoom in" });
-    expect(globe.scene).toMatchObject({ handles: true });
+    await waitFor(() => expect(globe.scene).toMatchObject({ handles: true }));
     await user.click(screen.getByRole("button", { name: "Search again" }));
-    expect(globe.scene?.handles).toBe(false);
+    await waitFor(() => expect(globe.scene?.handles).toBe(false));
     expect(globe.scene?.outline?.ring).toEqual(inputFixture.field.ring);
   });
 
@@ -437,7 +437,7 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     (await screen.findByRole("button", { name: "Zoom in" })).focus();
     globe.send?.({ kind: "surface", surface: { kind: "plan", why: "lost" } });
     await drawing();
-    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Type the corners of your field" }));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Type the corners of your field" })));
     cleanup();
 
     const again = fakeGlobe();
