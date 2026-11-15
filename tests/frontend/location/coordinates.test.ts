@@ -173,23 +173,49 @@ describe("classifyQuery", () => {
       expect(classifyQuery(typed).kind, typed).toBe("position");
     }
     expect(classifyQuery("lon: 36.07, lat: -0.3")).toEqual({ kind: "position", at: [36.07, -0.3] });
+    for (const typed of ["Lat. -6.326 Long. 108.32", "Lat/Long: -6.326, 108.32", "lat, lng: -6.326, 108.32", "lng/lat: 108.32, -6.326"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at: [108.32, -6.326] });
+    }
+    expect(classifyQuery("lat 6 lon 108")).toEqual({ kind: "position", at: [108, 6] });
   });
 
-  it("[R25] words around two or more decimal numbers or a degree mark never make a name, so a pasted link or a note never reaches the geocoder", () => {
+  it("[R25] one label names the axis of the number it stands before, so a label on the second number does not swap the position", () => {
+    expect(classifyQuery("45.5, lon 9.2")).toEqual({ kind: "position", at: [9.2, 45.5] });
+    expect(classifyQuery("9.2, lat 45.5")).toEqual({ kind: "position", at: [9.2, 45.5] });
+    expect(classifyQuery("-6.326, lon 108.32")).toEqual({ kind: "position", at: [108.32, -6.326] });
+    expect(classifyQuery("lat 6.3, lat 45.5")).toEqual({ kind: "unclear_position" });
+  });
+
+  it("[R25] a position among words, in a map link or after a label is never a name, so it never reaches the geocoder", () => {
     for (const typed of [
       "https://maps.google.com/?q=-6.326,108.32",
+      "https://maps.app.goo.gl/AbC123xYz",
       "geo:-6.326,108.32",
       "my farm -6.326, 108.32",
+      "my farm -6.3, 108",
+      "farm at -6.3 108",
+      "farm 6.326S 108E",
+      "45N 9E farm",
+      "6 19 33 S 108 19 12 E",
+      "farm lat -6.326 lon 108",
+      "Latitude -6.326 and longitude 108.32",
+      "-6.326 dan 108.32",
       "6.326 South, 108.32 East",
       "GPS -6.326 108.32",
       "Farm 6°19' S",
     ]) {
-      expect(classifyQuery(typed).kind, typed).not.toBe("name");
+      expect(classifyQuery(typed).kind, typed).toBe("unclear_position");
     }
   });
 
-  it("[R1] place names that hold a label word or one decimal number stay names", () => {
-    for (const typed of ["Latvia", "Lat Krabang", "Long Beach", "Long Xuyen", "Km 4.5 Ruta 3", "Lon Nol Road"]) {
+  it("[R1] place names with a label word, an ordinal or degree mark, or numbers that are not a position stay names", () => {
+    for (const typed of [
+      "Latvia", "Lat Krabang", "Long Beach", "Long Xuyen", "Km 4.5 Ruta 3", "Lon Nol Road",
+      "1º de Mayo", "1° de Mayo", "Calle 1º de Mayo", "Via 1° Maggio", "Rua 1º de Maio", "Rúa 1º de Maio 12, 3º", "2º Distrito",
+      "Sector 3°", "360° Mall", "45° Parallelo", "Villa 25° Aniversario",
+      "Ruta 3 Km 4.5 a 5.5", "Jl. Raya KM 12,5 No. 3,5", "Calle 12.5 con 3.5", "Mile 12.5 Highway 1.5", "Blok A 1,2 dan 3,4",
+      "Carrera 7 # 12 - 50", "100 N 200 E Provo", "Longitude 131", "Lat 14",
+    ]) {
       expect(classifyQuery(typed), typed).toEqual({ kind: "name", text: typed });
     }
   });

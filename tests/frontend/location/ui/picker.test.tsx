@@ -345,17 +345,39 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     const user = userEvent.setup();
     const { onChange } = mount();
     await drawing();
-    for (const typed of ["lat: -6.326, lon: 108.32", "Latitude -6.326 Longitude 108.32", "lat=-6.326&lon=108.32"]) {
+    const read = [
+      ["lat: -6.326, lon: 108.32", "6.326° S, 108.320° E"],
+      ["Latitude -6.1 Longitude 108.1", "6.100° S, 108.100° E"],
+      ["lat=-6.2&lon=108.2", "6.200° S, 108.200° E"],
+      ["Lat/Long: -6.3, 108.3", "6.300° S, 108.300° E"],
+      ["-6.4, lon 108.4", "6.400° S, 108.400° E"],
+      ["lat 6 lon 108", "6.000° N, 108.000° E"],
+    ] as const;
+    for (const [typed, card] of read) {
       await typePosition(user, typed);
-      expect(await screen.findByRole("button", { name: "Mark my field" })).toBeTruthy();
-      expect(screen.getByText("6.326° S, 108.320° E", { selector: "b" })).toBeTruthy();
+      expect(await screen.findByText(card, { selector: "b" }), typed).toBeTruthy();
     }
-    for (const typed of ["https://maps.google.com/?q=-6.326,108.32", "geo:-6.326,108.32", "my farm -6.326, 108.32", "6.326 South, 108.32 East", "GPS -6.326 108.32"]) {
+    for (const typed of [
+      "https://maps.google.com/?q=-6.326,108.32", "https://maps.app.goo.gl/AbC123xYz", "geo:-6.326,108.32", "my farm -6.326, 108.32",
+      "my farm -6.3, 108", "45N 9E farm", "farm lat -6.326 lon 108", "6.326 South, 108.32 East", "GPS -6.326 108.32",
+    ]) {
       await typePosition(user, typed);
       expect(screen.getByText("We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search."), typed).toBeTruthy();
     }
     expect(fetchCalls).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("[R1] a place name with an ordinal or a kilometre mark is searched by name", async () => {
+    const user = userEvent.setup();
+    mount();
+    await drawing();
+    const names = ["1º de Mayo", "Via 1° Maggio", "Ruta 3 Km 4.5 a 5.5"];
+    for (const typed of names) {
+      await typePosition(user, typed);
+      await screen.findByRole("list", { name: "Places" });
+    }
+    expect(fetchCalls.mock.calls.map((_, call) => decodeURIComponent(requested(call).pathname))).toEqual(names.map(name => `/geocoding/${name}.json`));
   });
 
   it("results show as buttons 'Indramayu' with 'West Java, Indonesia'; the status line says '2 places found. Choose one from the list.'", async () => {

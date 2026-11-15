@@ -76,58 +76,59 @@ export type Query =
   /** Reads like a position but is not two coordinates. Never searched by name, because it may hold the farm's position. */
   | { readonly kind: "unclear_position" };
 
-/** The hemisphere letter after each number ("6.326 S"), or before it ("S 6.326"). Both numbers use the same order. */
-const tokens = [String.raw`${amount}\s*[NSEW]?`, String.raw`[NSEW]\s*${amount}`];
+const labelWord = String.raw`lat(?:itude)?|lng|lon(?:g(?:itude)?)?`;
+const label = String.raw`(?:${labelWord})\.? ?[:=]? ?`;
+const leadingLabel = new RegExp(`^${label}`, "i");
+const axisOfLabel = (word: string): Axis => (word.toLowerCase().startsWith("lat") ? "latitude" : "longitude");
+
 /**
- * Separators, tried in order: ";", a comma followed by a space, a space, then a bare comma or a slash only when a
+ * One number of a pair: a label before it ("lat: -6.326"), then the hemisphere letter after it ("6.326 S") or before
+ * it ("S 6.326").
+ */
+const tokens = [String.raw`(?:${label})?${amount}\s*[NSEW]?`, String.raw`(?:${label})?[NSEW]\s*${amount}`];
+/**
+ * Separators, tried in order: ";", a comma followed by a space, "&", a space, then a bare comma or a slash only when a
  * number has a decimal point or a mark, so "6,326" stays one comma-decimal number. Two bare integers split by a space
  * are a postcode such as "114 55" or "560 001", never a position.
  */
 const separators: readonly { readonly between: string; readonly accepts: (left: string, right: string) => boolean }[] = [
   { between: " ?; ?", accepts: () => true },
   { between: " ?, ", accepts: () => true },
+  { between: " ?& ?", accepts: () => true },
   { between: " ", accepts: (left, right) => !/^\d+$/.test(left) || !/^\d+$/.test(right) },
   { between: ",", accepts: (left, right) => /[.°'"]/.test(left + right) },
   { between: " ?/ ?", accepts: (left, right) => /[.°'"]/.test(left + right) },
 ];
 const pairs = separators.flatMap(({ between, accepts }) =>
   tokens.map(token => ({ pattern: new RegExp(`^(${token})${between}(${token})$`, "i"), accepts })));
+/** The same pairs anywhere in the text, with no letter or digit touching either end. A lookahead, so pairs may overlap. */
+const pairsInside = separators.flatMap(({ between, accepts }) =>
+  tokens.map(token => ({ pattern: new RegExp(String.raw`(?<![\p{L}\p{N}])(?=(${token})${between}(${token})(?![\p{L}\p{N}]))`, "giu"), accepts })));
+const heading = new RegExp(String.raw`^(${labelWord})\.? ?[/,&]? ?(${labelWord})\.? ?[:=]? ?`, "i");
+const labelledNumber = new RegExp(String.raw`(?<!\p{L})${label}[+-]?\d`, "giu");
 
 /**
  * Tells a name from a position. A position is two numbers, latitude first as phone maps copy them ("-6.326, 108.32",
  * "-6.326 108.32", "(-6.326, 108.32)", "6.326 S 108.32 E", "6°19'33.6\"S 108°19'12.0\"E"). With letters either order
- * works ("108.32 E, 6.326 S"), and labels set the order ("lon: 108.32, lat: -6.326").
- * The numbers decide, not the words: two decimal numbers or a degree mark make a position typed some other way (a map
- * link, "my farm -6.326, 108.32"), which is never sent to the geocoder, because that would send it the farm's
- * coordinates. Otherwise a word of three or more letters makes a name ("Route 66", "São Paulo").
+ * works ("108.32 E, 6.326 S"), and labels name the axes ("lon: 108.32, lat: -6.326", "Lat/Long: -6.326, 108.32").
+ * Text that holds a position with other words around it is never sent to the geocoder, because that would send it the
+ * farm's coordinates: see holdsPosition. Otherwise a word of three or more letters makes a name ("Route 66").
  */
 export function classifyQuery(raw: string): Query {
   const text = raw.trim();
   if (Array.from(text).length < 2) return { kind: "short" };
-  const labelled = unlabelled(normalise(text));
-  const bare = labelled.text.replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
-  const pair = pairOf(bare);
-  if (!pair) return looksLikePosition(bare) ? { kind: "unclear_position" } : { kind: "name", text };
-  const axes = axesOf(pair, labelled.first);
-  const [first, second] = pair.map((typed, i) => parseCoord(typed, axes[i]));
-  if (!first.ok) return { kind: "bad_position", axis: axes[0], error: first.error };
-  if (!second.ok) return { kind: "bad_position", axis: axes[1], error: second.error };
-  return { kind: "position", at: axes[0] === "longitude" ? [first.value, second.value] : [second.value, first.value] };
+  const typed = normalise(text).replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
+  const { axes, rest } = underHeading(typed);
+  const pair = pairOf(rest);
+  if (pair) return readPair(pair, axes);
+  return holdsPosition(typed) ? { kind: "unclear_position" } : { kind: "name", text };
 }
 
-const labelPattern = /(?<!\p{L})(lat(?:itude)?|lng|lon(?:g(?:itude)?)?)(?!\p{L}) ?[:=]? ?/giu;
-
-/** "lat: -6.326, lon: 108.32", "Latitude -6.326 Longitude 108.32" and "lat=-6.326&lon=108.32" lose their labels. */
-function unlabelled(text: string): { readonly text: string; readonly first: Axis | null } {
-  const [label] = text.matchAll(labelPattern);
-  if (!label) return { text, first: null };
-  const first: Axis = label[1].toLowerCase().startsWith("lat") ? "latitude" : "longitude";
-  return { text: text.replace(labelPattern, " ").replace(/&/g, " ").replace(/ +/g, " ").trim(), first };
-}
-
-function looksLikePosition(text: string): boolean {
-  if ((text.match(/\d[.,]\d/g) ?? []).length >= 2 || /\d ?°/.test(text)) return true;
-  return !/\p{L}{3,}/u.test(text) && /\d\.\d|\d ?["']/.test(text);
+/** "Lat/Long: -6.326, 108.32": a heading names both axes before the numbers. */
+function underHeading(text: string): { readonly axes: readonly [Axis, Axis] | null; readonly rest: string } {
+  const named = heading.exec(text);
+  if (!named || axisOfLabel(named[1]) === axisOfLabel(named[2])) return { axes: null, rest: text };
+  return { axes: [axisOfLabel(named[1]), axisOfLabel(named[2])], rest: text.slice(named[0].length) };
 }
 
 function pairOf(text: string): readonly [string, string] | null {
@@ -140,15 +141,55 @@ function pairOf(text: string): readonly [string, string] | null {
   return null;
 }
 
-/** The first label decides; else N or S marks a latitude and E or W a longitude; with neither, latitude comes first. */
-function axesOf(pair: readonly [string, string], label: Axis | null): readonly [Axis, Axis] {
-  const axisOf = (typed: string): Axis | null => {
+function readPair(pair: readonly [string, string], order: readonly [Axis, Axis] | null): Query {
+  const axes = order ?? axesOf(pair);
+  if (axes === null) return { kind: "unclear_position" };
+  const [first, second] = pair.map((typed, i) => parseCoord(typed.replace(leadingLabel, ""), axes[i]));
+  if (!first.ok) return { kind: "bad_position", axis: axes[0], error: first.error };
+  if (!second.ok) return { kind: "bad_position", axis: axes[1], error: second.error };
+  return { kind: "position", at: axes[0] === "longitude" ? [first.value, second.value] : [second.value, first.value] };
+}
+
+/**
+ * A label names the axis of its own number; else N or S marks a latitude and E or W a longitude; with neither, latitude
+ * comes first. Two labels for one axis cannot be read.
+ */
+function axesOf(pair: readonly [string, string]): readonly [Axis, Axis] | null {
+  const labels = pair.map(typed => (leadingLabel.test(typed) ? axisOfLabel(typed) : null));
+  if (labels[0] !== null && labels[0] === labels[1]) return null;
+  const [first, second] = pair.map((typed, i): Axis | null => {
     const letter = (/^[a-z]/i.test(typed) ? typed[0] : typed.at(-1) ?? "").toUpperCase();
-    return letters.latitude.includes(letter) ? "latitude" : letters.longitude.includes(letter) ? "longitude" : null;
-  };
-  const [first, second] = label ? [label, null] : pair.map(axisOf);
+    return labels[i] ?? (letters.latitude.includes(letter) ? "latitude" : letters.longitude.includes(letter) ? "longitude" : null);
+  });
   if (first === "longitude" || (first === null && second === "latitude")) return ["longitude", "latitude"];
   return ["latitude", "longitude"];
+}
+
+/**
+ * Text that is not two coordinates alone but holds a position. Ordinals ("1º de Mayo") and kilometre marks ("Ruta 3 Km
+ * 4.5 a 5.5") stay names.
+ */
+function holdsPosition(text: string): boolean {
+  // A link may hold the position, or lead to it.
+  const link = /:\/\/|^(?:geo:|www\.)/i.test(text);
+  const labelled = (text.match(labelledNumber) ?? []).length >= 2;
+  const minutes = /\d ?° ?\d{1,2}(?:[.,]\d+)? ?'/.test(text);
+  // A copied position has 3 or more decimals; a name's distances have fewer.
+  const copied = (text.match(/\d[.,]\d/g) ?? []).length >= 2 && /\d[.,]\d{3}/.test(text);
+  const noWords = !/\p{L}{3,}/u.test(text) && /\d\.\d|\d ?["']/.test(text);
+  return link || labelled || minutes || copied || noWords || pairAmongWords(text);
+}
+
+/**
+ * "my farm -6.3, 108", "45N 9E farm". The pair must read in range and carry a decimal, a mark, a letter or a label, so a
+ * house number and floor ("Rúa 1º de Maio 12, 3º") or a grid address ("100 N 200 E Provo") stays a name.
+ */
+function pairAmongWords(text: string): boolean {
+  return pairsInside.some(({ pattern, accepts }) => [...text.matchAll(pattern)].some(match => {
+    const pair = [match[1].trim(), match[2].trim()] as const;
+    const marked = /\d[.,]\d|['"]|\p{L}/u.test(pair.join(" ")) || pair.every(typed => typed.includes("°"));
+    return accepts(...pair) && marked && readPair(pair, null).kind === "position";
+  }));
 }
 
 /** The text of one row of the corner list. Text, not numbers: a half-typed value must survive a re-render. */
