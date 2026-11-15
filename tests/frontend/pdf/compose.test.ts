@@ -295,6 +295,14 @@ describe("the variants: what the fixtures can't show", () => {
     expect(text).toContain(statusReport);
   });
 
+  it("changedBaseline and frozenLabels, where the new plan ranked ahead, don’t say in How this was worked out that the existing rotation ranks first", () => {
+    for (const name of ["changedBaseline", "frozenLabels"] as const) {
+      const text = textOf(compose(variant(name), britishReader));
+      expect(text, name).toContain("The new plan ranked ahead of last year’s rotation.");
+      expect(text[text.indexOf("How this was worked out") + 1], name).toBe("Synthetic result: the new plan ranks ahead of the existing rotation in this example.");
+    }
+  });
+
   it("changedBaseline: the verdict, every delta read as it is with Not compared for the unavailable one, and all four change kinds", () => {
     const text = textOf(compose(variant("changedBaseline"), britishReader));
     const from = text.indexOf("Compared with last year");

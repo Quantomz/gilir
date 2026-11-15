@@ -300,6 +300,7 @@ const builders: Record<VariantName, () => unknown> = {
       input: { cropPurposeIds: threeCrops },
       plan,
       details: {
+        explanation: "Synthetic result: the new plan ranks ahead of the existing rotation in this example.",
         metrics: [metric("mean_frequency", 0.5, "fraction"), metric("unplanted_days", 145, "days"), metric("crop_family_count", 3, "count"),
           metric("q90_mismatch", 0.3, "fraction"), metric("legume_crop_count", 1, "count")],
         baseline: {
