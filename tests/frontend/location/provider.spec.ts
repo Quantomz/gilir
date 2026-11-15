@@ -11,7 +11,8 @@ import { providerPolicy } from "@/features/location/provider";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
 import {
-  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, settledCentre, shoot,
+  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, openPageOne,
+  settledCentre, shoot,
 } from "./support/slot";
 import type { Point } from "./support/slot";
 
@@ -112,6 +113,7 @@ test("[R3] choosing 'Indramayu' drops the pin and the camera goes there; 'Mark m
   await shoot(page, testInfo, "provider-indramayu-box-360", mapArea(root));
   const field = await expectFieldOnPage(root);
   expect(field.label).toMatch(/^Field near Indramayu, /);
+  await expect(root.getByText(/^The map pictures didn’t load\./)).toHaveCount(0);
 });
 
 test("tapping the map moves the box to the tap; after dragging a corner a tap no longer moves it", async ({ page }) => {
@@ -246,4 +248,21 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
       expect(params).toEqual(request.kind === "gibs" ? [] : ["key"]);
     }
   }
+});
+
+test("[R16] on F1's page 1, from the world view, with NASA's pictures answering and MapTiler's refused (a bad key): 'The map pictures didn’t load. …' shows, and still shows on the marked field", async ({ page }) => {
+  const routes = await routeProviders(page, { ...allAnswer, maptiler: "refused" });
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  await expect.poll(() => routes.of("gibs").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  const notice = root.getByText(/^The map pictures didn’t load\./);
+  await expect(notice).toBeVisible({ timeout: 30_000 });
+  await searchBox(root).fill("-6.326, 108.32");
+  await searchBox(root).press("Enter");
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await page.waitForTimeout(3000);
+  await expect(notice).toBeVisible();
+  expect(routes.of("tilejson").length).toBeGreaterThan(0);
+  expect(routes.of("tile")).toHaveLength(0);
 });

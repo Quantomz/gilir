@@ -35,6 +35,17 @@ async function openLab(page: Page, plan: Partial<ProviderPlan> = {}): Promise<Lo
   return root;
 }
 
+/** Loses the first picker's WebGL context, as a phone's browser does under memory pressure, and gives it back after `restoreMs`. */
+async function loseContext(page: Page, restoreMs: number | null): Promise<void> {
+  await page.evaluate(restore => {
+    const canvas = document.querySelector<HTMLCanvasElement>(".fp canvas.maplibregl-canvas");
+    const lose = canvas?.getContext("webgl2")?.getExtension("WEBGL_lose_context");
+    if (!lose) throw new Error("no WebGL2 context to lose");
+    lose.loseContext();
+    if (restore !== null) setTimeout(() => lose.restoreContext(), restore);
+  }, restoreMs);
+}
+
 async function searchPosition(root: Locator, text: string): Promise<void> {
   await root.getByRole("button", { name: "Search again" }).click();
   const box = root.getByRole("searchbox", { name: "Position of your farm" });
@@ -426,3 +437,44 @@ for (const { textSize, width, height } of textSizes) {
     });
   });
 }
+
+test.describe("the globe on a 360x740 phone", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  test("[R14] when the page comes back to the foreground MapLibre restarts its busy workers, and a lost WebGL context comes back: the globe stays, keeps the field and still draws", async ({ page }) => {
+    const root = await openLab(page);
+    await expect(handles(root)).toHaveCount(4);
+    for (const worker of page.workers()) {
+      void worker.evaluate(() => {
+        const end = Date.now() + 2000;
+        while (Date.now() < end);
+      }).catch(() => undefined);
+    }
+    await page.waitForTimeout(100);
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await page.waitForTimeout(5000);
+    await expect(root).toHaveAttribute("data-surface", "globe");
+
+    await loseContext(page, 500);
+    await page.waitForTimeout(5000);
+    await expect(root).toHaveAttribute("data-surface", "globe");
+    await expect(handles(root)).toHaveCount(4);
+    expect(await lookupOf(root)).toEqual(inputFixture.field.lookup);
+    await mapArea(root).scrollIntoViewIfNeeded();
+    await expect.poll(async () => {
+      const box = (await mapArea(root).boundingBox())!;
+      const [corner, centre] = await pixelsAt(page, [{ x: box.x + 4, y: box.y + box.height - 4 }, { x: box.x + box.width / 2, y: box.y + box.height / 2 }]);
+      return corner.join() !== centre.join();
+    }, { timeout: 10_000 }).toBe(true);
+  });
+
+  test("[R14][R15] a lost WebGL context that does not come back becomes the drawing after a short wait, and focus on 'Zoom in' moves to the corner list's heading", async ({ page }) => {
+    const root = await openLab(page);
+    await root.getByRole("button", { name: "Zoom in" }).focus();
+    await loseContext(page, null);
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 10_000 });
+    await expect(root.getByText(/^The globe stopped working on this phone\./)).toBeVisible();
+    await expect(root.getByRole("heading", { name: "Type the corners of your field" })).toBeFocused();
+    expect(await lookupOf(root)).toEqual(inputFixture.field.lookup);
+  });
+});

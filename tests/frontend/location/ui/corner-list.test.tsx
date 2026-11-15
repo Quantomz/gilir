@@ -424,6 +424,27 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     expect(globe.zoom).toEqual([1, -1]);
   });
 
+  it("[R14][R15] when the globe stops working, focus on 'Zoom in' moves to the corner list's heading; focus in the search box stays there", async () => {
+    const globe = fakeGlobe();
+    const user = userEvent.setup();
+    mount(inputFixture.field);
+    (await screen.findByRole("button", { name: "Zoom in" })).focus();
+    globe.send?.({ kind: "surface", surface: { kind: "plan", why: "lost" } });
+    await drawing();
+    expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Type the corners of your field" }));
+    cleanup();
+
+    const again = fakeGlobe();
+    mount(inputFixture.field);
+    await screen.findByRole("button", { name: "Zoom in" });
+    await user.click(screen.getByRole("button", { name: "Search again" }));
+    const search = screen.getByRole("searchbox");
+    expect(document.activeElement).toBe(search);
+    again.send?.({ kind: "surface", surface: { kind: "plan", why: "lost" } });
+    await drawing();
+    expect(document.activeElement).toBe(search);
+  });
+
   it("[R7] a corner dropped across the opposite side goes back: 'Two sides would cross, so the corner went back.' shows as an alert and onChange is not called", async () => {
     const globe = fakeGlobe();
     const { onChange } = mount(inputFixture.field);

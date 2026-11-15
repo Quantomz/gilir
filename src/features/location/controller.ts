@@ -45,6 +45,9 @@ export function usePicker({ value, onChange }: FieldPickerProps): Controller {
   const send = useCallback((action: Action) => {
     const step = update(current.current, action);
     if (step.picker !== current.current) {
+      // The globe's buttons and canvas leave with it, so focus inside the map goes to the corner list the drawing brings.
+      const leaving = step.picker.surface.kind === "plan" && current.current.surface.kind !== "plan";
+      if (leaving && mapRef.current?.contains(document.activeElement)) wanted.current = "list";
       current.current = step.picker;
       setPicker(step.picker);
     }

@@ -77,6 +77,11 @@ const placeZoom = 7;
 const nearFrom = 5;
 const farUntil = 7;
 const fieldLayer = "field-fill";
+/**
+ * MapLibre reports a lost context and restores it at once when it restarts its workers on a return to the foreground,
+ * and a browser may restore a context it took. Only a context still lost after this long ends the globe.
+ */
+const lostForMs = 3000;
 
 /**
  * Start the globe. Never throws. A failure after the start (the worker or the style does not load) and a lost WebGL
@@ -115,7 +120,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   let alive = true;
   let removed = false;
   let loaded = false;
-  let pictures: "waiting" | "shown" | "failed" = "waiting";
+  let lost: ReturnType<typeof setTimeout> | null = null;
   let latest: Scene | null = null;
   let cameraSeq: number | null = null;
   let drawn: Marked | null = null;
@@ -124,7 +129,9 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   let stale = false;
   let pin: Marker | null = null;
   const handles: Marker[] = [];
-  const pictureIds = new Set(options.pictures.near ? ["far", "near"] : ["far"]);
+  // Per source: NASA's far-out tiles showing must not hide that MapTiler's close-ups were refused.
+  const sources = new Map<string, "waiting" | "shown" | "failed">((options.pictures.near ? ["far", "near"] : ["far"]).map(id => [id, "waiting"]));
+  let pictures: "waiting" | "shown" | "failed" = "waiting";
 
   const report = (action: SurfaceAction) => {
     if (alive) options.send(action);
@@ -133,8 +140,15 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
     report({ kind: "surface", surface: { kind: "plan", why } });
     alive = false;
   };
+  const picturesNow = (id: string, state: "shown" | "failed") => {
+    sources.set(id, state);
+    const now = [...sources.values()].includes("failed") ? "failed" : "shown";
+    if (now === pictures) return;
+    pictures = now;
+    report({ kind: "pictures", state: now });
+  };
 
-  const fieldSource = () => (loaded ? map.getSource<GeoJSONSource>("field") : undefined);
+  const fieldSource = () => (loaded && lost === null ? map.getSource<GeoJSONSource>("field") : undefined);
 
   const moveCamera = (scene: Scene, first: boolean) => {
     const target = cameraFor(scene, map, container);
@@ -170,7 +184,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
 
   const render = () => {
     const scene = latest;
-    if (scene === null || !alive || dragging !== null) return;
+    if (scene === null || !alive || dragging !== null || lost !== null) return;
     map.getCanvas().setAttribute("aria-label", !scene.handles ? mapWords.globe : scene.boxFollowsTap ? mapWords.box : mapWords.corners);
     if (scene.look.seq !== cameraSeq) {
       moveCamera(scene, cameraSeq === null);
@@ -214,23 +228,27 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
     render();
   });
   map.on("sourcedata", event => {
-    if (event.tile && pictureIds.has(event.sourceId) && pictures !== "shown") {
-      pictures = "shown";
-      report({ kind: "pictures", state: "shown" });
-    }
+    if (event.tile && sources.has(event.sourceId) && sources.get(event.sourceId) !== "shown") picturesNow(event.sourceId, "shown");
   });
-  // A missing picture tile never breaks the page. Before the first frame, any other error means the globe cannot work.
+  // A picture source fails only before it has shown a tile of its own. Before the first frame, any other error means the
+  // globe cannot work.
   map.on("error", event => {
     const sourceId: unknown = (event as { sourceId?: unknown }).sourceId;
-    if (typeof sourceId === "string" && pictureIds.has(sourceId)) {
-      if (pictures !== "waiting") return;
-      pictures = "failed";
-      report({ kind: "pictures", state: "failed" });
+    if (typeof sourceId === "string" && sources.has(sourceId)) {
+      if (sources.get(sourceId) === "waiting") picturesNow(sourceId, "failed");
     } else if (!loaded) {
       giveUp("failed");
     }
   });
-  map.on("webglcontextlost", () => giveUp("lost"));
+  map.on("webglcontextlost", () => {
+    lost ??= setTimeout(() => giveUp("lost"), lostForMs);
+  });
+  map.on("webglcontextrestored", () => {
+    if (lost !== null) clearTimeout(lost);
+    lost = null;
+    stale = true;
+    render();
+  });
   map.on("click", event => {
     const target = event.originalEvent.target;
     if (target instanceof Node && handles.some(handle => handle.getElement().contains(target))) return;
@@ -242,6 +260,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
 
   const destroy = () => {
     alive = false;
+    if (lost !== null) clearTimeout(lost);
     if (removed) return;
     removed = true;
     signal.removeEventListener("abort", destroy);
