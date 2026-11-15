@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { paperFor, wrap } from "@/client/pdf/layout";
 import { renderPdf } from "@/client/pdf/render";
 import { pdfText } from "@/client/pdf/text";
@@ -58,15 +58,15 @@ const snapshots: readonly (readonly [string, CompletedSnapshot])[] = [
   ...Object.entries(completedSnapshotsByState),
   ...variantNames.map(name => [name, variant(name)] as const),
 ];
-let laidOut: Promise<readonly { readonly name: string; readonly pdf: ReadPdf }[]> | null = null;
-function everyFile() {
-  laidOut ??= Promise.all(snapshots.flatMap(([name, snapshot]) => readers.map(async reader => ({
+type LaidOut = readonly { readonly name: string; readonly pdf: ReadPdf }[];
+let everyFile: LaidOut = [];
+beforeAll(async () => {
+  everyFile = await Promise.all(snapshots.flatMap(([name, snapshot]) => readers.map(async reader => ({
     name: `${name} ${reader.locale}`,
     pdf: await readPdf(await renderPdf(snapshot, reader)),
   }))));
-  return laidOut;
-}
-const plans = (files: Awaited<ReturnType<typeof everyFile>>) => files.filter(({ pdf }) => pdf.title?.startsWith("Gilir crop plan"));
+}, 120_000);
+const plans = (files: LaidOut) => files.filter(({ pdf }) => pdf.title?.startsWith("Gilir crop plan"));
 
 const faceOf = (run: TextRun) => (run.font === "/Helvetica-Bold" ? "bold" : "regular");
 const isHeading = (run: TextRun) => run.font === "/Helvetica-Bold" && run.size === 17;
@@ -78,7 +78,7 @@ function footerIndex(page: ReadPage): number {
 describe("nothing is clipped", () => {
   it("every text run starts and ends inside the margins, for every fixture and variant, on A4 and Letter", async () => {
     const measure = await helvetica();
-    const files = await everyFile();
+    const files = everyFile;
     expect(files).toHaveLength(2 * (6 + variantNames.length));
     for (const { name, pdf } of files) {
       for (const [index, page] of pdf.pages.entries()) {
@@ -102,7 +102,7 @@ describe("nothing is clipped", () => {
   });
 
   it("no crop name is drawn inside the Timeline group: bars carry row numbers only, and every bar lies inside the track", async () => {
-    const files = plans(await everyFile());
+    const files = plans(everyFile);
     expect(files.length).toBeGreaterThanOrEqual(2 * 10);
     for (const { name, pdf } of files) {
       const runs = pdf.pages.flatMap(page => page.runs);
@@ -125,7 +125,7 @@ describe("nothing is clipped", () => {
 
   it("no tick runs through a row number under the track, even when the year ends in a 7-day bar", async () => {
     const measure = await helvetica();
-    for (const { name, pdf } of plans(await everyFile())) {
+    for (const { name, pdf } of plans(everyFile)) {
       for (const page of pdf.pages) {
         const numbers = page.runs.filter(run => run.inTimeline && run.font === "/Helvetica-Bold" && /^\d+$/.test(run.text));
         const ticks = page.timelineBoxes.filter(box => box.width <= 1);
@@ -137,7 +137,7 @@ describe("nothing is clipped", () => {
         }
       }
     }
-    for (const { name, pdf } of (await everyFile()).filter(file => file.name.startsWith("freeAtYearEnd "))) {
+    for (const { name, pdf } of everyFile.filter(file => file.name.startsWith("freeAtYearEnd "))) {
       const page = pdf.pages.find(item => item.marked.includes("Timeline"))!;
       const last = page.runs.filter(run => run.inTimeline && run.font === "/Helvetica-Bold").map(run => Number(run.text));
       expect(Math.max(...last), `${name}: the after-harvest days at the year's end have a row`).toBe(4);
@@ -154,7 +154,7 @@ describe("nothing is clipped", () => {
   });
 
   it("body text is 14 pt and no run is under 12 pt", async () => {
-    for (const { name, pdf } of await everyFile()) {
+    for (const { name, pdf } of everyFile) {
       const runs = pdf.pages.flatMap(page => page.runs);
       expect([...new Set(runs.map(run => run.size))].sort((a, b) => a - b), name).toEqual(expect.arrayContaining([12, 14, 17, 24]));
       expect(runs.filter(run => ![12, 14, 17, 24].includes(run.size)), name).toEqual([]);
@@ -170,7 +170,7 @@ describe("nothing is clipped", () => {
 describe("page breaks", () => {
   it("the last run above a footer is never a section heading", async () => {
     let pages = 0;
-    for (const { name, pdf } of await everyFile()) {
+    for (const { name, pdf } of everyFile) {
       for (const [index, page] of pdf.pages.entries()) {
         const bodyRuns = page.runs.slice(0, footerIndex(page));
         expect(bodyRuns.length, `${name}, page ${index + 1}`).toBeGreaterThan(0);
@@ -210,7 +210,7 @@ describe("page breaks", () => {
   }, 30_000);
 
   it("manyWarnings and manySources take several pages; each warning's head and the start of its message share a page", async () => {
-    const files = await everyFile();
+    const files = everyFile;
     for (const name of ["manyWarnings", "manySources"]) {
       for (const { pdf } of files.filter(file => file.name.startsWith(`${name} `))) expect(pdf.pages.length, name).toBeGreaterThanOrEqual(4);
     }
@@ -226,14 +226,14 @@ describe("page breaks", () => {
   });
 
   it("the timeline group is whole on one page, and the status box with it", async () => {
-    for (const { name, pdf } of plans(await everyFile())) {
+    for (const { name, pdf } of plans(everyFile)) {
       const withTimeline = pdf.pages.filter(page => page.marked.includes("Timeline"));
       expect(withTimeline, name).toHaveLength(1);
       const [page] = withTimeline;
       expect(page.runs.filter(run => run.inTimeline).length, name).toBeGreaterThan(12);
       expect(page.runs.some(run => run.text === "No planned crop" && run.size === 12), `${name}: the legend sits with its drawing`).toBe(true);
     }
-    for (const { name, pdf } of await everyFile()) {
+    for (const { name, pdf } of everyFile) {
       const first = pdf.pages[0].runs;
       const label = first.findIndex(run => /^(This order passed every check we could run\.|With warnings\.|No plan yet\.|No plan\.|No new plan\.)$/.test(run.text));
       expect(label, name).toBeGreaterThan(-1);
@@ -266,7 +266,7 @@ describe("page breaks", () => {
   });
 
   it("every page ends with the footer and Page n of N, with N the real page count and the synthetic label when there is one", async () => {
-    for (const { name, pdf } of await everyFile()) {
+    for (const { name, pdf } of everyFile) {
       pdf.pages.forEach((page, index) => {
         const footer = page.runs.slice(footerIndex(page)).map(run => run.text);
         expect(footer, `${name}, page ${index + 1}`).toEqual([
@@ -288,7 +288,7 @@ describe("page breaks", () => {
   });
 
   it("runs come in reading order: y never rises within a page except into the footer", async () => {
-    for (const { name, pdf } of await everyFile()) {
+    for (const { name, pdf } of everyFile) {
       for (const [index, page] of pdf.pages.entries()) {
         const rises = page.runs.flatMap((run, at) => at > 0 && run.y > page.runs[at - 1].y + 0.01 ? [`${page.runs[at - 1].text} -> ${run.text}`] : []);
         expect(rises, `${name}, page ${index + 1}`).toEqual([]);

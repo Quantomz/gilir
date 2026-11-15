@@ -537,4 +537,24 @@ describe("paper and preparePdf", () => {
     expect(preparePdf()).toBeUndefined();
     expect((await exportPdf(completedSnapshotsByState.insufficient_data)).type).toBe("application/pdf");
   });
+
+  it("after the PDF code fails to load once (offline before preparePdf), the next export loads it again and returns a PDF", async () => {
+    vi.resetModules();
+    let offline = true;
+    vi.doMock("@/client/pdf/render", async (importOriginal: () => Promise<object>) => {
+      if (offline) throw new TypeError("Failed to fetch dynamically imported module");
+      return importOriginal();
+    });
+    try {
+      const fresh = await import("@/client/pdf");
+      await expect(fresh.exportPdf(completedSnapshotsByState.plan)).rejects.toThrow();
+      offline = false;
+      const blob = await fresh.exportPdf(completedSnapshotsByState.plan);
+      expect(blob.type).toBe("application/pdf");
+      expect(prose(await readPdf(blob))).toContain("Keep last year’s rotation");
+    } finally {
+      vi.doUnmock("@/client/pdf/render");
+      vi.resetModules();
+    }
+  });
 });
