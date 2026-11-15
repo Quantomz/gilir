@@ -75,6 +75,18 @@ const steps = () => within(screen.getByRole("list", { name: "Steps" })).getAllBy
 const main = () => within(screen.getByRole("main"));
 
 describe("Making", () => {
+  it("a note with Undo goes when Making opens, because answers cannot change there", async () => {
+    await open(["hang"]);
+    await press(/I don’t remember/);
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    await press("Make my plan");
+    expect(heading()).toBe("Making your plan");
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+    await press("Cancel");
+    expect(heading()).toBe("Your rotation");
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+  });
+
   it("[J2] accepted saves activeJob at once (storageMock records it) and shows Making your plan", async () => {
     const { plans } = await open(["hang"]);
     await press("Make my plan");

@@ -261,7 +261,7 @@ export function ToastBar(props: { readonly text: string; readonly onUndo: (() =>
     const timer = setTimeout(done, undoable ? policy.toast.undoMs : policy.toast.plainMs);
     return () => clearTimeout(timer);
   }, [hovered, focused, undoable, props.text]);
-  useEdge(box, "--bar-toast");
+  useBelowTopBar(box);
   return (
     <div
       ref={box}
@@ -451,14 +451,14 @@ export class Broken extends Component<{ readonly children: ReactNode }, { readon
 }
 
 /** Keeps the scroll padding in globals.css equal to the bars that stick over the page, so focus never hides under them. */
-function useEdge(ref: RefObject<HTMLElement | null>, edge: "--bar-top" | "--bar-bottom" | "--bar-toast"): void {
+function useEdge(ref: RefObject<HTMLElement | null>, edge: "--bar-top" | "--bar-bottom"): void {
   useEffect(() => {
     const element = ref.current;
     if (!element) return;
     const style = document.documentElement.style;
     const measure = () => {
       const box = element.getBoundingClientRect();
-      style.setProperty(edge, `${Math.round(edge === "--bar-toast" ? box.bottom : box.height)}px`);
+      style.setProperty(edge, `${Math.round(box.height)}px`);
     };
     measure();
     const observer = typeof ResizeObserver === "function" ? new ResizeObserver(measure) : null;
@@ -470,4 +470,36 @@ function useEdge(ref: RefObject<HTMLElement | null>, edge: "--bar-top" | "--bar-
       style.removeProperty(edge);
     };
   }, [ref, edge]);
+}
+
+/**
+ * Keeps the toast just under the top bar. While a notice line above the bar is on screen the bar sits lower than its
+ * own height, so the toast follows the bar's edge on scroll instead of covering the notice. Its own bottom edge
+ * becomes --bar-toast, so focused controls scroll out from under it.
+ */
+function useBelowTopBar(ref: RefObject<HTMLElement | null>): void {
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    const root = document.documentElement.style;
+    let frame = 0;
+    const place = () => {
+      frame = 0;
+      const bar = document.querySelector(".topbar")?.getBoundingClientRect();
+      if (bar) element.style.setProperty("--toast-top", `${Math.max(0, Math.round(bar.bottom))}px`);
+      root.setProperty("--bar-toast", `${Math.round(element.getBoundingClientRect().bottom)}px`);
+    };
+    const schedule = () => {
+      if (frame === 0) frame = requestAnimationFrame(place);
+    };
+    place();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      root.removeProperty("--bar-toast");
+    };
+  }, [ref]);
 }

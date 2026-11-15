@@ -471,7 +471,7 @@
   @media (max-width: 559px) { .notice-in { grid-template-columns: auto minmax(0, 1fr); } .notice-in .btn { grid-column: 2; justify-self: start; } }
   .toast {
     --focus: var(--focus-night);
-    position: fixed; z-index: 75; left: 50%; top: calc(env(safe-area-inset-top, 0px) + var(--bar-top, 3.8rem) + .6rem); transform: translateX(-50%);
+    position: fixed; z-index: 65; left: 50%; top: calc(var(--toast-top, env(safe-area-inset-top, 0px) + var(--bar-top, 3.8rem)) + .6rem); transform: translateX(-50%);
     display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .8rem; width: max-content; max-width: calc(100% - 32px); min-height: 3.2rem; padding: .4rem .5rem .4rem 1.3rem;
     border-radius: var(--r-l); background: var(--panel); color: var(--on-night); border: 1px solid var(--night-2); box-shadow: var(--shadow-pop); font-weight: 700; line-height: 1.3;
   }

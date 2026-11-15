@@ -81,9 +81,11 @@ function reduce(state: State, action: Action): State {
   if (next.flow === state.flow && next.focus === null && next.handOff === null && next.note.kind === "none") return state;
   const seq = state.outbox.seq + 1;
   const outbox = { seq, focus: next.focus, handOff: next.handOff };
+  // Undo is an edit, and answers can be edited only on the input pages, so a note goes when they do.
+  const toast = next.flow.mode.kind === "editing" ? state.toast : null;
   const words = noteWords(next.note, namesFrom(readyCatalogue(next.flow.catalogue), next.flow.editor.draft));
-  if (words === null) return { ...state, flow: next.flow, outbox, said: makingSaid(state.flow, next.flow) ?? state.said };
-  if (words.polite) return { ...state, flow: next.flow, outbox, said: words.text };
+  if (words === null) return { ...state, flow: next.flow, outbox, toast, said: makingSaid(state.flow, next.flow) ?? state.said };
+  if (words.polite) return { ...state, flow: next.flow, outbox, toast, said: words.text };
   return { flow: next.flow, outbox, said: shell.toastSaid(words.text, words.undo), toast: { id: seq, text: words.text, undo: undoOf(next.note) } };
 }
 
