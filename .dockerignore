@@ -12,5 +12,6 @@ test-results
 playwright-report
 *.tsbuildinfo
 docs
+scripts/models
 tests
 *.log
