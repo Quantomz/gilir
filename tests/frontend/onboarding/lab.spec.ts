@@ -127,6 +127,46 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expect(page.getByText("Synthetic crop stays inside the 12 months shown.", { exact: true })).toBeVisible();
     });
 
+    test("[H4] a drag that stops at the edge keeps a note that still offers Undo and says the stop on the status line", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      await app(page).getByRole("button", { name: /^The field was empty then\b/ }).click();
+      const undo = page.getByRole("button", { name: "Undo", exact: true });
+      await expect(undo).toBeVisible();
+      await dragHandle(page, plantingDay(page), -60);
+      await expect(plantingDay(page)).toHaveAttribute("aria-valuenow", "0");
+      await expect(page.getByRole("status").filter({ hasText: "Synthetic crop stays inside the 12 months shown." })).toHaveCount(1);
+      await expect(undo).toBeVisible();
+    });
+
+    test("[G2][G4] typing one digit too many in the year never clears the field-ready date; the four-digit year it becomes is flagged", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      const input = app(page).getByRole("textbox", { name: "When is your field ready to plant?" });
+      await input.focus();
+      await page.keyboard.type("07012027");
+      await expect(input).toHaveValue("2027-07-01");
+      await page.keyboard.type("5");
+      await expect(input).not.toHaveValue("");
+      await expect(app(page).locator(".ly-window")).toBeVisible();
+      await expect(app(page).getByText("This date has passed. Is the year right?")).toBeVisible();
+    });
+
+    test("[G2] a half-typed year leaves no field-ready date, so Make my plan sends nothing and asks for the date", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      const input = app(page).getByRole("textbox", { name: "When is your field ready to plant?" });
+      await input.focus();
+      await page.keyboard.press("ArrowRight");
+      await page.keyboard.press("ArrowRight");
+      await page.keyboard.press("Backspace");
+      expect(await input.evaluate(element => (element as HTMLInputElement).validity.badInput)).toBe(true);
+      await expect(app(page).locator(".ly-window")).toHaveCount(0);
+      await button(page, "Make my plan").click();
+      await expect(title(page, "Your rotation")).toBeVisible();
+      await expect(app(page).getByRole("region", { name: "When is your field ready to plant?" }).getByText("Choose the date your field is ready.")).toBeVisible();
+    });
+
     test("[H3] drags the bar body to move it; the lane dates change and keep the length", async ({ page }) => {
       await openLab(page);
       await toRotation(page);
@@ -260,7 +300,7 @@ test.describe("the Text size sheet on a small phone at Largest", () => {
     });
   }
 
-  test("[L2] a Not sure sheet too tall for 320x568 opens on its title, in view; at 360x740 Normal it opens on its main action", async ({ page }) => {
+  test("[L2] a Not sure sheet too tall for 320x568 and 360x640 at Largest opens on its title, in view, and Shift+Tab stays inside; at 360x740 Normal it opens on its main action", async ({ page }) => {
     const openGap = async () => {
       await openLab(page);
       await toRotation(page);
@@ -271,12 +311,16 @@ test.describe("the Text size sheet on a small phone at Largest", () => {
     await page.setViewportSize({ width: 360, height: 740 });
     await expect((await openGap()).getByRole("button", { name: "The field was empty then" })).toBeFocused();
 
-    await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => localStorage.setItem("gilir.reading", JSON.stringify({ textSize: "largest", highContrast: false })));
-    const sheet = await openGap();
-    const heading = sheet.getByRole("heading", { level: 2 });
-    await expect(heading).toBeFocused();
-    expect(await sheet.evaluate(element => element.scrollTop)).toBe(0);
-    await expect(heading).toBeInViewport({ ratio: 1 });
+    for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 640 }]) {
+      await page.setViewportSize(viewport);
+      const sheet = await openGap();
+      const heading = sheet.getByRole("heading", { level: 2 });
+      await expect(heading).toBeFocused();
+      expect(await sheet.evaluate(element => element.scrollTop)).toBe(0);
+      await expect(heading).toBeInViewport({ ratio: 1 });
+      await page.keyboard.press("Shift+Tab");
+      await expect(sheet.getByRole("button").last()).toBeFocused();
+    }
   });
 });

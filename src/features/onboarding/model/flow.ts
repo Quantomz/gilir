@@ -21,7 +21,7 @@ export type Progress = "queued" | "fetching" | "calculating";
 export interface TrackedJob {
   readonly capability: JobCapability;
   readonly progress: Progress;
-  /** False after policy.poll.unreachableAfter retryable read failures in a row. Making says it keeps trying. */
+  /** False after policy.poll.unreachableAfter read failures in a row. Making says it keeps trying. */
   readonly reachable: boolean;
 }
 
@@ -41,7 +41,7 @@ export type Mode =
   | { readonly kind: "opening" }
   | { readonly kind: "editing"; readonly step: Step; readonly asked: boolean; readonly send: Send; readonly job: TrackedJob | null }
   | { readonly kind: "making"; readonly job: TrackedJob }
-  | { readonly kind: "failed"; readonly failure: ServiceFailure };
+  | { readonly kind: "failed"; readonly failure: ServiceFailure; readonly sending: boolean };
 
 type Editing = Extract<Mode, { readonly kind: "editing" }>;
 
@@ -58,7 +58,7 @@ export type CatalogueEntry = Catalogue["entries"][number];
 export interface Notices {
   /** A load or save failed this visit. */
   readonly storageFailing: boolean;
-  /** Change inputs found newer, different answers saved, and kept them. */
+  /** Change inputs found answers changed after that plan was made, and kept them. */
   readonly keptNewer: boolean;
 }
 
@@ -69,9 +69,16 @@ export type Sheet =
   | { readonly kind: "gap"; readonly gap: Span }                                      // Not sure: {range}
   | { readonly kind: "empty"; readonly entryId: string };                             // Empty: {range}
 
+/** The answers on screen when this page load last handed a plan to Results. Only these can be newer than that plan. */
+export interface Shown {
+  readonly draft: Draft;
+  readonly step: Step;
+}
+
 /** Every control focus can be sent to. One list. Views take their DOM ids from `domIdOf`. */
 export type FocusTarget =
   | { readonly kind: "title" }
+  | { readonly kind: "sheetTitle" }
   | { readonly kind: "summary" }                    // "Fix these first"
   | { readonly kind: "submitPanel" }
   | { readonly kind: "pageIssues"; readonly page: Step }
@@ -92,7 +99,7 @@ export interface Flow {
   readonly check: boolean;
   readonly serverIssues: readonly PinnedIssue[];
   readonly sheet: Sheet | null;
-  /** The snapshot saved before this visit, for "Open my earlier plan" on the failed screen. */
+  /** The plan saved before this visit, for "Open my earlier plan" on the failed screen. Never a service_error. */
   readonly earlierPlan: CompletedSnapshot | null;
   readonly notices: Notices;
   /** Notices the farmer closed. They stay closed for the rest of the visit. */
@@ -102,8 +109,9 @@ export interface Flow {
 }
 
 export type Msg =
-  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null }
-  | { readonly kind: "catalogue"; readonly state: CatalogueState }
+  // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
+  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly shown: Shown | null; readonly focusTitle: boolean }
+  | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean }
   | { readonly kind: "storage"; readonly health: "working" | "failing" }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
   | { readonly kind: "edit"; readonly edit: DraftEdit }
@@ -154,21 +162,24 @@ const previousStep: Record<2 | 3 | 4, Step> = { 2: 1, 3: 2, 4: 3 };
 /**
  * The entry rule. Pure, so every row is a table test.
  *  1. saved.activeJob                          -> making (progress "queued" until the first read), whatever else is saved
- *  2. saved.snapshot && initialInput === null  -> handOff = snapshot (the controller calls onCompleted once)
+ *  2. saved.snapshot && initialInput === null  -> handOff = snapshot (the controller calls onCompleted once), except
+ *       a service_error with a saved draft that has answers -> that draft at its saved step, to try again
  *  3. initialInput !== null (Change inputs, the fixture lab):
- *       a saved draft with answers that differ  -> that draft at its saved step, notices.keptNewer
- *       otherwise                               -> step 1 with draftOf(initialInput)
+ *       `shown` with answers that differ        -> those answers at their step, notices.keptNewer
+ *       otherwise                               -> step 1 with draftOf(initialInput). The saved draft is never
+ *                                                  newer: it can predate a visit whose writes were skipped.
  *  4. a saved draft with answers               -> that draft at clampStep(saved.step)
  *  5. otherwise (nothing saved, or load threw) -> step 1, empty
- * earlierPlan is saved.snapshot in every row.
+ * earlierPlan is saved.snapshot in every row, unless it is a service_error, which is no plan.
  */
-export function openFlow(saved: LocalState | null, initialInput: FarmInput | null): {
+export function openFlow(saved: LocalState | null, initialInput: FarmInput | null, shown: Shown | null = null): {
   readonly flow: Flow;
   readonly handOff: CompletedSnapshot | null;
 } {
   const savedDraft = saved?.draft ? normalizeDraft(saved.draft) : {};
   const savedStep = clampStep(saved?.step ?? 1);
-  const base: Flow = { ...openingFlow, earlierPlan: saved?.snapshot ?? null };
+  const plan = saved?.snapshot?.result.state === "service_error" ? null : (saved?.snapshot ?? null);
+  const base: Flow = { ...openingFlow, earlierPlan: plan };
   const editing = (draft: Draft, step: Step, keptNewer = false): Flow =>
     ({ ...base, mode: { kind: "editing", step, asked: false, send: idle, job: null }, editor: { draft, setAside: null }, notices: { ...base.notices, keptNewer } });
 
@@ -177,11 +188,13 @@ export function openFlow(saved: LocalState | null, initialInput: FarmInput | nul
     const job: TrackedJob = { capability: saved.activeJob, progress: "queued", reachable: true };
     return { flow: { ...base, mode: { kind: "making", job }, editor: { draft, setAside: null } }, handOff: null };
   }
-  if (saved?.snapshot && initialInput === null) return { flow: editing(savedDraft, savedStep), handOff: saved.snapshot };
+  if (saved?.snapshot && initialInput === null && (plan !== null || !hasAnswers(savedDraft))) {
+    return { flow: editing(savedDraft, savedStep), handOff: saved.snapshot };
+  }
   if (initialInput !== null) {
     const seeded = draftOf(initialInput);
-    const newer = hasAnswers(savedDraft) && !sameAnswers(savedDraft, seeded);
-    return { flow: newer ? editing(savedDraft, savedStep, true) : editing(seeded, 1), handOff: null };
+    const newer = shown !== null && hasAnswers(shown.draft) && !sameAnswers(shown.draft, seeded);
+    return { flow: newer ? editing(shown.draft, shown.step, true) : editing(seeded, 1), handOff: null };
   }
   return { flow: hasAnswers(savedDraft) ? editing(savedDraft, savedStep) : editing({}, 1), handOff: null };
 }
@@ -203,13 +216,18 @@ export function update(flow: Flow, msg: Msg): Update {
   switch (msg.kind) {
     case "opened": {
       if (mode.kind !== "opening") return same;
-      const opened = openFlow(msg.saved, msg.initialInput);
+      const opened = openFlow(msg.saved, msg.initialInput, msg.shown);
       const notices = { ...opened.flow.notices, storageFailing: flow.notices.storageFailing };
-      return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, null, quiet, opened.handOff);
+      return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, msg.focusTitle ? title : null, quiet, opened.handOff);
     }
 
-    case "catalogue":
-      return out({ ...flow, catalogue: msg.state });
+    case "catalogue": {
+      const next = { ...flow, catalogue: msg.state };
+      if (!msg.retried) return out(next);
+      // Try again is replaced by the loading line, so focus goes to a title that stays.
+      if (msg.state.status === "loading") return out(next, flow.sheet?.kind === "add" ? { kind: "sheetTitle" } : title);
+      return out(next, null, { kind: "listRetried", loaded: msg.state.status === "ready" });
+    }
 
     case "storage":
       if (msg.health === "working" || flow.notices.storageFailing || flow.dismissed.includes("storageFailing")) return same;
@@ -262,7 +280,8 @@ export function update(flow: Flow, msg: Msg): Update {
       return same;
 
     case "sending":
-      return mode.kind === "editing" ? out({ ...flow, mode: { ...mode, send: { kind: "sending" } } }) : same;
+      if (mode.kind === "editing") return out({ ...flow, mode: { ...mode, send: { kind: "sending" } } });
+      return mode.kind === "failed" ? out({ ...flow, mode: { ...mode, sending: true } }) : same;
 
     case "submitted": {
       const submission = msg.submission;
@@ -290,7 +309,7 @@ export function update(flow: Flow, msg: Msg): Update {
 
     case "jobFailed":
       if (!forJob(msg.jobId)) return same;
-      return out({ ...flow, mode: { kind: "failed", failure: msg.failure }, sheet: null }, title);
+      return out({ ...flow, mode: { kind: "failed", failure: msg.failure, sending: false }, sheet: null }, title);
 
     case "jobDone":
       if (forJob(msg.jobId)) return out(onStep(flow, editingAt(4, null)), title);
@@ -299,7 +318,8 @@ export function update(flow: Flow, msg: Msg): Update {
 
     case "showMaking":
       if (mode.kind !== "editing" || mode.job === null) return same;
-      return out({ ...flow, mode: { kind: "making", job: mode.job }, sheet: null }, title);
+      // Making starts a new watch, which reports only a change from reachable.
+      return out({ ...flow, mode: { kind: "making", job: { ...mode.job, reachable: true } }, sheet: null }, title);
 
     case "cancel":
       return mode.kind === "making" ? out(onStep(flow, editingAt(4, null)), title) : same;
@@ -372,6 +392,7 @@ export function clampStep(raw: number): Step {
 export function domIdOf(target: FocusTarget): string {
   switch (target.kind) {
     case "title": return "main-title";
+    case "sheetTitle": return "sheet-title";
     case "summary": return "err-sum";
     case "submitPanel": return "submit-fail";
     case "pageIssues": return `issues-p${target.page}`;

@@ -41,13 +41,13 @@ interface Opened {
 }
 
 /** Opens with `saved` in storage: a draft at page 4 by default, or a running job. */
-async function open(read: readonly Read[], options: { readonly saved?: Partial<LocalState>; readonly mode?: "ok" | "saveThrows"; readonly submit?: readonly JobCapability[] } = {}): Promise<Opened> {
+async function open(read: readonly Read[], options: { readonly saved?: Partial<LocalState>; readonly mode?: "ok" | "saveThrows"; readonly submit?: readonly (JobCapability | "hang")[] } = {}): Promise<Opened> {
   vi.useFakeTimers();
   const plans = memoryPlans({ draft: answers, step: 4, activeJob: null, snapshot: null, ...options.saved }, options.mode);
   live.plans = plans;
   const client = scriptedClient({
     catalogue: syntheticRegistryFixture.catalogue,
-    submit: (options.submit ?? [capability]).map(job => ({ kind: "accepted", capability: job })),
+    submit: (options.submit ?? [capability]).map(job => (job === "hang" ? job : { kind: "accepted", capability: job })),
     read,
   });
   const savedAtCompletion: (LocalState | null)[] = [];
@@ -134,6 +134,18 @@ describe("Making", () => {
     expect(status()).toBe(reaching);
     expect(heading()).toBe("Making your plan");
     await advance(10000);
+    expect(client.reads).toHaveLength(4);
+    expect(main().queryByText(reaching)).toBeNull();
+    expect(status()).toBe("Step 2 of 3: Getting NASA weather records for your area.");
+  });
+
+  it("[K6] after three failed reads, Back and See how it’s going, the first good read shows no note and says the step", async () => {
+    const { client } = await open([{ reject: down }, { reject: down }, { reject: down }, "fetching", "hang"]);
+    await press("Make my plan");
+    await advance(7500);
+    expect(main().getByText(reaching)).toBeTruthy();
+    await press("Back");
+    await press("See how it’s going");
     expect(client.reads).toHaveLength(4);
     expect(main().queryByText(reaching)).toBeNull();
     expect(status()).toBe("Step 2 of 3: Getting NASA weather records for your area.");
@@ -292,6 +304,17 @@ describe("the failed screen", () => {
     expect(retried.plans.latest()?.activeJob).toEqual(second);
   });
 
+  it("[J6] Try again shows the busy button page 4 shows while the answers are sent, and a second tap sends nothing", async () => {
+    const { client } = await open(["failed"], { submit: [capability, "hang"] });
+    await press("Make my plan");
+    await press("Try again");
+    const busy = screen.getByRole("button", { name: "Sending your answers…" });
+    expect(busy.getAttribute("aria-busy")).toBe("true");
+    expect(busy.querySelector(".spinner")).not.toBeNull();
+    await press("Sending your answers…");
+    expect(client.submitted).toHaveLength(2);
+  });
+
   it("Open my earlier plan, made {local date} shows only when a plan was saved before, and calls onCompleted with it", async () => {
     const without = await open([{ reject: expired }], { saved: restoring });
     expect(heading()).toBe("This plan request has expired");
@@ -303,6 +326,12 @@ describe("the failed screen", () => {
     await press(`Open my earlier plan, made ${made}`);
     expect(withEarlier.onCompleted).toHaveBeenCalledTimes(1);
     expect(withEarlier.onCompleted).toHaveBeenCalledWith(completedSnapshotFixture);
+  });
+
+  it("[B6] a saved service_error is no plan, so the failed screen never offers it as the earlier plan", async () => {
+    await open([{ reject: expired }], { saved: { ...restoring, snapshot: completedSnapshotsByState.service_error } });
+    expect(heading()).toBe("This plan request has expired");
+    expect(screen.queryByRole("button", { name: /^Open my earlier plan/ })).toBeNull();
   });
 });
 

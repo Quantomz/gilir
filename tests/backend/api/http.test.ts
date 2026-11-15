@@ -98,7 +98,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("HTTP planning API over PostgreS
     expect((await pool.query("SELECT count(*)::int AS count FROM jobs")).rows[0].count).toBe(0);
   });
 
-  test("persists immutable input and frozen identity and reads a four-component result over HTTP", async () => {
+  test.each([1, 2])("persists immutable input and frozen identity and reads a version %i four-component result over HTTP", async schemaVersion => {
     api = createPlanApi({ store, readRegistry: () => syntheticRegistryFixture, dataCutoff: frozenRunFixture.manifest.dataCutoff });
     const client = createPlannerClient({ baseUrl: base });
     const submitted = await client.submit(inputFixture);
@@ -118,9 +118,14 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("HTTP planning API over PostgreS
       ...resultFixtures.plan.details,
       provenance: { ...resultFixtures.plan.details.provenance, manifest: { kind: "available", value: run.manifest } },
     } });
-    expect(await store.complete(claimed.lease, result, now)).toBe(true);
+    if (schemaVersion === 2) {
+      expect(await store.complete(claimed.lease, { result, catalogue: syntheticRegistryFixture.catalogue }, now)).toBe(true);
+    } else {
+      const legacy = { schemaVersion, id: submitted.capability.jobId, completedAt: now, input: inputFixture, result };
+      await pool.query("UPDATE jobs SET state = 'completed', snapshot = $2::jsonb, terminal_at = $3::timestamptz, lease_owner = NULL, lease_id = NULL, lease_expires_at = NULL WHERE id = $1", [submitted.capability.jobId, JSON.stringify(legacy), now]);
+    }
     const state = await client.read(submitted.capability);
-    expect(state).toMatchObject({ state: "completed", snapshot: { input: inputFixture, result } });
+    expect(state).toMatchObject({ state: "completed", snapshot: { schemaVersion, input: inputFixture, result } });
     if (state.state !== "completed" || state.snapshot.result.state !== "plan") throw new Error("Expected a completed fixture plan.");
     expect(state.snapshot.result.plan.rankingTuple.components).toHaveLength(4);
     await expect(pool.query("UPDATE jobs SET input = '{}'::jsonb WHERE id = $1", [submitted.capability.jobId])).rejects.toThrow("immutable");

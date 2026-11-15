@@ -18,6 +18,7 @@ it("persists a sanitized partial failure through the Vitest entrypoint", async (
     const bytes = await readFile(path, "utf8");
     expect(JSON.parse(bytes)).toEqual(report);
     expect(report).toMatchObject({ status: "FAILED", exitCode: 1, caseId: "boise-dry-bean-june", expectedState: "plan_with_warnings", failure: { stage: "database", code: "execution_failed" }, cleanup: { processesStopped: true, schemaRemoved: true } });
+    expect(report.checks.expectedRelease).toEqual({ catalogueVersion: "fao56-hard-windows-2026-11-15", ruleVersion: "no-rules-2026-11-14", profileId: "common-bean-dry-fao56-idaho-jun", profileVersion: "reviewed-2026-11-15.2", plantingWindow: { start: "2027-06-01", endInclusive: "2027-06-30" } });
     expect(report.codeIdentity?.commit).toMatch(/^[a-f0-9]{40}$/);
     expect(bytes).not.toContain(secret);
     expect(bytes).not.toContain("ZodError");

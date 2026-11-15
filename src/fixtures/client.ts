@@ -3,7 +3,7 @@ import { jobFixtures } from "./results";
 import { syntheticRegistryFixture } from "./science";
 
 export function makeFixtureClient(state: JobState = jobFixtures.completed): PlannerClient {
-  const capability = { jobId: "synthetic-job", token: "synthetic-local-fixture-token" };
+  const capability = { jobId: "00000000-0000-4000-8000-000000000001", token: "synthetic-local-fixture-token" };
   const matches = (provided: typeof capability) => provided.jobId === capability.jobId && provided.token === capability.token;
   let exists = false;
   return {

@@ -86,7 +86,8 @@ export type EditNote =
   | { readonly kind: "datesSaved"; readonly entryId: string }
   | { readonly kind: "datesRefused"; readonly problem: DatesProblem }
   | { readonly kind: "setAside"; readonly choice: "empty" | "skipped"; readonly undo: DraftEdit }
-  | { readonly kind: "needDate" };                                          // "empty all year" before a date
+  | { readonly kind: "needDate" }                                           // "empty all year" before a date
+  | { readonly kind: "listRetried"; readonly loaded: boolean };            // Try again on the crop list settled
 
 export interface EditResult {
   readonly editor: Editor;

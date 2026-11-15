@@ -36,7 +36,6 @@ export function watchJob(
   let reported: Progress | null = null;
   let reachable = true;
   let failuresInARow = 0;
-  let retryableInARow = 0;
   let unknownInARow = 0;
 
   const stop = () => {
@@ -61,7 +60,6 @@ export function watchJob(
 
   const read = (state: JobState) => {
     failuresInARow = 0;
-    retryableInARow = 0;
     unknownInARow = 0;
     setReachable(true);
     if (state.state === "completed") return end({ kind: "completed", snapshot: state.snapshot });
@@ -77,15 +75,10 @@ export function watchJob(
     const failure = classifyReadError(error);
     if (failure.kind === "terminal") return end({ kind: "failed", failure: failure.failure });
     failuresInARow += 1;
-    if (failure.kind === "unknown") {
-      retryableInARow = 0;
-      unknownInARow += 1;
-      if (unknownInARow >= timing.unknownStrikes) return end({ kind: "failed", failure: unreadable });
-    } else {
-      unknownInARow = 0;
-      retryableInARow += 1;
-      if (retryableInARow >= timing.unreachableAfter) setReachable(false);
-    }
+    unknownInARow = failure.kind === "unknown" ? unknownInARow + 1 : 0;
+    if (unknownInARow >= timing.unknownStrikes) return end({ kind: "failed", failure: unreadable });
+    // An answer that is not the planner's (a captive portal's page) also means the planner is out of reach.
+    if (failuresInARow >= timing.unreachableAfter) setReachable(false);
     later(pollDelay({ failuresInARow, last: failure }, timing));
   };
 

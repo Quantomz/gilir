@@ -1,0 +1,44 @@
+[
+  {
+    "timestamp": "2026-11-15T07:46:39.228903372Z",
+    "severity": "info",
+    "message": "",
+    "attributes": [
+      {
+        "key": "level",
+        "value": "\"info\""
+      },
+      {
+        "key": "event",
+        "value": "\"worker_ready\""
+      },
+      {
+        "key": "workerId",
+        "value": "\"e8ca63d6-8300-421d-842c-8a5a6e025c5c\""
+      }
+    ]
+  },
+  {
+    "timestamp": "2026-11-15T07:48:19.470247780Z",
+    "severity": "info",
+    "message": "",
+    "attributes": [
+      {
+        "key": "level",
+        "value": "\"info\""
+      },
+      {
+        "key": "event",
+        "value": "\"worker_tick\""
+      },
+      {
+        "key": "kind",
+        "value": "\"completed\""
+      },
+      {
+        "key": "jobId",
+        "value": "\"1045b987-9965-40af-a08d-d9c2cb97e5e1\""
+      }
+    ]
+  }
+]

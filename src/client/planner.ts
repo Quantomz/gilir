@@ -1,12 +1,12 @@
 import { z } from "zod";
 import type { PlannerClient } from "@/contracts/jobs";
-import { releasedRegistrySchema } from "@/contracts/registry";
+import { jobCapabilitySchema } from "@/contracts/jobs";
+import { catalogueSchema } from "@/contracts/registry";
 import { completedSnapshotSchema, serviceFailureSchema } from "@/contracts/result";
 import type { ServiceFailure } from "@/contracts/result";
 
-const capabilitySchema = z.strictObject({ jobId: z.string().uuid(), token: z.string().min(1).max(512) });
 const submissionSchema = z.discriminatedUnion("kind", [
-  z.strictObject({ kind: z.literal("accepted"), capability: capabilitySchema }),
+  z.strictObject({ kind: z.literal("accepted"), capability: jobCapabilitySchema }),
   z.strictObject({ kind: z.literal("invalid"), issues: z.array(z.strictObject({ path: z.array(z.union([z.string(), z.number()])), message: z.string() })) }),
   z.strictObject({ kind: z.literal("unavailable"), failure: serviceFailureSchema }),
 ]);
@@ -18,7 +18,6 @@ const jobStateSchema = z.discriminatedUnion("state", [
   z.strictObject({ state: z.literal("failed"), failure: serviceFailureSchema }),
 ]);
 const errorSchema = z.strictObject({ error: serviceFailureSchema });
-const catalogueSchema = releasedRegistrySchema.unwrap().shape.catalogue;
 const transportFailure: ServiceFailure = { code: "temporarily_unavailable", message: "The planning service could not be reached. Try again shortly.", retryable: true };
 
 export class PlannerServiceError extends Error {

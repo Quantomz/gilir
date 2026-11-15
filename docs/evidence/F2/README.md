@@ -1,6 +1,8 @@
 # F2 field picker browser evidence
 
-Every result here is **fixture evidence** or **mocked evidence**. None of it is live evidence. The card's live criterion is **BLOCKED**: this build container has no MapTiler key, and its network proxy refuses api.maptiler.com and gibs.earthdata.nasa.gov.
+The later [15 November live verification](live-2026-11-15.md) ran all 17 real-provider cases successfully and inspected actual globe and satellite imagery. Account-plan attribution and hosted activation remain separate checks.
+
+The original runs below are **fixture evidence** or **mocked evidence**. At the time of those runs, the live criterion was **BLOCKED** because that build container had no MapTiler key and its network proxy refused the provider hosts.
 
 The runs drive the real field picker in Chromium under `next dev`. A stand-in answers every request that would leave the machine (`tests/frontend/location/support/providers.ts`). NASA GIBS and MapTiler tiles are one synthetic 256 px checkerboard. Place searches get canned answers for Indramayu, Labasa and Ushuaia. Every field the page shows is judged in Node by the contract's own parser, the server's own request handler, and an independent strictly-inside test. All shapes are synthetic test shapes, not farm data.
 
@@ -105,9 +107,9 @@ These cases support the live criterion but never pass it, as the card says.
 
 The field also reaches F1. lab [R23] marks a U field on F1's page 1 at `/`. "Next: crops" opens page 2, and Back shows the same field from F1's draft. After a reload that hands the field back to F1 as its initial input, the same corners and lookup show again. A reload through saved answers is **NOT RUN**: local storage belongs to F4 and is not built yet, and `localPlans.load` throws on this branch.
 
-## Live cases, BLOCKED
+## Original live cases, blocked at that run
 
-Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. Each needs a MapTiler key restricted to the test origin and a network that reaches both providers, and runs with `F2_LIVE=1`. Their bodies have never run against the real providers.
+Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. Each needs a MapTiler key restricted to the test origin and a network that reaches both providers, and runs with `F2_LIVE=1`. Their bodies had not run against the real providers during the original evidence run. See the later live verification above for the successful run.
 
 1. [R19][R3] the globe shows NASA's Blue Marble far out and turns when dragged
 2. [R19][R6] a submitted search for 'Indramayu' returns real places; choosing one moves the camera there

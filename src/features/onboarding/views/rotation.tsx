@@ -43,6 +43,7 @@ export function RotationPage(props: { readonly c: Controller }): ReactElement {
   const off = history === "empty" || history === "skipped";
   const start = draft.planningStart;
   const dateNote = dateIssue ? issueWords(dateIssue, c.names) : needDate ? rotation.needDate : null;
+  const [typed, setTyped] = useState<string | null>(null);
 
   const dock = (
     <>
@@ -89,8 +90,17 @@ export function RotationPage(props: { readonly c: Controller }): ReactElement {
             required
             aria-describedby={dateNote ? "ready-hint ready-err" : "ready-hint"}
             aria-invalid={dateNote ? true : undefined}
-            value={start ?? ""}
-            onChange={event => c.edit({ kind: "planningStart", date: isoDate(event.target.value) })}
+            min="0001-01-01"
+            max="9998-12-31"
+            value={typed ?? start ?? ""}
+            onChange={event => {
+              const raw = event.target.value;
+              const date = isoDate(raw);
+              // Text that is not a date yet stays in the input, as in the date sheet, so one stray digit never clears
+              // it. The answer clears, so the plan never uses a date the input does not show.
+              setTyped(date === null && (raw !== "" || event.target.validity.badInput) ? raw : null);
+              c.edit({ kind: "planningStart", date });
+            }}
           />
         </div>
         {dateNote ? <IssueText id="ready-err">{dateNote}</IssueText> : null}

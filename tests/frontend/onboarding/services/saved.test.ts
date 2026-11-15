@@ -41,6 +41,26 @@ describe("open", () => {
     expect(health).toEqual(["failing"]);
   });
 
+  it("[B2] a load that fails once is tried again, so a passing failure does not hide what is saved", async () => {
+    const plans = memoryPlans(state({ draft: { water: "unsure" }, step: 3 }));
+    let loads = 0;
+    const saved = createSavedPlans({ ...plans, load: () => (++loads === 1 ? Promise.reject(new Error("Storage is busy.")) : plans.load()) });
+    const health = healthOf(saved);
+    await expect(saved.open()).resolves.toEqual(state({ draft: { water: "unsure" }, step: 3 }));
+    expect(health).toEqual(["working"]);
+  });
+
+  it("[B2] a load that fails only after storage's own 5 s limit is not tried again, so Opening waits for it once", async () => {
+    vi.useFakeTimers();
+    let loads = 0;
+    const slow = () => new Promise<LocalState | null>((_, reject) => setTimeout(() => reject(new Error("Storage did not answer.")), 5_000));
+    const saved = createSavedPlans({ ...memoryPlans(null), load: () => (++loads, slow()) });
+    const opened = saved.open();
+    await vi.advanceTimersByTimeAsync(5_000);
+    await expect(opened).resolves.toBeNull();
+    expect(loads).toBe(1);
+  });
+
   it("a load that resolves null is nothing saved, with health working", async () => {
     const saved = createSavedPlans(memoryPlans(null));
     const health = healthOf(saved);

@@ -28,7 +28,7 @@ export interface Finished {
 }
 
 export interface SavedPlans {
-  /** The saved state, or null for nothing saved or unreadable. A rejected load is "nothing saved". */
+  /** The saved state, or null for nothing saved or unreadable. A load that rejects every attempt is "nothing saved". */
   open(): Promise<LocalState | null>;
   /** Queue F1's fields. "soon" waits policy.save.debounceMs (a drag saves once on drop); "now" writes at once. */
   write(patch: SavedPatch, when: "soon" | "now"): void;
@@ -100,7 +100,10 @@ export function createSavedPlans(port: LocalPlans = localPlans, debounceMs: numb
   return {
     open() {
       const call = ++opens;
-      return port.load().then(
+      const started = Date.now();
+      const retry = (left: number) => left > 1 && Date.now() - started < policy.save.openRetryWithinMs;
+      const load = (left: number): Promise<LocalState | null> => port.load().catch((error: unknown) => (retry(left) ? load(left - 1) : Promise.reject(error)));
+      return load(policy.save.openAttempts).then(
         state => {
           if (call === opens) unread = false;
           report("working");

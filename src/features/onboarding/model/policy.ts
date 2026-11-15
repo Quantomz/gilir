@@ -28,6 +28,10 @@ export const policy = {
   save: {
     /** Draft edits are written this long after the last change. Step, job and completion writes go at once. */
     debounceMs: 150,
+    /** Loads tried at open before the flow starts empty, so one passing failure does not hide what is saved. */
+    openAttempts: 3,
+    /** A failed load is tried again only within this long of the open, so a storage that hangs is waited on once. */
+    openRetryWithinMs: 1_000,
   },
   timeoutMs: {
     /** The HTTP client has no timeout or abort signal, so F1 races each call. */
@@ -42,7 +46,7 @@ export const policy = {
     backoffMs: [2_500, 5_000, 10_000, 20_000],
     /** The server sends Retry-After: 60 with rate_limited. The client does not expose it. */
     rateLimitedMs: 60_000,
-    /** Making says it keeps trying after this many retryable failures in a row. Retryable failures never end the wait. */
+    /** Making says it keeps trying after this many failed reads in a row. Retryable failures never end the wait. */
     unreachableAfter: 3,
     /** Reads that fail with no ServiceFailure (a malformed 200 body) end the wait after this many in a row. */
     unknownStrikes: 5,

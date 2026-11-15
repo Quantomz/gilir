@@ -1,0 +1,317 @@
+{
+  "status": "PASSED",
+  "startedAt": "2026-11-15T07:48:07.349Z",
+  "scope": "Public Railway API and real production worker with a public illustrative Boise input; no browser I3 claim",
+  "checks": {
+    "/": 200,
+    "/dev/fixtures": 404,
+    "catalogue": {
+      "version": "fao56-hard-windows-2026-11-15",
+      "entries": 40
+    },
+    "unauthorizedReadAndDelete": "PASSED",
+    "completion": {
+      "jobId": "1045b987-9965-40af-a08d-d9c2cb97e5e1",
+      "schemaVersion": 2,
+      "resultState": "plan_with_warnings",
+      "catalogueVersion": "fao56-hard-windows-2026-11-15",
+      "snapshotDigest": "576c0c68ac9a8835ca79ff18e6bdb047a45b86c8c3cb33f45486848a6b030a50",
+      "states": [
+        "queued",
+        "fetching",
+        "calculating",
+        "completed"
+      ]
+    },
+    "scientific": {
+      "state": "plan_with_warnings",
+      "profiles": [
+        {
+          "id": "common-bean-dry-fao56-idaho-jun",
+          "version": "reviewed-2026-11-15.2",
+          "cropPurposeId": "common-bean-dry",
+          "sourceIds": [
+            "fao56-table11",
+            "fao56-table12"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "id": "fao56-table11",
+          "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 11, lengths of crop development stages",
+          "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+          "section": "Chapter 6, Table 11 (lengths of crop development stages for various planting periods and climatic regions, days) and its footnotes",
+          "publishedOn": {
+            "kind": "unavailable",
+            "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+          },
+          "extractedOn": "2026-11-14"
+        },
+        {
+          "id": "fao56-table12",
+          "title": "FAO-56 Crop evapotranspiration, Chapter 6: Table 12, single crop coefficients",
+          "url": "https://www.fao.org/4/x0490e/x0490e0b.htm",
+          "section": "Chapter 6, Table 12 crop and group rows (small vegetables, Solanum family, cucumber family, roots and tubers, legumes, cereals, oil crops) with footnotes 1, 2, 4, 6, 9, 10, 11 and 12, and Table 14 with the rice Kc ini paragraph",
+          "publishedOn": {
+            "kind": "unavailable",
+            "reason": "FAO Irrigation and Drainage Paper 56 was published in 1998; the page states no exact day."
+          },
+          "extractedOn": "2026-11-14"
+        }
+      ],
+      "cohort": {
+        "kind": "available",
+        "value": {
+          "targetSeasons": 25,
+          "minimumUsableSeasons": 15,
+          "methodVersion": "replay-v2 (frozen cutoff, UTC, Feb29 to Feb28). declared-field-composition-v1 (fixed owners, UTC join, no fills). elevation-meanC-owner-v1 (one synthetic exception). annual-applicability-v1 (365+ day annual rain and temperature means)",
+          "seasons": [
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2025-06-01",
+                "endExclusive": "2026-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2024-06-01",
+                "endExclusive": "2025-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2023-06-01",
+                "endExclusive": "2024-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2022-06-01",
+                "endExclusive": "2023-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2021-06-01",
+                "endExclusive": "2022-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2020-06-01",
+                "endExclusive": "2021-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2019-06-01",
+                "endExclusive": "2020-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2018-06-01",
+                "endExclusive": "2019-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2017-06-01",
+                "endExclusive": "2018-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2016-06-01",
+                "endExclusive": "2017-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2015-06-01",
+                "endExclusive": "2016-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2014-06-01",
+                "endExclusive": "2015-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2013-06-01",
+                "endExclusive": "2014-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2012-06-01",
+                "endExclusive": "2013-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2011-06-01",
+                "endExclusive": "2012-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2010-06-01",
+                "endExclusive": "2011-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2009-06-01",
+                "endExclusive": "2010-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2008-06-01",
+                "endExclusive": "2009-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2007-06-01",
+                "endExclusive": "2008-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2006-06-01",
+                "endExclusive": "2007-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2005-06-01",
+                "endExclusive": "2006-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2004-06-01",
+                "endExclusive": "2005-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2003-06-01",
+                "endExclusive": "2004-06-01"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2002-06-01",
+                "endExclusive": "2003-06-02"
+              }
+            },
+            {
+              "status": "usable",
+              "interval": {
+                "start": "2001-06-01",
+                "endExclusive": "2002-06-02"
+              }
+            }
+          ]
+        }
+      },
+      "usableSeasons": 25,
+      "unassessedChecks": [
+        {
+          "code": "temperature_rule",
+          "reason": "No released temperature rule; heat and cold exposure are unassessed, not safe.",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ],
+          "sourceIds": []
+        }
+      ],
+      "missing": [],
+      "hasPlan": true,
+      "occurrences": [
+        {
+          "cropPurposeId": "common-bean-dry",
+          "profileId": "common-bean-dry-fao56-idaho-jun",
+          "profileVersion": "reviewed-2026-11-15.2",
+          "planted": "2027-06-01",
+          "lastOccupied": "2027-09-08",
+          "fieldAvailable": "2027-09-16"
+        }
+      ],
+      "warnings": [
+        {
+          "code": "rainfall_mismatch",
+          "message": "In some replay seasons, rainfall fell below estimated crop demand in at least one rolling window.",
+          "cropPurposeIds": [
+            "common-bean-dry"
+          ],
+          "ruleIds": [],
+          "metricIds": [
+            "frequency",
+            "mismatch",
+            "mean_frequency",
+            "mean_mismatch"
+          ]
+        }
+      ],
+      "search": {
+        "structural": "witness",
+        "ranking": "grid_complete",
+        "structuralExpandedStates": 1,
+        "gridExpandedStates": 7,
+        "scoredCandidates": 5,
+        "structuralExpansionLimit": 2000000,
+        "gridExpansionLimit": 2000000,
+        "scoredCandidateLimit": 100000,
+        "gridStepDays": 7
+      }
+    },
+    "manifest": {
+      "schemaVersion": 1,
+      "normalizedInputHash": "4cc73618d3cbeddc7c55382754897759054bfde3d091021d07a19c84da965ec6",
+      "engineVersion": "v1",
+      "configurationVersion": "v2",
+      "catalogueVersion": "fao56-hard-windows-2026-11-15",
+      "ruleVersion": "no-rules-2026-11-14",
+      "climateSnapshotIds": [
+        "power-567088c22b284a1a9ddca57c59dec8766307b7d2979a9db2ea081a1a3c3ae53a",
+        "power-4dcbe35bb461e4b8b128fa89ca62696ce7f85d4781479f4b4859751b7dc2e25a",
+        "power-2df1693ad871d9dfa0f06e01398fd535398afb6d539b3f1fb1185d47d82317b3"
+      ],
+      "dataCutoff": "2026-11-14"
+    },
+    "repeatReadIdentical": "PASSED"
+  },
+  "cleanup": true,
+  "finishedAt": "2026-11-15T07:48:17.954Z"
+}
