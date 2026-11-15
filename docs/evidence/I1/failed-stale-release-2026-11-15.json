@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "FAILED",
+  "exitCode": 1,
+  "caseId": "boise-dry-bean-june",
+  "expectedState": "plan_with_warnings",
+  "cutoff": "2026-11-14",
+  "startedAt": "2026-11-15T07:21:16.618Z",
+  "evidence": "Local production HTTP API, PostgreSQL, registry, engine, and separate workers with live NASA. Provider outage is separately identified controlled injection.",
+  "checks": {
+    "catalogue": {
+      "version": "fao56-hard-windows-2026-11-15",
+      "entries": 40,
+      "selectedCropPresent": true
+    },
+    "postgresAndWorkerReadiness": "PASSED",
+    "processLogPrivacy": "PASSED",
+    "artifactPrivacy": "PASSED"
+  },
+  "blockers": [],
+  "cleanup": {
+    "processesStopped": true,
+    "schemaRemoved": true,
+    "processExits": [
+      {
+        "code": 0,
+        "signal": null
+      },
+      {
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "codeIdentity": {
+    "commit": "588df28b028df39f5487783e302762b7b50c5044",
+    "trackedDiffDigest": "94833c8e0de04bff0e0ac63f0a75e3ef435ef8dcb119e07aa35684eb8cf6445c",
+    "trackedChanges": true
+  },
+  "failure": {
+    "stage": "http_catalogue",
+    "code": "assertion_failed"
+  },
+  "finishedAt": "2026-11-15T07:21:18.819Z"
+}

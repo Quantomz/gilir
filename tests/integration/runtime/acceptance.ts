@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import type { CompletedSnapshot, EngineSettings, FarmInput, JobCapability, PlannerClient, PlanResult, RunManifest } from "@/contracts";
+import { completedSnapshotV2Schema } from "@/contracts";
 import type { historicalPeriod } from "@/server/climate";
 import { sanitizedUrl } from "./support";
 import type { providerEvidence } from "./support";
@@ -67,7 +68,9 @@ export async function verifyRestartedPipeline(controls: AcceptanceControls) {
     assert.ok(before.firstDate < before.lastDate, "The frozen source period must be recorded.");
     assert.ok(before.manifest.climateSnapshotIds.length > 0, "The frozen manifest must identify its climate snapshots.");
 
-    const completed = await controls.finishAfterRestart(capability);
+    const completed = completedSnapshotV2Schema.parse(await controls.finishAfterRestart(capability));
+    assert.equal(completed.id, capability.jobId, "The completed snapshot must identify the accepted job.");
+    assert.equal(completed.catalogue.version, before.manifest.catalogueVersion, "The saved catalogue must match the frozen run.");
     const scientific = scientificEvidence(completed.result);
     const resultDigest = createHash("sha256").update(JSON.stringify(completed)).digest("hex");
     controls.observe?.({ stage: "completed", scientific, resultDigest });
