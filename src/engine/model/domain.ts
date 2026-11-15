@@ -41,7 +41,7 @@ const sourceIds = (model: CropModel): string[] => [...new Set([
 ].flatMap(evidence => evidence.locators.map(locator => locator.sourceId)))];
 const gap = (reason: string, ids: readonly CropPurposeId[] = []): EvidenceGap => ({ code: "climate", reason, cropPurposeIds: ids, sourceIds: [] });
 const thermalAssumptions = [
-  "Thermal prefix sums use compensated addition. Thresholds within 8 machine epsilons of the accumulated-GDD scale count as reached to absorb floating-point roundoff.",
+  "Thermal prefixes use compensated sums and a scale-based roundoff bound for daily arithmetic and prefix subtraction. Zero-GDD days do not enlarge that bound.",
   "Daily Kc uses calendar-time linear interpolation between thermal-derived stage boundaries. Each boundary is the end of its first threshold-reaching day; coincident boundaries create zero-day stages.",
   "Cold days remain in the current stage and retain crop demand. Thermal development does not model survival or water-stress delays.",
 ];

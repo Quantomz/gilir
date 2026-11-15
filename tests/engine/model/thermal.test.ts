@@ -48,3 +48,13 @@ describe("floating-point thermal thresholds", () => {
     expect(result.kind).toBe("not_completed");
   });
 });
+
+describe("roundoff during temperature subtraction", () => {
+  it("reaches a 20-GDD initial stage after 200 days at 10.1 C above a 10 C base", () => {
+    const stages = { ...model, incrementalStageGdd: { initial: 20, development: 20, middle: 20, late: 20 } };
+    const days = [...Array(200).fill(10.1), ...Array(6).fill(20), ...Array(159).fill(10)].map(t => ({ minC: t, maxC: t }));
+    const result = trajectory(prepareThermal(days, stages), stages, kc, 0);
+    expect(result.kind).toBe("completed");
+    if (result.kind === "completed") expect(result.stageCompletionOffsets).toEqual([200, 202, 204, 206]);
+  });
+});
