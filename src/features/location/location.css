@@ -1,0 +1,147 @@
+/* The field picker's own classes, all prefixed fp- so none collides with F1's or F3's. Everything else is F1's: its
+   tokens, which already carry light, dark and high contrast, and its .btn, .field, .input-wrap, .search-row, .note,
+   .error-text, .sheet-head, .stack-* and .sr classes. This file defines no token and names no colour except the pin's
+   drop shadow. Media query breakpoints are px because media queries ignore the 125% root; .big-text carries the
+   text-size switches. The two-column layout and the zoom buttons ask their container instead, in rem, so a larger text
+   size keeps one column and a wide map until both columns fit.
+   The rules join Tailwind's components layer, so a utility on the same element still wins. The first line restates the
+   layer order in case this file loads before globals.css. */
+@layer theme, base, components, utilities;
+
+@layer components {
+  .fp-box { container: fp-slot / inline-size; }
+  .fp { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s4); align-content: start; min-width: 0; }
+  .fp :is(h2, h3):focus { outline: none; }
+  .fp-self-start { justify-self: start; }
+  .fp-small { font-size: var(--fs-s); line-height: 1.4; }
+
+  /* When a 24rem column and a 22rem map both fit, the controls sit on the left and the map stays in view on the right. */
+  @container fp-slot (min-width: 48rem) {
+    .fp { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); grid-template-rows: repeat(6, auto) 1fr; column-gap: var(--s6); row-gap: 0; }
+    .fp > * { grid-column: 1; margin-bottom: var(--s4); }
+    .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); }
+    .fp .fp-map { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
+  }
+
+  .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
+  .fp-search .input-wrap:focus-within { box-shadow: 0 0 0 4px var(--focus), var(--shadow); }
+  .fp-search input[type="search"] { appearance: none; }
+  .fp-search input[type="search"]::-webkit-search-cancel-button { appearance: none; }
+  .fp .fp-search-go { flex: 1 0 auto; padding-inline: 1.2rem; }
+  @media (min-width: 480px) { .fp .fp-search-go { flex: 0 0 auto; } }
+  .fp-clear { flex: none; display: inline-grid; place-items: center; width: var(--tap-min); height: var(--tap-min); padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); }
+  .fp-clear:hover { background: var(--sunk); }
+  .fp-results { margin: 0; padding: 6px; list-style: none; display: grid; gap: 2px; background: var(--raised); border-radius: var(--r-m); box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-result { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .8rem; align-items: center; width: 100%; min-height: var(--tap-s); padding: .5rem .8rem; border: 0; border-radius: var(--r-s); background: transparent; color: var(--ink); font: inherit; text-align: left; }
+  .fp-result:hover { background: var(--mint); }
+  .fp-result svg { width: 1.4rem; height: 1.4rem; color: var(--ink-2); }
+  .fp-result > span { display: grid; gap: .1rem; min-width: 0; overflow-wrap: anywhere; }
+  .fp-result b { line-height: 1.2; }
+  .fp-result b + span { color: var(--ink-2); font-size: var(--fs-s); line-height: 1.25; }
+
+  /* F1's classes on the same element share this layer, so the rules that change them are scoped under .fp to win.
+     F1's .note is tighter here, so two explanations do not push the tools off a phone's screen. */
+  .fp .fp-notice { padding: .7rem .9rem; font-size: var(--fs-s); line-height: 1.4; }
+  .fp .fp-notice svg { width: 1.3rem; height: 1.3rem; margin-top: 0; }
+
+  .fp .fp-way { background: var(--mint); border-color: var(--mint); }
+  .fp .fp-way:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
+  .fp .fp-way[aria-expanded="true"] { border-color: var(--ink); }
+  [data-contrast="high"] .fp .fp-way { border-color: var(--ink); }
+  .fp-locate { display: grid; gap: var(--s4); padding: var(--s4); border-radius: var(--r-m); background: var(--raised); box-shadow: var(--shadow), var(--card-edge); }
+  .fp-prime { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s4); align-items: start; }
+  .fp-prime-ic { display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border-radius: 50%; background: var(--mint); }
+  .fp-prime-ic svg { width: 1.7rem; height: 1.7rem; }
+  .fp-steps { display: grid; gap: .3rem; margin: 0; padding-left: 1.6rem; list-style: decimal; }
+  .fp-place { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: center; }
+  .fp-pinic { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--warn-soft); color: var(--pin); }
+  .fp-pinic svg { width: 1.6rem; height: 1.6rem; }
+  .fp-place-tx { display: grid; min-width: 0; overflow-wrap: anywhere; line-height: 1.3; }
+  .fp-place-tx b { font-size: 1.15rem; }
+  .fp .fp-go { background: var(--mint); border-color: var(--ink); }
+  .fp .fp-go:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
+
+  /* A fixed height leaves a thumb room to scroll the page beside the map, and keeps the map clear of F1's sticky dock. */
+  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; height: min(55svh, 28rem); min-height: 15rem; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+  .big-text .fp-map { min-height: 18rem; }
+  .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
+  [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
+  [data-contrast="high"] .fp-map { border: 2px solid var(--ink); }
+  /* In a row on phones, so the controls stay above a field drawn in the middle of the map. */
+  .fp-map-ctrls { position: absolute; right: 8px; top: 8px; z-index: 5; display: flex; gap: 4px; align-items: start; }
+  @container fp-map (min-width: 36rem) { .fp-map-ctrls { flex-direction: column; align-items: center; } }
+  .fp-map-btn { display: grid; justify-items: center; gap: 3px; min-width: var(--tap-min); padding: 0; border: 0; background: transparent; color: var(--ink); font: inherit; }
+  .fp-map-btn-c { display: grid; place-items: center; width: var(--tap-min); height: var(--tap-min); border-radius: 50%; background: var(--raised); box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-map-btn-c svg { width: 1.5rem; height: 1.5rem; }
+  .fp-map-btn-t { padding: .05rem .55rem; border-radius: 999px; background: var(--raised); box-shadow: var(--shadow), var(--card-edge); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; white-space: nowrap; }
+  @container fp-map (min-width: 36rem) { .fp-map-btn-c { width: var(--tap-s); height: var(--tap-s); } }
+  /* Messages on the map: a refused edit, the drawing's tag, the loading line. They never take a tap from the map. */
+  .fp-map-foot { position: absolute; inset: auto 8px 8px; z-index: 5; display: grid; gap: 4px; justify-items: start; pointer-events: none; }
+  .fp-map-foot .fp-notice { box-shadow: var(--shadow-pop), var(--card-edge); }
+  .fp-loading { display: flex; gap: .5rem; align-items: center; padding: .3rem .8rem; border-radius: var(--r-s); background: var(--raised); font-size: var(--fs-s); font-weight: 700; }
+  .fp-pin { width: 48px; height: 62px; color: var(--pin); transform-origin: 50% 100%; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .3)); pointer-events: none; }
+
+  .fp-handle { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; cursor: grab; touch-action: none; }
+  .fp-handle:active { cursor: grabbing; }
+  .fp-handle::before { content: ""; width: 14px; height: 14px; border-radius: 3px; background: var(--mint-pill); box-shadow: 0 0 0 2px var(--night); }
+  .fp-handle[data-selected]::before { width: 22px; height: 22px; box-shadow: 0 0 0 3px var(--night); }
+
+  .fp-plan { position: absolute; inset: 0; background: var(--sunk); }
+  .fp-plan svg { display: block; }
+  .fp-plan-grid { stroke: var(--line); stroke-width: 1; }
+  .fp-plan-under { fill: none; stroke: var(--night); stroke-width: 7; stroke-linejoin: round; }
+  .fp-plan-edge { fill: var(--leaf); fill-opacity: .3; stroke: var(--mint-pill); stroke-width: 3; stroke-linejoin: round; }
+  .fp-plan-corner { fill: var(--mint-pill); stroke: var(--night); stroke-width: 2; }
+  .fp-plan-point { fill: var(--pin); stroke: var(--mint-pill); stroke-width: 2; }
+  .fp-plan-pin { fill: var(--pin); stroke: var(--mint-pill); stroke-width: 3; }
+  .fp-plan text { fill: var(--ink); font-family: var(--f-body); font-size: var(--fs-s); font-weight: 700; paint-order: stroke; stroke: var(--sunk); stroke-width: 5px; stroke-linejoin: round; }
+  .fp-plan-scale path { fill: none; stroke: var(--ink); stroke-width: 3; }
+  .fp-plan-north path { fill: var(--ink); }
+  .fp-tag { padding: .3rem .8rem; border-radius: var(--r-s); background: var(--label-bg); color: var(--on-night); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; }
+
+  .fp-credits { display: grid; gap: .2rem; font-size: var(--fs-s); line-height: 1.4; }
+  .fp-credits a { display: inline-flex; align-items: center; min-height: var(--tap-min); color: var(--ink); }
+
+  .fp-place-line { display: grid; gap: .2rem; }
+  .fp-place-line p { display: flex; gap: .45rem; align-items: flex-start; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+  .fp-place-line p svg { width: 1.3rem; height: 1.3rem; margin-top: .1rem; color: var(--pin); }
+  .fp-acts { display: flex; flex-wrap: wrap; gap: 0 .8rem; margin-left: -.7rem; }
+  .fp-status { display: flex; gap: .5rem; align-items: flex-start; font-weight: 700; line-height: 1.35; }
+  .fp-status svg { width: 1.4rem; height: 1.4rem; margin-top: .05rem; color: var(--ok); }
+  .fp-size { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "a r b"; align-items: center; gap: var(--s2); }
+  .fp-size > :first-child { grid-area: a; }
+  .fp-size > :last-child { grid-area: b; }
+  .fp-size .btn { padding-inline: .9rem; gap: .35rem; }
+  .fp-size-read { grid-area: r; display: grid; text-align: center; line-height: 1.25; }
+  .fp-size-read b { font-size: 1.05rem; }
+  .fp-size-read span { font-size: var(--fs-s); }
+  @media (max-width: 419px) { .fp-size { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "r r" "a b"; } }
+  .big-text .fp-size { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "r r" "a b"; }
+  .fp-tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr)); gap: var(--s2); align-items: center; }
+  .fp-choose { text-align: center; }
+
+  .fp-list { display: grid; gap: var(--s4); padding: var(--s4); border-radius: var(--r-m); background: var(--sunk); }
+  [data-contrast="high"] .fp-list { box-shadow: inset 0 0 0 2px var(--ink); }
+  .fp-corner { display: grid; gap: .5rem; min-width: 0; margin: 0; padding: var(--s4); border: 0; border-radius: var(--r-m); background: var(--raised); box-shadow: var(--card-edge); }
+  [data-contrast="high"] .fp-corner { box-shadow: inset 0 0 0 2px var(--ink); }
+  .fp-corner legend { float: left; width: 100%; padding: 0; margin-bottom: .2rem; }
+  .fp-corner-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: .6rem; clear: both; }
+  @media (min-width: 460px) { .fp-corner-in { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .big-text .fp-corner-in { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 479px) {
+    .big-text .fp-list { padding: var(--s2); }
+    .big-text .fp-corner { padding: var(--s3); }
+    .big-text .fp-corner .input-wrap { padding-inline: .5rem; }
+  }
+  .fp-axis { color: var(--ink-2); }
+  .fp-corner input { font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .fp-pin { animation: fp-drop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
+    @keyframes fp-drop { from { transform: translateY(-30px) scale(.8); opacity: 0; } }
+  }
+}
+
+/* MapLibre's stylesheet is unlayered, so these are too. Its .maplibregl-map sets position: relative on the same element. */
+.fp .fp-map-gl { position: absolute; inset: 0; }
+.fp .maplibregl-canvas:focus-visible { outline: none; }
