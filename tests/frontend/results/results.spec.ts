@@ -130,6 +130,33 @@ for (const viewport of viewports) {
   test.describe(`results at ${width}px`, () => {
     test.use({ viewport });
 
+    for (const which of [0, 1]) {
+      test(`[R34] rapid repeated details Back ${which} stays on the current site`, async ({ page }) => {
+        const oldUrl = "https://gilir-web-production.up.railway.app/";
+        await page.route(oldUrl, route => route.fulfill({ contentType: "text/html", body: "<h1>Previous site</h1>" }));
+        await page.goto(oldUrl);
+        const walk = await openResult(page, shared("plan_with_warnings"));
+        const currentUrl = page.url();
+        await page.getByRole("button", { name: "View details", exact: true }).click();
+        const leftTheSite = page.waitForURL(oldUrl, { timeout: 1_000 }).then(() => true, () => false);
+
+        await page.getByRole("button", { name: "Back to the result", exact: true }).nth(which).evaluate(control => {
+          control.click();
+          control.click();
+        });
+
+        expect(await leftTheSite, "the in-page Back button must not visit the previous hostname").toBe(false);
+        await expect(page).toHaveURL(currentUrl);
+        await expect(resultTitle(page)).toHaveText("Your plan, with warnings");
+        await expect(page.getByRole("button", { name: "View details", exact: true })).toBeFocused();
+        await page.getByRole("button", { name: "View details", exact: true }).click();
+        await page.getByRole("button", { name: "Back to the result", exact: true }).nth(which).click();
+        await expect(resultTitle(page)).toHaveText("Your plan, with warnings");
+        await expect(page).toHaveURL(currentUrl);
+        noErrors(walk);
+      });
+    }
+
     for (const { name, snapshot } of matrix) {
       test(`[R1][R35] ${name}: its title and status show, the first screen and the full page are captured, and the page does not scroll sideways at Normal and Largest text`, async ({ page }, info) => {
         const [title, status] = heads[name] ?? ["", ""];

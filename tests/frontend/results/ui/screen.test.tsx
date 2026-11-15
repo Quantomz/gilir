@@ -875,6 +875,25 @@ describe("View details and the keyboard", () => {
     }
   });
 
+  it.each([0, 1])("[R34] repeated activation of details Back %i schedules only one history traversal", async which => {
+    const { user } = open(warned, savedState(warned));
+    await settle();
+    await user.click(button("View details"));
+    history.replaceState({ ...history.state, __NA: true, preserved: { value: "framework state" } }, "");
+    const back = vi.spyOn(history, "back").mockImplementation(() => undefined);
+    const control = screen.getAllByRole("button", { name: "Back to the result" })[which];
+
+    act(() => {
+      control.click();
+      control.click();
+    });
+
+    expect(back).toHaveBeenCalledTimes(1);
+    expect(history.state).toMatchObject({ __NA: true, preserved: { value: "framework state" } });
+    expect(title().textContent).toBe("Your plan, with warnings");
+    expect(document.activeElement).toBe(button("View details"));
+  });
+
   it("[R34] the phone’s Back on View details returns to the result with focus on View details, and Back to the result leaves no history entry behind", async () => {
     history.replaceState(null, "");
     const { user } = open(warned, savedState(warned));
