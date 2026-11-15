@@ -318,7 +318,8 @@ export function update(flow: Flow, msg: Msg): Update {
 
     case "showMaking":
       if (mode.kind !== "editing" || mode.job === null) return same;
-      return out({ ...flow, mode: { kind: "making", job: mode.job }, sheet: null }, title);
+      // Making starts a new watch, which reports only a change from reachable.
+      return out({ ...flow, mode: { kind: "making", job: { ...mode.job, reachable: true } }, sheet: null }, title);
 
     case "cancel":
       return mode.kind === "making" ? out(onStep(flow, editingAt(4, null)), title) : same;

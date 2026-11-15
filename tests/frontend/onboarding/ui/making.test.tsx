@@ -139,6 +139,18 @@ describe("Making", () => {
     expect(status()).toBe("Step 2 of 3: Getting NASA weather records for your area.");
   });
 
+  it("[K6] after three failed reads, Back and See how it’s going, the first good read shows no note and says the step", async () => {
+    const { client } = await open([{ reject: down }, { reject: down }, { reject: down }, "fetching", "hang"]);
+    await press("Make my plan");
+    await advance(7500);
+    expect(main().getByText(reaching)).toBeTruthy();
+    await press("Back");
+    await press("See how it’s going");
+    expect(client.reads).toHaveLength(4);
+    expect(main().queryByText(reaching)).toBeNull();
+    expect(status()).toBe("Step 2 of 3: Getting NASA weather records for your area.");
+  });
+
   it("[K4] completed calls onCompleted once with the snapshot, after the save that clears activeJob", async () => {
     const { onCompleted, savedAtCompletion, plans } = await open(["queued", "completed"]);
     await press("Make my plan");
