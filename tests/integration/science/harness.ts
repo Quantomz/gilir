@@ -7,7 +7,6 @@ import { parseCropPurposeId, parseIsoDate } from "@/contracts/common";
 import type { FrozenRun } from "@/contracts/engine";
 import { parseFarmInput } from "@/contracts/input";
 import type { FarmInput, LngLat, WaterAnswer } from "@/contracts/input";
-import type { RegistryRelease } from "@/contracts/registry";
 import type { PlanResult } from "@/contracts/result";
 import { calculate } from "@/engine";
 import { readRegistryRelease } from "@/registry";
@@ -87,7 +86,7 @@ export function farmInput(c: ScienceCase, water: WaterAnswer = "rain_only"): Far
   });
 }
 
-export function frozenRun(c: ScienceCase, registry: RegistryRelease, water: WaterAnswer = "rain_only"): FrozenRun {
+export function frozenRun(c: ScienceCase, water: WaterAnswer = "rain_only"): FrozenRun {
   const input = farmInput(c, water);
   const climate = recordedSnapshots(c.recording);
   const cutoff = climate[0]?.cutoff;
@@ -110,7 +109,7 @@ export function frozenRun(c: ScienceCase, registry: RegistryRelease, water: Wate
 }
 
 export function runCase(c: ScienceCase, water: WaterAnswer = "rain_only"): PlanResult {
-  return calculate(frozenRun(c, registry, water), registry);
+  return calculate(frozenRun(c, water), registry);
 }
 
 export const usableSeasons = (result: PlanResult): number | null =>

@@ -69,7 +69,8 @@ The card's priority wording predates spec 1.1, which removed farmer-selected pri
 | Same crop and year constraints survive integration | PASSED |
 | No harvest-probability, soil-test, pest-count or worldwide-validation claim | PASSED for the scanned patterns |
 | Live worker and API path | Accepted from I1 (PR #36) by owner decision. Not rerun here. |
-| pstack deslop and no-comments passes | NOT RUN. `deslop` is not installed on this host, and `no-comments` requires a `comment-sicko` agent type this host lacks. A manual diff scan found no added comments, casts or suppressions. |
+| pstack no-comments pass | PASSED. Comment Sicko (`pstack/agents/comment-sicko.md` from `cursor/plugins`) scanned the four science files and this README. It found no comments or suppressions, made 0 deletions and raised no `MUST KILL` flags. The plugin agent type was installed mid-session, so its definition ran in a general-purpose subagent. |
+| pstack deslop pass | PASSED. `cursor-team-kit/skills/deslop` from `cursor/plugins`. It removed a leftover registry parameter from `frozenRun`, a duplicate `rankingDecision` evidence field, and duplicated mandatory-day arithmetic in the no-fit tests. All six result hashes were unchanged afterwards. `cursor-team-kit` is not listed in the marketplace manifest, so the skill was followed from the cloned source. |
 | Peer review of the exact PR | NOT RUN |
 
 ## History

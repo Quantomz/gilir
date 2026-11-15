@@ -37,6 +37,11 @@ const profileFor = (id: string, version: string) => {
   if (!profile) throw new Error(`Registry has no profile ${id} v${version}.`);
   return profile;
 };
+const mandatoryDays = (result: PlanResult) => result.details.provenance.profiles.map(ref => {
+  const p = profileFor(ref.id, ref.version);
+  const s = p.timing.generatedStageDays;
+  return s.initial + s.development + s.middle + s.late + p.timing.turnaround.days;
+}).reduce((a, b) => a + b, 0);
 
 describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded NASA POWER climate`, () => {
   it("runs against the released reviewed registry, not a synthetic fixture", () => {
@@ -135,11 +140,7 @@ describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded
         const result = resultOf(c);
         if (result.state !== "no_calendar_fit") throw new Error(`Expected no_calendar_fit, got ${result.state}.`);
         if (result.proof.kind !== "duration_lower_bound") throw new Error(`Expected a duration proof, got ${result.proof.kind}.`);
-        const minimum = result.details.provenance.profiles.map(ref => {
-          const p = profileFor(ref.id, ref.version);
-          const s = p.timing.generatedStageDays;
-          return s.initial + s.development + s.middle + s.late + p.timing.turnaround.days;
-        }).reduce((a, b) => a + b, 0);
+        const minimum = mandatoryDays(result);
         expect(result.proof.mandatoryMinimumDays).toBe(minimum);
         expect(result.proof.horizonDays).toBe(daysFrom(c.planningStart, anniversary(c.planningStart)));
         expect(minimum).toBeGreaterThan(result.proof.horizonDays);
@@ -153,12 +154,7 @@ describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded
         if (result.proof.kind !== "structural_exhaustion") throw new Error(`Expected a structural proof, got ${result.proof.kind}.`);
         expect(result.proof.horizon).toEqual({ start: c.planningStart, endExclusive: anniversary(c.planningStart) });
         expect(result.details.search.structural).toBe("proved_impossible");
-        const minimum = result.details.provenance.profiles.map(ref => {
-          const p = profileFor(ref.id, ref.version);
-          const s = p.timing.generatedStageDays;
-          return s.initial + s.development + s.middle + s.late + p.timing.turnaround.days;
-        }).reduce((a, b) => a + b, 0);
-        expect(minimum).toBeLessThanOrEqual(daysFrom(c.planningStart, anniversary(c.planningStart)));
+        expect(mandatoryDays(result)).toBeLessThanOrEqual(daysFrom(c.planningStart, anniversary(c.planningStart)));
       }, 60_000);
     }
 

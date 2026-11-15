@@ -43,7 +43,6 @@
         "power-f7eae6a81f9b1e42db84059b0dc6ff17e20385307df9406bb3f409ad81412b49"
       ],
       "usableSeasons": 25,
-      "rankingDecision": "The first deciding metric against the final runner-up was mean_frequency: 0.961702 versus 0.974468 fraction, after comparison rounding.",
       "explanation": "The first deciding metric against the final runner-up was mean_frequency: 0.961702 versus 0.974468 fraction, after comparison rounding.",
       "plan": {
         "horizon": {
@@ -157,7 +156,6 @@
         "power-7abee70f97de03bff3951bc76c37d974fcff48535ac7a2df02a98d92baf0812f"
       ],
       "usableSeasons": 25,
-      "rankingDecision": "The first deciding metric against the final runner-up was mean_frequency: 0.898327 versus 0.904004 fraction, after comparison rounding.",
       "explanation": "The first deciding metric against the final runner-up was mean_frequency: 0.898327 versus 0.904004 fraction, after comparison rounding.",
       "plan": {
         "horizon": {
@@ -292,7 +290,6 @@
         "power-93323362856a9678a124d39e7f80b30ca165ccbd88a27d976c886c051ed9ce6b"
       ],
       "usableSeasons": 25,
-      "rankingDecision": null,
       "explanation": "Every reachable daily calendar state was exhausted under the released durations, hard planting windows, and successor prohibitions. No supported calendar fits.",
       "plan": null,
       "missing": null,
@@ -380,7 +377,6 @@
         "power-1b647b0d8c7ef3281e56c456275c8c03a1df8ce38985e7bc8c80f2d42e5a5092"
       ],
       "usableSeasons": 25,
-      "rankingDecision": null,
       "explanation": "The mandatory occupancy and turnaround total 426 days, exceeding the 366-day horizon under the released model.",
       "plan": null,
       "missing": null,
@@ -448,7 +444,6 @@
         "power-7d3dea804669d99f3f79ace77c634e8854d59530ab61f38e21685adca0495523"
       ],
       "usableSeasons": 25,
-      "rankingDecision": null,
       "explanation": "Required crop, climate, or ranking evidence is missing. Available insights remain visible, but no plan can be recommended.",
       "plan": null,
       "missing": [
@@ -518,7 +513,6 @@
         "power-38db5e556a59f782eaa3a3454e98141360ad86ebaba91ea7ffa4364aa50eda00"
       ],
       "usableSeasons": 25,
-      "rankingDecision": null,
       "explanation": "Required crop, climate, or ranking evidence is missing. Available insights remain visible, but no plan can be recommended.",
       "plan": null,
       "missing": [

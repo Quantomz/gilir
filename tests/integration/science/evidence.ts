@@ -14,7 +14,6 @@ const cases = scienceCases.map(c => {
     sources: provenance.sources.map(s => s.id),
     climateSnapshotIds: provenance.manifest.kind === "available" ? provenance.manifest.value.climateSnapshotIds : [],
     usableSeasons: usableSeasons(result),
-    rankingDecision: "plan" in result ? result.details.explanation : null,
     explanation: result.details.explanation,
     plan: "plan" in result ? {
       horizon: result.plan.horizon,
