@@ -19,7 +19,7 @@ import { dropWords, making, namesFrom, noteWords, shell, stopWords } from "./mod
 import type { CropNames } from "./model/words";
 import { failureOf, unreachable, watchJob, withTimeout } from "./services/job";
 import type { JobEvent } from "./services/job";
-import { createSavedPlans } from "./services/saved";
+import { createSavedPlans, f4Storage, storageLine } from "./services/saved";
 
 /** A note under the top bar. `id` restarts its timer when a new note replaces one with the same words. */
 export interface Toast {
@@ -157,7 +157,7 @@ function undoOf(note: EditNote): DraftEdit | null {
 
 export function useOnboardingController(props: OnboardingProps): Controller {
   const { client } = props;
-  const [saved] = useState(createSavedPlans);
+  const [saved] = useState(() => createSavedPlans(f4Storage, storageLine));
   const [initialInput] = useState(props.initialInput);
   const [state, dispatch] = useReducer(reduce, opening);
   const { flow, outbox } = state;
@@ -166,13 +166,6 @@ export function useOnboardingController(props: OnboardingProps): Controller {
   const loadingCatalogue = useRef(false);
   const lastWritten = useRef<ReturnType<typeof persistedOf>>(null);
   const onCompleted = useEffectEvent((snapshot: CompletedSnapshot) => handOver(flow, snapshot, props.onCompleted));
-
-  useEffect(() => {
-    const unsubscribe = saved.onHealth(health => dispatch({ kind: "storage", health }));
-    return () => {
-      unsubscribe();
-    };
-  }, [saved]);
 
   useEffect(() => {
     let live = true;

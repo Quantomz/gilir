@@ -54,10 +54,8 @@ export type CatalogueState =
 
 export type CatalogueEntry = Catalogue["entries"][number];
 
-/** One quiet, dismissible line each. Never blocks input. */
+/** One quiet, dismissible line each. Never blocks input. The storage line is not here: it outlives the flow. */
 export interface Notices {
-  /** A load or save failed this visit: the farmer's words for why, from the first failure. */
-  readonly storageFailing: string | null;
   /** Change inputs found answers changed after that plan was made, and kept them. */
   readonly keptNewer: boolean;
 }
@@ -102,20 +100,14 @@ export interface Flow {
   /** The plan saved before this visit, for "Open my earlier plan" on the failed screen. Never a service_error. */
   readonly earlierPlan: CompletedSnapshot | null;
   readonly notices: Notices;
-  /** Notices the farmer closed. They stay closed for the rest of the visit. */
-  readonly dismissed: readonly (keyof Notices)[];
   /** The words typed in "Find a crop" on page 2, as typed. Cleared when the farmer leaves page 2. */
   readonly cropFilter: string;
 }
-
-/** After each storage call: it worked, or the farmer's words for why it failed (F4's storageProblem). */
-export type StorageHealth = "working" | { readonly problem: string };
 
 export type Msg =
   // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
   | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly shown: Shown | null; readonly focusTitle: boolean }
   | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean }
-  | { readonly kind: "storage"; readonly health: StorageHealth }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
   | { readonly kind: "edit"; readonly edit: DraftEdit }
   | { readonly kind: "filterCrops"; readonly text: string }                // "Find a crop" on page 2
@@ -151,8 +143,7 @@ export const openingFlow: Flow = {
   serverIssues: [],
   sheet: null,
   earlierPlan: null,
-  notices: { storageFailing: null, keptNewer: false },
-  dismissed: [],
+  notices: { keptNewer: false },
   cropFilter: "",
 };
 
@@ -220,8 +211,7 @@ export function update(flow: Flow, msg: Msg): Update {
     case "opened": {
       if (mode.kind !== "opening") return same;
       const opened = openFlow(msg.saved, msg.initialInput, msg.shown);
-      const notices = { ...opened.flow.notices, storageFailing: flow.notices.storageFailing };
-      return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, msg.focusTitle ? title : null, quiet, opened.handOff);
+      return out({ ...opened.flow, catalogue: flow.catalogue }, msg.focusTitle ? title : null, quiet, opened.handOff);
     }
 
     case "catalogue": {
@@ -232,15 +222,8 @@ export function update(flow: Flow, msg: Msg): Update {
       return out(next, null, { kind: "listRetried", loaded: msg.state.status === "ready" });
     }
 
-    case "storage":
-      if (msg.health === "working" || flow.notices.storageFailing !== null || flow.dismissed.includes("storageFailing")) return same;
-      return out({ ...flow, notices: { ...flow.notices, storageFailing: msg.health.problem } });
-
-    case "dismiss": {
-      const dismissed = flow.dismissed.includes(msg.notice) ? flow.dismissed : [...flow.dismissed, msg.notice];
-      const notices: Notices = msg.notice === "storageFailing" ? { ...flow.notices, storageFailing: null } : { ...flow.notices, keptNewer: false };
-      return out({ ...flow, notices, dismissed });
-    }
+    case "dismiss":
+      return out({ ...flow, notices: { ...flow.notices, [msg.notice]: false } });
 
     case "filterCrops":
       return out({ ...flow, cropFilter: msg.text });

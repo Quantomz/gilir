@@ -7,14 +7,12 @@ import userEvent from "@testing-library/user-event";
 import { hydrateRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { act } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { LocalPlans, LocalState } from "@/client/storage";
 import type { CompletedSnapshot, JobState, PlannerClient } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
 import { completedSnapshotFixture, completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticRegistryFixture } from "@/fixtures/science";
-import Page from "@/app/page";
-import { Onboarding } from "@/features/onboarding";
 import { capability, fillFourPages, memoryPlans, phoneBack, scriptedClient } from "../support/harness";
 import type { MemoryPlans, ScriptedClient } from "../support/harness";
 
@@ -24,6 +22,15 @@ vi.mock("@/client/storage", async () => (await import("../support/harness")).sto
 vi.mock("@/client/planner", async () => (await import("../support/harness")).plannerMock(() => live.client));
 vi.mock("@/features/location", async () => (await import("../support/harness")).fieldPickerStub((await import("@/fixtures/input")).inputFixture.field));
 vi.mock("@/features/results", async () => (await import("../support/harness")).resultsStub());
+
+// Each test is one page load: a fresh module graph, so this load's storage line starts empty.
+let Page: typeof import("@/app/page").default;
+let Onboarding: typeof import("@/features/onboarding").Onboarding;
+beforeEach(async () => {
+  vi.resetModules();
+  ({ default: Page } = await import("@/app/page"));
+  ({ Onboarding } = await import("@/features/onboarding"));
+});
 
 afterEach(() => {
   cleanup();

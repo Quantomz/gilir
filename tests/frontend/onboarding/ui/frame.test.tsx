@@ -10,6 +10,7 @@ import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { applyReading, readingHeadScript, readingKey } from "@/features/onboarding/services/reading";
 import type { ReadingPrefs } from "@/features/onboarding/services/reading";
+import { storageLine } from "@/features/onboarding/services/saved";
 import { AppFrame, Broken, Opening, PlainFrame, Sheet, StatusBars, StatusLine, StepFrame, ToastBar } from "@/features/onboarding/views/frame";
 import { stubSpeech } from "../support/harness";
 
@@ -40,7 +41,7 @@ function page(step: 1 | 2 | 3 | 4, title: string, extra: { readonly onNext?: () 
   );
 }
 
-const quiet = { storageFailing: null, keptNewer: false } as const;
+const quiet = { keptNewer: false } as const;
 
 function htmlState() {
   return {
@@ -110,30 +111,27 @@ describe("frame", () => {
 
   it("[B3] a failing storage shows one quiet line (role status) with F4's reason, that answers stay while the page is open, and Got it; Next still works", async () => {
     const user = userEvent.setup();
-    const onDismiss = vi.fn();
     const onNext = vi.fn();
-    const view = (storageFailing: string | null) => (
+    render(
       <>
-        <StatusBars notices={{ storageFailing, keptNewer: false }} onDismiss={onDismiss} />
+        <StatusBars notices={quiet} onDismiss={vi.fn()} />
         {page(1, "Where is your farm?", { onNext })}
-      </>
+      </>,
     );
-    const { rerender } = render(view("This device has no room left to save Gilir."));
+    act(() => storageLine.failed({ reason: "full", text: "This device has no room left to save Gilir." }));
     const lines = screen.getAllByRole("status").filter(line => line.textContent?.includes("This device has no room left to save Gilir."));
     expect(lines.map(line => line.textContent)).toEqual(["This device has no room left to save Gilir. Your answers stay while this page is open.Got it"]);
     await user.click(within(lines[0]!).getByRole("button", { name: "Got it" }));
-    expect(onDismiss.mock.calls).toEqual([["storageFailing"]]);
     expect(document.activeElement?.id).toBe("main-title");
+    expect(screen.queryByText(/no room left/)).toBeNull();
     await user.click(screen.getByRole("button", { name: "Next: crops" }));
     expect(onNext).toHaveBeenCalledTimes(1);
-    rerender(view(null));
-    expect(screen.queryByText(/no room left/)).toBeNull();
   });
 
   it("[C6] Change inputs over newer answers shows We kept the answers you changed after that plan was made.", async () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
-    render(<StatusBars notices={{ storageFailing: null, keptNewer: true }} onDismiss={onDismiss} />);
+    render(<StatusBars notices={{ keptNewer: true }} onDismiss={onDismiss} />);
     const line = screen.getByRole("status");
     expect(line.textContent).toContain("We kept the answers you changed after that plan was made.");
     await user.click(within(line).getByRole("button", { name: "Got it" }));

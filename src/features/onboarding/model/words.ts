@@ -1,6 +1,7 @@
 // Every farmer-facing word in F1, in one file. Tables keyed by a contract union are `Record<Union, ...>`, so a new
 // contract code fails the build here instead of showing an empty string.
 // Apostrophes and quotation marks are typographic, and tests match these exact strings.
+import type { StorageReason } from "@/client/storage";
 import { inputLimits } from "@/contracts";
 import type { Catalogue, IsoDate, ServiceFailure, WaterAnswer } from "@/contracts";
 import type { PageIssue } from "./check";
@@ -196,9 +197,20 @@ export const failureWords: Record<ServiceFailure["code"], { readonly title: stri
   not_implemented: { title: "Plans can’t be made in this version yet", body: "This part of the planning service is not ready. Your answers are kept." },
 };
 
+/**
+ * What a storage failure means where it shows, after F4's words for why. Nothing follows "newer" on the input pages,
+ * because its words say to close the page. On Results it points to the PDF, the copy spec section 9 keeps.
+ */
+const afterStorageProblem: Readonly<Record<"inputs" | "results", Readonly<Record<StorageReason, string | null>>>> = {
+  inputs: { unavailable: "Your answers stay while this page is open.", full: "Your answers stay while this page is open.", newer: null },
+  results: { unavailable: "Download the PDF to keep a copy.", full: "Download the PDF to keep a copy.", newer: "Download the PDF first to keep a copy." },
+};
+
 export const notices = {
-  /** F4's words for why storage failed, then what it means for the answers on screen. */
-  notSaving: (problem: string) => `${problem} Your answers stay while this page is open.`,
+  notSaving: (problem: { readonly reason: StorageReason; readonly text: string }, on: "inputs" | "results") => {
+    const after = afterStorageProblem[on][problem.reason];
+    return after === null ? problem.text : `${problem.text} ${after}`;
+  },
   /** "kept", not "saved", because storage may not be saving. */
   keptNewer: "We kept the answers you changed after that plan was made.",
   offline: "You’re offline. Your answers stay on this page.",
