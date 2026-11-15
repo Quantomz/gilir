@@ -155,12 +155,12 @@ export function sayFor(reader: Reader): Say {
 }
 
 /**
- * src/client may not import the registry, so a crop the snapshot's frozen catalogue doesn't name (every crop of a
- * version 1 snapshot) is named from its ID. So is a label with a letter the fonts can't draw: an ID always prints.
+ * A crop's name as it reads inside a sentence: a saved label keeps its own capitals ("Brussels sprouts"). src/client may
+ * not import the registry, so a crop the snapshot's frozen catalogue doesn't name (every crop of a version 1 snapshot)
+ * is named from its ID in lower case. So is a label with a letter the fonts can't draw: an ID always prints.
  */
 export function cropName(snapshot: CompletedSnapshot, id: CropPurposeId): PdfText {
-  const words = id.replace(/[-_:]+/g, " ");
-  const fromId = words.charAt(0).toUpperCase() + words.slice(1);
+  const fromId = id.replace(/[-_:]+/g, " ");
   const label = snapshot.schemaVersion === 2 ? snapshot.catalogue.entries.find(entry => entry.id === id)?.label : undefined;
   return label === undefined ? pdfText(fromId) : ownName(label, fromId).text;
 }
@@ -171,7 +171,8 @@ export function coordinates([longitude, latitude]: LngLat): PdfText {
   return pdfText(`${part(latitude, "N", "S")}, ${part(longitude, "E", "W")}`);
 }
 
-const isoDateInText = /\b\d{4}-\d{2}-\d{2}\b/g;
+/** A date inside an ID, such as catalogue fao56-hard-windows-2026-11-15 or version reviewed-2026-11-15.2, is part of the ID. */
+const isoDateInText = /(?<![\p{L}\p{N}][-_:.]?)\d{4}-\d{2}-\d{2}(?![-_:.]?[\p{L}\p{N}])/gu;
 
 export function engineText(text: string, say: Say): PdfText {
   return pdfText(text.replace(isoDateInText, match => {

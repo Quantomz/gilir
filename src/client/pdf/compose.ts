@@ -91,7 +91,7 @@ const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>
   no_calendar_fit: (ctx, { proof }) => proof.kind === "duration_lower_bound"
     ? [
       paragraph(t(words.noPlan.fitEach)),
-      list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(cropName(ctx.snapshot, crop.cropPurposeId), words.days(crop.minimumDays)))] }))),
+      list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(words.cap(cropName(ctx.snapshot, crop.cropPurposeId)), words.days(crop.minimumDays)))] }))),
       paragraph(t(words.noPlan.fitNext)),
     ]
     : [
@@ -278,7 +278,7 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
     if (stretch.look === "crop") {
       const { occurrence } = stretch;
       rows.push({
-        head: cropName(ctx.snapshot, occurrence.cropPurposeId),
+        head: t(words.cap(cropName(ctx.snapshot, occurrence.cropPurposeId))),
         lines: [
           t(words.calendar.crop(say.day(occurrence.planted), say.day(occurrence.lastOccupied))),
           t(words.calendar.cropDays(words.days(stretch.to - stretch.from), say.day(occurrence.fieldAvailable))),
@@ -287,14 +287,14 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
     } else if (stretch.look === "after_harvest") {
       rows.push({
         head: t(words.calendar.afterHarvest),
-        lines: [t(span(stretch.from, stretch.to)), t(words.calendar.afterHarvestOf(words.low(cropName(ctx.snapshot, stretch.occurrence.cropPurposeId))))],
+        lines: [t(span(stretch.from, stretch.to)), t(words.calendar.afterHarvestOf(cropName(ctx.snapshot, stretch.occurrence.cropPurposeId)))],
       });
     } else if (previous?.look === "after_harvest") {
       rows.push({
         head: t(words.calendar.noCrop),
         lines: [
           t(span(previous.from, stretch.to)),
-          t(words.calendar.firstDaysAfterHarvest(previous.to - previous.from, words.low(cropName(ctx.snapshot, previous.occurrence.cropPurposeId)))),
+          t(words.calendar.firstDaysAfterHarvest(previous.to - previous.from, cropName(ctx.snapshot, previous.occurrence.cropPurposeId))),
         ],
       });
     } else {
@@ -464,7 +464,7 @@ function compared(ctx: Context): Section<Block> | null {
 
 function changeWords(change: Extract<BaselineComparison, { kind: "assessed" }>["changes"][number], ctx: Context): string {
   const { say } = ctx;
-  const crop = (id: CropPurposeId) => words.low(cropName(ctx.snapshot, id));
+  const crop = (id: CropPurposeId) => cropName(ctx.snapshot, id);
   switch (change.kind) {
     case "added": return words.changes.added(crop(change.occurrence.cropPurposeId), period(ctx, change.occurrence.planted, change.occurrence.lastOccupied));
     case "removed": return words.changes.removed(crop(change.occurrence.cropPurposeId), period(ctx, change.occurrence.planted, change.occurrence.lastOccupied));
@@ -476,7 +476,7 @@ function changeWords(change: Extract<BaselineComparison, { kind: "assessed" }>["
         : words.changes.shifted(who, words.days(Math.abs(shift)), shift < 0, say.day(change.after.planted), say.day(change.before.planted));
     }
     case "order_change":
-      return words.changes.order(cropName(ctx.snapshot, change.cropPurposeId), words.ordinal(change.beforeIndex + 1), words.ordinal(change.afterIndex + 1));
+      return words.changes.order(words.cap(cropName(ctx.snapshot, change.cropPurposeId)), words.ordinal(change.beforeIndex + 1), words.ordinal(change.afterIndex + 1));
   }
 }
 
@@ -502,7 +502,7 @@ function reported(ctx: Context): Block[] {
       const dates = t(words.compare.planted(entry.plantedPrecision === "approximate", say.day(entry.planted),
         entry.harvestedPrecision === "approximate", say.day(entry.harvested)));
       if (entry.crop.kind === "catalogue") {
-        items.push({ head: cropName(ctx.snapshot, entry.crop.cropPurposeId), lines: [dates] });
+        items.push({ head: t(words.cap(cropName(ctx.snapshot, entry.crop.cropPurposeId))), lines: [dates] });
       } else {
         const name = ownName(entry.crop.label, words.unlisted.fallback);
         items.push(name.shown === "replaced"
@@ -547,8 +547,16 @@ function gapList(gaps: ResultDetails["unassessedChecks"], ctx: Context): Block {
   }
   return list("bullet", [...items.values()].map(({ gap, reasons }) => ({
     head: t(words.gapHeads[gap.code](cropList(ctx, gap.cropPurposeIds), unique(gap.cropPurposeIds).length > 1)),
-    lines: reasons.map(reason => engineText(reason, ctx.say)),
+    lines: reasons.map(reason => engineText(namingCrops(reason, gap.cropPurposeIds, ctx), ctx.say)),
   })));
+}
+
+/** The registry names a crop by its ID ("No released common-bean-dry profile applies"). An ID inside a longer ID is left alone. */
+function namingCrops(text: string, ids: readonly CropPurposeId[], ctx: Context): string {
+  if (!ids.length) return text;
+  const names = new Map<string, string>(ids.map(id => [id, cropName(ctx.snapshot, id)]));
+  const standalone = new RegExp(`(?<![a-z0-9]|[a-z0-9][-_:])(?:${[...names.keys()].join("|")})(?![a-z0-9]|[-_:][a-z0-9])`, "g");
+  return words.cap(text.replace(standalone, match => names.get(match) ?? match));
 }
 
 function monthlyInsights(details: ResultDetails): ResultDetails["insights"] {
@@ -626,7 +634,7 @@ function sources(details: ResultDetails, ctx: Context, printedMetrics: readonly 
       words.sources.grid(product.gridDegrees[0], product.gridDegrees[1]), version, product.sourceUrl));
   }
   if (provenance.profiles.length) {
-    lines.push(words.sources.profiles(provenance.profiles.map(profile => `${cropName(ctx.snapshot, profile.cropPurposeId)} ${profile.id} ${profile.version}`).join("; ")));
+    lines.push(words.sources.profiles(provenance.profiles.map(profile => `${words.cap(cropName(ctx.snapshot, profile.cropPurposeId))} ${profile.id} ${profile.version}`).join("; ")));
   }
   if (provenance.rules.length) lines.push(words.sources.rules(provenance.rules.map(rule => `${rule.id} ${rule.version}`).join("; ")));
   if (provenance.manifest.kind === "available") {
@@ -656,8 +664,10 @@ function unique<T>(list: readonly T[]): T[] {
 }
 
 function cropList(ctx: Context, ids: readonly CropPurposeId[]): string | null {
-  const names = unique(ids).map(id => words.low(cropName(ctx.snapshot, id)));
-  return names.length ? words.listWords(names) : null;
+  const names = unique(ids).map(id => cropName(ctx.snapshot, id));
+  if (!names.length) return null;
+  // "Pumpkin and winter squash and Squash and zucchini" reads as four crops.
+  return names.some(name => /,| and /.test(name)) ? names.join("; ") : words.listWords(names);
 }
 
 const paragraph = (text: PdfText, style: TextStyle = "body"): Block => ({ kind: "text", style, text });

@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { parseCropPurposeId } from "@/contracts/common";
+import type { CropPurposeId } from "@/contracts/common";
 import { completedSnapshotSchema } from "@/contracts/result";
+import type { CompletedSnapshot } from "@/contracts/result";
 import { compose } from "@/client/pdf/compose";
 import type { Item, PdfDocument, PlanDocument, StatusDocument, Timeline, TimelineBlock } from "@/client/pdf/model";
 import { pdfText } from "@/client/pdf/text";
 import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
+import { readRegistryRelease, resolveRegistry } from "@/registry";
 import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 function calendarOf(doc: PdfDocument): { readonly timeline: Timeline; readonly rows: readonly Item[] } {
@@ -356,7 +360,7 @@ describe("the variants: what the fixtures can't show", () => {
     const unchecked = rest.find(section => section.heading === "What we couldn’t check");
     expect(unchecked?.blocks).toEqual([{
       kind: "list", marker: "bullet",
-      items: [{ head: "Heat and cold limits for pumpkin and winter squash and sweet maize sweet corn", lines: ["No synthetic temperature rule applies to these invented crops."] }],
+      items: [{ head: "Heat and cold limits for pumpkin and winter squash; sweet maize sweet corn", lines: ["No synthetic temperature rule applies to these invented crops."] }],
     }]);
   });
 });
@@ -486,26 +490,26 @@ describe("a crop's name", () => {
   }), { "synthetic-crop": savedLabels["synthetic-crop"] });
   const idNames = /synthetic (second |third )?crop\b/i;
 
-  it("version 2: the label saved with the snapshot names each crop in the answers, status, flags, calendar, heat, changes, gaps and profiles", () => {
+  it("version 2: the label saved with the snapshot names each crop, as written, in the answers, status, flags, calendar, heat, changes, gaps and profiles", () => {
     const doc = compose(saved, britishReader);
     const text = textOf(doc);
-    expect(doc.head.lines).toContain("Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats (grain) · Water: Rain only · Last year: 1 crop");
-    expect(doc.head.status.text).toContain("temperatures went outside the limits for synthetic maize (grain) on about 20% of checked days");
+    expect(doc.head.lines).toContain("Crops: Synthetic bean (dry grain), Synthetic maize (grain) and Synthetic oats (grain) · Water: Rain only · Last year: 1 crop");
+    expect(doc.head.status.text).toContain("temperatures went outside the limits for Synthetic maize (grain) on about 20% of checked days");
     expect(calendarOf(doc).rows.map(row => row.head)).toEqual([
       "Synthetic bean (dry grain)", "No planned crop", "Synthetic maize (grain)", "No planned crop", "Synthetic oats (grain)", "No planned crop",
     ]);
     expect(text).toEqual(expect.arrayContaining([
-      "Rain fell short of what synthetic bean (dry grain) needs in past seasons",
-      "Temperatures went outside the limits for synthetic maize (grain)",
-      "The first 7 days are the time after the synthetic oats (grain) harvest, before the field is free.",
-      "Outside the limits in past seasons: synthetic maize (grain).",
-      "No checked day outside the limits for synthetic bean (dry grain).",
-      "Not assessed for synthetic oats (grain).",
-      "Added: synthetic oats (grain), 6 Jan to 6 Mar 2027.",
-      "Plant synthetic bean (dry grain) 7 days later: 1 Jul 2026 instead of 24 Jun 2026.",
-      "Plant synthetic maize (grain) on the same day, 16 Oct 2026; harvest 24 Dec 2026 instead of 19 Dec 2026.",
+      "Rain fell short of what Synthetic bean (dry grain) needs in past seasons",
+      "Temperatures went outside the limits for Synthetic maize (grain)",
+      "The first 7 days are the time after the Synthetic oats (grain) harvest, before the field is free.",
+      "Outside the limits in past seasons: Synthetic maize (grain).",
+      "No checked day outside the limits for Synthetic bean (dry grain).",
+      "Not assessed for Synthetic oats (grain).",
+      "Added: Synthetic oats (grain), 6 Jan to 6 Mar 2027.",
+      "Plant Synthetic bean (dry grain) 7 days later: 1 Jul 2026 instead of 24 Jun 2026.",
+      "Plant Synthetic maize (grain) on the same day, 16 Oct 2026; harvest 24 Dec 2026 instead of 19 Dec 2026.",
       "Synthetic maize (grain) moves from first to second in the order.",
-      "Heat and cold limits for synthetic oats (grain)",
+      "Heat and cold limits for Synthetic oats (grain)",
       "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain) synthetic-synthetic-second-crop-profile synthetic-v1; Synthetic oats (grain) synthetic-synthetic-third-crop-profile synthetic-v1.",
     ]));
     expect(text.filter(line => idNames.test(line))).toEqual([]);
@@ -515,7 +519,7 @@ describe("a crop's name", () => {
     const tooLong = textOf(compose(frozen(completedSnapshotsByState.no_calendar_fit, { "synthetic-crop": savedLabels["synthetic-crop"] }), britishReader));
     expect(tooLong).toContain("Synthetic bean (dry grain): at least 366 days");
     const missing = textOf(compose(savedStatus, britishReader));
-    expect(missing).toContain("Growing details for synthetic bean (dry grain) in this place");
+    expect(missing).toContain("Growing details for Synthetic bean (dry grain) in this place");
     const lastYear = missing.slice(missing.indexOf("What you told us about last year (not scored)"));
     expect(lastYear.slice(1, 3)).toEqual(["Synthetic bean (dry grain)", "Planted about 1 Jul 2025 · Harvested about 4 Jul 2025"]);
     expect([...tooLong, ...missing].filter(line => idNames.test(line))).toEqual([]);
@@ -543,5 +547,72 @@ describe("a crop's name", () => {
     expect(calendarOf(doc).rows[0]?.head).toBe("Synthetic crop");
     expect(doc.head.lines).toContain("Crops: Synthetic crop · Water: Rain only · Last year: 1 crop");
     expect(textOf(doc).filter(line => /\?{2}|\? synthetic/.test(line))).toEqual([]);
+  });
+});
+
+describe("real registry and engine text", () => {
+  const registry = readRegistryRelease();
+  const bangkok = {
+    lookup: [100.5, 14] as const,
+    climate: { meanAnnualTemperatureC: { kind: "available", value: 28 }, meanAnnualPrecipitationMm: { kind: "available", value: 1400 } },
+  } as const;
+  const ids = (...list: readonly string[]) => list.map(parseCropPurposeId);
+  const gapsFor = (crops: readonly CropPurposeId[]) => resolveRegistry({ cropPurposeIds: crops, ...bangkok }, registry).gaps;
+  const labelsOf = (crops: readonly CropPurposeId[]) => Object.fromEntries(crops.map(id => {
+    const entry = registry.catalogue.entries.find(candidate => candidate.id === id);
+    if (!entry) throw new Error(`${id} is not in the released catalogue`);
+    return [id, entry.label];
+  }));
+  const rawIds = (text: readonly string[], crops: readonly string[]) => text.filter(line => crops.some(id => line.includes(id)));
+
+  function missing(crops: readonly CropPurposeId[], unchecked: readonly CropPurposeId[] = [], changes: object = {}): CompletedSnapshot {
+    const source = completedSnapshotsByState.insufficient_data;
+    const gaps = gapsFor(crops);
+    return completedSnapshotSchema.parse({
+      ...source,
+      input: { ...source.input, cropPurposeIds: crops },
+      result: { ...source.result, missing: gaps, details: { ...source.result.details, unassessedChecks: [...gaps, ...gapsFor(unchecked)], ...changes } },
+    });
+  }
+
+  it("a gap the registry gives names the crop, as the head above it does, never by its ID: in What’s missing and in What we couldn’t check", () => {
+    const selected = ids("common-bean-dry", "brussels-sprouts");
+    const fromHistory = ids("squash-zucchini");
+    expect(gapsFor(selected).map(gap => gap.reason)).toEqual(selected.map(id => `No released ${id} profile applies at this location.`));
+    const saved = textOf(compose(frozen(missing(selected, fromHistory), labelsOf([...selected, ...fromHistory])), britishReader));
+    for (const [head, reason] of [
+      ["Growing details for Common bean (dry grain) in this place", "No released Common bean (dry grain) profile applies at this location."],
+      ["Growing details for Brussels sprouts in this place", "No released Brussels sprouts profile applies at this location."],
+      ["Growing details for Squash and zucchini in this place", "No released Squash and zucchini profile applies at this location."],
+    ]) expect(saved[saved.indexOf(head) + 1], head).toBe(reason);
+    expect(saved.indexOf("Growing details for Squash and zucchini in this place")).toBeGreaterThan(saved.indexOf("What we couldn’t check"));
+    expect(rawIds(saved, [...selected, ...fromHistory])).toEqual([]);
+
+    const notListed = ids("common-bean-dry", "teff-grain");
+    const fromIds = textOf(compose(missing(notListed), britishReader));
+    expect(fromIds).toContain("No released common bean dry profile applies at this location.");
+    expect(fromIds).toContain(`Teff grain is not in catalogue ${registry.catalogue.version}.`);
+    expect(rawIds(fromIds, notListed)).toEqual([]);
+  });
+
+  it("a crop ID inside a longer ID, such as a profile ID, is left as it is", () => {
+    const crop = parseCropPurposeId("common-bean-dry");
+    const reason = "Ambiguous profile precedence for common-bean-dry: common-bean-dry-fao56-a, common-bean-dry-fao56-b.";
+    const source = missing([crop]);
+    const doc = compose(frozen(completedSnapshotSchema.parse({
+      ...source, result: { ...source.result, missing: [{ code: "crop_profile", reason, cropPurposeIds: [crop], sourceIds: [] }] },
+    }), labelsOf([crop])), britishReader);
+    expect(textOf(doc)).toContain("Ambiguous profile precedence for Common bean (dry grain): common-bean-dry-fao56-a, common-bean-dry-fao56-b.");
+  });
+
+  it("saved labels print as written, and a crop list holding a name with and in it is split by semicolons", () => {
+    const crops = ids("pumpkin-winter-squash", "squash-zucchini", "brussels-sprouts");
+    const heat = { code: "temperature_exposure", message: "In some replay seasons, daily temperatures passed a crop's temperature limit during its sensitive period.",
+      cropPurposeIds: crops.slice(0, 2), ruleIds: [], metricIds: [] };
+    const doc = compose(frozen(missing(crops, [], { warnings: [heat] }), labelsOf(crops)), britishReader);
+    const text = textOf(doc);
+    expect(doc.head.lines[2]).toBe("Crops: Pumpkin and winter squash; Squash and zucchini; Brussels sprouts · Water: Rain only · Last year: 1 crop");
+    expect(text).toContain("Temperatures went outside the limits for Pumpkin and winter squash; Squash and zucchini");
+    expect(text.filter(line => line.includes("brussels sprouts"))).toEqual([]);
   });
 });

@@ -375,7 +375,7 @@ describe("what each state prints", () => {
     expect(more).toContain(`Assumptions • Synthetic assumption one for this layout test. • Synthetic assumption two, from ${englishDay("2026-07-15")}.`);
   });
 
-  it("insufficient_data: a crop the engine reports twice under one code is one item with both reasons", async () => {
+  it("insufficient_data: a crop the engine reports twice under one code is one item with both reasons, each naming the crop, not its ID", async () => {
     const crops = ["synthetic-crop", "synthetic-second-crop"];
     const missing = [
       ...crops.map(crop => ({ code: "crop_profile", reason: `No synthetic ${crop} profile applies here.`, cropPurposeIds: [crop], sourceIds: [] })),
@@ -384,8 +384,8 @@ describe("what each state prints", () => {
     const text = prose(await read(edited("insufficient_data", { input: { cropPurposeIds: crops }, details: { unassessedChecks: missing }, result: { missing } })));
     expect(text).toContain([
       "What’s missing",
-      "• Growing details for synthetic crop in this place No synthetic synthetic-crop profile applies here. A selected crop has no applicable profile.",
-      "• Growing details for synthetic second crop in this place No synthetic synthetic-second-crop profile applies here. A selected crop has no applicable profile.",
+      "• Growing details for synthetic crop in this place No synthetic synthetic crop profile applies here. A selected crop has no applicable profile.",
+      "• Growing details for synthetic second crop in this place No synthetic synthetic second crop profile applies here. A selected crop has no applicable profile.",
       "Making the plan again",
     ].join(" "));
     expect(occurrences(text, "Growing details for")).toBe(2);
@@ -518,16 +518,16 @@ describe("crop names in the file", () => {
   it("version 2: the saved labels name the crops in the head, flags, calendar, heat, changes, gaps and profiles, and no crop by its ID", async () => {
     const text = prose(await read(variant("frozenLabels")));
     for (const part of [
-      "Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats (grain) · Water: Rain only",
-      "temperatures went outside the limits for synthetic maize (grain) on about 20% of checked days",
-      "Rain fell short of what synthetic bean (dry grain) needs in past seasons Synthetic rainfall warning for the first crop.",
+      "Crops: Synthetic bean (dry grain), Synthetic maize (grain) and Synthetic oats (grain) · Water: Rain only",
+      "temperatures went outside the limits for Synthetic maize (grain) on about 20% of checked days",
+      "Rain fell short of what Synthetic bean (dry grain) needs in past seasons Synthetic rainfall warning for the first crop.",
       "1. Synthetic bean (dry grain) Plant 1 Jul 2026 · Harvest 28 Sept 2026",
       "3. Synthetic maize (grain) Plant 16 Oct 2026 · Harvest 24 Dec 2026",
       "5. Synthetic oats (grain) Plant 6 Jan 2027 · Harvest 6 Mar 2027",
-      "Outside the limits in past seasons: synthetic maize (grain). No checked day outside the limits for synthetic bean (dry grain). Not assessed for synthetic oats (grain).",
-      "Added: synthetic oats (grain), 6 Jan to 6 Mar 2027.",
+      "Outside the limits in past seasons: Synthetic maize (grain). No checked day outside the limits for Synthetic bean (dry grain). Not assessed for Synthetic oats (grain).",
+      "Added: Synthetic oats (grain), 6 Jan to 6 Mar 2027.",
       "Synthetic maize (grain) moves from first to second in the order.",
-      "Heat and cold limits for synthetic oats (grain) No synthetic temperature rule applies to this invented crop.",
+      "Heat and cold limits for Synthetic oats (grain) No synthetic temperature rule applies to this invented crop.",
       "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain)",
     ]) expect(text).toContain(part);
     expect(text).not.toMatch(idNames);
