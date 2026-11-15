@@ -16,8 +16,21 @@ export function dailyGdd(day: { readonly minC: number; readonly maxC: number }, 
 export function prepareThermal(days: readonly { readonly minC: number; readonly maxC: number }[], model: Development): PreparedThermal {
   const daily = Float64Array.from(days, day => dailyGdd(day, model));
   const prefix = new Float64Array(daily.length + 1);
-  for (let index = 0; index < daily.length; index++) prefix[index + 1] = prefix[index] + daily[index];
+  let sum = 0;
+  let compensation = 0;
+  for (let index = 0; index < daily.length; index++) {
+    const corrected = daily[index] - compensation;
+    const next = sum + corrected;
+    compensation = (next - sum) - corrected;
+    sum = next;
+    prefix[index + 1] = sum;
+  }
   return { prefix, daily };
+}
+
+function reached(observed: number, target: number): boolean {
+  const roundoffBound = 8 * Number.EPSILON * Math.max(Math.abs(observed), Math.abs(target));
+  return observed >= target || target - observed <= roundoffBound;
 }
 
 function firstReached(prefix: Float64Array, target: number, start: number): number {
@@ -25,7 +38,7 @@ function firstReached(prefix: Float64Array, target: number, start: number): numb
   let high = prefix.length - 1;
   while (low < high) {
     const middle = Math.floor((low + high) / 2);
-    if (prefix[middle] >= target) high = middle;
+    if (reached(prefix[middle], target)) high = middle;
     else low = middle + 1;
   }
   return low;
@@ -37,7 +50,7 @@ export function completion(thermal: PreparedThermal, model: Development, planted
   thermalStages.forEach((stage, index) => { target += model.incrementalStageGdd[stage]; totals[index] = target; });
   const origin = thermal.prefix[plantedOffset];
   const achievedGdd = thermal.prefix[thermal.daily.length] - origin;
-  if (achievedGdd < target) return { kind: "not_completed", achievedGdd, requiredGdd: target } as const;
+  if (!reached(thermal.prefix[thermal.daily.length], origin + target)) return { kind: "not_completed", achievedGdd, requiredGdd: target } as const;
   const stageCompletionOffsets: [number, number, number, number] = [
     firstReached(thermal.prefix, origin + totals[0], plantedOffset),
     firstReached(thermal.prefix, origin + totals[1], plantedOffset),

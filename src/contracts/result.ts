@@ -325,11 +325,15 @@ export const completedSnapshotV3Schema = z.strictObject({
     const ordinal = (date: string) => Date.parse(date + "T00:00:00Z") / 86_400_000;
     const start = ordinal(plan.horizon.start);
     const horizonDays = ordinal(plan.horizon.endExclusive) - start;
+    const nextYear = Number(snapshot.input.planningStart.slice(0, 4)) + 1;
+    const leapYear = nextYear % 4 === 0 && (nextYear % 100 !== 0 || nextYear % 400 === 0);
+    const monthDay = snapshot.input.planningStart.slice(5);
+    const anniversary = `${String(nextYear).padStart(4, "0")}-${monthDay === "02-29" && !leapYear ? "02-28" : monthDay}`;
     const starts = details.modeling.retainedReplayStarts;
     const cohort = details.cohort;
     const retained = cohort.kind === "available" ? cohort.value.seasons.filter(season => season.status === "usable").map(season => season.interval.start) : [];
     if (!starts.length || new Set(starts).size !== starts.length || JSON.stringify(starts) !== JSON.stringify(retained)
-      || plan.horizon.start !== snapshot.input.planningStart || horizonDays < 365 || horizonDays > 366
+      || plan.horizon.start !== snapshot.input.planningStart || plan.horizon.endExclusive !== anniversary
       || snapshot.input.cropPurposeIds.some(id => !plan.occurrences.some(item => item.cropPurposeId === id))) {
       context.addIssue({ code: "custom", message: "Modeled plan must retain the common cohort, all selected crops and the planning horizon." });
     }
