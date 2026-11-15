@@ -1,0 +1,11 @@
+
+Running 4 tests using 1 worker
+
+(node:44624) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 product.spec.ts:10:2 › missing-key product 360 globe (5.0s)
+  ✓  2 product.spec.ts:10:2 › missing-key product 360 fallback (2.2s)
+  ✓  3 product.spec.ts:10:2 › missing-key product 1280 globe (2.8s)
+  ✓  4 product.spec.ts:10:2 › missing-key product 1280 fallback (1.8s)
+
+  4 passed (12.7s)

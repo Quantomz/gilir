@@ -1,0 +1,18 @@
+[WebServer] (node:42041) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:42042) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 5 tests using 1 worker
+
+(node:42049) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/5] tests/frontend/location/no-webgl.spec.ts:38:1 › [R14][R16] the slot reports data-surface='plan', shows 'This phone can’t show the moving globe. …' and a drawing of the fixture with 4 numbered corners
+[2/5] tests/frontend/location/no-webgl.spec.ts:48:1 › [R14][R15] Tab only: change corner 3's latitude, 'Use these corners': the drawing redraws and data-lookup changes
+[3/5] tests/frontend/location/no-webgl.spec.ts:63:1 › [R14][R12][R11] Tab only: the U shape, then the Fiji corners, each marked with data-lookup strictly inside
+[4/5] tests/frontend/location/no-webgl.spec.ts:77:1 › [R14][R20] 'Search again', type '-6.326, 108.32', Enter, 'Mark my field': a 1 ha box on the drawing; Smaller and Bigger change it
+[5/5] tests/frontend/location/no-webgl.spec.ts:100:1 › [R22] at 360 px on F1's page 1, the drawing, the list and every control fit with no horizontal scroll, at Normal text and with the big-text class
+  5 passed (8.9s)

@@ -1,0 +1,29 @@
+[WebServer] (node:40594) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:40595) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 16 tests using 1 worker
+
+(node:40602) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/16] tests/frontend/location/provider.spec.ts:54:1 › [R6] typing 'Indramayu' sends no request to the provider; Enter sends exactly one geocoding request
+[2/16] tests/frontend/location/provider.spec.ts:67:1 › [R4][R1] that request has key=pw-dummy-key, autocomplete=false, and no proximity, bbox or country
+[3/16] tests/frontend/location/provider.spec.ts:77:1 › [R4] tile requests that carry the key go to api.maptiler.com only; GIBS requests carry no key
+[4/16] tests/frontend/location/provider.spec.ts:97:1 › [R3] choosing 'Indramayu' drops the pin and the camera goes there; 'Mark my field' draws a 1 ha box with its handles apart
+[5/16] tests/frontend/location/provider.spec.ts:118:1 › tapping the map moves the box to the tap; after dragging a corner a tap no longer moves it
+[6/16] tests/frontend/location/provider.spec.ts:145:1 › [R11] a canned Fiji answer whose bbox has west > east: the camera goes to its center, and the label is 'Field near Labasa, …', not Tonga
+[7/16] tests/frontend/location/provider.spec.ts:162:1 › [R5] the credits line reads NASA EOSDIS GIBS, © MapTiler and © OpenStreetMap contributors without a press, in text of at least 18 px
+[8/16] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 360px
+[9/16] tests/frontend/location/provider.spec.ts:223:5 › [R5] the linked provider logo is visible and usable at 360px in light mode
+[10/16] tests/frontend/location/provider.spec.ts:223:5 › [R5] the linked provider logo is visible and usable at 360px in dark mode
+[11/16] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 1280px
+[12/16] tests/frontend/location/provider.spec.ts:223:5 › [R5] the linked provider logo is visible and usable at 1280px in light mode
+[13/16] tests/frontend/location/provider.spec.ts:223:5 › [R5] the linked provider logo is visible and usable at 1280px in dark mode
+[14/16] tests/frontend/location/provider.spec.ts:245:1 › [R16] a 403 to the search shows its explanation; a 429 says the search is busy; 403 to tiles shows 'The map pictures didn’t load. …' and the globe still turns
+[15/16] tests/frontend/location/provider.spec.ts:270:1 › [R16] no answer, an answer past the time limit and no place found each say so in the slot; a typed position still marks a field after them
+[16/16] tests/frontend/location/provider.spec.ts:291:1 › [R25] no request to any provider carries a coordinate of the field: only the typed text and tile z, x and y
+  16 passed (1.3m)

@@ -1,0 +1,16 @@
+
+Running 9 tests using 1 worker
+
+(node:44279) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 review.spec.ts:12:2 › head 360 light globe (5.2s)
+  ✓  2 review.spec.ts:12:2 › head 360 light fallback (1.6s)
+  ✓  3 review.spec.ts:12:2 › head 360 dark globe (2.2s)
+  ✓  4 review.spec.ts:12:2 › head 360 dark fallback (1.7s)
+  ✓  5 review.spec.ts:12:2 › head 1280 light globe (3.1s)
+  ✓  6 review.spec.ts:12:2 › head 1280 light fallback (2.2s)
+  ✓  7 review.spec.ts:12:2 › head 1280 dark globe (2.9s)
+  ✓  8 review.spec.ts:12:2 › head 1280 dark fallback (1.8s)
+  ✓  9 review.spec.ts:73:1 › head pointer and keyboard activate the provider link without changing the field (2.3s)
+
+  9 passed (23.8s)

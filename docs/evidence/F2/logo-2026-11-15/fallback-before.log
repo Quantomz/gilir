@@ -1,0 +1,56 @@
+
+Running 2 tests using 1 worker
+
+(node:39817) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/2] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 360px
+  1) tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 360px 
+
+    Error: corner 1 must not overlap the fallback footer
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+      214 |         const overlaps = labelBox.x < obstacleBox.x + obstacleBox.width && labelBox.x + labelBox.width > obstacleBox.x
+      215 |           && labelBox.y < obstacleBox.y + obstacleBox.height && labelBox.y + labelBox.height > obstacleBox.y;
+    > 216 |         expect(overlaps, `corner ${number} must not overlap the ${obstacle.name}`).toBe(false);
+          |                                                                                    ^
+      217 |       }
+      218 |     }
+      219 |     expect(routes.of("elsewhere")).toHaveLength(0);
+        at /Users/kyusuku/Hackathons/gilir-map-provider-hosting/tests/frontend/location/provider.spec.ts:216:84
+
+    Error Context: ../.audit/gilir/f2-map-logo/fallback/before-results/provider--R5-R14-the-fallb-63d0e-rner-numbers-clear-at-360px/error-context.md
+
+
+(node:39837) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[2/2] tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 1280px
+  2) tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 1280px 
+
+    Error: corner 1 must not overlap the fallback footer
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+      214 |         const overlaps = labelBox.x < obstacleBox.x + obstacleBox.width && labelBox.x + labelBox.width > obstacleBox.x
+      215 |           && labelBox.y < obstacleBox.y + obstacleBox.height && labelBox.y + labelBox.height > obstacleBox.y;
+    > 216 |         expect(overlaps, `corner ${number} must not overlap the ${obstacle.name}`).toBe(false);
+          |                                                                                    ^
+      217 |       }
+      218 |     }
+      219 |     expect(routes.of("elsewhere")).toHaveLength(0);
+        at /Users/kyusuku/Hackathons/gilir-map-provider-hosting/tests/frontend/location/provider.spec.ts:216:84
+
+    Error Context: ../.audit/gilir/f2-map-logo/fallback/before-results/provider--R5-R14-the-fallb-59410-ner-numbers-clear-at-1280px/error-context.md
+
+
+  2 failed
+    tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 360px 
+    tests/frontend/location/provider.spec.ts:180:3 › [R5][R14] the fallback footer and scale leave all four corner numbers clear at 1280px 
