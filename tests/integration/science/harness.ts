@@ -14,11 +14,11 @@ import { readRegistryRelease } from "@/registry";
 import { providerSnapshotSchema } from "@/server/cache/schema";
 import { addDays, daysFrom, occurrenceWindows } from "./reference";
 
-export type Recording = "boise-apr" | "boise-jun" | "madrid" | "bangkok" | "ibadan";
+export type Recording = "boise-apr" | "boise-jun" | "madrid" | "madrid-mar" | "bangkok" | "ibadan";
 
 export type Expectation =
   | { readonly state: "plan"; readonly profileIds: readonly string[] }
-  | { readonly state: "no_calendar_fit"; readonly profileIds: readonly string[] }
+  | { readonly state: "no_calendar_fit"; readonly profileIds: readonly string[]; readonly proof: "duration_lower_bound" | "structural_exhaustion" }
   | { readonly state: "insufficient_data"; readonly missingProfiles: readonly string[] };
 
 export interface ScienceCase {
@@ -31,16 +31,19 @@ export interface ScienceCase {
 }
 
 const boise: LngLat = [-116.2, 43.6];
+const madrid: LngLat = [-3.7, 40.4];
 
 export const scienceCases: readonly ScienceCase[] = [
   { id: "boise-bean-plan", lookup: boise, cropPurposeIds: ["common-bean-dry"], planningStart: "2027-06-01", recording: "boise-jun",
     expect: { state: "plan", profileIds: ["common-bean-dry-fao56-idaho-jun"] } },
-  { id: "boise-maize-bean-plan", lookup: boise, cropPurposeIds: ["maize-grain", "common-bean-dry"], planningStart: "2027-04-01", recording: "boise-apr",
-    expect: { state: "plan", profileIds: ["maize-grain-fao56-idaho-apr", "common-bean-dry-fao56-idaho-jun"] } },
-  { id: "madrid-wheat-maize-plan", lookup: [-3.7, 40.4], cropPurposeIds: ["wheat-grain", "maize-grain"], planningStart: "2027-06-01", recording: "madrid",
-    expect: { state: "plan", profileIds: ["wheat-grain-fao56-lat35-45n-mar-apr", "maize-grain-fao56-spain-california-apr"] } },
+  { id: "madrid-radish-barley-plan", lookup: madrid, cropPurposeIds: ["radish", "barley-grain"], planningStart: "2027-03-01", recording: "madrid-mar",
+    expect: { state: "plan", profileIds: ["radish-fao56-mediterranean-europe-mar-apr", "barley-grain-fao56-lat35-45n-mar-apr"] } },
+  { id: "madrid-wheat-maize-no-fit", lookup: madrid, cropPurposeIds: ["wheat-grain", "maize-grain"], planningStart: "2027-06-01", recording: "madrid",
+    expect: { state: "no_calendar_fit", proof: "structural_exhaustion",
+      profileIds: ["wheat-grain-fao56-lat35-45n-mar-apr", "maize-grain-fao56-spain-california-apr"] } },
   { id: "boise-maize-bean-wheat-no-fit", lookup: boise, cropPurposeIds: ["maize-grain", "common-bean-dry", "wheat-grain"], planningStart: "2027-04-01", recording: "boise-apr",
-    expect: { state: "no_calendar_fit", profileIds: ["maize-grain-fao56-idaho-apr", "common-bean-dry-fao56-idaho-jun", "wheat-grain-fao56-lat35-45n-mar-apr"] } },
+    expect: { state: "no_calendar_fit", proof: "duration_lower_bound",
+      profileIds: ["maize-grain-fao56-idaho-apr", "common-bean-dry-fao56-idaho-jun", "wheat-grain-fao56-lat35-45n-mar-apr"] } },
   { id: "bangkok-bean-insufficient", lookup: [100.5, 13.75], cropPurposeIds: ["common-bean-dry"], planningStart: "2027-06-01", recording: "bangkok",
     expect: { state: "insufficient_data", missingProfiles: ["common-bean-dry"] } },
   { id: "ibadan-maize-withheld-insufficient", lookup: [3.9, 7.4], cropPurposeIds: ["maize-grain"], planningStart: "2027-06-01", recording: "ibadan",

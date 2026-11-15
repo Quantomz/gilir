@@ -93,6 +93,20 @@ describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded
         expect(plan.rankingTuple.components.map(component => component.metricId)).toEqual([...rankingMetricIds]);
       }, 60_000);
 
+      it("plants every crop inside its released FAO-56 planting window", () => {
+        const result = resultOf(c);
+        if (!("plan" in result)) throw new Error(`Expected a plan, got ${result.state}.`);
+        for (const o of result.plan.occurrences) {
+          const windows = profileFor(o.profileId, o.profileVersion).timing.plantingWindows;
+          expect(windows.length, o.profileId).toBeGreaterThan(0);
+          expect(windows.every(w => w.basis === "hard_constraint"), o.profileId).toBe(true);
+          const monthDay = o.planted.slice(5);
+          expect(windows.some(({ window: w }) => w.startMonthDay <= w.endMonthDayInclusive
+            ? monthDay >= w.startMonthDay && monthDay <= w.endMonthDayInclusive
+            : monthDay >= w.startMonthDay || monthDay <= w.endMonthDayInclusive), `${o.profileId} planted ${o.planted}`).toBe(true);
+        }
+      }, 60_000);
+
       it("keeps the same plan when the farmer reports backup water", () => {
         const result = resultOf(c);
         const backup = runCase(c, "rain_plus_backup");
@@ -116,7 +130,7 @@ describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded
       }, 60_000);
     }
 
-    if (c.expect.state === "no_calendar_fit") {
+    if (c.expect.state === "no_calendar_fit" && c.expect.proof === "duration_lower_bound") {
       it("proves impossibility from summed occupancy and turnaround exceeding the year", () => {
         const result = resultOf(c);
         if (result.state !== "no_calendar_fit") throw new Error(`Expected no_calendar_fit, got ${result.state}.`);
@@ -129,6 +143,22 @@ describe(`released E1 registry ${registry.identity.catalogueVersion} on recorded
         expect(result.proof.mandatoryMinimumDays).toBe(minimum);
         expect(result.proof.horizonDays).toBe(daysFrom(c.planningStart, anniversary(c.planningStart)));
         expect(minimum).toBeGreaterThan(result.proof.horizonDays);
+      }, 60_000);
+    }
+
+    if (c.expect.state === "no_calendar_fit" && c.expect.proof === "structural_exhaustion") {
+      it("proves impossibility by exhausting the daily search although the durations alone fit", () => {
+        const result = resultOf(c);
+        if (result.state !== "no_calendar_fit") throw new Error(`Expected no_calendar_fit, got ${result.state}.`);
+        if (result.proof.kind !== "structural_exhaustion") throw new Error(`Expected a structural proof, got ${result.proof.kind}.`);
+        expect(result.proof.horizon).toEqual({ start: c.planningStart, endExclusive: anniversary(c.planningStart) });
+        expect(result.details.search.structural).toBe("proved_impossible");
+        const minimum = result.details.provenance.profiles.map(ref => {
+          const p = profileFor(ref.id, ref.version);
+          const s = p.timing.generatedStageDays;
+          return s.initial + s.development + s.middle + s.late + p.timing.turnaround.days;
+        }).reduce((a, b) => a + b, 0);
+        expect(minimum).toBeLessThanOrEqual(daysFrom(c.planningStart, anniversary(c.planningStart)));
       }, 60_000);
     }
 
