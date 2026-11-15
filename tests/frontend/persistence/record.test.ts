@@ -3,6 +3,7 @@ import type { LocalState } from "@/client/storage";
 import { completedSnapshotSchema } from "@/contracts/result";
 import { inputFixture } from "@/fixtures/input";
 import { completedSnapshotFixture, completedSnapshotsByState, resultFixtures } from "@/fixtures/results";
+import { frozenRunFixture } from "@/fixtures/science";
 import { domError, freshStorage, memoryIdb } from "./support/memory-idb";
 import type { MemoryIdb } from "./support/memory-idb";
 
@@ -21,7 +22,12 @@ function record(parts: Record<string, unknown>, version: unknown = 1) {
   return { format: "gilir.local-state", version, state: { ...empty, ...parts } };
 }
 
-const contracts = { input: inputFixture.schemaVersion, snapshot: completedSnapshotFixture.schemaVersion };
+const contracts = {
+  input: inputFixture.schemaVersion,
+  snapshot: completedSnapshotFixture.schemaVersion,
+  manifest: frozenRunFixture.manifest.schemaVersion,
+};
+const setAsideOf = (finds: readonly object[]) => ({ format: "gilir.set-aside", version: 1, contracts, finds });
 
 async function seeded(raw: unknown, setAside?: unknown) {
   const memory = memoryIdb();
@@ -44,6 +50,14 @@ const fixture = completedSnapshotFixture;
 const { gridExpandedStates: _expanded, ...searchBeforeGridFields } = fixture.result.details.search;
 const insufficient = completedSnapshotsByState.insufficient_data;
 const retiredPriority = { ...fixture, input: { ...fixture.input, priority: "reliability" } };
+const details = fixture.result.details;
+const newerManifest = {
+  ...fixture,
+  result: {
+    ...fixture.result,
+    details: { ...details, provenance: { ...details.provenance, manifest: { kind: "available", value: { ...frozenRunFixture.manifest, schemaVersion: 2 } } } },
+  },
+};
 const words = {
   record: "Your saved answers couldn’t be read, so Gilir starts again from the beginning.",
   snapshot: "Your saved plan can’t be opened by this version of Gilir. Make the plan again to see it.",
@@ -154,14 +168,14 @@ describe("record versions", () => {
     });
     const { localPlans, readStorageNotice, memory } = await seeded(later);
     expect(await localPlans.load()).toEqual({ ...empty, draft: answers });
-    expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["snapshot"], answersKept: true, raw: later }] });
+    expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([{ parts: ["snapshot"], answersKept: true, raw: later }]));
     const notice = await readStorageNotice();
     expect(notice?.text).toBe(`${words.snapshot} ${words.kept}`);
     expect(notice?.text).not.toMatch(/older/);
   });
 
-  it("a record stamped with a newer FarmInput or CompletedSnapshot version rejects load, save and clear with newer, and nothing is written or dropped", async () => {
-    for (const stamp of [{ input: 2, snapshot: 1 }, { input: 1, snapshot: 2 }]) {
+  it("a record stamped with a newer FarmInput, CompletedSnapshot or RunManifest version rejects load, save and clear with newer, and nothing is written or dropped", async () => {
+    for (const stamp of [{ ...contracts, input: 2 }, { ...contracts, snapshot: 2 }, { ...contracts, manifest: 2 }]) {
       const newer = { ...record({ draft: { ...answers, soilKind: "clay", water: "rain_plus_tank" }, snapshot: fixture }), contracts: stamp };
       const { localPlans, storageProblem, memory } = await seeded(newer);
       for (const call of [() => localPlans.load(), () => localPlans.save(state), () => localPlans.clear()]) {
@@ -172,15 +186,29 @@ describe("record versions", () => {
     }
   });
 
-  it("a snapshot whose input carries a newer FarmInput schemaVersion reads as newer, though the snapshot's own schemaVersion is 1", async () => {
-    const newer = record({ draft: answers, snapshot: { ...fixture, input: { ...fixture.input, schemaVersion: 2 } } });
-    const { localPlans, storageProblem, memory } = await seeded(newer);
-    expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("newer");
-    expect(onDisk(memory, "state")).toBe(newer);
-    expect(onDisk(memory, "set-aside")).toBeUndefined();
+  it("a snapshot whose input or run manifest carries a newer schemaVersion reads as newer, though the snapshot's own schemaVersion is 1", async () => {
+    for (const snapshot of [{ ...fixture, input: { ...fixture.input, schemaVersion: 2 } }, newerManifest]) {
+      const newer = record({ draft: answers, snapshot });
+      const { localPlans, storageProblem, memory } = await seeded(newer);
+      expect(storageProblem(await localPlans.load().catch(error => error)).reason).toBe("newer");
+      expect(onDisk(memory, "state")).toBe(newer);
+      expect(onDisk(memory, "set-aside")).toBeUndefined();
+    }
   });
 
-  it("this build stamps what it saves with its own FarmInput and CompletedSnapshot versions, so an older build can refuse it", async () => {
+  it("a set-aside record stamped by a newer build is refused like a newer state: load, save and clear reject newer, no notice shows, and nothing is removed", async () => {
+    const theirs = { ...record({ draft: { soilKind: "loam" } }), contracts: { ...contracts, input: 2 } };
+    const setAside = { ...setAsideOf([{ parts: ["draft.soilKind"], answersKept: true, raw: theirs }]), contracts: { ...contracts, input: 2 } };
+    const { localPlans, readStorageNotice, storageProblem, memory } = await seeded(undefined, setAside);
+    for (const call of [() => localPlans.load(), () => localPlans.save(state), () => localPlans.clear()]) {
+      expect(storageProblem(await call().catch(error => error)).reason).toBe("newer");
+    }
+    expect(await readStorageNotice()).toBeNull();
+    expect(onDisk(memory, "set-aside")).toBe(setAside);
+    expect(onDisk(memory, "state")).toBeUndefined();
+  });
+
+  it("this build stamps what it saves with its own FarmInput, CompletedSnapshot and RunManifest versions, so an older build can refuse it", async () => {
     const { localPlans, memory } = await freshStorage();
     await localPlans.save(state);
     expect((onDisk(memory, "state") as { contracts: unknown }).contracts).toEqual(contracts);
@@ -207,7 +235,7 @@ describe("record versions", () => {
       const { localPlans, memory } = await seeded(raw);
       expect(await localPlans.load()).toBeNull();
       expect(onDisk(memory, "state")).toBeUndefined();
-      expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["record"], answersKept: false, raw }] });
+      expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([{ parts: ["record"], answersKept: false, raw }]));
     }
   });
 });
@@ -314,7 +342,7 @@ describe("set aside, never lost", () => {
     const raw = record({ ...state, snapshot: retiredPriority });
     const { localPlans, memory } = await seeded(raw);
     await localPlans.load();
-    expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["snapshot"], answersKept: true, raw }] });
+    expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([{ parts: ["snapshot"], answersKept: true, raw }]));
   });
 
   it("the readable rest is written back in the same transaction, so the next load writes nothing and returns the same state", async () => {
@@ -349,8 +377,36 @@ describe("set aside, never lost", () => {
     expect(onDisk(memory, "state")).toBe(raw);
     expect(onDisk(memory, "set-aside")).toBeUndefined();
     await localPlans.save(loaded);
-    expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["snapshot"], answersKept: true, raw }] });
+    expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([{ parts: ["snapshot"], answersKept: true, raw }]));
     expect(await localPlans.load()).toEqual(loaded);
+  });
+
+  it("on a full device the notice still names the part load couldn't set aside; it shows until that part is set aside and dismissed", async () => {
+    const raw = record({ draft: answers, snapshot: retiredPriority });
+    const { localPlans, readStorageNotice, memory } = await seeded(raw);
+    memory.failNext("commit", domError("QuotaExceededError"));
+    expect(await localPlans.load()).toEqual({ ...empty, draft: answers });
+    const notice = await readStorageNotice();
+    expect(notice?.text).toBe(`${words.snapshot} ${words.kept}`);
+    await notice?.dismiss();
+    expect(onDisk(memory, "state")).toBe(raw);
+    expect((await readStorageNotice())?.text).toBe(`${words.snapshot} ${words.kept}`);
+    await localPlans.save({ ...empty, draft: answers, step: 2 });
+    const setAside = await readStorageNotice();
+    expect(setAside?.text).toBe(`${words.snapshot} ${words.kept}`);
+    await setAside?.dismiss();
+    expect(await readStorageNotice()).toBeNull();
+  });
+
+  it("a part a save sets aside says the answers are kept only when that save keeps answers", async () => {
+    for (const [draft, text] of [[answers, `${words.snapshot} ${words.kept}`], [null, words.snapshot]] as const) {
+      const { localPlans, readStorageNotice, memory } = await seeded(record({ draft: answers, step: 4, snapshot: retiredPriority }));
+      memory.failNext("commit", domError("QuotaExceededError"));
+      await localPlans.load();
+      await localPlans.save({ ...empty, draft });
+      expect((await localPlans.load())?.draft ?? null).toEqual(draft);
+      expect((await readStorageNotice())?.text, JSON.stringify(draft)).toBe(text);
+    }
   });
 
   it("a second finding is appended and the first raw value is kept", async () => {
@@ -360,11 +416,10 @@ describe("set aside, never lost", () => {
     const second = record({ draft: answers, activeJob: { jobId: "synthetic-job" } });
     memory.databases.get("gilir")?.set("state", second);
     await localPlans.load();
-    expect(onDisk(memory, "set-aside")).toEqual({
-      format: "gilir.set-aside",
-      version: 1,
-      finds: [{ parts: ["snapshot"], answersKept: true, raw: first }, { parts: ["activeJob"], answersKept: true, raw: second }],
-    });
+    expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([
+      { parts: ["snapshot"], answersKept: true, raw: first },
+      { parts: ["activeJob"], answersKept: true, raw: second },
+    ]));
   });
 
   it("a caller's next save (load, then save a patch over it) leaves the set-aside record in place", async () => {
@@ -456,10 +511,23 @@ describe("the notice in the farmer's words", () => {
     await shown?.dismiss();
     const next = await readStorageNotice();
     expect(next?.text).toBe(`${words.activeJob} ${words.kept}`);
-    expect(onDisk(memory, "set-aside")).toEqual({ format: "gilir.set-aside", version: 1, finds: [{ parts: ["activeJob"], answersKept: true, raw: later }] });
+    expect(onDisk(memory, "set-aside")).toEqual(setAsideOf([{ parts: ["activeJob"], answersKept: true, raw: later }]));
     await next?.dismiss();
     expect(await readStorageNotice()).toBeNull();
     expect(onDisk(memory, "set-aside")).toBeUndefined();
+  });
+
+  it("dismiss after a full-device notice removes only the set-aside findings it showed: a part it named from the saved state never counts", async () => {
+    const earlier = setAsideOf([{ parts: ["activeJob"], answersKept: true, raw: "an earlier job" }]);
+    const { localPlans, readStorageNotice, memory } = await seeded(record({ draft: answers, snapshot: retiredPriority }), earlier);
+    memory.failNext("commit", domError("QuotaExceededError"));
+    await localPlans.load();
+    const shown = await readStorageNotice();
+    expect(shown?.text).toBe(`${words.snapshot} ${words.activeJob} ${words.kept}`);
+    memory.databases.get("gilir")?.set("state", record({ draft: "my answers", snapshot: fixture }));
+    await localPlans.load();
+    await shown?.dismiss();
+    expect((await readStorageNotice())?.text).toBe(words.draft);
   });
 
   it("clear removes the state and every finding: load and readStorageNotice both resolve null", async () => {

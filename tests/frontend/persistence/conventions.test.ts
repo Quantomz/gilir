@@ -51,9 +51,9 @@ describe("src/client/storage.ts", () => {
     expectTypeOf(localPlans).toEqualTypeOf<LocalPlans>();
   });
 
-  it("imports completedSnapshotSchema and farmInputSchema from src/contracts, and its only own zod schema is the job capability guard", () => {
+  it("imports its contract schemas from src/contracts, and its only own zod schema is the job capability guard", () => {
     const imports = moduleUses(storagePath).filter(use => use.kind === "static value");
-    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema"] }));
+    expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/result", names: ["completedSnapshotSchema", "runManifestSchema"] }));
     expect(imports).toContainEqual(expect.objectContaining({ specifier: "@/contracts/input", names: ["farmInputSchema"] }));
     expect(zodDeclarations()).toEqual(["capabilityGuard"]);
   });

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { farmInputSchema } from "@/contracts/input";
 import type { FarmInput } from "@/contracts/input";
 import type { JobCapability } from "@/contracts/jobs";
-import { completedSnapshotSchema } from "@/contracts/result";
+import { completedSnapshotSchema, runManifestSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 
 export interface LocalState {
@@ -60,24 +60,29 @@ export function storageProblem(error: unknown): { readonly reason: StorageReason
 /** Saved data this version left out, in the farmer's words, with the one action that may remove it. */
 export interface StorageNotice {
   readonly text: string;
-  /** Removes the findings this notice showed, and only those. Never rejects; on failure the notice shows again later. */
+  /**
+   * Removes the set-aside findings this notice showed, and only those. Never rejects; on failure the notice shows again
+   * later. A part still in the saved state can't be removed here, so it shows again until a save or load sets it aside.
+   */
   dismiss(): Promise<void>;
 }
 
 /**
- * What was set aside on this shelf and not yet dismissed, or null. It first waits for a localPlans call started on this
- * page in the same tick or earlier, so it names what that load set aside whichever was called first. Reads only, so
- * React Strict Mode's second effect sees the same notice. Never rejects: a shelf that can't be read has nothing to
- * tell, and `load` already said why.
+ * What was set aside on this shelf and not yet dismissed, and any part of the saved state this version can't read that
+ * a full device kept from being set aside, or null. It first waits for a localPlans call started on this page in the
+ * same tick or earlier, so it names what that load found whichever was called first. Reads only, so React Strict Mode's
+ * second effect sees the same notice. Never rejects: a shelf that can't be read has nothing to tell, and `load` already
+ * said why.
  */
 export async function readStorageNotice(): Promise<StorageNotice | null> {
   await null; // lets a localPlans call made right after this one, in the same tick, start first
   await lastCall;
-  const finds = await onShelf(noticeTurn).catch((): readonly Find[] => []);
+  const { setAside, inState } = await onShelf(noticeTurn).catch((): Noticed => ({ setAside: [], inState: null }));
+  const finds = inState === null ? setAside : [...setAside, inState];
   if (finds.length === 0) return null;
   return {
     text: noticeText(finds),
-    dismiss: () => onShelf(stored => dismissTurn(stored, finds.length)).catch(() => undefined),
+    dismiss: () => onShelf(stored => dismissTurn(stored, setAside.length)).catch(() => undefined),
   };
 }
 
@@ -86,13 +91,24 @@ const DATABASE_VERSION = 1;
 const RECORD_VERSION = 1;
 /**
  * The contracts kept schemaVersion 1 while they added required fields (docs/contracts.md), so a restored value is
- * parsed, never trusted by its version. Only a value above these marks data from a newer build. Each state record
- * carries its writer's pair: F1's drafts hold no schemaVersion, and reading a draft drops answer keys it doesn't know.
+ * parsed, never trusted by its version. Only a value above these marks data from a newer build. Every record carries
+ * its writer's versions: F1's drafts hold no schemaVersion, and reading a draft drops answer keys it doesn't know.
  */
 const CONTRACTS = {
   input: farmInputSchema.unwrap().shape.schemaVersion.value,
   snapshot: completedSnapshotSchema.unwrap().shape.schemaVersion.value,
+  manifest: runManifestSchema.unwrap().shape.schemaVersion.value,
 } as const;
+
+type Contract = keyof typeof CONTRACTS;
+
+/** Where a saved state holds each contract's own schemaVersion. */
+const versionsInState: { readonly [C in Contract]: readonly (readonly string[])[] } = {
+  input: [["draft", "schemaVersion"], ["snapshot", "input", "schemaVersion"]],
+  snapshot: [["snapshot", "schemaVersion"]],
+  manifest: [["snapshot", "result", "details", "provenance", "manifest", "value", "schemaVersion"]],
+};
+const contractNames = Object.keys(CONTRACTS) as Contract[];
 const CALL_LIMIT_MS = 5_000;
 const STORE = "records";
 const LAST_STEP = 4;
@@ -123,6 +139,7 @@ interface Find {
 interface SetAsideRecord {
   readonly format: "gilir.set-aside";
   readonly version: typeof RECORD_VERSION;
+  readonly contracts: typeof CONTRACTS;
   readonly finds: readonly Find[];
 }
 
@@ -136,14 +153,17 @@ function readHeader(raw: unknown): "empty" | "ours" | "newer" | "foreign" {
   if (!isObject(raw) || raw.format !== "gilir.local-state") return "foreign";
   if (isAbove(raw.version, RECORD_VERSION)) return "newer";
   if (raw.version !== RECORD_VERSION) return "foreign";
-  const contracts = isObject(raw.contracts) ? raw.contracts : {};
-  const state = isObject(raw.state) ? raw.state : {};
-  const draft = isObject(state.draft) ? state.draft : {};
-  const snapshot = isObject(state.snapshot) ? state.snapshot : {};
-  const input = isObject(snapshot.input) ? snapshot.input : {};
-  const newer = [contracts.input, draft.schemaVersion, input.schemaVersion].some(version => isAbove(version, CONTRACTS.input))
-    || [contracts.snapshot, snapshot.schemaVersion].some(version => isAbove(version, CONTRACTS.snapshot));
+  const newer = stampedNewer(raw)
+    || contractNames.some(contract => versionsInState[contract].some(path => isAbove(at(raw.state, path), CONTRACTS[contract])));
   return newer ? "newer" : "ours";
+}
+
+function stampedNewer(record: Record<string, unknown>): boolean {
+  return contractNames.some(contract => isAbove(at(record.contracts, [contract]), CONTRACTS[contract]));
+}
+
+function at(value: unknown, path: readonly string[]): unknown {
+  return path.reduce<unknown>((part, key) => (isObject(part) ? part[key] : undefined), value);
 }
 
 type Reading =
@@ -223,7 +243,7 @@ function hasAnswer(draft: Partial<FarmInput> | null): boolean {
 function readFinds(raw: unknown): readonly Find[] | "newer" {
   if (raw === undefined) return [];
   if (isObject(raw) && raw.format === "gilir.set-aside") {
-    if (isAbove(raw.version, RECORD_VERSION)) return "newer";
+    if (isAbove(raw.version, RECORD_VERSION) || stampedNewer(raw)) return "newer";
     if (raw.version === RECORD_VERSION && Array.isArray(raw.finds) && raw.finds.every(isFind)) return raw.finds;
   }
   return [{ parts: ["record"], answersKept: false, raw }];
@@ -259,7 +279,7 @@ function loadTurn(stored: Stored): Turn<LocalState | null> {
   const finds = readFinds(stored.setAside);
   if (reading.kind === "newer" || finds === "newer") return refused("newer");
   if (reading.kind === "empty") return settled(null);
-  const find = findIn(reading, stored.state);
+  const find = findIn(reading, stored.state, reading.state);
   if (find === null) return settled(reading.state);
   return {
     outcome: { ok: true, value: reading.state },
@@ -274,13 +294,14 @@ function saveTurn(stored: Stored, next: LocalState): Turn<void> {
   const reading = readRecord(stored.state);
   const finds = readFinds(stored.setAside);
   if (reading.kind === "newer" || finds === "newer") return refused("newer");
-  const find = reading.kind === "read" ? findIn(reading, stored.state) : null;
+  const find = reading.kind === "read" ? findIn(reading, stored.state, next) : null;
   return { outcome: { ok: true, value: undefined }, state: stateRecord(next), setAside: find === null ? "keep" : setAsideRecord([...finds, find]) };
 }
 
-function findIn(reading: Extract<Reading, { kind: "read" }>, raw: unknown): Find | null {
+/** `kept` is what the farmer has once the part is left out: the readable rest on load, the new state on save. */
+function findIn(reading: Extract<Reading, { kind: "read" }>, raw: unknown, kept: LocalState | null): Find | null {
   const [first, ...rest] = reading.leftOut;
-  return first === undefined ? null : { parts: [first, ...rest], answersKept: hasAnswer(reading.state?.draft ?? null), raw };
+  return first === undefined ? null : { parts: [first, ...rest], answersKept: hasAnswer(kept?.draft ?? null), raw };
 }
 
 function clearTurn(stored: Stored): Turn<void> {
@@ -288,9 +309,16 @@ function clearTurn(stored: Stored): Turn<void> {
   return { outcome: { ok: true, value: undefined }, state: "delete", setAside: "delete" };
 }
 
-function noticeTurn(stored: Stored): Turn<readonly Find[]> {
+interface Noticed {
+  readonly setAside: readonly Find[];
+  readonly inState: Find | null;
+}
+
+function noticeTurn(stored: Stored): Turn<Noticed> {
+  const reading = readRecord(stored.state);
   const finds = readFinds(stored.setAside);
-  return settled(finds === "newer" || readHeader(stored.state) === "newer" ? [] : finds);
+  if (reading.kind === "newer" || finds === "newer") return settled({ setAside: [], inState: null });
+  return settled({ setAside: finds, inState: reading.kind === "read" ? findIn(reading, stored.state, reading.state) : null });
 }
 
 function dismissTurn(stored: Stored, shownCount: number): Turn<void> {
@@ -317,7 +345,7 @@ function stateRecord({ draft, step, activeJob, snapshot }: LocalState): StateRec
 }
 
 function setAsideRecord(finds: readonly Find[]): SetAsideRecord {
-  return { format: "gilir.set-aside", version: RECORD_VERSION, finds };
+  return { format: "gilir.set-aside", version: RECORD_VERSION, contracts: CONTRACTS, finds };
 }
 
 type ShelfName = "gilir" | "gilir-fixture-lab";
