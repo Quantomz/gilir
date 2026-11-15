@@ -34,6 +34,18 @@ The image sets `NODE_ENV=production` and disables Next.js telemetry. The worker 
 
 The image retains development dependencies because the worker, calculation thread, cleanup, and migration runner require `tsx` and TypeScript sources at runtime. Do not prune dependencies from this image. The Node 24 base image digest is pinned in `Dockerfile`. Update that digest deliberately and rerun the checks.
 
+## Enable map search and satellite imagery
+
+Create a public browser API key in the [MapTiler account](https://cloud.maptiler.com/account/keys/). Restrict the production key to `gilir-web-production.up.railway.app`. Use a separate development key restricted to `127.0.0.1` for local live checks. MapTiler accepts these restrictions without a protocol or port. Keep localhost rules off the production key and do not allow unknown origins with `?`. See [MapTiler key restrictions](https://docs.maptiler.com/guides/developer/credentials/api-key/).
+
+Set `NEXT_PUBLIC_MAPTILER_KEY` on the Railway web service before building the reviewed release. The Docker build stage declares this variable as an `ARG`, as [Railway requires for build variables](https://docs.railway.com/builds/dockerfiles#using-variables-at-build-time). [Next.js embeds public variables during the build](https://nextjs.org/docs/app/guides/environment-variables#bundling-environment-variables-for-the-browser). Rebuild the web image after adding or rotating the key. Restarting an existing image does not update its browser assets.
+
+Use a public API key, never a MapTiler service token or database credential. The browser key is visible in downloaded JavaScript and provider requests. Keep its value out of Git, screenshots of network requests, and shared logs. Do not enable traces or HAR capture for live map checks. The worker and cleanup service do not need this variable. A build without it remains supported and offers coordinate input with an explanation.
+
+Store the development key in an ignored `.env.local`. Supply it to both the fresh development server and the Playwright process when running the 17 cases in `tests/frontend/location/live.spec.ts`. Set `F2_LIVE=1` and `PW_CHROMIUM` to the installed browser executable. Use a dedicated local port and disable server reuse. The suite's Node-side TileJSON requests need an `Origin` or `Referer` header matching the allowed local origin. Preserve the key restriction when configuring those requests.
+
+These cases use `/dev/fixtures` with real map providers. Production keeps that route unavailable. Verify the public `/` page separately after deployment, including submitted place search, satellite imagery, and visible attribution. Review screenshots and provider response statuses because passing the suite alone does not establish that every image loaded. Check the MapTiler plan's attribution requirements before treating F2 as complete. The [build verification record](evidence/hosting/map-provider-build.md) records the local proof and pending live checks.
+
 ## Verify the local image
 
 Create an empty disposable PostgreSQL database named `gilir_hosting`. Supply its connection through the environment. On Docker Desktop, use `host.docker.internal` to reach a published local PostgreSQL port.
