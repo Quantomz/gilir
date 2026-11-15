@@ -4,7 +4,7 @@ import { count, cropPurposeIdSchema, isoDateSchema, labels } from "./common";
 export const modelEngineVersion = "thermal-model-v1";
 export const sha256Schema = z.string().regex(/^[a-f0-9]{64}$/);
 const prose = z.string().trim().min(1).max(2000);
-const review = z.strictObject({ reviewer: labels, reviewedOn: isoDateSchema, artifactHash: sha256Schema });
+const review = z.strictObject({ decision: z.literal("approved_model_estimate"), reviewer: labels, reviewedOn: isoDateSchema, artifactHash: sha256Schema });
 const locator = z.strictObject({ sourceId: labels, documentHash: sha256Schema, section: prose });
 const parameterEvidence = z.strictObject({
   basis: z.enum(["published_parameter", "derived_estimate", "analogue_estimate"]),
@@ -61,7 +61,7 @@ export const completeModelReleaseSchema = z.strictObject({
   version: labels,
   contentHash: sha256Schema,
   coveragePolicy: z.literal("every-advertised-crop-purpose-v1"),
-  models: z.array(cropModelSchema).length(40).readonly(),
+  models: z.array(cropModelSchema).min(1).readonly(),
   review,
 }).readonly();
 export type CompleteModelRelease = z.infer<typeof completeModelReleaseSchema>;
@@ -113,6 +113,7 @@ export const modelDiagnosticsSchema = z.strictObject({
     sourceIds: z.array(labels).readonly(),
     assumptions: z.array(prose).readonly(),
     limitations: z.array(prose).readonly(),
+    turnaroundDays: count,
     validPlantingDays: count,
     noncompletionByReplay: z.array(z.strictObject({ replayStart: isoDateSchema, plantingDays: count })).readonly(),
   })).readonly(),

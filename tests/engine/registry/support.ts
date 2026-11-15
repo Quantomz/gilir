@@ -16,8 +16,8 @@ export type Mutable<T> = T extends readonly (infer U)[]
   ? Mutable<U>[]
   : T extends object ? { -readonly [K in keyof T]: Mutable<T[K]> } : T;
 
-export function editableLatestRelease() {
-  return structuredClone(readRegistryRelease()) as unknown as Mutable<ReturnType<typeof readRegistryRelease>>;
+export function editableLegacyRelease() {
+  return structuredClone(readRegistryRelease("fao56-hard-windows-2026-11-15")) as unknown as Mutable<ReturnType<typeof readRegistryRelease>>;
 }
 
 export const places = {

@@ -5,7 +5,7 @@ import type { FarmInput } from "@/contracts/input";
 import { farmInputSchema } from "@/contracts/input";
 import type { FrozenRun } from "@/contracts/engine";
 import type { JobClaim, JobState, JobStore, LeaseIdentity } from "@/contracts/jobs";
-import { parseCompletedSnapshot, serviceFailureSchema, snapshotCompletionSchema } from "@/contracts/result";
+import { completedSnapshotVersionFor, parseCompletedSnapshot, serviceFailureSchema, snapshotCompletionSchema } from "@/contracts/result";
 
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
@@ -109,7 +109,7 @@ export function createPgJobStore(pool: Pool): JobStore {
       if (!parsed.success) return false;
       const written = await pool.query(`
         UPDATE jobs SET state = 'completed', terminal_at = $4::timestamptz,
-          snapshot = jsonb_build_object('schemaVersion', 2, 'id', id::text, 'completedAt', $6::text, 'input', input, 'result', $5::jsonb->'result', 'catalogue', $5::jsonb->'catalogue'),
+          snapshot = jsonb_build_object('schemaVersion', $7::int, 'id', id::text, 'completedAt', $6::text, 'input', input, 'result', $5::jsonb->'result', 'catalogue', $5::jsonb->'catalogue'),
           lease_owner = NULL, lease_id = NULL, lease_expires_at = NULL
         WHERE ${activeLease} AND frozen_run IS NOT NULL AND state = 'calculating'
           AND ($5::jsonb #> '{result,details,provenance,manifest}') = jsonb_build_object('kind', 'available', 'value', frozen_run->'manifest')
@@ -121,7 +121,7 @@ export function createPgJobStore(pool: Pool): JobStore {
               WHERE entry->>'id' = selected.id
             )
           )`,
-      [...leaseArgs(lease, now), JSON.stringify(parsed.data), new Date(now).toISOString()]);
+      [...leaseArgs(lease, now), JSON.stringify(parsed.data), new Date(now).toISOString(), completedSnapshotVersionFor(parsed.data.result)]);
       return written.rowCount === 1;
     },
     async fail(lease, failure, now) {

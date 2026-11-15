@@ -2,6 +2,7 @@ import type { Catalogue, ReleasedRegistry } from "@/contracts/registry";
 import { buildCatalogueEntries, buildProfiles } from "./profiles";
 import { fao56Sources } from "./sources";
 import { assertValidRelease } from "./validate";
+import modelRelease from "./models/release-2026-11-15.json";
 
 export { resolveRegistry } from "./resolve";
 export { validateRelease, assertValidRelease, InvalidReleaseError } from "./validate";
@@ -43,6 +44,19 @@ const hardWindowsRelease = fao56Release(
   buildProfiles({ windowBasis: "hard_constraint", version: "reviewed-2026-11-15.2" }),
 );
 
+const globalIds = new Set(modelRelease.models.map(model => model.cropPurposeId));
+const globalBase = fao56Release("fao56-global-32-2026-11-15", hardWindowsRelease.profiles.filter(profile => globalIds.has(profile.cropPurposeId)));
+const globalRelease = {
+  ...globalBase,
+  sources: [...fao56Sources, {
+    id: "fao56-rev1-official", title: "FAO-56 revised edition, thermal development and calendar-stage crop coefficients",
+    url: "https://openknowledge.fao.org/handle/20.500.14283/cd6621en",
+    section: "Tables 6.10, 6.11, 6.12; Equations 6.20 and 6.23; sections 6.5.1, 6.8.1 and 6.8.2",
+    publishedOn: { kind: "unavailable", reason: "The release records the source edition and document hash; no exact publication day was reviewed." }, extractedOn: "2026-11-15",
+  }, { ...fao56Sources[1], id: "fao56-1998-table12", extractedOn: "2026-11-15" }],
+  modelRelease,
+};
+
 const retiredVersions = new Set([
   "fao56-2026-11-14",
   "fao56-temperature-2026-11-14",
@@ -51,14 +65,14 @@ const retiredVersions = new Set([
 ]);
 
 const releases: ReadonlyMap<string, ReleasedRegistry> = new Map(
-  [emptyV1, reviewedRelease, hardWindowsRelease].map(raw => {
+  [emptyV1, reviewedRelease, hardWindowsRelease, globalRelease].map(raw => {
     const release = deepFreeze(assertValidRelease(raw));
     return [release.identity.catalogueVersion, release] as const;
   }),
 );
 
 export const releasedVersions: readonly string[] = Object.freeze([...releases.keys()]);
-export const latestReleaseVersion = hardWindowsRelease.identity.catalogueVersion;
+export const latestReleaseVersion = globalRelease.identity.catalogueVersion;
 
 export function readRegistryRelease(version: string = latestReleaseVersion): ReleasedRegistry {
   if (retiredVersions.has(version)) {

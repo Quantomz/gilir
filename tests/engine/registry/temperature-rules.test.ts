@@ -6,14 +6,14 @@ import { lookupAt, places } from "./support";
 
 describe("E1 temperature coverage after source correction", () => {
   it("releases no operational temperature rules or unused temperature sources", () => {
-    const release = readRegistryRelease();
+    const release = readRegistryRelease("fao56-hard-windows-2026-11-15");
     expect(new Set(release.profiles.map(profile => profile.cropPurposeId)).size).toBe(40);
     for (const profile of release.profiles) expect(profile.temperatureRules).toEqual([]);
     expect(release.sources.map(source => source.id)).toEqual(["fao56-table11", "fao56-table12"]);
   });
 
   it.each(["common-bean-dry", "maize-grain"])("keeps %s assessable with temperature explicitly unassessed using synthetic weather", id => {
-    const resolution = resolveRegistry(lookupAt([id], places.boiseIdaho), readRegistryRelease());
+    const resolution = resolveRegistry(lookupAt([id], places.boiseIdaho), readRegistryRelease("fao56-hard-windows-2026-11-15"));
     expect(resolution.gaps).toEqual([]);
     const [profile] = resolution.profiles;
     const assessment = assessClimate(metricInput({

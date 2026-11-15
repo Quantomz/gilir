@@ -15,7 +15,7 @@ describe("E3 accepts E1 registry output", () => {
     [["potato", "pea-dry", "barley-grain"], places.boiseIdaho],
     [["teff-grain"], places.madridSpain],
   ] as const)("accepts the latest resolution of %j", (crops, place) => {
-    const release = readRegistryRelease();
+    const release = readRegistryRelease("fao56-hard-windows-2026-11-15");
     const lookup = lookupAt(crops, place);
     const resolution = resolveRegistry(lookup, release);
     expect(resolution.profiles.length + resolution.gaps.length).toBe(crops.length);

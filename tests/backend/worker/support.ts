@@ -1,5 +1,5 @@
-import type { ClimateSnapshot, FrozenRun, JobCapability, JobClaim, JobState, JobStore, LeaseIdentity, PlanResult, ServiceFailure, SnapshotCompletion } from "@/contracts";
-import { parseCompletedSnapshot, parseIsoDate, releasedRegistrySchema } from "@/contracts";
+import type { ClimateSnapshot, FarmInput, RegistryIdentity, FrozenRun, JobCapability, JobClaim, JobState, JobStore, LeaseIdentity, PlanResult, ServiceFailure, SnapshotCompletion } from "@/contracts";
+import { completedSnapshotVersionFor, parseCompletedSnapshot, parseIsoDate, releasedRegistrySchema } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import type { RuntimeDependencies } from "@/server/runtime";
@@ -43,8 +43,7 @@ export const controlledRegistry = releasedRegistrySchema.parse({
 
 export class MemoryJobs implements JobStore {
   readonly capability = { jobId: "00000000-0000-4000-8000-000000000003", token: "test-capability" };
-  readonly input = inputFixture;
-  readonly registry = controlledRegistry.identity;
+  constructor(readonly input: FarmInput = inputFixture, readonly registry: RegistryIdentity = controlledRegistry.identity) {}
   readonly cutoff = snapshot.cutoff;
   state: JobState = { state: "queued" };
   frozenRun: FrozenRun | null = null;
@@ -85,7 +84,7 @@ export class MemoryJobs implements JobStore {
   async complete(lease: LeaseIdentity, completion: SnapshotCompletion, now: string) {
     if (!this.owns(lease, now)) return false;
     this.completions += 1;
-    this.state = { state: "completed", snapshot: parseCompletedSnapshot({ schemaVersion: 2, id: lease.jobId, completedAt: now, input: this.input, ...completion }) };
+    this.state = { state: "completed", snapshot: parseCompletedSnapshot({ schemaVersion: completedSnapshotVersionFor(completion.result), id: lease.jobId, completedAt: now, input: this.input, ...completion }) };
     return true;
   }
   async fail(lease: LeaseIdentity, failure: ServiceFailure, now: string) {

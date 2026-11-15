@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import type { ClimateCache, EngineSettings, FrozenRun, JobStore, PlanResult, ReleasedRegistry, ServiceFailure } from "@/contracts";
-import { completedSnapshotSchemaVersion, completedSnapshotV2Schema, parsePlanResult, releasedRegistrySchema } from "@/contracts";
+import { completedSnapshotVersionFor, completedSnapshotSchema, defaultModelingPolicy, modelEngineVersion, parsePlanResult, releasedRegistrySchema } from "@/contracts";
 import type { calculate } from "@/engine";
 import type { readRegistryRelease } from "@/registry";
 import type { prepareClimate } from "@/server/climate";
@@ -49,7 +49,7 @@ function immutable<T>(value: T): T {
   return value;
 }
 
-function assertFrozenRun(run: FrozenRun, claim: NonNullable<Awaited<ReturnType<JobStore["claim"]>>>) {
+function assertFrozenRun(run: FrozenRun, registry: ReleasedRegistry, claim: NonNullable<Awaited<ReturnType<JobStore["claim"]>>>) {
   const manifest = run.manifest;
   const expectedInputHash = hashNormalizedInput(claim.input);
   if (hashNormalizedInput(run.input) !== expectedInputHash
@@ -58,9 +58,20 @@ function assertFrozenRun(run: FrozenRun, claim: NonNullable<Awaited<ReturnType<J
     || manifest.catalogueVersion !== claim.registry.catalogueVersion
     || manifest.ruleVersion !== claim.registry.ruleVersion
     || manifest.configurationVersion !== run.settings.version
-    || manifest.engineVersion !== engineVersion
+    || manifest.engineVersion !== (manifest.schemaVersion === 2 ? modelEngineVersion : engineVersion)
     || JSON.stringify(manifest.climateSnapshotIds) !== JSON.stringify(run.climate.map(snapshot => snapshot.id))) {
     throw new Error("Frozen scientific inputs are unavailable or incompatible with this worker.");
+  }
+  if (manifest.schemaVersion === 2) {
+    const models = registry.modelRelease;
+    if (!models || models.version !== manifest.modelReleaseVersion || models.contentHash !== manifest.modelReleaseHash
+      || manifest.configurationHash !== createHash("sha256").update(sortedJson(run.settings)).digest("hex")
+      || JSON.stringify(manifest.climateContentHashes) !== JSON.stringify(run.climate.map(snapshot => snapshot.contentHash))
+      || JSON.stringify(manifest.climateArtifactHashes) !== JSON.stringify(run.climate.map(snapshot => createHash("sha256").update(sortedJson(snapshot)).digest("hex")))) {
+      throw new Error("Frozen model, settings, or climate content identity differs.");
+    }
+    const { contentHash, ...payload } = models;
+    if (createHash("sha256").update(sortedJson(payload)).digest("hex") !== contentHash) throw new Error("Model release content hash differs.");
   }
   for (const snapshot of run.climate) {
     providerSnapshotSchema.parse(snapshot);
@@ -109,26 +120,29 @@ export async function runWorkerOnce(dependencies: RuntimeDependencies): Promise<
         const accepted = await jobs.fail(lease, climate.failure, now());
         return accepted ? { kind: "failed", jobId: lease.jobId, failure: climate.failure } : lostResult;
       }
+      const settings = registry.modelRelease ? { ...dependencies.settings, version: `${dependencies.settings.version}-thermal-v1` } : dependencies.settings;
+      const sharedManifest = {
+        normalizedInputHash: hashNormalizedInput(claim.input), configurationVersion: settings.version,
+        catalogueVersion: claim.registry.catalogueVersion, ruleVersion: claim.registry.ruleVersion,
+        climateSnapshotIds: climate.snapshots.map(snapshot => snapshot.id), dataCutoff: claim.cutoff,
+      };
       run = immutable(structuredClone({
         input: claim.input,
-        manifest: {
-          schemaVersion: 1,
-          normalizedInputHash: hashNormalizedInput(claim.input),
-          engineVersion,
-          configurationVersion: dependencies.settings.version,
-          catalogueVersion: claim.registry.catalogueVersion,
-          ruleVersion: claim.registry.ruleVersion,
-          climateSnapshotIds: climate.snapshots.map(snapshot => snapshot.id),
-          dataCutoff: claim.cutoff,
-        },
+        manifest: registry.modelRelease ? {
+          ...sharedManifest, schemaVersion: 2, engineVersion: modelEngineVersion,
+          modelReleaseVersion: registry.modelRelease.version, modelReleaseHash: registry.modelRelease.contentHash,
+          configurationHash: createHash("sha256").update(sortedJson(settings)).digest("hex"),
+          climateContentHashes: climate.snapshots.map(snapshot => snapshot.contentHash),
+          climateArtifactHashes: climate.snapshots.map(snapshot => createHash("sha256").update(sortedJson(snapshot)).digest("hex")), modelingPolicy: defaultModelingPolicy,
+        } : { ...sharedManifest, schemaVersion: 1, engineVersion },
         climate: climate.snapshots,
-        settings: dependencies.settings,
+        settings,
       } satisfies FrozenRun));
-      assertFrozenRun(run, claim);
+      assertFrozenRun(run, registry, claim);
       if (!await renew() || !await jobs.freeze(lease, run, now())) return lostResult;
     } else {
       run = immutable(structuredClone(run));
-      assertFrozenRun(run, claim);
+      assertFrozenRun(run, registry, claim);
     }
     if (!await renew()) return lostResult;
     const result = parsePlanResult(await (dependencies.executeCalculation
@@ -140,8 +154,8 @@ export async function runWorkerOnce(dependencies: RuntimeDependencies): Promise<
       throw new Error("Calculation output does not identify the exact frozen run.");
     }
     const completion = { result, catalogue: registry.catalogue };
-    completedSnapshotV2Schema.parse({
-      schemaVersion: completedSnapshotSchemaVersion, id: lease.jobId, completedAt: now(), input: run.input, ...completion,
+    completedSnapshotSchema.parse({
+      schemaVersion: completedSnapshotVersionFor(result), id: lease.jobId, completedAt: now(), input: run.input, ...completion,
     });
     if (!await renew()) return lostResult;
     const accepted = await jobs.complete(lease, completion, now());

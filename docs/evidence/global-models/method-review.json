@@ -1,0 +1,39 @@
+{
+  "reviewedPayload": {
+    "status": "APPROVED_AI_TECHNICAL_MODEL_ASSUMPTION",
+    "reviewer": "Codex AI technical reviewer gpt-6-astra xhigh, global_model_source_review",
+    "reviewedOn": "2026-11-15",
+    "reviewScope": "Source interpretation and numerical-method design. No runtime implementation, field performance, or deployment is approved by this artifact.",
+    "temperature": "Use max(0, min((Tmin + Tmax) / 2, Tupper) - Tbase). Do not cap Tmin and Tmax independently.",
+    "stageAmounts": "The four GDD values are increments within initial, development, middle, and late stages. Prefix sum them for cumulative thresholds. Never reset accumulated GDD at a stage crossing.",
+    "sourceBasis": [
+      {
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "6.8.1, Equation 6.23, printed pages 203 and 207-208"
+      },
+      {
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "6.8.2, printed page 213; 6.5.1 printed page 196; Equation 6.20 printed page 201"
+      }
+    ],
+    "dailyAllocation": "Use the first occupied day whose cumulative GDD reaches each cumulative stage threshold as its inclusive end day. Obtain nonnegative stage lengths by differencing these end days. The crossing day belongs to the preceding active stage. Preserve overshoot for every later threshold.",
+    "kcInterpolation": "Use calendar days within the resulting stages. Initial and middle stages hold their coefficients. On the j-th day of an n-day development or late stage use Kc_before + (Kc_after - Kc_before) * j / n, for j = 1 through n.",
+    "zeroDayStages": "If one day crosses several thresholds, intervening stages can have zero occupied days. Such a stage contributes no demand. Do not invent extra days to reach a coefficient endpoint.",
+    "zeroGddDays": "Zero-GDD days remain occupied crop days and receive the applicable calendar-stage Kc and full-day ETo demand. Thermal nondevelopment does not make evapotranspiration zero.",
+    "completionDay": "Charge the whole occupied completion day. Its date is a daily modeled harvest date, not a fractional observed event. Exclude crop demand after completion.",
+    "accuracyClaim": "This is a declared Gilir daily discretization of the FAO calendar-stage curve. It does not establish subdaily accuracy or superiority to other discretizations.",
+    "supersededProposal": "Thermal-progress-daily-integral interpolation was considered defensible only as a separate explicit adaptation. It is not the selected or approved release method here.",
+    "kcVersionCombination": "The 1998 and revised sources use compatible four-stage canopy definitions. Combining revised thermal timing with 1998 Kc is defensible for reference planning when the recorded crop-purpose and management assumptions remain attached. This hybrid is not a verbatim revised FAO parameter set.",
+    "sharedRequiredDisclosures": [
+      "This is a reference planning-model estimate. It is not local field validation, an agronomist approval, or evidence of crop suitability at a particular location.",
+      "The selected long-season, maximum-length, or common row is a fixed reference scenario. It is not the longest possible cultivar or a universal upper bound on calendar duration or water demand.",
+      "Potential development assumes the reference crop develops without limiting water, nutrients, pests, or disease. Rainfall shortfall does not change the modeled thermal development rate.",
+      "The model does not assess frost survival, heat injury, photoperiod, vernalization, soil suitability, yield, or cultivar adaptation. Temperature thresholds govern GDD accumulation only.",
+      "The GDD source uses planting as its time origin. It does not identify seed versus transplant establishment for each row. Any seeded or transplanted designation is a Gilir assumption, and nursery occupancy is excluded.",
+      "Retained Kc values are FAO-56 1998 reference coefficients. They are not the revised coefficients and are not adjusted for local wetting, humidity, wind, height, or plant density.",
+      "Kc multiplied by grass-reference ETo estimates demand for the stated reference canopy and management. It is not actual rainfed evapotranspiration, effective rainfall, irrigation requirement, or yield."
+    ]
+  },
+  "reviewedPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3",
+  "canonicalization": "SHA-256 of UTF-8 JSON with sorted keys, no whitespace separators, ensure_ascii=False"
+}

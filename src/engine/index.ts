@@ -1,3 +1,4 @@
+import { calculateModeled } from "./model";
 import { resolveRegistry } from "@/registry";
 import { rankingDecimalPlacesSchema } from "@/contracts/climate";
 import type { FrozenRun, AssessedCandidate, CandidateCalendar, ExplanationInput, ClimateCohort } from "@/contracts/engine";
@@ -28,7 +29,7 @@ export interface CalculateOptions {
 const required = (gap: EvidenceGap) => gap.code === "climate" || gap.code === "crop_profile" || gap.code === "ranking_metric" || gap.code === "rotation_rule";
 const climateGap = (reason: string): EvidenceGap => ({ code: "climate", reason, cropPurposeIds: [], sourceIds: [] });
 
-export function calculate(run: FrozenRun, registry: RegistryRelease, options: CalculateOptions = {}): PlanResult {
+export function calculateV1(run: FrozenRun, registry: RegistryRelease, options: CalculateOptions = {}): PlanResult {
   let resolution: RegistryResolution = { profiles: [], rules: [], gaps: [] };
   let cohort: ClimateCohort = { coverage: { kind: "unavailable", reason: "No common climate cohort was assessed." },
     applicabilityClimate: {
@@ -175,4 +176,9 @@ export function calculate(run: FrozenRun, registry: RegistryRelease, options: Ca
     if (error instanceof MissingRankingEvidence) return finish({ state: "insufficient_data", missing: error.gaps });
     return finish({ state: "service_error", error: { code: "processing_failed", message: "Planning could not finish because required processing failed.", retryable: false } });
   }
+}
+
+export function calculate(run: FrozenRun, registry: RegistryRelease, options: CalculateOptions = {}): PlanResult {
+  if (run.manifest.schemaVersion === 2) return calculateModeled(run, registry, { buildCohort: options.buildCohort });
+  return calculateV1(run, registry, options);
 }
