@@ -155,8 +155,8 @@
   .fp-corner input { font-variant-numeric: tabular-nums; }
 
   @media (prefers-reduced-motion: no-preference) {
-    .fp-pin { animation: fp-drop .5s cubic-bezier(.2, 1.4, .4, 1) both; }
-    @keyframes fp-drop { from { transform: translateY(-30px) scale(.8); opacity: 0; } }
+    .fp-pin { animation: fp-drop .3s var(--ease) both; }
+    @keyframes fp-drop { from { transform: translateY(-12px); opacity: 0; } }
   }
 }
 
