@@ -329,6 +329,43 @@ describe("bars by keyboard and date sheets", () => {
   });
 });
 
+describe("the note with Undo on page 4, and the status line", () => {
+  const gap = () => `${shown("2026-03-01")} to ${shown("2026-06-08")}`;
+
+  it("the note goes when a handle moves after it, so Undo never throws away a later step", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-06-09", "2026-08-07")));
+    await click(`The field was empty then: ${gap()}`);
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    const harvest = await harvestOf("Maize (grain)");
+    const before = value(harvest);
+    harvest.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
+    expect(value(harvest)).toBe(before + 1);
+    expect(screen.getByRole("button", { name: `Mark as not sure: ${gap()}` })).toBeTruthy();
+  });
+
+  it("Undo says what it undid", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-06-09", "2026-08-07")));
+    await click(`The field was empty then: ${gap()}`);
+    await click("Undo");
+    expect(screen.getByRole("button", { name: `The field was empty then: ${gap()}` })).toBeTruthy();
+    expect(said()).toBe(`Undone: Marked as empty: ${gap()}.`);
+  });
+
+  it("a handle that stops at the same edge twice says so twice: the status line text changes each time", async () => {
+    await openAt4(withBars(crop("crop-1", "2026-03-01", "2026-05-29")));
+    const planting = await plantingOf("Maize (grain)");
+    planting.focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    const first = said();
+    await userEvent.keyboard("{ArrowRight}{ArrowLeft}{ArrowLeft}");
+    const second = said();
+    expect([first.trim(), second.trim()]).toEqual(["Maize (grain) stays inside the 12 months shown.", "Maize (grain) stays inside the 12 months shown."]);
+    expect(second).not.toBe(first);
+  });
+});
+
 describe("Make my plan", () => {
   it("[I2] an incomplete draft shows Fix these first with Fix on page N links; a link opens that page and focuses the control", async () => {
     const { water: _water, ...noWater } = answers;

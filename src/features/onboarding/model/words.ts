@@ -210,6 +210,7 @@ export const shell = {
   listen: "Listen",
   stop: "Stop",
   undo: "Undo",
+  undone: (text: string) => `Undone: ${text}.`,
   /** What the status line says for a toast, because the toast box itself is not a live region. */
   toastSaid: (text: string, undoable: boolean) => (undoable ? `${text}. You can undo this.` : text),
   broken: { title: "Something went wrong on our side", body: "This screen couldn’t open. It wasn’t anything you did.", action: "Open Gilir again" },

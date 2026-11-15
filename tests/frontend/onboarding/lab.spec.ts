@@ -127,6 +127,18 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expect(page.getByText("Synthetic crop stays inside the 12 months shown.", { exact: true })).toBeVisible();
     });
 
+    test("[H4] a drag that stops at the edge keeps a note that still offers Undo and says the stop on the status line", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      await app(page).getByRole("button", { name: /^The field was empty then\b/ }).click();
+      const undo = page.getByRole("button", { name: "Undo", exact: true });
+      await expect(undo).toBeVisible();
+      await dragHandle(page, plantingDay(page), -60);
+      await expect(plantingDay(page)).toHaveAttribute("aria-valuenow", "0");
+      await expect(page.getByRole("status").filter({ hasText: "Synthetic crop stays inside the 12 months shown." })).toHaveCount(1);
+      await expect(undo).toBeVisible();
+    });
+
     test("[H3] drags the bar body to move it; the lane dates change and keep the length", async ({ page }) => {
       await openLab(page);
       await toRotation(page);

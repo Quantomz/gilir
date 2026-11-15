@@ -71,24 +71,41 @@ interface State {
 }
 
 type Drop = { readonly kind: "dropped"; readonly entryId: string; readonly end: End; readonly targetDay: number };
-type Action = Msg | Drop | { readonly kind: "toastGone" };
+type Action = Msg | Drop | { readonly kind: "toastGone" } | { readonly kind: "undo" };
 
 const opening: State = { flow: openingFlow, outbox: { seq: 0, focus: null, handOff: null }, said: "", toast: null };
 
 function reduce(state: State, action: Action): State {
   if (action.kind === "toastGone") return state.toast === null ? state : { ...state, toast: null };
+  if (action.kind === "undo") return undone(state);
   if (action.kind === "dropped") return dropped(state, action);
   const next = update(state.flow, action);
   if (next.flow === state.flow && next.focus === null && next.handOff === null && next.note.kind === "none") return state;
   const seq = state.outbox.seq + 1;
   const outbox = { seq, focus: next.focus, handOff: next.handOff };
-  // Undo edits an answer on the page the note was raised on, so the note goes when that page does.
+  // Undo puts back the answers as they were before the note, so the note goes once they change again or the page does.
   const samePage = next.flow.mode.kind === "editing" && state.flow.mode.kind === "editing" && next.flow.mode.step === state.flow.mode.step;
-  const toast = samePage ? state.toast : null;
+  const toast = samePage && next.flow.editor === state.flow.editor ? state.toast : null;
   const words = noteWords(next.note, namesFrom(readyCatalogue(next.flow.catalogue), next.flow.editor.draft));
-  if (words === null) return { ...state, flow: next.flow, outbox, toast, said: makingSaid(state.flow, next.flow) ?? state.said };
-  if (words.polite) return { ...state, flow: next.flow, outbox, toast, said: words.text };
-  return { flow: next.flow, outbox, said: shell.toastSaid(words.text, words.undo), toast: { id: seq, text: words.text, undo: undoOf(next.note) } };
+  if (words === null) {
+    const making = makingSaid(state.flow, next.flow);
+    return { ...state, flow: next.flow, outbox, toast, said: making === null ? state.said : fresh(state.said, making) };
+  }
+  if (words.polite) return { ...state, flow: next.flow, outbox, toast, said: fresh(state.said, words.text) };
+  const said = fresh(state.said, shell.toastSaid(words.text, words.undo));
+  return { flow: next.flow, outbox, said, toast: { id: seq, text: words.text, undo: undoOf(next.note) } };
+}
+
+function undone(state: State): State {
+  const toast = state.toast;
+  if (toast === null || toast.undo === null) return { ...state, toast: null };
+  const next = reduce({ ...state, toast: null }, { kind: "edit", edit: toast.undo });
+  return { ...next, said: fresh(next.said, shell.undone(toast.text)) };
+}
+
+/** A live region speaks only when its text changes, so a sentence said twice in a row gets a trailing no-break space. */
+function fresh(before: string, text: string): string {
+  return before === text ? `${text}\u00a0` : text;
 }
 
 /** Making's one sentence: the step it is on, or that the service cannot be reached. Null when nothing changed. */
@@ -102,8 +119,8 @@ function makingSaid(before: Flow, after: Flow): string | null {
 
 /**
  * A drag ended. The status line says why the bar stopped short, if it did, then its dates. A stop also shows as a
- * note, because a handle that will not move says nothing to the eye. Read from the flow the reducer holds, because a
- * view's closure can be one pointer event behind.
+ * note, because a handle that will not move says nothing to the eye, unless a note still offers Undo. Read from the
+ * flow the reducer holds, because a view's closure can be one pointer event behind.
  */
 function dropped(state: State, drop: Drop): State {
   const draft = state.flow.editor.draft;
@@ -113,10 +130,11 @@ function dropped(state: State, drop: Drop): State {
   if (coverage === null || entry === undefined) return state;
   const { stop } = stepEntry(entries, entry.id, drop.end, drop.targetDay, coverage);
   const names = namesFrom(readyCatalogue(state.flow.catalogue), draft);
-  const said = dropWords(entry, stop, names);
+  const said = fresh(state.said, dropWords(entry, stop, names));
   if (stop === null) return { ...state, said };
   const seq = state.outbox.seq + 1;
-  return { ...state, outbox: { seq, focus: null, handOff: null }, said, toast: { id: seq, text: stopWords(stop, entry, names), undo: null } };
+  const toast = state.toast?.undo ? state.toast : { id: seq, text: stopWords(stop, entry, names), undo: null };
+  return { ...state, outbox: { seq, focus: null, handOff: null }, said, toast };
 }
 
 function undoOf(note: EditNote): DraftEdit | null {
@@ -277,13 +295,12 @@ export function useOnboardingController(props: OnboardingProps): Controller {
 
   usePhoneBack(back, flow.mode.kind !== "opening");
 
-  const toast = state.toast;
   return {
     flow,
     issues: page => issuesFor(flow, page),
     names: namesFrom(readyCatalogue(flow.catalogue), flow.editor.draft),
     said: state.said,
-    toast,
+    toast: state.toast,
     edit: edit => dispatch({ kind: "edit", edit }),
     next: () => dispatch({ kind: "next" }),
     back,
@@ -302,10 +319,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
       if (flow.earlierPlan !== null) props.onCompleted(flow.earlierPlan);
     },
     retryCatalogue: loadCatalogue,
-    undo() {
-      dispatch({ kind: "toastGone" });
-      if (toast?.undo) dispatch({ kind: "edit", edit: toast.undo });
-    },
+    undo: () => dispatch({ kind: "undo" }),
     dismissToast: () => dispatch({ kind: "toastGone" }),
     dismissNotice: notice => dispatch({ kind: "dismiss", notice }),
     dropped: (entryId, end, targetDay) => dispatch({ kind: "dropped", entryId, end, targetDay }),
