@@ -1,38 +1,40 @@
-# Railway release on 15 November 2026
+# Reviewed model release on 15 November 2026
 
-Gilir's web, worker, and hourly cleanup are deployed at `ec2ef2255ba76d6383d81dad43ff98a70584a850` in Nefalos production. The [read-back record](release-2026-11-15.json) identifies each service, deployment, source pin, and retained settings. [PR #45](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/45) supplied shared snapshot support; [PR #46](https://github.com/Quantomz/nefalos_nasa_hackathon/pull/46) refreshed the strict I1 gate. Both were independently reviewed and passed CI before merging.
+[Gilir](https://gilir.up.railway.app) offers 32 crops with complete reviewed reference models. The web and worker run commit `8494a7e571abae32164814bb0b4aaf69d2eeaa0f` in Nefalos production. [PR #61](https://github.com/Quantomz/gilir/pull/61) supplies the model release; [PR #63](https://github.com/Quantomz/gilir/pull/63) fixes its production packaging and adds Docker builds to CI. Both passed independent review and CI before merging.
+
+The [release receipt](global-model-release-2026-11-15.json) records the deployment identities and public acceptance. The [earlier 40-crop regional release](release-2026-11-15-morning.md) remains as historical evidence. Its catalogue and source pins no longer describe the current web and worker.
 
 ## Public acceptance
 
-The [public API report](live-api-2026-11-15.json) passed at 07:48 UTC. It submitted the public illustrative Boise bean input through HTTPS and observed queued, fetching, calculating, and completed states. The production worker's [matching completion event](worker-events-2026-11-15.json) records the same job ID.
+A fresh browser session completed the four-page journey using an illustrative Bangkok field, rice, wheat, sweet maize, rain only, and a 15 November start. At 16:02 UTC it received `plan_with_warnings`, replacing the previous missing-profile outcome for this case. The new production worker's completion event matches that saved snapshot.
 
 | Check | Observed result |
 | --- | --- |
-| Website and fixture exclusion | `/` returns 200; `/dev/fixtures` returns 404. |
-| Public catalogue | `fao56-hard-windows-2026-11-15`, 40 entries. Before the update it was `v1-empty`, zero entries. |
-| Saved result | Schema v2, accepted job ID, and the entire official catalogue equal to the HTTP catalogue. A repeat GET returns identical data. |
-| Scientific outcome | `plan_with_warnings`, 25 usable seasons, June 1 planting, September 8 last occupied day, September 16 field availability. Rainfall mismatch is disclosed and temperature remains unassessed. |
-| Frozen identity | Profile `common-bean-dry-fao56-idaho-jun` at `reviewed-2026-11-15.2`; cutoff `2026-11-14`; three climate snapshot IDs. |
-| Authorization and cleanup | Missing and wrong tokens get 404 for GET and DELETE. The probe deletes only its own job and verifies subsequent authorized GET returns 404. |
+| Catalogue | `fao56-global-32-2026-11-15`, exactly 32 entries. The eight unresolved crop purposes are withheld. |
+| Production flow | Queued, fetching, calculating, completed; no browser page errors. No mocked plan or climate response. |
+| Frozen identity | Snapshot v3, manifest v2, engine `thermal-model-v1`, cutoff `2026-11-14`; three NASA climate products and 25 retained seasons. |
+| Model identity | `71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246`. |
+| Result | All three crops appear. Estimated harvest ranges are 4-17 February for wheat, 20-29 June for sweet maize, and 26 October-7 November for rice in 2027. Field availability is 15 November 2027. |
+| Presentation | Phone at 360 px and desktop at 1280 px inspected; estimate and local-validation limitations are visible. The phone has no horizontal overflow. |
+| Persistence and PDF | Result survives reload. Download succeeds while offline. The 17-page PDF passes content checks, contains no active links or scripts, and was visually inspected with native PDFKit. |
+| Fixture exclusion | Public `/dev/fixtures` returns 404. |
 
-This is deployed API/worker acceptance. It does not prove a complete browser journey, PDF rendering, map-provider behavior, or worldwide agronomic suitability. The [local I1 record](../I1/README.md) separately verifies SIGKILL/replay, web restart, cross-job rejection, provider fault injection, and missing-profile behavior. Those disruptive fault checks were not repeated in production.
+The PDF includes extensive model assumptions and per-season diagnostics, making it long. Condensing those details is a presentation follow-up, not a missing-data release blocker.
 
-## Rollout and settings
+MapTiler's existing public key was restricted to the current hostname after the public domain changed. A separate origin check returned HTTP 200 for the imagery TileJSON at 15:48 UTC. The fresh plan run recorded no map-provider requests, so it does not establish rendered-map acceptance.
 
-The web deployed first and served the current catalogue before worker and cleanup deployment began. Railway reports SUCCESS for all three exact commit identities. Each source is pinned to that commit. Branch pushes do not advance these pins; the next release must deliberately select a reviewed commit.
+## Deployment and recovery
 
-All application services retain the repository-root Dockerfile and `sh deploy/start.sh` role command. All three have the migration pre-deploy command and a 120-second timeout. Web and worker reached their running states with that gate configured; no separate production migration-history query was made. Worker logs explicitly show `worker_ready` before the hosted request.
+The first worker build failed because the development model generator imported review documents excluded by the Docker context. PR #63 excludes that development generator too; runtime models remain in `src/registry/models`. It also adds an actual production Docker build after the existing CI checks. The prior live worker and website continued running during that failure.
 
-Web alone has a public domain on port 8080. Worker, cleanup, and PostgreSQL have no public domains or TCP proxies. The PostgreSQL volume is confirmed in Singapore. The database deployment was not changed. Secret values were not read or written. Only the web cutoff changed, from the previously recorded June 30 value to the live-tested November 14 value; the hosted manifest confirms it.
+The corrected worker reported ready at 15:58:39 UTC. Railway confirmed the previous worker was removed at 15:59:42, before the web update began. The web reached SUCCESS at 16:01:46. Both services are pinned to the reviewed packaging commit; branch pushes do not advance them automatically.
 
-The worker retains a 300-second drain. Cleanup retains `0 * * * *` UTC and restart policy NEVER. The new image's [execution logs](cleanup-events-2026-11-15.json) record `expired_jobs_purged` with count 0 at 08:04:27 and 08:05:38 UTC. Verification covered the scheduled interval and one owner-approved manual restart. The logs do not label trigger origin, so successful execution and the configured schedule are recorded separately.
+Cleanup and PostgreSQL were not redeployed. Cleanup retains its earlier image and hourly schedule; its 16:02:59 execution succeeded. Final read-back shows one running web replica and one running worker replica, no crashed replicas, and no pending environment changes. Railway retains the failed build in recent history; it is not a current runtime failure.
 
-Automatic approval review initially rejected the manual restart as an avoidable production interruption without explicit authorization. The owner then approved one cleanup restart, and that single restart was performed. No database, web, or worker restart and no schedule change accompanied it.
+## Scope and supporting checks
 
-## Local and review evidence
+Every newly offered crop has the required reviewed model parameters. This is AI technical review of published sources and implementation, not agronomist approval or validation at every location. Estimates do not establish local crop suitability, survival, yield, or sufficient irrigation. Missing climate data and a model with no fitting calendar remain legitimate outcomes.
 
-The production image smoke passed migration idempotency, worker readiness, cleanup exit, non-root operation, public routes, catalogue with 40 entries, and idle SIGTERM shutdown against a disposable PostgreSQL 18 database. Its image identity is in the read-back record. The disposable smoke database was removed afterward.
+The [model verification record](../global-models/verification.md) covers source review, numerical tests, legacy saved-result compatibility, real-weather probes across seven locations, and independent browser/PDF checks. The final packaging candidate passed 1,849 tests with one explicitly optional live-provider test skipped, typechecking, boundary checks, production build, and a real PostgreSQL container smoke. Both remote CI runs passed, including the new Docker gate. The public browser journey above is separate deployed evidence.
 
-The production code and dependency tree are unchanged from the PR #46 candidate that passed 1,473 tests, the separate 28-test live gate, and the production build. This follow-up changes documentation and sanitized evidence only. GitHub CI and independent review gate the documentation PR merge. Pstack `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, Shipping with the technical-writing workflow; local GPT review has no cloud or cross-family claim.
-
-The [14 November deployment record](railway-production.md) remains unchanged as historical evidence. Its empty-catalogue and unverified-readiness statements describe that earlier observation.
+This documentation follow-up changes evidence only. Its workflow uses `/Users/kyusuku/.codex/skills/poteto-mode/SKILL.md`, Shipping with technical writing. Independent local model reviews are within the GPT family; no cross-family or field-validation claim is made.
