@@ -195,7 +195,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await page.waitForTimeout(800);
       await page.getByRole("button", { name: "Make my plan" }).click();
       await expect(title(page, "Making your plan")).toBeVisible();
-      await expect(page.getByRole("region", { name: "Results implementation slot" })).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByRole("region", { name: "What you can do" })).toBeVisible({ timeout: 15_000 });
       await page.waitForTimeout(1000);
 
       const video = page.video();
@@ -386,7 +386,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       const job = { jobId: "not-a-job", token: "" };
       await writeRaw(page, "state", { format: "gilir.local-state", version: 1, state: { draft: answers, step: 4, activeJob: job, snapshot: completedSnapshotFixture } });
       await page.reload();
-      await expect(page.getByRole("region", { name: "Results implementation slot" })).toBeVisible();
+      await expect(page.getByRole("region", { name: "What you can do" })).toBeVisible();
       await expect(page.locator(".notice-bar")).toContainText("The plan that was being made can’t be followed any more.");
       await page.screenshot({ path: shot("set-aside-results.png"), animations: "disabled" });
 

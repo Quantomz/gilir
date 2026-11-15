@@ -351,6 +351,24 @@ describe("page 2", () => {
     expect(screen.getByRole("region", { name: "Next step" }).textContent).toContain("1 picked: synthetic crop.");
   });
 
+  it("page 2 says before the list that growing details exist for only some crops in some places, read by Listen; not while the list is loading or failed", async () => {
+    const coverage = "We have growing details for only some crops in some places. If a crop you pick has none for your field, we’ll tell you, and no plan is made.";
+    open();
+    await toCrops();
+    const list = await screen.findByRole("list", { name: "Crops" });
+    const note = screen.getByText(coverage);
+    expect(note.closest("[data-say]")).not.toBeNull();
+    expect(note.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    cleanup();
+
+    const client = scriptedClient({ catalogue });
+    vi.spyOn(client, "catalogue").mockRejectedValue(new Error("offline"));
+    open({ client });
+    await toCrops();
+    await screen.findByRole("alert");
+    expect(screen.queryByText(coverage)).toBeNull();
+  });
+
   it("[E2] a catalogue that rejects shows We couldn’t load the crop list and Try again; Try again loads it; other answers are kept", async () => {
     const client = scriptedClient({ catalogue });
     vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);
