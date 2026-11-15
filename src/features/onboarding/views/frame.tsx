@@ -43,7 +43,7 @@ export function AppFrame(props: { readonly children: ReactNode; readonly focusOn
 }
 
 const titleId = domIdOf({ kind: "title" });
-// One sheet at a time: the scrim covers the top bar, and Tab stays inside the open sheet.
+// A fixed id is safe: the scrim covers the top bar's Text size button, so only one sheet is ever open.
 const sheetTitleId = domIdOf({ kind: "sheetTitle" });
 const columnClass = { column: "col", timeline: "col ly-page", wide: "wide" } as const;
 
