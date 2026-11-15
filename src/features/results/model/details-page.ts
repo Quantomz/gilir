@@ -1,4 +1,5 @@
 import type { AssessmentMetric, CompletedSnapshot, IsoDate, ResultDetails } from "@/contracts";
+import type { ModelDiagnostics } from "@/contracts/model";
 import { item, items, subhead, text } from "./blocks";
 import type { Block, DetailsPage, DetailsSectionId, FactsBlock, Item, Section, TableBlock } from "./blocks";
 import { monthOf } from "./calendar";
@@ -20,8 +21,43 @@ export function detailsPage(snapshot: CompletedSnapshot, format: Format): Detail
     title: words.details.title,
     lead: words.details.lead(words.titleOf(snapshot)),
     synthetic: synthetic === null ? null : words.details.synthetic(synthetic),
-    sections: builders.map(build => build(snapshot, format)),
+    sections: [
+      ...(snapshot.result.details.modeling ? [modeling(snapshot, snapshot.result.details.modeling, format)] : []),
+      ...builders.map(build => build(snapshot, format)),
+    ],
   };
+}
+
+function modeling(snapshot: CompletedSnapshot, diagnostics: ModelDiagnostics, format: Format): Section<"modeling"> {
+  const names = words.cropNamesOf(snapshot);
+  const said = words.modeling;
+  return section("modeling", said.label, [
+    text("body", said.validation),
+    text("body", said.checks),
+    text("body", said.methodReservation),
+    text("body", said.methodOccupancy),
+    ...diagnostics.crops.flatMap(crop => [
+      subhead(names.name(crop.cropPurposeId)),
+      text("body", said.reference(crop.scientificName, crop.harvestPurpose)),
+      text("body", said.cultivar(crop.cultivarAssumption)),
+      text("body", said.basis[crop.evidenceBasis]),
+      facts([
+        fact("Model", `${crop.modelId}, ${crop.modelVersion}`, true),
+        fact("Sources", crop.sourceIds.join(", ") || "None recorded", false),
+        fact("Planting dates with completion in every retained replay", format.whole(crop.validPlantingDays), false),
+        fact("Turnaround after the latest modeled harvest", words.dayCount(crop.turnaroundDays), false),
+      ]),
+      items([...crop.assumptions, ...crop.limitations].map(line => item(words.engineText(line, format), []))),
+      ...crop.noncompletionByReplay.map(replay => text("body", said.noncompletion(format.whole(replay.plantingDays), format.day(replay.replayStart)))),
+    ]),
+    facts([
+      fact("Model release", diagnostics.modelReleaseVersion, true),
+      fact("Model release hash", diagnostics.modelReleaseHash, true),
+      fact("Reservation policy", diagnostics.policy.reservation, true),
+      fact("Planned-slot policy", diagnostics.policy.occupancy, true),
+      fact("Retained weather replay starts", diagnostics.retainedReplayStarts.map(format.day).join(", ") || "None", false),
+    ]),
+  ]);
 }
 
 function numbers({ result }: CompletedSnapshot, format: Format): Section<"numbers"> {
@@ -32,7 +68,7 @@ function numbers({ result }: CompletedSnapshot, format: Format): Section<"number
     : [
         text("body", words.details.tupleLead),
         facts(plan.rankingTuple.components.map(component => fact(
-          words.ranking.questions[component.metricId],
+          (details.modeling ? words.modeling.questions : words.ranking.questions)[component.metricId],
           `${component.metricId} = ${component.unit === "days" ? words.dayCount(component.value) : exact(component.value)}`,
           true,
         ))),

@@ -1,6 +1,7 @@
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { pdfText } from "@/client/pdf/text";
+import { modeling } from "@/client/pdf/words";
 import { exportedNames, moduleUses, parse, sourceFiles, walk } from "./support/source";
 
 const pdfFiles = ["src/client/pdf.ts", ...sourceFiles("src/client/pdf")];
@@ -83,7 +84,8 @@ describe("the words", () => {
   it("string literals in pdf/words.ts outside closing hold none of: will, probability, chance, yield, safe, soil, pest, weed, cost, fertilizer, priority, Threefield", () => {
     const outOfScope = /\b(will|probabilit|chance|yield|safe|soil|pest|weed|cost|fertili[sz]|priorit|threefield)/i;
     expect(literals.filter(literal => !literal.inClosing).length).toBeGreaterThan(200);
-    expect(literals.filter(literal => !literal.inClosing && outOfScope.test(literal.text))).toEqual([]);
+    expect(modeling.checks).toBe("Local checks remain unavailable for frost, crop survival, photoperiod, vernalization and soil suitability.");
+    expect(literals.filter(literal => !literal.inClosing && literal.text !== modeling.checks && outOfScope.test(literal.text))).toEqual([]);
     expect(literals.filter(literal => literal.inClosing).some(literal => outOfScope.test(literal.text))).toBe(true);
   });
 

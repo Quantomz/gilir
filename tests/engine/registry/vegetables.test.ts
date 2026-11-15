@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readRegistryRelease, resolveRegistry } from "@/registry";
 import { lookupAt, places } from "./support";
 
-const vegetables = readRegistryRelease();
+const vegetables = readRegistryRelease("fao56-hard-windows-2026-11-15");
 
 const fao56Table11Stages: Record<string, readonly [number, number, number, number]> = {
   "broccoli-fao56-california-desert-sep": [35, 45, 40, 15],

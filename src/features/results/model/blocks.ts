@@ -165,7 +165,7 @@ export interface NoPlanPage {
 export type ResultPage = PlanPage | NoPlanPage;
 
 export type DetailsSectionId =
-  | "numbers" | "definitions" | "months" | "seasons" | "sources" | "profiles" | "coverage" | "assumptions" | "versions" | "answers";
+  | "modeling" | "numbers" | "definitions" | "months" | "seasons" | "sources" | "profiles" | "coverage" | "assumptions" | "versions" | "answers";
 
 export interface DetailsPage {
   /** "Back to the result", drawn as a button above and below the page. */

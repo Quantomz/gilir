@@ -1,0 +1,2480 @@
+{
+  "b12dc7000deca9cf28644336b04d485467f82d3a84dd3d15447c63caf8dfd5ee": {
+    "cropPurposeId": "barley-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 0,
+      "upperC": 30,
+      "sourceRow": "Barley (Hordeum vulgare)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Barley (Hordeum vulgare); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "2aaaad30d83f5e4c900bac5a4e5b30aa0c0462c4662b68914a938aca98294410": {
+    "cropPurposeId": "barley-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 300,
+        "development": 675,
+        "middle": 690,
+        "late": 660
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Barley (Hordeum vulgare), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "63f4821ba19b8f7f8e9f61e9ba70343fac0a64adfdb7be29efdacae3a40f740e": {
+    "cropPurposeId": "barley-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.15,
+        "end": 0.25
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.3 is the Table 12 cereals group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Barley' row: Kc mid 1.15, Kc end 0.25."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "a5083849b76bbdbe092f8235684ba69ddaf59b1243d2fd4c15e3b40c8acf7703": {
+    "cropPurposeId": "beet-table",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4.5,
+      "upperC": 30,
+      "sourceRow": "Table beets (Beta vulgaris)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Table beets (Beta vulgaris); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "214a019763fdd93155e58ddbfa7fe605c5ef4a74ab9c2431e83c862fd187abb2": {
+    "cropPurposeId": "beet-table",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 40,
+        "development": 150,
+        "middle": 180,
+        "late": 100
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Table beets (Beta vulgaris), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "e065667a1099f0ee7593d5a4216869761fb94923e687f60e5332b8fc6f7270f1": {
+    "cropPurposeId": "beet-table",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.05,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 roots and tubers group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Beets, table' row: Kc mid 1.05, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "90e14d57bfeef7e1e7bd145fcfdd5bc822ebf051e89b556a0bf6965cc24388c6": {
+    "cropPurposeId": "broccoli",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4.5,
+      "upperC": 30,
+      "sourceRow": "Broccoli (Brassica oleracea var. italica)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Broccoli (Brassica oleracea var. italica); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "df670be25b9e891171babdb21f52bc5eb6bde69de25bf30ac00c72ddc4c9dc27": {
+    "cropPurposeId": "broccoli",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 295,
+        "development": 350,
+        "middle": 525,
+        "late": 110
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Broccoli (Brassica oleracea cv. italica), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "e648ad88eac9061796c146923bb46cbab2a3817916df611c4b196e44e5115898": {
+    "cropPurposeId": "broccoli",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1.05,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Broccoli' row: Kc mid 1.05, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "79a1196fd0b03d9f717d4e99e14f5afe59dad5056490bbe98349ad66c00bec25": {
+    "cropPurposeId": "cabbage",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4.5,
+      "upperC": 30,
+      "sourceRow": "Cabbage (B. oleracea)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Cabbage (B. oleracea); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "5fb4774e019bbce040a360b97d086721a0782778df929fdebd58db8ca62851b4": {
+    "cropPurposeId": "cabbage",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 790,
+        "development": 620,
+        "middle": 220,
+        "late": 80
+      },
+      "scenario": "Common",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Cabbage (B. oleracea), Common"
+      }
+    ],
+    "rationale": "Intact Common vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "112facef14e71b476abd06e887db9d3133eb5a8a0c062975f4ccffe5c966ac54": {
+    "cropPurposeId": "cabbage",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1.05,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Cabbage' row: Kc mid 1.05, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "2b140a5b512dcecb6aea2599272e37c79447f5ee6ecd196429e383bce1d215bd": {
+    "cropPurposeId": "cantaloupe",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 38,
+      "sourceRow": "Melon, cantaloupe (Cucumis melo)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Melon, cantaloupe (Cucumis melo); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "0c33b6cff248f17196c8d210c9aa998d130634de9eafda9a29a7ff304f311671": {
+    "cropPurposeId": "cantaloupe",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 140,
+        "development": 545,
+        "middle": 460,
+        "late": 455
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "analogue",
+      "assumptions": [
+        "Transfer the generic Cucumis melo Long season stage row to cantaloupe explicitly. This is a species-level analogue estimate. The source does not establish that the observed cultivar was cantaloupe.",
+        "Retain cantaloupe-specific 1998 Kc. This hybrid does not claim that the stage observations and these coefficients were measured together."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Melon (Cucumis melo), Long season"
+      }
+    ],
+    "rationale": "Species-level transfer of the published generic melon row to cantaloupe. Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "analogue_estimate",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "a25901b182af382743eba2711c86c57f386428971e11f92262610dd47fd85790": {
+    "cropPurposeId": "cantaloupe",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 0.85,
+        "end": 0.6
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Table 12 'Cantaloupe' row: Kc ini 0.5, Kc mid 0.85, Kc end 0.60."
+      ],
+      "combinationAssumptions": [
+        "Transfer the generic Cucumis melo Long season stage row to cantaloupe explicitly. This is a species-level analogue estimate. The source does not establish that the observed cultivar was cantaloupe.",
+        "Retain cantaloupe-specific 1998 Kc. This hybrid does not claim that the stage observations and these coefficients were measured together."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b0cc054f8e948fcd4f731f5148b2bd27a84d9c6262fe7fe09ff11c40375718e5": {
+    "cropPurposeId": "carrot",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 6,
+      "upperC": 30,
+      "sourceRow": "Carrots (Daucus carota)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Carrots (Daucus carota); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "eee68fca496c94eaa2b57d8a42947d43422429377d14f43094db72ac8c62fc8f": {
+    "cropPurposeId": "carrot",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 320,
+        "development": 465,
+        "middle": 500,
+        "late": 290
+      },
+      "scenario": "Common",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Carrots (Daucus carota), Common"
+      }
+    ],
+    "rationale": "Intact Common vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "0c1434bc96d01d2ffbe4889689686cec08ad0428d1f5556ee69d155ac57e27f4": {
+    "cropPurposeId": "carrot",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1.05,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Carrots' row: Kc mid 1.05, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "f20d851d8f761b7667f6a320702583db0ea16737003b1f84aab891d4dce61f00": {
+    "cropPurposeId": "cauliflower",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4.5,
+      "upperC": 30,
+      "sourceRow": "Cauliflower (B. oleracea cv. botrytis)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Cauliflower (B. oleracea cv. botrytis); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3860e5f668ce100f69eab6347b1147ce92e7620f003d1ecdc35f74710d09437d": {
+    "cropPurposeId": "cauliflower",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 700,
+        "development": 610,
+        "middle": 200,
+        "late": 60
+      },
+      "scenario": "Common",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Cauliflower (B. oleracea var. botrytis), Common"
+      }
+    ],
+    "rationale": "Intact Common vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "1f33290c0822aebe6941b17b975f006e3d4e6a2d37507aff23ed005b1939cee9": {
+    "cropPurposeId": "cauliflower",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1.05,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Cauliflower' row: Kc mid 1.05, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "7b5e810c8dda801a99c6d9cbb5c11e2bf7aeb34aaac4d921e2dac2afbabafc07": {
+    "cropPurposeId": "common-bean-dry",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Bean (Phaseolus vulgaris)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Bean (Phaseolus vulgaris); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "8ab7ce8ae6a95d1961f34753646fc6f04389b01294edeb356a84fda957221758": {
+    "cropPurposeId": "common-bean-dry",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 320,
+        "development": 410,
+        "middle": 400,
+        "late": 220
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Model dry seed of Phaseolus vulgaris without tall stalk support, consistent with the retained 1998 coefficients."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Bean, seed (Phaseolus vulgaris), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "0c0003a3155e73a799e6cb53aa98b0d24c5261f31775a2a72400ceed478e98b6": {
+    "cropPurposeId": "common-bean-dry",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.4,
+        "middle": 1.15,
+        "end": 0.35
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Table 12 row 'Beans, dry and Pulses' is used for common bean grown for dry grain.",
+        "Kc mid 1.15 assumes beans are not grown on tall stalks; footnote 2 gives 1.20 for dry beans grown on stalks reaching 1.5-2 m."
+      ],
+      "combinationAssumptions": [
+        "Model dry seed of Phaseolus vulgaris without tall stalk support, consistent with the retained 1998 coefficients."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "2d223222a8195bc70550d17f0ee9a798dff3bcf7e04a68f02d473c492d168ac9": {
+    "cropPurposeId": "cowpea-dry",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 35,
+      "sourceRow": "Cowpea (Vigna unguiculata)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Cowpea (Vigna unguiculata); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "7683c9b7064b6190946b30f27a7e8e223c286ce459f51d21bf0348b9df68d6cb": {
+    "cropPurposeId": "cowpea-dry",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 310,
+        "development": 450,
+        "middle": 550,
+        "late": 300
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Cowpea (Vigna unguiculata), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "bf2762e9b47adb3aa3371fc8e5f641b79ca18cd5049142b70223778fedfa8583": {
+    "cropPurposeId": "cowpea-dry",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.4,
+        "middle": 1.05,
+        "end": 0.35
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.4 is the Table 12 legumes group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Green Gram and Cowpeas' row: Kc mid 1.05; Kc end 0.35 is the harvested-dry value (footnote 6)."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "1e7732bb8d0f10cd5b487088070bb8ca973f3c58ee77c0c547c491edb862a623": {
+    "cropPurposeId": "eggplant",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 35,
+      "sourceRow": "Eggplant (Solanum melongena)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Eggplant (Solanum melongena); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b9b4c708cefb2fcbe02c7f3558e2a0ee7b4662b1a8253da4028da127673b7780": {
+    "cropPurposeId": "eggplant",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 230,
+        "development": 540,
+        "middle": 480,
+        "late": 180
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Eggplant (Solanum melongena), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "76ed48a2eca6ef7c6fc6df6ae2435b01d44e2c93a12d5d3ab2183df5d50dec60": {
+    "cropPurposeId": "eggplant",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.6,
+        "middle": 1.05,
+        "end": 0.9
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.6 is the Table 12 Solanum family group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Egg Plant' row: Kc mid 1.05, Kc end 0.90."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "9f9b29e55c6be8e8e21204ccf3de599ce9d691b6f433bd37fad04ffbbbb47f32": {
+    "cropPurposeId": "green-bean",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Bean (Phaseolus vulgaris)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Bean (Phaseolus vulgaris); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "002b4a5ae8e2c37fad4d0a82da35617b773c4ef987b2b4fa1ef3ef76b96aa6f8": {
+    "cropPurposeId": "green-bean",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 230,
+        "development": 390,
+        "middle": 400,
+        "late": 150
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": [
+        "Model fresh green pods of Phaseolus vulgaris without tall stalk support. Do not substitute the dry-seed thermal endpoint."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Bean, green (Phaseolus vulgaris), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "8b8f57f58a491704f54e40746699c03b9515149877f57480ba07f8dcfd9b17c5": {
+    "cropPurposeId": "green-bean",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.05,
+        "end": 0.9
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Table 12 'Beans, green' row: Kc ini 0.5, Kc mid 1.05, Kc end 0.90. Footnote 2 gives 1.15 for green beans grown on stalks reaching 1.5-2 m; tall stalks are not assumed."
+      ],
+      "combinationAssumptions": [
+        "Model fresh green pods of Phaseolus vulgaris without tall stalk support. Do not substitute the dry-seed thermal endpoint."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "f1178a2df321067566e29bdcd91efab56d1de9496f89f0fa9ee19cdb10aa3dc8": {
+    "cropPurposeId": "groundnut",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 35,
+      "sourceRow": "Groundnut, peanut (Arachis hypogaea)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Groundnut, peanut (Arachis hypogaea); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b25001e9d03b834e7078ccfd162820ef0686b6e6d6eb5a0bb7742cf5ca3f7934": {
+    "cropPurposeId": "groundnut",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 430,
+        "development": 800,
+        "middle": 600,
+        "late": 310
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 212, Groundnut, peanut (Arachis hypogaea), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "714b1d15d2d9478409f9fc73c2eef253e1e0139cd1da750f81ca8f3ae835c0af": {
+    "cropPurposeId": "groundnut",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.4,
+        "middle": 1.15,
+        "end": 0.6
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.4 is the Table 12 legumes group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Groundnut (Peanut)' row: Kc mid 1.15, Kc end 0.60."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "6bbf28e85d06a7cfc43309db7c264de970142fe4cf62e0bc7682fff8646156e6": {
+    "cropPurposeId": "lentil-dry",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 2,
+      "upperC": 35,
+      "sourceRow": "Lentil (Lens culinaris)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Lentil (Lens culinaris); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "62af32345cc8ac7ed80ada892d97e91e38eeed03e7be6c6d96637a94aee952f5": {
+    "cropPurposeId": "lentil-dry",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 120,
+        "development": 300,
+        "middle": 860,
+        "late": 650
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 212, Lentil (Lens culinaris), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "058dfd8eb2e400c2618788914e23817fa586054f218bda46aed93e39a69dbb63": {
+    "cropPurposeId": "lentil-dry",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.4,
+        "middle": 1.1,
+        "end": 0.3
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.4 is the Table 12 legumes group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Lentil' row: Kc mid 1.10, Kc end 0.30."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "039d364ffb310c9a4cbad82a4e44bb9fcf52589f65655636bd56d0c7ab8cb4b2": {
+    "cropPurposeId": "lettuce",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4,
+      "upperC": 28,
+      "sourceRow": "Lettuce (Lactuca sativa)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Lettuce (Lactuca sativa); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "c6a2e0dc1a89d9fbc8663e2d3ce4e6dc9dd29ab75d2b6a3e68710469c8319262": {
+    "cropPurposeId": "lettuce",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 360,
+        "development": 455,
+        "middle": 455,
+        "late": 20
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Lettuce (Lactuca sativa), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "0c5a840050d951ac116f947813b748e61ecda6cfac66281f72db53a5c641baf2": {
+    "cropPurposeId": "lettuce",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Lettuce' row: Kc mid 1.00, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "771cae46f06c43b5908409613e875a587d1b3ea213144220f7bd63c35e40a0ed": {
+    "cropPurposeId": "maize-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Maize (Zea mays)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Maize (Zea mays); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b36640f8db52a0144a66586dde7d2f3019abd0519d97236adeb69d04a2e4f319": {
+    "cropPurposeId": "maize-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 295,
+        "development": 420,
+        "middle": 775,
+        "late": 465
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Model dry grain after complete field drying, consistent with retained 1998 Kc end 0.35. The generic grain thermal row does not specify harvest moisture, so matching that endpoint is a reference assumption."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Maize, grain (Zea mays), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "a29d16b16d3edce9ba1e7a2b1264a2cc2a15a9337c3d7a9609de4dd2a3098cf9": {
+    "cropPurposeId": "maize-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.2,
+        "end": 0.35
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.3 is the Table 12 cereals group value, which applies to field maize.",
+        "Kc end 0.35 is the Table 12 value for harvest after complete field drying of the grain (footnote 11); 0.60 applies to harvest at high grain moisture."
+      ],
+      "combinationAssumptions": [
+        "Model dry grain after complete field drying, consistent with retained 1998 Kc end 0.35. The generic grain thermal row does not specify harvest moisture, so matching that endpoint is a reference assumption."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "52e518ff52d081b79e81018a3ce09d24eb3c38ca9c3aede4d0067802edd96607": {
+    "cropPurposeId": "oats-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 0,
+      "upperC": 30,
+      "sourceRow": "Oats (Avena sativa)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Oats (Avena sativa); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "bb05980f479c3eaa39494e6c4d268e89bc2da720ecdd7741826fe90fb1b0ed0d": {
+    "cropPurposeId": "oats-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 450,
+        "development": 595,
+        "middle": 550,
+        "late": 255
+      },
+      "scenario": "Common",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 210, Oats (Avena sativa), Common"
+      }
+    ],
+    "rationale": "Intact Common vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "44832b8f1cc6e4e71fb0acf248876e2fe2347245dba7383e515eb687d9ffd763": {
+    "cropPurposeId": "oats-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.15,
+        "end": 0.25
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.3 is the Table 12 cereals group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Oats' row: Kc mid 1.15, Kc end 0.25."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "97967f3359caaeaa421af62106ce382a11d06db6259415d1688a4c265037115f": {
+    "cropPurposeId": "onion-dry",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4.5,
+      "upperC": 35,
+      "sourceRow": "Onions (Allium cepa)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Onions (Allium cepa); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "cb28089bbfbf98bfc8dfc66ac4daf19f0ed9dbc520caeef1d1ad0697f5b70b9b": {
+    "cropPurposeId": "onion-dry",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 460,
+        "development": 470,
+        "middle": 880,
+        "late": 480
+      },
+      "scenario": "Common",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "The source places Onions within roots, tubers, and bulbs. Interpret the generic Allium cepa row as a bulb-onion reference for dry-bulb harvest. This is a disclosed harvest-purpose inference; no green-onion, seed-onion, or day-length cultivar equivalence is claimed."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Onions (Allium cepa), Common"
+      }
+    ],
+    "rationale": "Intact Common vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "e492c7418c989ad5d65327d3a1ad7827c8fc5347ea1c2e346478f13cff5aa3e5": {
+    "cropPurposeId": "onion-dry",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1.05,
+        "end": 0.75
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Onions - dry' row: Kc mid 1.05, Kc end 0.75."
+      ],
+      "combinationAssumptions": [
+        "The source places Onions within roots, tubers, and bulbs. Interpret the generic Allium cepa row as a bulb-onion reference for dry-bulb harvest. This is a disclosed harvest-purpose inference; no green-onion, seed-onion, or day-length cultivar equivalence is claimed."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "c39075cf6a481ab5a6de12221d336ceafe8db93e7c6702427ec9e24f8cae406e": {
+    "cropPurposeId": "pea-green",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 5,
+      "upperC": 27,
+      "sourceRow": "Pea (Pisum sativum)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Pea (Pisum sativum); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "dc2d6c3eb00a1a2f08bbbc40d8130f1599f0b33e987e1f6b1be1ed5a771bb346": {
+    "cropPurposeId": "pea-green",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 155,
+        "development": 350,
+        "middle": 575,
+        "late": 320
+      },
+      "scenario": "Market",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Select the complete fresh Market vector and the 1998 fresh-pea coefficients without tall stalk support. Do not interpret this endpoint as dry seed."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Pea, fresh (Pisum sativum), Market"
+      }
+    ],
+    "rationale": "Intact Market vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "365cca9434740bc08cb4beab2ed142c1794b79133437ab9e39942569ae5934d8": {
+    "cropPurposeId": "pea-green",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.15,
+        "end": 1.1
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Table 12 'Peas - Fresh' row: Kc ini 0.5, Kc mid 1.15, Kc end 1.10. Footnote 2 gives 1.20 for peas grown on stalks reaching 1.5-2 m; tall stalks are not assumed."
+      ],
+      "combinationAssumptions": [
+        "Select the complete fresh Market vector and the 1998 fresh-pea coefficients without tall stalk support. Do not interpret this endpoint as dry seed."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3282375b5d93b9a2b1c9c91c48f6e4f4bdb2b297de443be8ce733bd2cde2cb3d": {
+    "cropPurposeId": "potato",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 2,
+      "upperC": 30,
+      "sourceRow": "Potato (Solanum tuberosum)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Potato (Solanum tuberosum); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "8e20f6ef626a5c033428949b4abaeb801852ad94a069a16871b85a4bf5b952dc": {
+    "cropPurposeId": "potato",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 405,
+        "development": 530,
+        "middle": 490,
+        "late": 835
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Select the Long season thermal vector and explicitly assume no artificial vine kill. Retained 1998 Kc end 0.75 is not the revised long-season Kc end 0.40. This is an assumed harvest-management pairing, not a jointly observed parameter set."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Potato (Solanum tuberosum), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "dc32b596a0d1a0cb1449e0508e31f46c06c7dcecf262205ecc9d02d5d73a4c15": {
+    "cropPurposeId": "potato",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.15,
+        "end": 0.75
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 roots and tubers group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Potato' row: Kc mid 1.15, Kc end 0.75. Footnote 4 gives about 0.40 for long-season potatoes with vine kill; vine kill is not assumed."
+      ],
+      "combinationAssumptions": [
+        "Select the Long season thermal vector and explicitly assume no artificial vine kill. Retained 1998 Kc end 0.75 is not the revised long-season Kc end 0.40. This is an assumed harvest-management pairing, not a jointly observed parameter set."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "2e27f0ad35e4cb02508f1f76b81ec3ee50cf277263df6cac241f7a0be1afa0ab": {
+    "cropPurposeId": "pumpkin-winter-squash",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Squash, Zucchini (Cucurbita pepo)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Squash, Zucchini (Cucurbita pepo); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "168e17193ee755f4aa0870026bca1b0e012616bcd41e8af7d6558a56189f0d1e": {
+    "cropPurposeId": "pumpkin-winter-squash",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 230,
+        "development": 440,
+        "middle": 430,
+        "late": 200
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": [
+        "Restrict the model to mature Cucurbita pepo pumpkin or winter squash. Do not represent all Cucurbita species.",
+        "Use Table 6.10 Squash, Zucchini (Cucurbita pepo) for species-matched thermal thresholds, paired with Table 6.12 Pumpkin & Winter squash (Cucurbita pepo) for the mature endpoint. The temperature transfer across these C. pepo cultivar groups is an explicit assumption. The C. argyrosperma Pumpkin temperature row is not adopted."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Pumpkin & Winter squash (Cucurbita pepo), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3050790bbbd47a3a370e564e68f9977992dab17b2e5f2c892e1cff3c59c29636": {
+    "cropPurposeId": "pumpkin-winter-squash",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1,
+        "end": 0.8
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 cucumber family group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Pumpkin, Winter Squash' row: Kc mid 1.00, Kc end 0.80."
+      ],
+      "combinationAssumptions": [
+        "Restrict the model to mature Cucurbita pepo pumpkin or winter squash. Do not represent all Cucurbita species.",
+        "Use Table 6.10 Squash, Zucchini (Cucurbita pepo) for species-matched thermal thresholds, paired with Table 6.12 Pumpkin & Winter squash (Cucurbita pepo) for the mature endpoint. The temperature transfer across these C. pepo cultivar groups is an explicit assumption. The C. argyrosperma Pumpkin temperature row is not adopted."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "98aec654de59b473f68d3a49fc22b6b283492d4a0455458e051435c9adfb0587": {
+    "cropPurposeId": "rice-paddy",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 12,
+      "upperC": 35,
+      "sourceRow": "Rice (Oryza sativa)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Rice (Oryza sativa); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "07fb8f241191bc00d63029a5b2836f12ab0f09ca536bda8ea1b741b0656cb77f": {
+    "cropPurposeId": "rice-paddy",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 255,
+        "development": 490,
+        "middle": 740,
+        "late": 320
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Model paddy rice under the retained standing-water Kc assumption. This is not aerobic rice or the revised rainfed-rice coefficient scenario.",
+        "Potential ET excludes water needed for land preparation, ponding, seepage, and percolation. A rainfall-to-ET ratio cannot demonstrate that a paddy system has sufficient water."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 210, Rice (Oryza sativa), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "ca3a74eabf4230feaab464e8016f911c9742e1f34c8791d3f4cb6c5ae629ba3f": {
+    "cropPurposeId": "rice-paddy",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 1.05,
+        "middle": 1.2,
+        "end": 0.9
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Table 12 'Rice' row; Kc ini 1.05 assumes 0.10-0.20 m standing water in a sub-humid climate with light wind (Table 14 gives 1.00-1.20 by climate).",
+        "Kc end 0.90 is the higher value of the Table 12 range 0.90-0.60, which has no footnote; the higher value gives the more cautious water-demand estimate."
+      ],
+      "combinationAssumptions": [
+        "Model paddy rice under the retained standing-water Kc assumption. This is not aerobic rice or the revised rainfed-rice coefficient scenario.",
+        "Potential ET excludes water needed for land preparation, ponding, seepage, and percolation. A rainfall-to-ET ratio cannot demonstrate that a paddy system has sufficient water."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "bfdbe79eb9bc1ac7b953dd572506589ad26e72050bfeb403c1267fb2a476b383": {
+    "cropPurposeId": "safflower-seed",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 5,
+      "upperC": 35,
+      "sourceRow": "Safflower (Carthamus tinctorius)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Safflower (Carthamus tinctorius); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "f8c82884c7f73fa56d10b310ec659feaa0e6149ffa5f72563986d248628b6e9f": {
+    "cropPurposeId": "safflower-seed",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 220,
+        "development": 520,
+        "middle": 910,
+        "late": 580
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": [
+        "Retain the lower-density rainfed stand assumption attached to 1998 Kc mid 1.00. The thermal-stage source describes a non-stressed managed crop. Their pairing assumes no phenological change caused by this stand-density difference and is not a universal maximum-demand curve."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 212, Safflower (Carthamus tinctorius), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "4e014e41463dc4b37a479a529ad7733bf5d6e0c5dd853d89eedfbce6fbf66124": {
+    "cropPurposeId": "safflower-seed",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.35,
+        "middle": 1,
+        "end": 0.25
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.35 is the Table 12 oil crops group value; the crop row leaves Kc ini blank.",
+        "Kc mid 1.0 is the lower end of the Table 12 range 1.0-1.15; footnote 9: the lower values are for rainfed crops having less dense plant populations. Rainfed, less dense stands are assumed.",
+        "Table 12 'Safflower' row: Kc end 0.25."
+      ],
+      "combinationAssumptions": [
+        "Retain the lower-density rainfed stand assumption attached to 1998 Kc mid 1.00. The thermal-stage source describes a non-stressed managed crop. Their pairing assumes no phenological change caused by this stand-density difference and is not a universal maximum-demand curve."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "eb54fb7d3ba42129fdd6e465286069d010aa14c67b5c5516801bfc1d305e6884": {
+    "cropPurposeId": "sorghum-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 30,
+      "sourceRow": "Sorghum (Sorghum bicolor)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Sorghum (Sorghum bicolor); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "f3189b78edff7217dfdbc11cffd15823cee6a075037c050c5b3b109f0288afbc": {
+    "cropPurposeId": "sorghum-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 280,
+        "development": 310,
+        "middle": 650,
+        "late": 280
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 210, Sorghum (Sorghum bicolor), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b399a2c7bf580be29e9cde18d1e457caa5fc70851409e7ec41808327ee0fa80e": {
+    "cropPurposeId": "sorghum-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.1,
+        "end": 0.55
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.3 is the Table 12 cereals group value; the crop row leaves Kc ini blank.",
+        "Kc mid 1.10 is the higher value of the Table 12 'Sorghum - grain' range 1.00-1.10, which has no footnote; the higher value gives the more cautious water-demand estimate.",
+        "Kc end 0.55 is the Table 12 'Sorghum - grain' value."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "6c537f0c4fea9c3bd5db13affe98c1a42389ab6597e68435b017d1c86bede8fc": {
+    "cropPurposeId": "soybean-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 40,
+      "sourceRow": "Soybean (Glycine max)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Soybean (Glycine max); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "d00cc5d8bc9ccea37b581bbb8c3e310cfd60cc790a8d989c420475339e4f9850": {
+    "cropPurposeId": "soybean-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 310,
+        "development": 410,
+        "middle": 680,
+        "late": 560
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Select the intact Long season vector, total 1960 degree-days. Preserve the unused Short season source conflict, whose cells sum to 1650 while the source prints 1660. No correction is inferred."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Soybean (Glycine max), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "9a48b60945bf95288022d4d8d41e09c4669d9e6380d63cb831cb2034aea01e49": {
+    "cropPurposeId": "soybean-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.4,
+        "middle": 1.15,
+        "end": 0.5
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.4 is the Table 12 legumes group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Soybeans' row: Kc mid 1.15, Kc end 0.50."
+      ],
+      "combinationAssumptions": [
+        "Select the intact Long season vector, total 1960 degree-days. Preserve the unused Short season source conflict, whose cells sum to 1650 while the source prints 1660. No correction is inferred."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3d3b91509e6a599c6bfdd1df8c806e266a3b14c3012abc86ede8e780516837f4": {
+    "cropPurposeId": "spinach",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 4,
+      "upperC": 25,
+      "sourceRow": "Spinach (Spinacia oleracea)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Spinach (Spinacia oleracea); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "a48c1db8fb8638caec8448f7cc87b5134c4e86f90f4c15e11ad241649f1b2dec": {
+    "cropPurposeId": "spinach",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 250,
+        "development": 200,
+        "middle": 140,
+        "late": 20
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Spinach (Spinacia oleracea), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3e7053aa9c9bbb2665eb3bdf2a79d9f7e2e5e05e718d6edb90686e4959fa6cb8": {
+    "cropPurposeId": "spinach",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.7,
+        "middle": 1,
+        "end": 0.95
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.7 is the Table 12 small vegetables group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Spinach' row: Kc mid 1.00, Kc end 0.95."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "df7aa242f73460785f4623de027f1ed123c6ae54d2a15e0e5c6e4c4293c4603d": {
+    "cropPurposeId": "squash-zucchini",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Squash, Zucchini (Cucurbita pepo)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Squash, Zucchini (Cucurbita pepo); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "583a9078634c15c30da0b777a97c62ace0002e619d8b4dabd560fd464faac097": {
+    "cropPurposeId": "squash-zucchini",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 160,
+        "development": 370,
+        "middle": 360,
+        "late": 260
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": [
+        "Model immature fresh Cucurbita pepo zucchini or squash. Its thermal endpoint remains distinct from mature pumpkin or winter squash."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Squash, Zucchini (Cucurbita pepo), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "939a8e21a28655df6d03d70ee0390e5be76bab9fc138317714bf2b23c7c23282": {
+    "cropPurposeId": "squash-zucchini",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 0.95,
+        "end": 0.75
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 cucumber family group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Squash, Zucchini' row: Kc mid 0.95, Kc end 0.75."
+      ],
+      "combinationAssumptions": [
+        "Model immature fresh Cucurbita pepo zucchini or squash. Its thermal endpoint remains distinct from mature pumpkin or winter squash."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "3419ee23731f6f2a4b7ad6aaa68194648c77f0dcae8000798fd5165eb2a08bc8": {
+    "cropPurposeId": "sunflower-seed",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 8,
+      "upperC": 30,
+      "sourceRow": "Sunflower (Helianthus annuus)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Sunflower (Helianthus annuus); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "5f8510ace88076efd81c289f19a571cb7c729c379aa3840f5f13dd446e1d5d3f": {
+    "cropPurposeId": "sunflower-seed",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 385,
+        "development": 570,
+        "middle": 685,
+        "late": 265
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Retain the lower-density rainfed stand assumption attached to 1998 Kc mid 1.00. The thermal-stage source describes a non-stressed managed crop. Their pairing assumes no phenological change caused by this stand-density difference and is not a universal maximum-demand curve."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Sunflower (Helianthus annuus), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "426ef9b41960ab6e66819382d17004bee43fe97acc7c59e0ac4e121381f2319d": {
+    "cropPurposeId": "sunflower-seed",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.35,
+        "middle": 1,
+        "end": 0.35
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.35 is the Table 12 oil crops group value; the crop row leaves Kc ini blank.",
+        "Kc mid 1.0 is the lower end of the Table 12 range 1.0-1.15; footnote 9: the lower values are for rainfed crops having less dense plant populations. Rainfed, less dense stands are assumed.",
+        "Table 12 'Sunflower' row: Kc end 0.35."
+      ],
+      "combinationAssumptions": [
+        "Retain the lower-density rainfed stand assumption attached to 1998 Kc mid 1.00. The thermal-stage source describes a non-stressed managed crop. Their pairing assumes no phenological change caused by this stand-density difference and is not a universal maximum-demand curve."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "414531b5ca8db073798cf77e9e11b1859cea6af1c11d049aa7328d074dec295c": {
+    "cropPurposeId": "sweet-maize",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 32,
+      "sourceRow": "Maize (Zea mays)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Maize (Zea mays); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "cc0b36a255487901ccdb3f7dd879cdf42675d0a3cefa2af77f3b7276a7409c31": {
+    "cropPurposeId": "sweet-maize",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 355,
+        "development": 500,
+        "middle": 430,
+        "late": 200
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Model fresh sweet ears. Do not replace the sweet-maize thermal row with grain or silage stages."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 210, Maize, sweet (Zea mays), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "eec6c365f508dc3fff508d054aefc730eca79eef56ec8608c6e6f996edcd8ad9": {
+    "cropPurposeId": "sweet-maize",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.15,
+        "end": 1.05
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.3 is the Table 12 cereals group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Maize, Sweet' row: Kc mid 1.15; Kc end 1.05 applies when harvested fresh for human consumption (footnote 12)."
+      ],
+      "combinationAssumptions": [
+        "Model fresh sweet ears. Do not replace the sweet-maize thermal row with grain or silage stages."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "7fbb060a4cc16fd7274bffcc28c66c94f08cb3562c706b5d6cc34b6125ceaaff": {
+    "cropPurposeId": "sweet-melon",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 10,
+      "upperC": 38,
+      "sourceRow": "Melon (Cucumis melo)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Melon (Cucumis melo); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "cb2e0bd1568f382f8c2f6e63f88d21ea6c50f91d53392ad1578dc86e77137c1c": {
+    "cropPurposeId": "sweet-melon",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 140,
+        "development": 545,
+        "middle": 460,
+        "late": 455
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Model generic edible Cucumis melo fruit with the Long season row and the 1998 Sweet Melons Kc. Local melon cultivar identity is not established."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Melon (Cucumis melo), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "f9a7de73b903e26aed23a18c16739c3266d427c1e7b44da015a03748bb29faf6": {
+    "cropPurposeId": "sweet-melon",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.05,
+        "end": 0.75
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 cucumber family group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Sweet Melons' row: Kc mid 1.05, Kc end 0.75."
+      ],
+      "combinationAssumptions": [
+        "Model generic edible Cucumis melo fruit with the Long season row and the 1998 Sweet Melons Kc. Local melon cultivar identity is not established."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "162aa6d98eacec9273deab73d4e07b48bdfd7ee2e8dd65a0dce8b919558603bf": {
+    "cropPurposeId": "sweet-potato",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 12,
+      "upperC": 30,
+      "sourceRow": "Sweet potato (Ipomoea batatas)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Sweet potato (Ipomoea batatas); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "99415fd465f426a49d3f456f08b7d53c8ddaf2db0465a01fadf01ff501ca23cf": {
+    "cropPurposeId": "sweet-potato",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 170,
+        "development": 320,
+        "middle": 560,
+        "late": 370
+      },
+      "scenario": "Max length",
+      "sourceEvidenceTier": "approximate",
+      "assumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.12, printed page 211, Sweet potato (Ipomoea batatas), Max length"
+      }
+    ],
+    "rationale": "Intact Max length vector from Table 6.12. Published approximate reference-climate estimate, not a crop observation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "ee1e9572c6a7b8daa1f14318b4dd8c55c65924042e6164352d34e59f39799f06": {
+    "cropPurposeId": "sweet-potato",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.5,
+        "middle": 1.15,
+        "end": 0.65
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.5 is the Table 12 roots and tubers group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Sweet Potato' row: Kc mid 1.15, Kc end 0.65."
+      ],
+      "combinationAssumptions": []
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "24361c176eecc11c7f14cdf04b4dfa670d6f502a7482f88431a94efa801d97f4": {
+    "cropPurposeId": "tomato",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 7,
+      "upperC": 28,
+      "sourceRow": "Tomato (Solanum lycopersicum)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 204, Tomato (Solanum lycopersicum); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "8fdbf122f9a8ceeb864d3d6819b95919f61b79c2fc03e43404360f8e94708ab6": {
+    "cropPurposeId": "tomato",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 325,
+        "development": 660,
+        "middle": 880,
+        "late": 200
+      },
+      "scenario": "Market",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Select fresh-market tomato. Retain the 1998 unstaked tomato coefficients, including the chosen 0.90 end coefficient. Do not describe them as the revised trellised row merely because its triplet is numerically identical.",
+        "The fresh-market stage vector and 1998 unstaked coefficients form a disclosed reference assumption. A revised FAO fresh-market curve would use different coefficients."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 209, Tomato (Solanum lycopersicum), Market"
+      }
+    ],
+    "rationale": "Intact Market vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "5838fdfecb5aa14cb4b05200c9e0b1a18967bb6bf6449152eaa1532a3ccab606": {
+    "cropPurposeId": "tomato",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.6,
+        "middle": 1.15,
+        "end": 0.9
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Kc ini 0.6 is the Table 12 Solanum family group value; the crop row leaves Kc ini blank.",
+        "Table 12 'Tomato' row: Kc mid 1.15 (footnote 2 gives 1.20 for staked tomatoes on 1.5-2 m stalks; staking is not assumed).",
+        "Kc end 0.90 is the higher value of the Table 12 range 0.70-0.90, which has no footnote; the higher value gives the more cautious water-demand estimate."
+      ],
+      "combinationAssumptions": [
+        "Select fresh-market tomato. Retain the 1998 unstaked tomato coefficients, including the chosen 0.90 end coefficient. Do not describe them as the revised trellised row merely because its triplet is numerically identical.",
+        "The fresh-market stage vector and 1998 unstaked coefficients form a disclosed reference assumption. A revised FAO fresh-market curve would use different coefficients."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "b9f09a870fc826b040c04c2cc268cd2431e524779720f1453393433c6e2706bb": {
+    "cropPurposeId": "wheat-grain",
+    "parameterKind": "temperature",
+    "parameters": {
+      "baseC": 0,
+      "upperC": 35,
+      "sourceRow": "Wheat, common (Triticum aestivum)"
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.10, printed page 205, Wheat, common (Triticum aestivum); Equation 6.23"
+      }
+    ],
+    "rationale": "Exact species or explicitly named model scope; these thresholds are for Eq. 6.23 accumulation, not injury or suitability.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "58533b08b88dd8e8ce9ce22c9b5225af125c9c73a4bac80151ef68b2ac6f5154": {
+    "cropPurposeId": "wheat-grain",
+    "parameterKind": "development",
+    "parameters": {
+      "incrementalStageGdd": {
+        "initial": 360,
+        "development": 680,
+        "middle": 720,
+        "late": 540
+      },
+      "scenario": "Long season",
+      "sourceEvidenceTier": "observed",
+      "assumptions": [
+        "Restrict the model to common spring wheat, Triticum aestivum, Long season. Do not use winter-wheat or durum thermal stages.",
+        "Retain the 1998 Spring Wheat coefficients and machine-harvest end assumption. This source match does not establish local photoperiod adaptation."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-rev1-official",
+        "documentHash": "85c5657fa6b8519e2111ea8cdb1b39cbe440bd710a9cd154aed7dd57edc5e64d",
+        "section": "Table 6.11, printed page 210, Wheat, Spring (Triticum aestivum), Long season"
+      }
+    ],
+    "rationale": "Intact Long season vector from Table 6.11. Indicative field-observation compilation, not local validation.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  },
+  "57ab7c5a6ae6a94a9bbb9becf3203462589a275e9cc6479cf3902efd0f5e1e4e": {
+    "cropPurposeId": "wheat-grain",
+    "parameterKind": "kc",
+    "parameters": {
+      "values": {
+        "initial": 0.3,
+        "middle": 1.15,
+        "end": 0.25
+      },
+      "assumptions": [
+        "FAO-56 Table 12 values for a sub-humid climate (RHmin about 45%, u2 about 2 m/s) under standard non-stressed conditions; no climatic adjustment is applied.",
+        "Kc ini is the FAO-56 Table 12 general value (footnote 1); frequent wetting by rain can raise the actual value toward 1.0-1.2.",
+        "Table 12 'Spring Wheat' row; Kc ini 0.3 is the cereals group value.",
+        "Kc end 0.25 assumes machine harvest; footnote 10 gives the higher value 0.4 for hand-harvested crops."
+      ],
+      "combinationAssumptions": [
+        "Restrict the model to common spring wheat, Triticum aestivum, Long season. Do not use winter-wheat or durum thermal stages.",
+        "Retain the 1998 Spring Wheat coefficients and machine-harvest end assumption. This source match does not establish local photoperiod adaptation."
+      ]
+    },
+    "locators": [
+      {
+        "sourceId": "fao56-1998-table12",
+        "documentHash": "cad0afe7873296b2a91c1a70b0d1fdf4cb37b5ee94a892521a478b2b1a4a2e3c",
+        "section": "Table 12 and its footnotes, retained crop-purpose row and exact assumptions"
+      }
+    ],
+    "rationale": "Retained 1998 reference coefficient under the exact recorded management assumptions. Combination with thermal timing is a reviewed Gilir reference estimate.",
+    "basis": "published_parameter",
+    "sourceManifestHash": "5e4df04b862c87f7aa0f51ef98c6bcf300963cd309ebc3ec6eeb48e06bae94df",
+    "methodReviewPayloadHash": "a772c8d0ec504c15c00921dd47e9c402a818980e50e7c889087baa3bf5f002f3"
+  }
+}

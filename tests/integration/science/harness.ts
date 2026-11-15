@@ -49,7 +49,7 @@ export const scienceCases: readonly ScienceCase[] = [
     expect: { state: "insufficient_data", missingProfiles: ["maize-grain"] } },
 ];
 
-export const registry = readRegistryRelease();
+export const registry = readRegistryRelease("fao56-hard-windows-2026-11-15");
 
 const snapshotList = providerSnapshotSchema.array();
 const recordings = new Map<Recording, readonly ClimateSnapshot[]>();

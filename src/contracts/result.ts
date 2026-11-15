@@ -2,12 +2,13 @@ import { z } from "zod";
 import { count, cropPurposeIdSchema, evidence, fraction, isoDateSchema, labels, positiveDays, sourceReferenceSchema } from "./common";
 import { farmInputSchema } from "./input";
 import { catalogueSchema } from "./registry";
+import { modeledTimingSchema, modelDiagnosticsSchema, modelingPolicySchema, modelEngineVersion, sha256Schema } from "./model";
 
 const dateInterval = z.strictObject({ start: isoDateSchema, endExclusive: isoDateSchema }).refine(
   interval => interval.start < interval.endExclusive, "Start must come before the exclusive end.",
 ).readonly();
 
-export const runManifestSchema = z.strictObject({
+const legacyRunManifestSchema = z.strictObject({
   schemaVersion: z.literal(1),
   normalizedInputHash: labels,
   engineVersion: labels,
@@ -17,6 +18,17 @@ export const runManifestSchema = z.strictObject({
   climateSnapshotIds: z.array(labels).readonly(),
   dataCutoff: isoDateSchema,
 }).readonly();
+export const modelRunManifestSchema = legacyRunManifestSchema.unwrap().extend({
+  schemaVersion: z.literal(2),
+  engineVersion: z.literal(modelEngineVersion),
+  modelReleaseVersion: labels,
+  modelReleaseHash: sha256Schema,
+  configurationHash: sha256Schema,
+  climateContentHashes: z.array(sha256Schema).readonly(),
+  climateArtifactHashes: z.array(sha256Schema).readonly(),
+  modelingPolicy: modelingPolicySchema,
+}).readonly();
+export const runManifestSchema = z.discriminatedUnion("schemaVersion", [legacyRunManifestSchema.unwrap(), modelRunManifestSchema.unwrap()]).readonly();
 export type RunManifest = z.infer<typeof runManifestSchema>;
 
 const units = z.enum(["fraction", "days", "count", "mm", "mm/day", "degC", "degrees", "kPa", "%", "m/s", "MJ/m²/day"]);
@@ -99,6 +111,7 @@ export const calendarOccurrenceSchema = z.strictObject({
 }).readonly();
 export type CalendarOccurrence = z.infer<typeof calendarOccurrenceSchema>;
 const planOccurrence = calendarOccurrenceSchema.unwrap().extend({
+  modeledTiming: modeledTimingSchema.optional(),
   seasonMetrics: z.array(seasonMetrics).readonly(),
 }).refine(o => o.planted <= o.lastOccupied && o.lastOccupied < o.fieldAvailable, "Occurrence dates must be in order.").readonly();
 export type PlanOccurrence = z.infer<typeof planOccurrence>;
@@ -186,6 +199,7 @@ const search = z.strictObject({
 export type SearchCoverage = z.infer<typeof search>;
 
 export const resultDetailsSchema = z.strictObject({
+  modeling: modelDiagnosticsSchema.optional(),
   explanation: labels,
   insights: z.array(z.strictObject({
     metric: assessmentMetricSchema,
@@ -228,7 +242,7 @@ export const completedSnapshotV1Schema = z.strictObject({
   completedAt: z.iso.datetime(),
   input: farmInputSchema,
   result: planResultSchema,
-}).readonly();
+}).superRefine(validateLegacySnapshot).readonly();
 export type CompletedSnapshotV1 = z.infer<typeof completedSnapshotV1Schema>;
 
 export const completedSnapshotSchemaVersion = 2 as const;
@@ -249,7 +263,21 @@ function validateCompletion(completion: z.infer<typeof completionSchema>, contex
   });
 }
 
-export const snapshotCompletionSchema = completionSchema.superRefine(validateCompletion).readonly();
+export const snapshotCompletionSchema = completionSchema.superRefine((completion, context) => {
+  validateCompletion(completion, context);
+  const details = completion.result.details;
+  const manifest = details.provenance.manifest;
+  if (manifest.kind !== "available" || manifest.value.schemaVersion === 1) {
+    validateLegacySnapshot(completion, context);
+    return;
+  }
+  if (!details.modeling || details.modeling.modelReleaseVersion !== manifest.value.modelReleaseVersion
+    || details.modeling.modelReleaseHash !== manifest.value.modelReleaseHash
+    || JSON.stringify(details.modeling.policy) !== JSON.stringify(manifest.value.modelingPolicy)
+    || "plan" in completion.result && completion.result.plan.occurrences.some(occurrence => !occurrence.modeledTiming)) {
+    context.addIssue({ code: "custom", message: "Modeled completion must retain its model identity, diagnostics and occurrence timing." });
+  }
+}).readonly();
 export type SnapshotCompletion = z.infer<typeof snapshotCompletionSchema>;
 
 export const completedSnapshotV2Schema = z.strictObject({
@@ -260,6 +288,7 @@ export const completedSnapshotV2Schema = z.strictObject({
   ...completionFields,
 }).superRefine((snapshot, context) => {
   validateCompletion(snapshot, context);
+  validateLegacySnapshot(snapshot, context);
   const ids = new Set(snapshot.catalogue.entries.map(entry => entry.id));
   snapshot.input.cropPurposeIds.forEach((id, index) => {
     if (!ids.has(id)) context.addIssue({ code: "custom", path: ["input", "cropPurposeIds", index], message: "Selected crop must have a saved catalogue entry." });
@@ -267,8 +296,76 @@ export const completedSnapshotV2Schema = z.strictObject({
 }).readonly();
 export type CompletedSnapshotV2 = z.infer<typeof completedSnapshotV2Schema>;
 
+function validateLegacySnapshot(snapshot: { result: PlanResult }, context: z.RefinementCtx): void {
+  const manifest = snapshot.result.details.provenance.manifest;
+  if (snapshot.result.details.modeling || manifest.kind === "available" && manifest.value.schemaVersion !== 1
+    || "plan" in snapshot.result && snapshot.result.plan.occurrences.some(item => item.modeledTiming)) {
+    context.addIssue({ code: "custom", message: "Thermal model results require snapshot version 3." });
+  }
+}
+
+export const completedSnapshotV3Schema = z.strictObject({
+  schemaVersion: z.literal(3), id: labels, completedAt: z.iso.datetime(), input: farmInputSchema, ...completionFields,
+}).superRefine((snapshot, context) => {
+  validateCompletion(snapshot, context);
+  const details = snapshot.result.details;
+  const manifest = details.provenance.manifest;
+  if (!details.modeling || manifest.kind !== "available" || manifest.value.schemaVersion !== 2) {
+    context.addIssue({ code: "custom", message: "Snapshot 3 requires complete modeled-run identity and diagnostics." });
+    return;
+  }
+  if (details.modeling.modelReleaseVersion !== manifest.value.modelReleaseVersion || details.modeling.modelReleaseHash !== manifest.value.modelReleaseHash
+    || JSON.stringify(details.modeling.policy) !== JSON.stringify(manifest.value.modelingPolicy)) {
+    context.addIssue({ code: "custom", message: "Modeled result identity must match the frozen run." });
+  }
+  const ids = new Set(snapshot.catalogue.entries.map(entry => entry.id));
+  if (snapshot.input.cropPurposeIds.some(id => !ids.has(id))) context.addIssue({ code: "custom", message: "Selected crop labels must be saved." });
+  if ("plan" in snapshot.result) {
+    const plan = snapshot.result.plan;
+    const ordinal = (date: string) => Date.parse(date + "T00:00:00Z") / 86_400_000;
+    const start = ordinal(plan.horizon.start);
+    const horizonDays = ordinal(plan.horizon.endExclusive) - start;
+    const nextYear = Number(snapshot.input.planningStart.slice(0, 4)) + 1;
+    const leapYear = nextYear % 4 === 0 && (nextYear % 100 !== 0 || nextYear % 400 === 0);
+    const monthDay = snapshot.input.planningStart.slice(5);
+    const anniversary = `${String(nextYear).padStart(4, "0")}-${monthDay === "02-29" && !leapYear ? "02-28" : monthDay}`;
+    const starts = details.modeling.retainedReplayStarts;
+    const cohort = details.cohort;
+    const retained = cohort.kind === "available" ? cohort.value.seasons.filter(season => season.status === "usable").map(season => season.interval.start) : [];
+    if (!starts.length || new Set(starts).size !== starts.length || JSON.stringify(starts) !== JSON.stringify(retained)
+      || plan.horizon.start !== snapshot.input.planningStart || plan.horizon.endExclusive !== anniversary
+      || snapshot.input.cropPurposeIds.some(id => !plan.occurrences.some(item => item.cropPurposeId === id))) {
+      context.addIssue({ code: "custom", message: "Modeled plan must retain the common cohort, all selected crops and the planning horizon." });
+    }
+    let previousAvailable = start;
+    for (const occurrence of plan.occurrences) {
+      const timing = occurrence.modeledTiming;
+      const model = details.modeling.crops.find(item => item.cropPurposeId === occurrence.cropPurposeId);
+      const planted = ordinal(occurrence.planted) - start;
+      const ends = timing?.replays.map(replay => replay.harvestOffset) ?? [];
+      const invalidReplay = timing?.replays.some(replay => replay.harvestOffset !== replay.stageCompletionOffsets[3] - 1
+        || replay.stageCompletionOffsets.some((end, index, list) => end <= planted || end > horizonDays || index > 0 && end < list[index - 1]));
+      if (!timing || !model || !snapshot.input.cropPurposeIds.includes(occurrence.cropPurposeId)
+        || timing.modelId !== occurrence.profileId || timing.modelVersion !== occurrence.profileVersion
+        || model.modelId !== timing.modelId || model.modelVersion !== timing.modelVersion
+        || timing.latestHarvest !== occurrence.lastOccupied || timing.earliestHarvest < occurrence.planted
+        || ordinal(timing.earliestHarvest) - start !== Math.min(...ends) || ordinal(timing.latestHarvest) - start !== Math.max(...ends)
+        || ordinal(occurrence.fieldAvailable) !== ordinal(timing.latestHarvest) + 1 + model.turnaroundDays
+        || ordinal(occurrence.planted) < previousAvailable || ordinal(occurrence.fieldAvailable) - start > horizonDays
+        || invalidReplay || timing.replays.length !== starts.length
+        || timing.replays.some((replay, index) => replay.replayStart !== starts[index])) {
+        context.addIssue({ code: "custom", message: "Every modeled occurrence requires consistent model identity, stage boundaries, harvest range and field reservation." });
+      }
+      previousAvailable = ordinal(occurrence.fieldAvailable);
+    }
+  }
+}).readonly();
+export type CompletedSnapshotV3 = z.infer<typeof completedSnapshotV3Schema>;
+export const completedSnapshotVersionFor = (result: PlanResult): 2 | 3 =>
+  result.details.provenance.manifest.kind === "available" && result.details.provenance.manifest.value.schemaVersion === 2 ? 3 : 2;
+
 export const completedSnapshotSchema = z.discriminatedUnion("schemaVersion", [
-  completedSnapshotV1Schema.unwrap(), completedSnapshotV2Schema.unwrap(),
+  completedSnapshotV1Schema.unwrap(), completedSnapshotV2Schema.unwrap(), completedSnapshotV3Schema.unwrap(),
 ]).readonly();
 export type CompletedSnapshot = z.infer<typeof completedSnapshotSchema>;
 

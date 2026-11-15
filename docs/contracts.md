@@ -1,6 +1,6 @@
 # Frozen implementation contracts
 
-Contract version 1 is the shared starting point for all cards. New completed snapshots use outer schema version 2, while FarmInput, RunManifest, and FrozenRun retain their existing formats. `src/contracts/` is the authoritative executable/type definition. This guide names the same public entrypoints. No card begins by negotiating another person's payload.
+Contract version 1 is the shared starting point for the original cards. The global-model release adds RunManifest version 2 and CompletedSnapshot version 3 while retaining FarmInput version 1 and the archived execution path. `src/contracts/` is the authoritative executable/type definition. Existing saved snapshots 1 and 2 remain readable without conversion.
 
 ## Public entrypoints and ownership
 
@@ -15,7 +15,7 @@ Contract version 1 is the shared starting point for all cards. New completed sna
 | B1 | `plannerClient` in `src/client/planner.ts` | Catalogue, submit, read, remove. Frontend never imports SQL or the engine. |
 | B2 | `prepareClimate({input,cutoff,settings,cache})` | Promise of ClimatePreparation. `ready`, `unavailable`, and `failed` preserve snapshots. The failed branch carries ServiceFailure for provider corruption or outage. Unexpected programming errors can throw and B3 records processing_failed. |
 | B3 | `runWorkerOnce` in `src/server/runtime.ts` | Receives JobStore, prepareClimate, registry reader, calculator, fixed clock/cutoff settings, and worker ID. Tests inject these dependencies. RuntimeDependencies and its explicit unimplemented entrypoint are already present. B3 implements it. |
-| E1 | `readRegistryRelease(version?)`, `readCatalogue(version?)` | Returns the immutable released version. Initial real catalogue is empty. |
+| E1 | `readRegistryRelease(version?)`, `readCatalogue(version?)` | Returns an immutable release. The default is `fao56-global-32-2026-11-15`; archived fixed-duration releases remain available by exact version. |
 | E1 | `resolveRegistry(input,registry)` | RegistryLookup to RegistryResolution, including selected applicable profiles, physical/regulatory rules, and gaps. |
 | E2 | `buildClimateCohort(input)` | CohortInput to common usable seasons, excluded-season reasons, annual applicability climate evidence, and climate insights. |
 | E2 | `assessClimate(input)` | MetricInput to assessed occurrences, named metrics, flags, or missing-data evidence. Use `metricInputFixture`. |
@@ -42,26 +42,27 @@ Global package changes and contract amendments belong to kyusuku. Card-specific 
 
 `jobCapabilitySchema` in `src/contracts/jobs.ts` is the authoritative strict capability parser. `JobCapability` is inferred from it. Job IDs are UUIDs. Tokens are untrimmed strings with lengths from 1 through 512. Planner responses and browser storage use the same parser. Synthetic successful submissions use valid UUIDs too.
 
-`farmInputSchemaVersion` is 1. `completedSnapshotSchemaVersion` is 2. These independent constants let browser storage protect a future input version 2 and a future snapshot version 3 without changing either record.
+`farmInputSchemaVersion` remains 1. `completedSnapshotSchemaVersion` remains the archived version-2 constant. `completedSnapshotVersionFor(result)` selects version 2 for legacy results and version 3 for modeled results. Browser storage derives supported input, manifest, and snapshot versions from the respective schema options, so it preserves genuinely newer records without rewriting them.
 
-`parseCompletedSnapshot` and `completedSnapshotSchema` accept two strict saved formats:
+`parseCompletedSnapshot` and `completedSnapshotSchema` accept three strict saved formats:
 
 - Version 1 retains exactly `schemaVersion`, `id`, `completedAt`, `input`, and `result`. A valid version 1 record stays version 1 and gains no catalogue or fabricated labels.
 - Version 2 adds the full public `catalogue`, using the exported `catalogueSchema`. Its result requires an available provenance manifest. The catalogue version matches that manifest's `catalogueVersion`, entry IDs are unique, and every selected input crop ID has an entry. Historical catalogue IDs can be absent. Unsupported history keeps the farmer's own label.
+- Version 3 adds required modeled-run diagnostics and per-occurrence timing to the saved result. It requires manifest 2, matching model and policy identities, common-cohort membership, every selected crop, ordered stage boundaries, consistent harvest ranges, and nonoverlapping field reservations within the horizon. Versions 1 and 2 reject this new metadata rather than silently interpreting it as legacy timing.
 
 This compatibility covers version 1 records valid under the current parser. It does not restore retired starter fields or missing required search metadata. No read conversion, stored-data rewrite, hash change, frozen-run change, or database migration is included.
 
-New `JobStore.complete(lease, completion, now)` writes version 2. `SnapshotCompletion` contains only `{ result, catalogue }` and is validated by `snapshotCompletionSchema`. The worker takes the catalogue from the exact immutable registry already verified for the claimed or frozen run. It never reads the latest catalogue as a fallback. The worker validates the full version 2 shape before completion, so malformed registry metadata follows the existing `processing_failed` path.
+`JobStore.complete(lease, completion, now)` writes the version selected from the result. `SnapshotCompletion` contains `{ result, catalogue }` and is validated by `snapshotCompletionSchema`. The worker takes the catalogue from the exact immutable registry already verified for the claimed or frozen run. It never reads the latest catalogue as a fallback. The full supported snapshot shape is validated before completion, so malformed model or registry metadata follows the existing failure path.
 
 The store parses the completion and uses one atomic SQL update. Existing active-lease, calculating-state, exact frozen-manifest, and terminal immutability requirements remain. The update also checks catalogue identity and selected-ID coverage against the stored input. The database owns the snapshot's ID, input, and completion timestamp. The worker's verified release establishes the origin of official label text. SQL checks identity and coverage rather than comparing labels with a catalogue table.
 
 The existing `completedSnapshotFixture` and `completedSnapshotsByState` exports remain version 1. `completedSnapshotV2Fixture` and `completedSnapshotsV2ByState` provide separate version 2 examples for F3 and F4. Both variant collections cover all six result states.
 
-F4 can build a label map from a saved version 2 catalogue within its existing PDF composition call:
+F4 builds a label map from a saved version 2 or 3 catalogue without a current catalogue request:
 
 ```ts
 const savedLabels = new Map(
-	snapshot.schemaVersion === 2
+	snapshot.schemaVersion !== 1
 		? snapshot.catalogue.entries.map(entry => [entry.id, entry.label])
 		: [],
 );
@@ -70,7 +71,17 @@ const officialLabel = savedLabels.get(cropPurposeId);
 
 F4 should apply its existing PDF text conversion to official labels and retain the display fallback for version 1 and absent historical IDs. No catalogue request or browser registry import is needed. PDF label consumption, layout, fonts, and the separately reported leap-day horizon correction remain F4-owned work. This shared follow-up changes storage imports, capability adoption, and independent version protection only.
 
-New readers accept versions 1 and 2. Old readers cannot consume version 2. Update web readers before enabling new worker writes. This change performs no deployment.
+New readers accept versions 1, 2, and 3. Earlier readers cannot consume version 3. Update web readers before enabling new worker writes. Archived version-1 frozen jobs continue through engine `v1` and complete as snapshot 2.
+
+### Global reference models
+
+`src/contracts/model.ts` defines `CropModel`, `CompleteModelRelease`, the frozen modeling policy, and saved development diagnostics. `parseCompleteModelRelease` requires exactly one complete model per advertised catalogue ID, unique model identities, reviewed evidence decisions, and known sources. The reproducible release converter pins the independent approval artifact and generates the runtime asset. Eight unresolved crop models are excluded from the new catalogue; they remain present in archived releases.
+
+Manifest 2 binds `thermal-model-v1`, model release version and hash, settings version and hash, climate snapshot IDs, original response hashes, normalized climate-artifact hashes, and the modeling policy. The runtime verifies these checksums before calculation and after recovery. The pure calculator consumes verified frozen artifacts. Normalized artifact hashes are separate because a provider response hash cannot detect changes to normalized weather values.
+
+`prepareCropSeasons` in `src/engine/model` prepares planting-date and replay-dependent development. Its domain provides feasible placements, assessment, and diagnostics. All retained seasons must complete before a placement reserves the field through the latest harvest and its explicit turnaround. The same stage dates determine each replay's Kc and rainfall windows. Noncompletion, missing climate, and exhausted operation budgets remain distinct. The fixed ranking and tie rules remain unchanged; the two schedule indicators measure planned crop intervals rather than observed live cover.
+
+The thermal path cannot infer historical stage allocations from remembered planting and harvest dates. It preserves the history display but withholds its numeric comparison and baseline preference. The archived path retains its existing supported-duration comparison rules.
 
 ### E1 draft retirement
 

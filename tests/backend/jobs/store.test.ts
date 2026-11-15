@@ -12,6 +12,8 @@ import { syntheticRegistryFixture } from "@/fixtures/science";
 import { resultFixtures } from "@/fixtures/results";
 import { parseCompletedSnapshot, parsePlanResult } from "@/contracts/result";
 import { completedJobResultFixture, frozenJobRunFixture, snapshotCompletionFixture } from "./fixtures";
+import { calculate } from "@/engine";
+import { setup as modeledSetup } from "../../engine/model/fixtures";
 import type { JobCapability, JobStore } from "@/contracts/jobs";
 
 const connectionString = process.env.TEST_DATABASE_URL;
@@ -104,6 +106,27 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     expect(state).toMatchObject({ state: "completed", snapshot: { schemaVersion: 2, catalogue: syntheticRegistryFixture.catalogue, id: capability.jobId, input: inputFixture, result: completedJobResultFixture, completedAt: later } });
     expect(await store.fail(recovered.lease, { code: "processing_failed", message: "Too late.", retryable: false }, later)).toBe(false);
     expect(await store.claim({ workerId: "extra", now: later, leaseSeconds: 30 })).toBeNull();
+  });
+
+  test("stores a modeled completion as snapshot three and rejects incomplete modeled evidence", async () => {
+    const { run: modelRun, registry, cohort } = modeledSetup();
+    const frozen = { ...modelRun, manifest: { ...modelRun.manifest, normalizedInputHash: hashNormalizedInput(modelRun.input) } };
+    const capability = await store.create({ input: frozen.input, registry: registry.identity, cutoff: frozen.manifest.dataCutoff, createdAt: now });
+    const lease = await claim();
+    if (!lease) throw new Error("Expected modeled job lease.");
+    expect(await store.freeze(lease.lease, frozen, now)).toBe(true);
+    const result = calculate(frozen, registry, { buildCohort: () => cohort });
+    expect(result.state).toBe("plan");
+    expect(await store.complete(lease.lease, { result: { ...result, details: { ...result.details, modeling: undefined } }, catalogue: registry.catalogue }, now)).toBe(false);
+    if (!("plan" in result)) throw new Error("Expected modeled plan.");
+    const inconsistent = { ...result, plan: { ...result.plan, occurrences: result.plan.occurrences.map(occurrence => ({
+      ...occurrence, modeledTiming: occurrence.modeledTiming ? { ...occurrence.modeledTiming, earliestHarvest: occurrence.planted } : undefined,
+    })) } };
+    expect(await store.complete(lease.lease, { result: inconsistent, catalogue: registry.catalogue }, now)).toBe(false);
+    expect(await store.complete(lease.lease, { result, catalogue: registry.catalogue }, now)).toBe(true);
+    const saved = await store.get(capability);
+    expect(saved).toMatchObject({ state: "completed", snapshot: { schemaVersion: 3, result } });
+    expect(await store.complete(lease.lease, { result, catalogue: registry.catalogue }, now)).toBe(false);
   });
 
   test("authorized deletion removes only its job", async () => {

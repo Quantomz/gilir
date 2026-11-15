@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { completeModelReleaseSchema } from "./model";
 import { count, cropPurposeIdSchema, days, evidence, isoDateSchema, labels, positiveDays, sourceReferenceSchema } from "./common";
 import type { CropPurposeId, EvidenceValue } from "./common";
 import type { LngLat } from "./input";
@@ -134,6 +135,7 @@ const releaseShape = {
 export const releasedRegistrySchema = z.strictObject({
   ...releaseShape,
   kind: z.literal("released"),
+  modelRelease: completeModelReleaseSchema.optional(),
   sources: z.array(sourceReferenceSchema).readonly(),
   profiles: z.array(reviewedProfile).readonly(),
   rules: z.array(reviewedRule).readonly(),

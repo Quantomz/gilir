@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { LocalState } from "@/client/storage";
 import { farmInputSchemaVersion } from "@/contracts/input";
-import { completedSnapshotSchema, completedSnapshotSchemaVersion } from "@/contracts/result";
+import { completedSnapshotSchema, runManifestSchema } from "@/contracts/result";
 import { inputFixture } from "@/fixtures/input";
+import { modeledSnapshotFixture } from "@/fixtures/model-result";
 import { completedSnapshotFixture, completedSnapshotsByState, completedSnapshotsV2ByState, resultFixtures } from "@/fixtures/results";
 import { frozenRunFixture } from "@/fixtures/science";
 import { domError, freshStorage, memoryIdb } from "./support/memory-idb";
@@ -25,8 +26,8 @@ function record(parts: Record<string, unknown>, version: unknown = 1) {
 
 const contracts = {
   input: farmInputSchemaVersion,
-  snapshot: completedSnapshotSchemaVersion,
-  manifest: frozenRunFixture.manifest.schemaVersion,
+  snapshot: Math.max(...completedSnapshotSchema.unwrap().options.map(schema => schema.shape.schemaVersion.value)),
+  manifest: Math.max(...runManifestSchema.unwrap().options.map(schema => schema.shape.schemaVersion.value)),
 };
 const setAsideOf = (finds: readonly object[]) => ({ format: "gilir.set-aside", version: 1, contracts, finds });
 
@@ -56,7 +57,7 @@ const newerManifest = {
   ...fixture,
   result: {
     ...fixture.result,
-    details: { ...details, provenance: { ...details.provenance, manifest: { kind: "available", value: { ...frozenRunFixture.manifest, schemaVersion: 2 } } } },
+    details: { ...details, provenance: { ...details.provenance, manifest: { kind: "available", value: { ...frozenRunFixture.manifest, schemaVersion: 3 } } } },
   },
 };
 const words = {
@@ -68,6 +69,13 @@ const words = {
 };
 
 describe("round trip", () => {
+  it("stores and restores the exact modeled snapshot, including all replay timing and saved labels", async () => {
+    const { localPlans, readStorageNotice } = await freshStorage();
+    const modeledState = { ...state, snapshot: modeledSnapshotFixture };
+    await localPlans.save(modeledState);
+    expect(await localPlans.load()).toEqual(modeledState);
+    expect(await readStorageNotice()).toBeNull();
+  });
   it("a state with a partial draft, step 3, an active job and a snapshot loads deep-equal; the snapshot is a new object, so callers compare by id", async () => {
     const { localPlans } = await freshStorage();
     await localPlans.save(state);
@@ -166,7 +174,7 @@ describe("record versions", () => {
 
   it.each([
     { name: "draft version 2", parts: { draft: { ...answers, schemaVersion: 2 }, snapshot: completedSnapshotsV2ByState.plan } },
-    { name: "snapshot version 3", parts: { draft: inputFixture, snapshot: { ...completedSnapshotsV2ByState.plan, schemaVersion: 3 } } },
+    { name: "snapshot version 4", parts: { draft: inputFixture, snapshot: { ...completedSnapshotsV2ByState.plan, schemaVersion: 4 } } },
   ])("$name independently refuses every storage mutation", async ({ parts }) => {
     const setAside = { format: "gilir.set-aside", version: 1, finds: [{ parts: ["activeJob"], answersKept: true, raw: "prior unreadable job" }] };
     const { localPlans, storageProblem, readStorageNotice, memory } = await seeded(record({ draft: answers }), setAside);

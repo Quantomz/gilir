@@ -5,7 +5,7 @@ import { farmInputSchema, farmInputSchemaVersion } from "@/contracts/input";
 import type { FarmInput } from "@/contracts/input";
 import { jobCapabilitySchema } from "@/contracts/jobs";
 import type { JobCapability } from "@/contracts/jobs";
-import { completedSnapshotSchema, completedSnapshotSchemaVersion, runManifestSchema } from "@/contracts/result";
+import { completedSnapshotSchema, runManifestSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 
 export interface LocalState {
@@ -97,8 +97,8 @@ const RECORD_VERSION = 1;
  */
 const CONTRACTS = {
   input: farmInputSchemaVersion,
-  snapshot: completedSnapshotSchemaVersion,
-  manifest: runManifestSchema.unwrap().shape.schemaVersion.value,
+  snapshot: Math.max(...completedSnapshotSchema.unwrap().options.map(schema => schema.shape.schemaVersion.value)),
+  manifest: Math.max(...runManifestSchema.unwrap().options.map(schema => schema.shape.schemaVersion.value)),
 } as const;
 
 type Contract = keyof typeof CONTRACTS;

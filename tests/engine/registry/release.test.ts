@@ -14,7 +14,7 @@ function canonical(value: unknown): unknown {
 }
 
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(canonical(value))).digest("hex");
-const release = readRegistryRelease();
+const release = readRegistryRelease("fao56-hard-windows-2026-11-15");
 const reviewed = readRegistryRelease("fao56-reviewed-2026-11-15");
 
 const x1Table11Rows = new Map(x1SourceObservations.table11Rows.map(row => [row.id, row]));
@@ -22,10 +22,10 @@ const x1Profiles = new Map(x1SourceObservations.profiles.map(profile => [profile
 
 describe("E1 reviewed release", () => {
   it("validates every supported immutable release identity", () => {
-    expect(latestReleaseVersion).toBe("fao56-hard-windows-2026-11-15");
-    expect(releasedVersions).toEqual(["v1-empty", "fao56-reviewed-2026-11-15", latestReleaseVersion]);
-    expect(readRegistryRelease(latestReleaseVersion)).toBe(release);
-    expect(readCatalogue()).toBe(release.catalogue);
+    expect(latestReleaseVersion).toBe("fao56-global-32-2026-11-15");
+    expect(releasedVersions).toEqual(["v1-empty", "fao56-reviewed-2026-11-15", "fao56-hard-windows-2026-11-15", latestReleaseVersion]);
+    expect(readRegistryRelease("fao56-hard-windows-2026-11-15")).toBe(release);
+    expect(readCatalogue("fao56-hard-windows-2026-11-15")).toBe(release.catalogue);
     for (const version of releasedVersions) {
       const registry = readRegistryRelease(version);
       expect(validateRelease(registry)).toEqual({ ok: true, release: registry });
@@ -57,7 +57,7 @@ describe("E1 reviewed release", () => {
   it("pins the hard-window release's canonical bytes to its identity", () => {
     expect(digest(release)).toBe("4e593ae30151d31ea6b68b347740becfdf595cc183cad4ee885591d817067ffe");
     expect(digest(structuredClone(release))).toBe(digest(release));
-    expect(digest(readRegistryRelease(latestReleaseVersion))).toBe(digest(release));
+    expect(digest(readRegistryRelease("fao56-hard-windows-2026-11-15"))).toBe(digest(release));
   });
 
   it("differs from the reviewed release only in window basis and profile version", () => {
@@ -168,6 +168,6 @@ describe("E1 reviewed release", () => {
     expect(Object.isFrozen(release.profiles[0].temperatureRules)).toBe(true);
     expect(Object.isFrozen(release.profiles[0].timing.generatedStageDays)).toBe(true);
     expect(Object.isFrozen(release.catalogue.entries)).toBe(true);
-    expect(digest(readRegistryRelease())).toBe(before);
+    expect(digest(readRegistryRelease("fao56-hard-windows-2026-11-15"))).toBe(before);
   });
 });
