@@ -8,11 +8,14 @@
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
 import { providerPolicy } from "@/features/location/provider";
+import { readingKey } from "@/features/onboarding/services/reading";
+import { inputFixture } from "@/fixtures/input";
 import { allAnswer, routeProviders } from "./support/providers";
 import type { ProviderPlan, ProviderRoutes } from "./support/providers";
 import { good } from "./support/shapes";
 import {
-  centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, lookupOf, mapArea, settledCentre, shoot, typeCorners,
+  betweenBars, centresOf, distance, drag, dragHandle, expectFieldOnPage, firstPicker, handles, layoutProblems, lookupOf, mapArea,
+  openPageOne, settledCentre, shoot, typeCorners,
 } from "./support/slot";
 import type { Point } from "./support/slot";
 
@@ -113,6 +116,7 @@ test("[R3] choosing 'Indramayu' drops the pin and the camera goes there; 'Mark m
   await shoot(page, testInfo, "provider-indramayu-box-360", mapArea(root));
   const field = await expectFieldOnPage(root);
   expect(field.label).toMatch(/^Field near Indramayu, /);
+  await expect(root.getByText(/^The map pictures didn’t load\./)).toHaveCount(0);
 });
 
 test("tapping the map moves the box to the tap; after dragging a corner a tap no longer moves it", async ({ page }) => {
@@ -314,3 +318,185 @@ test("[R25] no request to any provider carries a coordinate of the field: only t
     }
   }
 });
+
+const picturesNotice = (root: Locator) => root.getByText(/^The map pictures didn’t load\./);
+
+/** No two boxes share a pixel. */
+const apart = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
+  a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
+
+for (const textSize of ["large", "largest"] as const) {
+  test.describe(`${textSize} text on a phone on its side, 740x360, with WebGL off`, () => {
+    test.use({ viewport: { width: 740, height: 360 } });
+
+    test("[R14][R5] the drawing shows the marked box the right way up inside it, with a scale in metres", async ({ page }) => {
+      await page.addInitScript(() => {
+        const original = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, kind: string, ...rest: unknown[]) {
+          return kind === "webgl2" ? null : (original as (...args: unknown[]) => unknown).call(this, kind, ...rest);
+        } as typeof original;
+      });
+      await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+      await searchBox(root).fill("-6.326, 108.32");
+      await searchBox(root).press("Enter");
+      await root.getByRole("button", { name: "Mark my field" }).click();
+      const drawing = root.getByRole("img", { name: "Drawing of your field, north at the top. It is a drawing, not a photo." });
+      await expect(drawing.locator(".fp-plan-scale text")).toHaveText(/^\d+ m$/);
+      const [frame, box] = [(await drawing.boundingBox())!, (await drawing.locator(".fp-plan-edge").boundingBox())!];
+      expect(Math.min(box.width, box.height), "the box is drawn larger than a dot").toBeGreaterThan(40);
+      expect(box.y >= frame.y && box.y + box.height <= frame.y + frame.height, "the box is inside the drawing").toBe(true);
+      const ys = await drawing.locator(".fp-plan-corner").evaluateAll(corners => corners.map(corner => Number(corner.getAttribute("y"))));
+      expect(ys[0], "corner 1, the south-west one, is below corner 4, the north-west one").toBeGreaterThan(ys[3]);
+    });
+  });
+}
+
+const logoViews = [
+  { width: 360, height: 740, textSize: "normal" },
+  { width: 320, height: 568, textSize: "large" },
+  { width: 320, height: 568, textSize: "largest" },
+  { width: 1280, height: 600, textSize: "large" },
+] as const;
+
+for (const { width, height, textSize } of logoViews) {
+  test.describe(`${textSize} text at ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test("[R5][R22] on F1's page 1 MapTiler's linked logo sits in the map's bottom left; once a field is marked every corner handle can be pressed, and no zoom button or logo touches one", async ({ page }, testInfo) => {
+      await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      const link = root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+      await expect(link).toBeVisible();
+      await searchBox(root).fill("-6.326, 108.32");
+      await searchBox(root).press("Enter");
+      await root.getByRole("button", { name: "Mark my field" }).click();
+      await expect(handles(root)).toHaveCount(4);
+      await mapArea(root).scrollIntoViewIfNeeded();
+      await settledCentre(handles(root).first());
+      const [map, logo] = [(await mapArea(root).boundingBox())!, (await link.boundingBox())!];
+      expect(logo.x - map.x).toBeLessThanOrEqual(16);
+      expect(map.y + map.height - (logo.y + logo.height)).toBeLessThanOrEqual(16);
+      const zoom = await Promise.all(["Zoom in", "Zoom out"].map(async name => ({ name, box: (await root.getByRole("button", { name }).boundingBox())! })));
+      for (const { name, box } of zoom) expect(apart(logo, box), `${name} is clear of the logo`).toBe(true);
+      for (const [index, handle] of (await handles(root).all()).entries()) {
+        const box = (await handle.boundingBox())!;
+        expect(apart(logo, box), `corner ${index + 1} is clear of the logo`).toBe(true);
+        for (const button of zoom) expect(apart(button.box, box), `corner ${index + 1} is clear of ${button.name}`).toBe(true);
+      }
+      const covered = await root.evaluate((element: HTMLElement) => [...element.querySelectorAll(".fp-handle")].flatMap((handle, index) => {
+        const box = handle.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return hit && handle.contains(hit) ? [] : [`corner ${index + 1}`];
+      }));
+      expect(covered, "a press on each corner's centre reaches its handle").toEqual([]);
+      expect(await layoutProblems(page, root)).toEqual([]);
+      await shoot(page, testInfo, `provider-logo-${textSize}-${width}`, mapArea(root));
+    });
+  });
+}
+
+test("[R16] on F1's page 1 with MapTiler's pictures refused (a bad key): the world view shows NASA's pictures with no notice; on the marked field 'The map pictures didn’t load. …' shows", async ({ page }, testInfo) => {
+  const routes = await routeProviders(page, { ...allAnswer, maptiler: "refused" });
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  await expect.poll(() => routes.of("gibs").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect.poll(() => routes.of("tilejson").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(2000);
+  const notice = picturesNotice(root);
+  await expect(notice).toHaveCount(0);
+  await searchBox(root).fill("-6.326, 108.32");
+  await searchBox(root).press("Enter");
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await page.waitForTimeout(3000);
+  await expect(notice).toBeVisible();
+  await shoot(page, testInfo, "provider-close-ups-refused-360", notice);
+  expect(routes.of("tile")).toHaveLength(0);
+});
+
+test("[R16] on F1's page 1 with NASA's pictures refused and MapTiler's answering: the world view says 'The map pictures didn’t load. …'; on the marked field the close-ups show and the notice goes", async ({ page }) => {
+  const routes = await routeProviders(page, { ...allAnswer, gibs: "refused" });
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  const notice = picturesNotice(root);
+  await expect(notice).toBeVisible({ timeout: 30_000 });
+  await searchBox(root).fill("-6.326, 108.32");
+  await searchBox(root).press("Enter");
+  await root.getByRole("button", { name: "Mark my field" }).click();
+  await expect(handles(root)).toHaveCount(4);
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await expect(notice).toHaveCount(0, { timeout: 15_000 });
+});
+
+test("[R14][R16] a lost WebGL context that comes back asks for the pictures again; when they fail then, 'The map pictures didn’t load. …' shows", async ({ page }) => {
+  const { root, routes } = await openLab(page);
+  await expect(handles(root)).toHaveCount(4);
+  await expect.poll(() => routes.of("tile").length, { timeout: 30_000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(2000);
+  const notice = picturesNotice(root);
+  await expect(notice).toHaveCount(0);
+  const asked = routes.of("tilejson").length;
+  routes.plan.maptiler = "offline";
+  routes.plan.gibs = "offline";
+  await page.evaluate(() => {
+    const lose = document.querySelector<HTMLCanvasElement>(".fp canvas.maplibregl-canvas")?.getContext("webgl2")?.getExtension("WEBGL_lose_context");
+    if (!lose) throw new Error("no WebGL2 context to lose");
+    lose.loseContext();
+    setTimeout(() => lose.restoreContext(), 500);
+  });
+  await expect.poll(() => routes.of("tilejson").length, { timeout: 15_000 }).toBeGreaterThan(asked);
+  await expect(notice).toBeVisible({ timeout: 15_000 });
+  await expect(root).toHaveAttribute("data-surface", "globe");
+});
+
+test("[R16][R22] on F1's page 1 the answer to Search comes into view above F1's dock: the places found, then a search that could not reach the provider", async ({ page }) => {
+  const routes = await routeProviders(page, allAnswer);
+  const root = (await openPageOne(page)).first();
+  await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+  await searchBox(root).fill("Indramayu");
+  await searchBox(root).press("Enter");
+  const first = placeRow(root, "Indramayu").first();
+  await expect(first).toBeVisible();
+  await expect.poll(() => betweenBars(page, first), { message: "the first place is between F1's bar and dock" }).toBe(true);
+
+  routes.plan.search = "offline";
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await searchBox(root).fill("Ushuaia");
+  await searchBox(root).press("Enter");
+  const reason = root.getByText("We couldn’t reach the place search. Check your internet connection, then press Search again. You can also type a position or your field’s corners.");
+  await expect(reason).toBeVisible();
+  await expect.poll(() => betweenBars(page, reason), { message: "the reason is between F1's bar and dock" }).toBe(true);
+});
+
+const twoColumns = [
+  { width: 1280, height: 720, textSize: "normal" },
+  { width: 1280, height: 720, textSize: "large" },
+  { width: 1280, height: 800, textSize: "large" },
+] as const;
+
+for (const { width, height, textSize } of twoColumns) {
+  test.describe(`${textSize} text at ${width}x${height}`, () => {
+    test.use({ viewport: { width, height } });
+
+    test("[R22][R5] in two columns the map, the NASA and MapTiler credits and the privacy line stay between F1's bar and dock while the farmer types corner 3", async ({ page }) => {
+      await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page, inputFixture)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      await root.getByRole("button", { name: "Type the corners" }).click();
+      const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+      await latitude.click();
+      await page.keyboard.press("End");
+      await page.keyboard.type("1");
+      await expect(latitude).toBeFocused();
+      await expect(root.locator(".fp-credits")).toContainText("MapTiler");
+      await expect.poll(() => betweenBars(page, root.locator(".fp-map-wrap")), { message: "the map and its credits are between F1's bar and dock" }).toBe(true);
+      await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+    });
+  });
+}

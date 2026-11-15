@@ -5,7 +5,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement, RefObject } from "react";
 import { coordsText } from "../coordinates";
 import type { Controller } from "../controller";
-import { startGlobe } from "../globe";
+import { pinPath, startGlobe } from "../globe";
 import type { Globe } from "../globe";
 import { planOf } from "../outline";
 import { sceneOf } from "../picker";
@@ -18,6 +18,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
   const { c } = props;
   const { picker, provider, send } = c;
   const container = useRef<HTMLDivElement>(null);
+  const foot = useRef<HTMLDivElement>(null);
   const [globe, setGlobe] = useState<Globe | null>(null);
   const surface = picker.surface.kind;
 
@@ -26,7 +27,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
     if (!element) return;
     const stop = new AbortController();
     let started: Globe | null = null;
-    void startGlobe({ container: element, pictures: picturesFor(provider), reducedMotion: prefersReducedMotion(), signal: stop.signal, send }).then(start => {
+    void startGlobe({ container: element, pictures: picturesFor(provider), reducedMotion: prefersReducedMotion(), signal: stop.signal, send, coveredBelow: () => coveredBelow(element, foot.current) }).then(start => {
       if (stop.signal.aborted) {
         if (start.kind === "globe") start.globe.destroy();
         return;
@@ -61,7 +62,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
             <MapButton icon="minus" label={map.zoomOut} onClick={() => globe.zoomBy(-1)} />
           </div>
         ) : null}
-        <div className="fp-map-foot">
+        <div className="fp-map-foot" ref={foot}>
           <Notices c={c} where="on" />
           {surface === "plan" ? <p className="fp-tag">{map.planTag}</p> : null}
           {surface === "starting" ? <p className="fp-loading"><span className="spinner" aria-hidden="true" />{map.loading}</p> : null}
@@ -86,8 +87,12 @@ function MapButton(props: { readonly icon: "plus" | "minus"; readonly label: str
   );
 }
 
+function coveredBelow(area: HTMLElement, foot: HTMLElement | null): number {
+  return foot === null || foot.offsetHeight === 0 ? 0 : Math.max(0, area.getBoundingClientRect().bottom - foot.getBoundingClientRect().top);
+}
+
 function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 const fallbackSize = { width: 400, height: 300 } as const;
@@ -103,7 +108,6 @@ function useSize(element: RefObject<HTMLElement | null>): { readonly width: numb
       if (width > 0 && height > 0) setSize(old => (old.width === width && old.height === height ? old : { width, height }));
     };
     measure();
-    if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(target);
     return () => observer.disconnect();
@@ -162,7 +166,7 @@ function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }
           </>
         ) : scene.pin ? (
           <>
-            <path className="fp-plan-pin" transform={`translate(${width / 2 - 24} ${height / 2 - 62})`} d="M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z" />
+            <path className="fp-plan-pin" transform={`translate(${width / 2 - 24} ${height / 2 - 62})`} d={pinPath} />
             <text x={width / 2} y={height / 2 + 24} textAnchor="middle">{coordsText(scene.pin, 3)}</text>
           </>
         ) : null}
@@ -176,17 +180,20 @@ function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }
 }
 
 /**
- * Always visible, at the smallest text size, never behind MapLibre's 12 px control. Shown with the flat plan too,
- * because search results need their credit.
+ * Always visible, at the smallest text size, never behind MapLibre's 12 px control. With the flat plan it credits only
+ * the place search, so with no key it shows nothing.
  */
-export function Credits(props: { readonly c: Controller }): ReactElement {
-  const { provider } = props.c;
-  const words = credits[provider.kind];
+export function Credits(props: { readonly c: Controller }): ReactElement | null {
+  const { provider, picker } = props.c;
+  const pictures = picker.surface.kind !== "plan";
+  const shown = creditsFor(provider, pictures);
+  if (shown.length === 0) return null;
+  const words = credits[!pictures ? "search" : provider.kind === "ready" ? "pictures_and_search" : "pictures"];
   return (
     <div className="fp-credits">
       <p>
         {words.lead}{" "}
-        {creditsFor(provider).map((credit, index) => (
+        {shown.map((credit, index) => (
           <Fragment key={credit.text}>
             {index > 0 ? ", " : null}
             {credit.href ? <a href={credit.href} target="_blank" rel="noopener noreferrer" aria-label={newTab(credit.text)}>{credit.text}</a> : credit.text}

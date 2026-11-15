@@ -3,7 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { classifyQuery, coordsText, cornersOfRows, parseCoord, rowsOfPoints } from "@/features/location/coordinates";
 import type { CornerRow } from "@/features/location/coordinates";
-import { boxAround, cornersOfRing, markOutline } from "@/features/location/outline";
+import { boxAround, cornersFrom, cornersOfRing, markOutline } from "@/features/location/outline";
 import { inputFixture } from "@/fixtures/input";
 import { fieldIssues, good } from "./support/shapes";
 
@@ -164,9 +164,167 @@ describe("classifyQuery", () => {
     expect(classifyQuery("-16.79, -179.99")).toEqual({ kind: "position", at: [-179.99, -16.79] });
     expect(classifyQuery("16.79 S, 179.99 W")).toEqual({ kind: "position", at: [-179.99, -16.79] });
   });
+
+  it("[R25] a position with lat and lon labels is read by its numbers, in the labels' order", () => {
+    for (const typed of ["lat: -6.326, lon: 108.32", "Latitude: -6.326, Longitude: 108.32", "Lat -6.326 Lon 108.32", "lat=-6.326&lon=108.32", "LAT -6.326 LNG 108.32"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at: [108.32, -6.326] });
+    }
+    for (const typed of ["lng: 108.32, lat: -6.326", "long=36.07&lat=-0.3"]) {
+      expect(classifyQuery(typed).kind, typed).toBe("position");
+    }
+    expect(classifyQuery("lon: 36.07, lat: -0.3")).toEqual({ kind: "position", at: [36.07, -0.3] });
+    for (const typed of ["Lat. -6.326 Long. 108.32", "Lat/Long: -6.326, 108.32", "lat, lng: -6.326, 108.32", "lng/lat: 108.32, -6.326"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at: [108.32, -6.326] });
+    }
+    expect(classifyQuery("lat 6 lon 108")).toEqual({ kind: "position", at: [108, 6] });
+  });
+
+  it("[R25] one label names the axis of the number it stands before, so a label on the second number does not swap the position", () => {
+    expect(classifyQuery("45.5, lon 9.2")).toEqual({ kind: "position", at: [9.2, 45.5] });
+    expect(classifyQuery("9.2, lat 45.5")).toEqual({ kind: "position", at: [9.2, 45.5] });
+    expect(classifyQuery("-6.326, lon 108.32")).toEqual({ kind: "position", at: [108.32, -6.326] });
+    expect(classifyQuery("lat 6.3, lat 45.5")).toEqual({ kind: "unclear_position" });
+  });
+
+  it("[R25] each of these positions among words, in a map link or after a label is held back as unclear, so none reaches the geocoder", () => {
+    for (const typed of [
+      "https://maps.google.com/?q=-6.326,108.32",
+      "https://maps.app.goo.gl/AbC123xYz",
+      "geo:-6.326,108.32",
+      "my farm -6.326, 108.32",
+      "my farm -6.3, 108",
+      "my farm 6.3, 108.3",
+      "farm at -6.3 108",
+      "farm 6.326S 108E",
+      "45N 9E farm",
+      "6 19 33 S 108 19 12 E",
+      "farm lat -6.326 lon 108",
+      "Latitude -6.326 and longitude 108.32",
+      "-6.326 dan 108.32",
+      "GPS -6.326 108.32",
+      "Farm 6°19' S",
+    ]) {
+      expect(classifyQuery(typed).kind, typed).toBe("unclear_position");
+    }
+  });
+
+  it("[R25] a position written by hand with one or two decimals and a word around it is held back as unclear", () => {
+    for (const typed of [
+      "-6.32 lat 108.32 lon",
+      "6.32 lat 108.32 lon",
+      "-6.32 and 108.32",
+      "-6.3 and 108.3",
+      "6.32 dan 108.32",
+      "latitude is -6.3, longitude is 108.3",
+      "my lat is -6.3 my lon is 108.3",
+      `{"lat":6.3,"lng":108.3}`,
+      "lat -6.3",
+      "lon 108.3",
+      "farm at lat -6.326",
+      "6 deg 19 min 33 sec S 108 deg 19 min 12 sec E",
+      "6d19m33sS 108d19m12sE",
+      "6 deg 19.56 S 108 deg 19.2 E",
+      "Indramayu -6.32 108.32",
+      "sawah saya di 6.33, 108.32",
+    ]) {
+      expect(classifyQuery(typed).kind, typed).toBe("unclear_position");
+    }
+  });
+
+  it("[R20][R25] a label or a hemisphere written as a word, in English, Indonesian, Spanish, German or Russian, is read as a position", () => {
+    const at = [108.32, -6.32];
+    for (const typed of [
+      "lintang -6.32 bujur 108.32",
+      "latitud -6.32 longitud 108.32",
+      "lattitude -6.32 longtitude 108.32",
+      "6.32 South, 108.32 East",
+      "South 6.32 East 108.32",
+      "6.32 LS 108.32 BT",
+      "6,32 LS 108,32 BT",
+      "6.32° Sur, 108.32° Este",
+      "6.32 Selatan 108.32 Timur",
+    ]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at });
+    }
+    expect(classifyQuery("Breite 48.1 Länge 11.5")).toEqual({ kind: "position", at: [11.5, 48.1] });
+    expect(classifyQuery("широта 55.75 долгота 37.61")).toEqual({ kind: "position", at: [37.61, 55.75] });
+    expect(classifyQuery("6 South 108 East")).toEqual({ kind: "position", at: [108, -6] });
+  });
+
+  it("[R20][R25] a position typed in Arabic-Indic, Persian, Devanagari, Bengali, Thai or full-width digits is read, and the corner list reads them too", () => {
+    for (const [typed, at] of [
+      ["٣٠.٠٤٤٤, ٣١.٢٣٥٧", [31.2357, 30.0444]],
+      ["٣٠٫٠٤٤٤، ٣١٫٢٣٥٧", [31.2357, 30.0444]],
+      ["۳۵.۶۸۹۲, ۵۱.۳۸۹۰", [51.389, 35.6892]],
+      ["२८.६१३९, ७७.२०९०", [77.209, 28.6139]],
+      ["২৩.৮১০৩, ৯০.৪১২৫", [90.4125, 23.8103]],
+      ["๑๓.๗๕, ๑๐๐.๕๐", [100.5, 13.75]],
+      ["３５．６８, １３９．７６", [139.76, 35.68]],
+      ["35.68，139.76", [139.76, 35.68]],
+      ["35.68、139.76", [139.76, 35.68]],
+      ["35.68　139.76", [139.76, 35.68]],
+      ["−٦٫٣٢٦، ١٠٨٫٣٢", [108.32, -6.326]],
+    ] as const) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "position", at });
+    }
+    expect(classifyQuery("Farm ٦٫٣٢٦، ١٠٨٫٣٢").kind).toBe("unclear_position");
+    expect(parseCoord("٦٫٣٢٦ S", "latitude")).toEqual({ ok: true, value: -6.326 });
+    expect(parseCoord("１０８．３２", "longitude")).toEqual({ ok: true, value: 108.32 });
+    for (const typed of ["شارع ١٥ مايو", "قم ۱۲", "किमी ४.५ राजमार्ग ३"]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "name", text: typed });
+    }
+  });
+
+  it("[R25] a plus code, a what3words address, a grid reference and a map link with no https:// are held back as unclear", () => {
+    for (const typed of [
+      "X4HM+3C Indramayu", "8FVC9G8F+6X", "9g8f+6x Zürich",
+      "///filled.count.soap", "filled.count.soap",
+      "UTM 49M 213456 9300123", "48M YT 12345 67890", "E 213456 N 9300123",
+      "maps.app.goo.gl/AbCd123", "goo.gl/maps/xyz", "osm.org/go/abc", "plus.codes/6P5G2222+22", "what3words.com/filled.count.soap",
+      "Farm location maps.app.goo.gl/AbCd123", "maps.google.com",
+    ]) {
+      expect(classifyQuery(typed).kind, typed).toBe("unclear_position");
+    }
+  });
+
+  it("[R20] a dash with a space on each side between two numbers separates them; it is never a minus", () => {
+    expect(classifyQuery("6.326 - 108.32")).toEqual({ kind: "position", at: [108.32, 6.326] });
+    expect(classifyQuery("-6.326 – 108.32")).toEqual({ kind: "position", at: [108.32, -6.326] });
+    expect(classifyQuery("6.326 S - 108.32 E")).toEqual({ kind: "position", at: [108.32, -6.326] });
+    expect(classifyQuery("-6.326 -108.32")).toEqual({ kind: "position", at: [-108.32, -6.326] });
+  });
+
+  it("[R25] a grid address whose two numbers both carry a hemisphere letter and read in range is held: it looks the same as a position", () => {
+    expect(classifyQuery("50 N 100 E Provo").kind).toBe("unclear_position");
+  });
+
+  it("[R1] place names with a label word, an ordinal or degree mark, or numbers that are not a position stay names", () => {
+    for (const typed of [
+      "Latvia", "Lat Krabang", "Long Beach", "Long Xuyen", "Km 4.5 Ruta 3", "Lon Nol Road",
+      "1º de Mayo", "1° de Mayo", "Calle 1º de Mayo", "Via 1° Maggio", "Rua 1º de Maio", "Rúa 1º de Maio 12, 3º", "2º Distrito",
+      "Sector 3°", "360° Mall", "45° Parallelo", "Villa 25° Aniversario",
+      "Ruta 3 Km 4.5 a 5.5", "Jl. Raya KM 12,5 No. 3,5", "Calle 12.5 con 3.5", "Mile 12.5 Highway 1.5", "Blok A 1,2 dan 3,4",
+      "Carrera 7 # 12 - 50", "100 N 200 E Provo", "Longitude 131", "Lat 14",
+      "Calle Mayor 12, 3º E, Madrid", "Apt 3, 45 W Main St", "Unit 5, 12 E Main", "C/ Sol 5, 2º W", "Calle 26 Sur # 50 - 20", "Highway 1 North",
+    ]) {
+      expect(classifyQuery(typed), typed).toEqual({ kind: "name", text: typed });
+    }
+  });
 });
 
 describe("rows", () => {
+  it("[R15] a walked boundary whose last row repeats the first marks the field by its other corners", () => {
+    const walked = [...good.square, good.square[0]];
+    const result = cornersOfRows(rowsOf(walked));
+    if (!result.ok) throw new Error("the walked rows should parse");
+    expect(result.corners).toEqual(cornersFrom(good.square));
+    const marked = markOutline(result.corners, { kind: "choose" });
+    expect(marked.ok).toBe(true);
+    const triangle = cornersOfRows(rowsOf([...good.square.slice(0, 2), good.square[0]]));
+    if (!triangle.ok) throw new Error("the three rows should parse");
+    expect(triangle.corners).toHaveLength(3);
+  });
+
   it("[R15] cornersOfRows reports every bad number at once, in reading order, with row and axis", () => {
     const result = cornersOfRows([
       { latitude: "-6.3", longitude: "108.3" },

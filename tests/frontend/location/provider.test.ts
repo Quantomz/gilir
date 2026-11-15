@@ -94,12 +94,12 @@ describe("the search request", () => {
     const fetch = stubFetch(json({ features: [] }));
     vi.stubEnv("NEXT_PUBLIC_MAPTILER_KEY", undefined);
     const provider = readProvider();
-    const shown = JSON.stringify([provider, picturesFor(provider), creditsFor(provider)]);
+    const shown = JSON.stringify([provider, picturesFor(provider), creditsFor(provider, true), creditsFor(provider, false)]);
     expect(shown).not.toMatch(/maptiler/i);
     placesOfResponse({ features: [feature("Indramayu", [108.32, -6.33])] });
     searchUrl(keyOf(), "Indramayu");
     picturesFor(readProvider());
-    creditsFor(readProvider());
+    creditsFor(readProvider(), true);
     expect(fetch).not.toHaveBeenCalled();
   });
 
@@ -271,11 +271,16 @@ describe("pictures and credits", () => {
     expect(JSON.stringify(pictures.far)).not.toMatch(/maptiler/i);
   });
 
-  it("[R5] creditsFor(missing) names NASA EOSDIS GIBS; creditsFor(ready) adds © MapTiler and © OpenStreetMap contributors, each with an https link", () => {
-    expect(creditsFor({ kind: "missing" }).map(credit => credit.text)).toEqual(["NASA EOSDIS GIBS"]);
-    const ready = creditsFor({ kind: "ready", key: keyOf() });
+  it("[R5] with the pictures, creditsFor(missing) names NASA EOSDIS GIBS; creditsFor(ready) adds © MapTiler and © OpenStreetMap contributors, each with an https link", () => {
+    expect(creditsFor({ kind: "missing" }, true).map(credit => credit.text)).toEqual(["NASA EOSDIS GIBS"]);
+    const ready = creditsFor({ kind: "ready", key: keyOf() }, true);
     expect(ready.map(credit => credit.text)).toEqual(["NASA EOSDIS GIBS", "© MapTiler", "© OpenStreetMap contributors"]);
     for (const credit of ready.slice(1)) expect(new URL(credit.href ?? "").protocol).toBe("https:");
     expect(JSON.stringify(ready)).not.toContain(dummyKey);
+  });
+
+  it("[R5] with the flat drawing there are no pictures to credit: nothing with no key, and only the place search's © MapTiler and © OpenStreetMap contributors with one", () => {
+    expect(creditsFor({ kind: "missing" }, false)).toEqual([]);
+    expect(creditsFor({ kind: "ready", key: keyOf() }, false).map(credit => credit.text)).toEqual(["© MapTiler", "© OpenStreetMap contributors"]);
   });
 });

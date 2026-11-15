@@ -166,14 +166,14 @@ export interface Credit {
 }
 
 /**
- * The credits for what is configured, shown as F2's own always-visible line under the map, because MapLibre's control
- * is 12 px and collapses. The line also covers search results, so the flat plan has credits too.
+ * The credits for what is in use, shown as F2's own always-visible line under the map, because MapLibre's control is
+ * 12 px and collapses. The flat drawing shows no pictures, so it credits only the place search, when there is one.
  */
-export function creditsFor(provider: Provider): readonly Credit[] {
-  const nasa: Credit = { text: "NASA EOSDIS GIBS", href: null };
-  if (provider.kind === "missing") return [nasa];
+export function creditsFor(provider: Provider, pictures: boolean): readonly Credit[] {
+  const nasa: Credit[] = pictures ? [{ text: "NASA EOSDIS GIBS", href: null }] : [];
+  if (provider.kind === "missing") return nasa;
   return [
-    nasa,
+    ...nasa,
     { text: "© MapTiler", href: "https://www.maptiler.com/copyright/" },
     { text: "© OpenStreetMap contributors", href: "https://www.openstreetmap.org/copyright" },
   ];

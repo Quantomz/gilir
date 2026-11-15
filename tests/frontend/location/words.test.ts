@@ -241,14 +241,16 @@ describe("precision", () => {
     expect(weatherGrid).toMatch(/NASA/);
   });
 
-  it("[R5][R25] credits.missing names only NASA and no place search; credits.ready names NASA, MapTiler and the search", () => {
-    const missing = `${credits.missing.lead} ${credits.missing.privacy}`;
-    const ready = `${credits.ready.lead} ${credits.ready.privacy}`;
-    expect(missing).toMatch(/NASA/);
-    expect(missing).not.toMatch(/MapTiler|search/i);
-    expect(ready).toMatch(/NASA/);
-    expect(ready).toMatch(/MapTiler/);
-    expect(ready).toMatch(/search/);
+  it("[R5][R25] credits.pictures names only NASA and no place search; credits.pictures_and_search names NASA, MapTiler and the search; credits.search names only MapTiler's search and no pictures", () => {
+    const [pictures, both, search] = (["pictures", "pictures_and_search", "search"] as const).map(kind => `${credits[kind].lead} ${credits[kind].privacy}`);
+    expect(pictures).toMatch(/NASA/);
+    expect(pictures).not.toMatch(/MapTiler|search/i);
+    expect(both).toMatch(/NASA/);
+    expect(both).toMatch(/MapTiler/);
+    expect(both).toMatch(/search/);
+    expect(search).toMatch(/MapTiler/);
+    expect(search).toMatch(/search/);
+    expect(search).not.toMatch(/NASA|picture|area/i);
   });
 });
 
@@ -277,7 +279,7 @@ describe("coverage and voice", () => {
 
   it("[R16][R20] with no key nothing points at a name search: the box is named for a position, and 'We couldn’t find you yet' says to type one", () => {
     expect(searchBox.missing.label).toBe("Position of your farm");
-    expect(searchBox.missing.placeholder).toBe("For example: -6.326, 108.32");
+    expect(searchBox.missing.placeholder).toBe("-6.326, 108.32");
     for (const text of Object.values(searchBox.missing)) expect(text).not.toMatch(/village|town|name|Indramayu/i);
     for (const why of ["timeout", "unavailable"] as const) {
       expect(locateFailed(why, "missing").body).toMatch(/close this and type a position\.$/);

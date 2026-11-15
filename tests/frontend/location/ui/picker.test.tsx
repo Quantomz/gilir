@@ -11,9 +11,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FarmInput } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
 import { FieldPicker } from "@/features/location";
+import { stubBrowser, unstubBrowser } from "../support/browser";
 import { bad, fieldIssues, strictlyInside } from "../support/shapes";
 
 type Field = FarmInput["field"];
+
+// Each case drives the whole slot key by key, which takes seconds on a loaded machine.
+vi.setConfig({ testTimeout: 20_000 });
 
 const fetchCalls = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>();
 
@@ -22,14 +26,7 @@ beforeEach(() => {
   fetchCalls.mockReset();
   fetchCalls.mockRejectedValue(new TypeError("no network in this test"));
   vi.stubGlobal("fetch", fetchCalls);
-  vi.stubGlobal("ResizeObserver", class {
-    observe(): void {}
-    unobserve(): void {}
-    disconnect(): void {}
-  });
-  vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
-  // jsdom has no canvas, as a phone with no WebGL2 has none; returning null keeps its "not implemented" noise out of the run.
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  stubBrowser();
 });
 
 afterEach(() => {
@@ -38,7 +35,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
   Reflect.deleteProperty(navigator, "geolocation");
-  Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+  unstubBrowser();
 });
 
 function mount(value: Field | null = null) {
@@ -84,7 +81,7 @@ describe("with no key and no WebGL", () => {
   it("[R16][R20] the search box is named for a position and its hint asks for one; the corner list is open without a press; 'Use my location' is there", async () => {
     mount();
     await drawing();
-    expect(screen.getByRole("searchbox", { name: "Position of your farm" }).getAttribute("placeholder")).toBe("For example: -6.326, 108.32");
+    expect(screen.getByRole("searchbox", { name: "Position of your farm" }).getAttribute("placeholder")).toBe("-6.326, 108.32");
     expect(screen.getByRole("search", { name: "Find your farm by its position" })).toBeTruthy();
     expect(descriptionOf(searchbox())).toMatch(/Type a position, like -6\.326, 108\.32/);
     expect(screen.getByRole("region", { name: "Type the corners of your field" })).toBeTruthy();
@@ -157,12 +154,22 @@ describe("with no key and no WebGL", () => {
     expect(fetchCalls).not.toHaveBeenCalled();
   });
 
-  it("[R5] the credits line shows 'NASA EOSDIS GIBS' without a press", async () => {
+  it("[R16][R25] a position that cannot be read, with no key, asks for two numbers and does not offer a town name", async () => {
+    const user = userEvent.setup();
     mount();
     await drawing();
-    expect(screen.getByText(/^Map pictures:\s*NASA EOSDIS GIBS$/)).toBeTruthy();
-    expect(screen.queryByText(/MapTiler/)).toBeNull();
-    expect(screen.queryByRole("link", { name: "MapTiler logo (opens in a new tab)" })).toBeNull();
+    await typePosition(user, "my farm 6.3, 108.3");
+    expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, then press Search.")).toBeTruthy();
+    expect(fetchCalls).not.toHaveBeenCalled();
+  });
+
+  it("[R5] with the drawing and no key there are no map pictures and no place search, so no credit, no MapTiler logo and no claim that NASA sees the area", async () => {
+    mount();
+    await drawing();
+    expect(screen.queryByText(/NASA EOSDIS GIBS|Map pictures|MapTiler/)).toBeNull();
+    expect(screen.queryByText(/can see which area/)).toBeNull();
+    expect(screen.queryByRole("link", { name: /MapTiler/ })).toBeNull();
+    expect(screen.queryByRole("img", { name: /MapTiler/ })).toBeNull();
   });
 
   it("the root has data-surface='plan', and once marked data-lookup equals the emitted lookup", async () => {
@@ -340,9 +347,52 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       expect(screen.getByText("6.326° S, 108.320° E", { selector: "b" })).toBeTruthy();
     }
     await typePosition(user, "6.326 S 108.32 E 12");
-    expect(screen.getByText("We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search.")).toBeTruthy();
+    expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search.")).toBeTruthy();
     expect(fetchCalls).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("[R25] a labelled position is chosen with no fetch; a pasted map link or a position among words says it cannot be read and calls fetch 0 times", async () => {
+    const user = userEvent.setup();
+    const { onChange } = mount();
+    await drawing();
+    const read = [
+      ["lat: -6.326, lon: 108.32", "6.326° S, 108.320° E"],
+      ["Latitude -6.1 Longitude 108.1", "6.100° S, 108.100° E"],
+      ["lat=-6.2&lon=108.2", "6.200° S, 108.200° E"],
+      ["Lat/Long: -6.3, 108.3", "6.300° S, 108.300° E"],
+      ["-6.4, lon 108.4", "6.400° S, 108.400° E"],
+      ["lat 6 lon 108", "6.000° N, 108.000° E"],
+      ["lintang -6.32 bujur 108.32", "6.320° S, 108.320° E"],
+      ["۳۵.۶۸۹۲, ۵۱.۳۸۹۰", "35.689° N, 51.389° E"],
+      ["6.326 - 108.32", "6.326° N, 108.320° E"],
+    ] as const;
+    for (const [typed, card] of read) {
+      await typePosition(user, typed);
+      expect(await screen.findByText(card, { selector: "b" }), typed).toBeTruthy();
+    }
+    for (const typed of [
+      "https://maps.google.com/?q=-6.326,108.32", "https://maps.app.goo.gl/AbC123xYz", "geo:-6.326,108.32", "my farm -6.326, 108.32",
+      "my farm -6.3, 108", "45N 9E farm", "farm lat -6.326 lon 108", "GPS -6.326 108.32", "-6.32 lat 108.32 lon", "6.32 dan 108.32",
+      "X4HM+3C Indramayu", "///filled.count.soap", "UTM 49M 213456 9300123", "maps.app.goo.gl/AbCd123",
+    ]) {
+      await typePosition(user, typed);
+      expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search."), typed).toBeTruthy();
+    }
+    expect(fetchCalls).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("[R1] a place name with an ordinal or a kilometre mark is searched by name", async () => {
+    const user = userEvent.setup();
+    mount();
+    await drawing();
+    const names = ["1º de Mayo", "Via 1° Maggio", "Ruta 3 Km 4.5 a 5.5"];
+    for (const typed of names) {
+      await typePosition(user, typed);
+      await screen.findByRole("list", { name: "Places" });
+    }
+    expect(fetchCalls.mock.calls.map((_, call) => decodeURIComponent(requested(call).pathname))).toEqual(names.map(name => `/geocoding/${name}.json`));
   });
 
   it("results show as buttons 'Indramayu' with 'West Java, Indonesia'; the status line says '2 places found. Choose one from the list.'", async () => {
@@ -439,10 +489,11 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     expect(fetchCalls).toHaveBeenCalledTimes(2);
   });
 
-  it("[R5] the credits line shows '© MapTiler' and '© OpenStreetMap contributors' as links, without a press", async () => {
+  it("[R5] with the drawing the credits line credits the place search alone: '© MapTiler' and '© OpenStreetMap contributors' as links, without a press, and no NASA", async () => {
     mount();
     await drawing();
-    expect(screen.getByText(/^Map pictures and place search:/)).toBeTruthy();
+    expect(screen.getByText(/^Place search:/)).toBeTruthy();
+    expect(screen.getByText("The place search comes from MapTiler, so MapTiler can see the names you search for.")).toBeTruthy();
     const maptiler = screen.getByRole("link", { name: "© MapTiler (opens in a new tab)" });
     const osm = screen.getByRole("link", { name: "© OpenStreetMap contributors (opens in a new tab)" });
     expect(maptiler.getAttribute("href")).toMatch(/^https:\/\/www\.maptiler\.com\//);
@@ -454,7 +505,7 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       expect(link.getAttribute("target")).toBe("_blank");
       expect(link.getAttribute("rel")).toBe("noopener noreferrer");
     }
-    expect(screen.getByText(/NASA EOSDIS GIBS/)).toBeTruthy();
+    expect(screen.queryByText(/NASA/)).toBeNull();
   });
 
   it("unmounting during a search aborts it and nothing is set afterwards", async () => {
@@ -552,7 +603,7 @@ describe("use my location (navigator.geolocation stubbed)", () => {
     const title = screen.getByRole("heading", { level: 3, name: "Your location is turned off" });
     expect(document.activeElement).toBe(title);
     expect(screen.getAllByRole("listitem").map(step => step.textContent)).toEqual([
-      "Tap the small lock beside the web address at the top of the screen.",
+      "Tap the small icon beside the web address at the top of the screen.",
       "Tap Location, then Allow.",
       "Come back here and tap Try again.",
     ]);

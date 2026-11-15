@@ -48,6 +48,8 @@ export interface GlobeOptions {
   /** Aborted on unmount. The globe removes itself. */
   readonly signal: AbortSignal;
   send(action: SurfaceAction): void;
+  /** Pixels at the bottom of the map under its logo and messages. A place or a field is framed above them, in at least half the map. */
+  coveredBelow(): number;
 }
 
 export interface Globe {
@@ -77,6 +79,11 @@ const placeZoom = 7;
 const nearFrom = 5;
 const farUntil = 7;
 const fieldLayer = "field-fill";
+/**
+ * MapLibre reports a lost context and restores it at once when it restarts its workers on a return to the foreground,
+ * and a browser may restore a context it took. Only a context still lost after this long ends the globe.
+ */
+const lostForMs = 3000;
 
 /**
  * Start the globe. Never throws. A failure after the start (the worker or the style does not load) and a lost WebGL
@@ -115,7 +122,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   let alive = true;
   let removed = false;
   let loaded = false;
-  let pictures: "waiting" | "shown" | "failed" = "waiting";
+  let lost: ReturnType<typeof setTimeout> | null = null;
   let latest: Scene | null = null;
   let cameraSeq: number | null = null;
   let drawn: Marked | null = null;
@@ -124,7 +131,10 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   let stale = false;
   let pin: Marker | null = null;
   const handles: Marker[] = [];
-  const pictureIds = new Set(options.pictures.near ? ["far", "near"] : ["far"]);
+  // Per source, judged only while the zoom draws it: NASA's far-out tiles showing must not hide that MapTiler's
+  // close-ups were refused, and NASA's failing must not be reported over close-ups that show.
+  const sources = new Map<string, "waiting" | "shown" | "failed">((options.pictures.near ? ["far", "near"] : ["far"]).map(id => [id, "waiting"]));
+  let pictures: "waiting" | "shown" | "failed" = "waiting";
 
   const report = (action: SurfaceAction) => {
     if (alive) options.send(action);
@@ -133,11 +143,23 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
     report({ kind: "surface", surface: { kind: "plan", why } });
     alive = false;
   };
+  const atThisZoom = (id: string) => (id === "far" ? !options.pictures.near || map.getZoom() < farUntil : map.getZoom() >= nearFrom);
+  const reportPictures = () => {
+    const states = [...sources].filter(([id]) => atThisZoom(id)).map(([, state]) => state);
+    const now = states.includes("failed") ? "failed" : states.includes("shown") ? "shown" : "waiting";
+    if (now === "waiting" || now === pictures) return;
+    pictures = now;
+    report({ kind: "pictures", state: now });
+  };
+  const picturesNow = (id: string, state: "shown" | "failed") => {
+    sources.set(id, state);
+    reportPictures();
+  };
 
-  const fieldSource = () => (loaded ? map.getSource<GeoJSONSource>("field") : undefined);
+  const fieldSource = () => (loaded && lost === null ? map.getSource<GeoJSONSource>("field") : undefined);
 
   const moveCamera = (scene: Scene, first: boolean) => {
-    const target = cameraFor(scene, map, container);
+    const target = cameraFor(scene, map, container, options.coveredBelow());
     if (target === null) return;
     if (first || options.reducedMotion) map.jumpTo(target);
     else map.flyTo(target);
@@ -170,7 +192,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
 
   const render = () => {
     const scene = latest;
-    if (scene === null || !alive || dragging !== null) return;
+    if (scene === null || !alive || dragging !== null || lost !== null) return;
     map.getCanvas().setAttribute("aria-label", !scene.handles ? mapWords.globe : scene.boxFollowsTap ? mapWords.box : mapWords.corners);
     if (scene.look.seq !== cameraSeq) {
       moveCamera(scene, cameraSeq === null);
@@ -214,23 +236,30 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
     render();
   });
   map.on("sourcedata", event => {
-    if (event.tile && pictureIds.has(event.sourceId) && pictures !== "shown") {
-      pictures = "shown";
-      report({ kind: "pictures", state: "shown" });
-    }
+    if (event.tile && sources.has(event.sourceId) && sources.get(event.sourceId) !== "shown") picturesNow(event.sourceId, "shown");
   });
-  // A missing picture tile never breaks the page. Before the first frame, any other error means the globe cannot work.
+  // A picture source fails only before it has shown a tile of its own. Before the first frame, any other error means the
+  // globe cannot work.
   map.on("error", event => {
     const sourceId: unknown = (event as { sourceId?: unknown }).sourceId;
-    if (typeof sourceId === "string" && pictureIds.has(sourceId)) {
-      if (pictures !== "waiting") return;
-      pictures = "failed";
-      report({ kind: "pictures", state: "failed" });
+    if (typeof sourceId === "string" && sources.has(sourceId)) {
+      if (sources.get(sourceId) === "waiting") picturesNow(sourceId, "failed");
     } else if (!loaded) {
       giveUp("failed");
     }
   });
-  map.on("webglcontextlost", () => giveUp("lost"));
+  map.on("zoomend", reportPictures);
+  map.on("webglcontextlost", () => {
+    lost ??= setTimeout(() => giveUp("lost"), lostForMs);
+  });
+  // MapLibre rebuilds the style, so every picture source loads again and may fail this time.
+  map.on("webglcontextrestored", () => {
+    if (lost !== null) clearTimeout(lost);
+    lost = null;
+    for (const id of sources.keys()) sources.set(id, "waiting");
+    stale = true;
+    render();
+  });
   map.on("click", event => {
     const target = event.originalEvent.target;
     if (target instanceof Node && handles.some(handle => handle.getElement().contains(target))) return;
@@ -242,6 +271,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
 
   const destroy = () => {
     alive = false;
+    if (lost !== null) clearTimeout(lost);
     if (removed) return;
     removed = true;
     signal.removeEventListener("abort", destroy);
@@ -317,18 +347,23 @@ function worldZoom(shortSidePx: number, latitude: number): number {
   return Math.min(3, Math.max(0, zoom));
 }
 
-function cameraFor(scene: Scene, map: MapLibreMap, container: HTMLElement): { center?: [number, number]; zoom: number } | null {
+type Camera = { center?: [number, number]; zoom: number; padding: { top: number; right: number; bottom: number; left: number } };
+
+function cameraFor(scene: Scene, map: MapLibreMap, container: HTMLElement, covered: number): Camera | null {
+  const below = Math.min(covered, container.clientHeight / 2);
+  const padding = { top: 0, right: 0, bottom: below, left: 0 };
   switch (scene.look.at) {
     case "world":
-      return { zoom: worldZoom(shortSideOf(container), map.getCenter().lat) };
+      return { zoom: worldZoom(shortSideOf(container), map.getCenter().lat), padding: { ...padding, bottom: 0 } };
     case "place":
-      return scene.pin ? { center: [...scene.pin], zoom: Math.max(map.getZoom(), placeZoom) } : null;
+      return scene.pin ? { center: [...scene.pin], zoom: Math.max(map.getZoom(), placeZoom), padding } : null;
     case "field": {
       if (!scene.outline) return null;
       const lngs = scene.outline.corners.map(([lng]) => lng);
       const lats = scene.outline.corners.map(([, lat]) => lat);
       const middle: [number, number] = [wrapLng((Math.min(...lngs) + Math.max(...lngs)) / 2), (Math.min(...lats) + Math.max(...lats)) / 2];
-      return { center: middle, zoom: zoomToFit(scene.outline.spanM, middle[1], shortSideOf(container)) };
+      const shortSide = Math.min(container.clientWidth, container.clientHeight - below);
+      return { center: middle, zoom: zoomToFit(scene.outline.spanM, middle[1], shortSide), padding };
     }
   }
 }
@@ -354,9 +389,12 @@ function graticule(): GeoJSON.Feature {
   return { type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: [...meridians, ...parallels] } };
 }
 
+/** The map pin, 48 by 62 with its tip at the bottom middle, on the globe and on the drawing. */
+export const pinPath = "M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z";
+
 function pinElement(): HTMLElement {
   const element = document.createElement("div");
-  element.innerHTML = '<svg class="fp-pin" viewBox="0 0 48 62" aria-hidden="true" style="display: block"><path d="M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z" fill="currentColor" stroke-width="3" style="stroke: var(--mint-pill)"/><circle cx="24" cy="22" r="7.5" style="fill: var(--mint-pill)"/></svg>';
+  element.innerHTML = `<svg class="fp-pin" viewBox="0 0 48 62" aria-hidden="true" style="display: block"><path d="${pinPath}" fill="currentColor" stroke-width="3" style="stroke: var(--mint-pill)"/><circle cx="24" cy="22" r="7.5" style="fill: var(--mint-pill)"/></svg>`;
   return element;
 }
 

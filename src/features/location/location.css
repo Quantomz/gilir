@@ -15,12 +15,15 @@
   .fp-self-start { justify-self: start; }
   .fp-small { font-size: var(--fs-s); line-height: 1.4; }
 
-  /* When a 24rem column and a 22rem map both fit, the controls sit on the left and the map stays in view on the right. */
+  /* When a 24rem column and a 22rem map both fit, the controls sit on the left and the map stays in view on the right.
+     The stuck map gives way to its credits, so the whole of it fits between F1's bars. */
   @container fp-slot (min-width: 48rem) {
     .fp { grid-template-columns: minmax(0, 24rem) minmax(0, 1fr); grid-template-rows: repeat(6, auto) 1fr; column-gap: var(--s6); row-gap: 0; }
     .fp > * { grid-column: 1; margin-bottom: var(--s4); }
-    .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); }
-    .fp .fp-map, .fp .fp-plan { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 20rem; }
+    .fp > .fp-map-wrap { grid-column: 2; grid-row: 1 / -1; align-self: start; margin-bottom: 0; position: sticky; top: calc(var(--bar-top, 72px) + 12px); display: flex; flex-direction: column; max-height: calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 24px); }
+    .fp > .fp-map-wrap > .fp-map { flex: 0 1 36rem; min-height: 0; }
+    .fp[data-surface="plan"] > .fp-map-wrap > .fp-map { flex: none; }
+    .fp .fp-plan { height: min(calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 11rem), 36rem); min-height: 15rem; }
   }
 
   .fp-search .input-wrap { border-radius: 999px; padding-inline: 1.2rem .5rem; box-shadow: var(--shadow), var(--card-edge); }
@@ -61,10 +64,12 @@
   .fp .fp-go { background: var(--mint); border-color: var(--ink); }
   .fp .fp-go:hover { background: var(--mint); box-shadow: inset 0 0 0 2px var(--ink); }
 
-  /* A fixed height leaves a thumb room to scroll the page beside the map, and keeps the map clear of F1's sticky dock. */
-  .fp-map, .fp-plan { height: min(55svh, 28rem); min-height: 15rem; }
-  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
-  .big-text .fp-map, .big-text .fp-plan { min-height: 18rem; }
+  /* The canvas takes every touch, so the map leaves 64px of the band between F1's bars to the page, for a thumb to
+     scroll by. In px, because a thumb does not grow with the text size. */
+  .fp-map { container: fp-map / inline-size; position: relative; width: 100%; height: min(55svh, 28rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); min-height: min(15rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); overflow: hidden; border: 1px solid var(--line); border-radius: var(--r-m); background: var(--bg); }
+  .big-text .fp-map { min-height: min(18rem, calc(100svh - var(--bar-top, 72px) - var(--bar-bottom, 96px) - 64px)); }
+  .fp-plan { height: min(55svh, 28rem); min-height: 15rem; }
+  .big-text .fp-plan { min-height: 18rem; }
   .fp-map:has(.maplibregl-canvas:focus-visible)::after { content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none; border: 4px solid var(--focus); border-radius: inherit; }
   [data-contrast="high"] .fp-map:has(.maplibregl-canvas:focus-visible)::after { border-width: 5px; }
   [data-contrast="high"] .fp-map { border: 2px solid var(--ink); }
@@ -76,6 +81,12 @@
   .fp-map-btn-c svg { width: 1.5rem; height: 1.5rem; }
   .fp-map-btn-t { padding: .05rem .55rem; border-radius: 999px; background: var(--raised); box-shadow: var(--shadow), var(--card-edge); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; white-space: nowrap; }
   @container fp-map (min-width: 36rem) { .fp-map-btn-c { width: var(--tap-s); height: var(--tap-s); } }
+  /* At a larger text size the labels of a narrow map's buttons would cover a field's corners, so the buttons stand in
+     a column of circles at its edge. Each keeps its label as its name. */
+  @container fp-map (width < 36rem) {
+    .big-text .fp-map-ctrls { flex-direction: column; }
+    .big-text .fp-map-btn-t { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  }
   .fp-map-foot { position: absolute; inset: auto 8px 8px; z-index: 5; display: grid; gap: 4px; justify-items: start; pointer-events: none; }
   .fp[data-surface="plan"] .fp-map { display: grid; height: auto; background: var(--sunk); }
   .fp[data-surface="plan"] .fp-map-foot { position: static; padding: 0 8px 8px; }
@@ -132,7 +143,10 @@
   .fp-corner-in { display: grid; grid-template-columns: minmax(0, 1fr); gap: .6rem; clear: both; }
   @media (min-width: 460px) { .fp-corner-in { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   .big-text .fp-corner-in { grid-template-columns: minmax(0, 1fr); }
+  /* The Search button carries the magnifier, so a narrow box at a large text size gives that room to the typed position. */
   @media (max-width: 479px) {
+    .big-text .fp-search .input-wrap { padding-inline: .6rem .2rem; }
+    .big-text .fp-search .input-wrap > .i { display: none; }
     .big-text .fp-list { padding: var(--s2); }
     .big-text .fp-corner { padding: var(--s3); }
     .big-text .fp-corner .input-wrap { padding-inline: .5rem; }

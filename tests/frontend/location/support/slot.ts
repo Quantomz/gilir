@@ -142,6 +142,25 @@ export async function handlesInMap(root: Locator): Promise<Point[]> {
   return (await centresOf(handles(root))).map(point => ({ x: point.x - box.x, y: point.y - box.y }));
 }
 
+/** The whole of `locator` is on screen, below F1's top bar and above F1's dock, so a farmer on a phone sees it. */
+export async function betweenBars(page: Page, locator: Locator): Promise<boolean> {
+  const [box, bar, dock] = await Promise.all([locator.boundingBox(), page.locator(".topbar").boundingBox(), page.locator(".dock").first().boundingBox()]);
+  const bottom = Math.min(dock?.y ?? Infinity, page.viewportSize()?.height ?? Infinity);
+  return box !== null && bar !== null && box.y >= bar.y + bar.height - 1 && box.y + box.height <= bottom + 1;
+}
+
+/** One finger moved across the screen, as a phone's browser receives it. The context needs hasTouch. */
+export async function swipe(page: Page, from: Point, to: Point, steps = 6): Promise<void> {
+  const cdp = await page.context().newCDPSession(page);
+  const at = (point: Point) => [{ x: point.x, y: point.y, radiusX: 1, radiusY: 1 }];
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: at(from) });
+  for (let step = 1; step <= steps; step++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: at({ x: from.x + (to.x - from.x) * step / steps, y: from.y + (to.y - from.y) * step / steps }) });
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await cdp.detach();
+}
+
 export async function drag(page: Page, from: Point, to: Point, steps = 10): Promise<void> {
   await page.mouse.move(from.x, from.y);
   await page.mouse.down();

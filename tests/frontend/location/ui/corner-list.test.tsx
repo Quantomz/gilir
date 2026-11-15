@@ -13,10 +13,14 @@ import type { Scene } from "@/features/location/picker";
 import { inputFixture } from "@/fixtures/input";
 import { FieldPicker } from "@/features/location";
 import { startGlobe } from "@/features/location/globe";
+import { stubBrowser, unstubBrowser } from "../support/browser";
 import { bad, circle, fieldIssues, good, policy, strictlyInside } from "../support/shapes";
 
 type Field = FarmInput["field"];
 type User = ReturnType<typeof userEvent.setup>;
+
+// Each case types its corners key by key through the whole slot, which takes seconds on a loaded machine.
+vi.setConfig({ testTimeout: 20_000 });
 
 vi.mock("@/features/location/globe", async importOriginal => {
   const real = await importOriginal<typeof import("@/features/location/globe")>();
@@ -30,14 +34,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", vi.fn(async () => {
     throw new TypeError("no network in this test");
   }));
-  vi.stubGlobal("ResizeObserver", class {
-    observe(): void {}
-    unobserve(): void {}
-    disconnect(): void {}
-  });
-  vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }));
-  // jsdom has no canvas, as a phone with no WebGL2 has none; returning null keeps its "not implemented" noise out of the run.
-  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+  stubBrowser();
 });
 
 afterEach(() => {
@@ -46,6 +43,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  unstubBrowser();
 });
 
 function mount(value: Field | null = null) {
@@ -193,7 +191,7 @@ describe("the shape", () => {
     const field = emitted(onChange);
     expect(field.ring).toHaveLength(9);
     expect(strictlyInside(field.lookup, good.u)).toBe(true);
-  }, 20_000);
+  });
 
   it("[R11] the Fiji corners (179.99 and -179.99) are accepted; the emitted ring keeps longitudes in [-180, 180]; the drawing shows one small rectangle; 'About 237 hectares'", async () => {
     const user = userEvent.setup();
@@ -212,6 +210,17 @@ describe("the shape", () => {
     const tall = Math.max(...points.map(([, y]) => y)) - Math.min(...points.map(([, y]) => y));
     expect(across / tall).toBeGreaterThan(1.6);
     expect(across / tall).toBeLessThan(2.3);
+  });
+
+  it("[R15] a walked boundary that ends on its first corner is accepted: 5 rows, the last equal to the first, emit the 4-corner field with no alert", async () => {
+    const user = userEvent.setup();
+    const { onChange } = mount();
+    await drawing();
+    await fill(user, [...good.l.slice(0, 4), good.l[0]]);
+    await useCorners(user);
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(emitted(onChange).ring).toEqual([...good.l.slice(0, 4), good.l[0]]);
+    expect(liveRegion().textContent).toBe("Your field now has the 4 corners you typed.");
   });
 
   it("corners 10° apart show 'These corners are more than 20 km apart. Check the numbers.'", async () => {
@@ -313,7 +322,7 @@ describe("adding and removing", () => {
     expect(rows()).toBe(256);
     expect(within(list).getByText("A field can have up to 256 corners.")).toBeTruthy();
     expect(onChange).not.toHaveBeenCalled();
-  }, 20_000);
+  });
 });
 
 describe("in step with the picker", () => {
@@ -392,9 +401,9 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     const user = userEvent.setup();
     mount(inputFixture.field);
     await screen.findByRole("button", { name: "Zoom in" });
-    expect(globe.scene).toMatchObject({ handles: true });
+    await waitFor(() => expect(globe.scene).toMatchObject({ handles: true }));
     await user.click(screen.getByRole("button", { name: "Search again" }));
-    expect(globe.scene?.handles).toBe(false);
+    await waitFor(() => expect(globe.scene?.handles).toBe(false));
     expect(globe.scene?.outline?.ring).toEqual(inputFixture.field.ring);
   });
 
@@ -411,6 +420,35 @@ describe("beside a globe (a stand-in that reports what a farmer did on the map)"
     await user.click(screen.getByRole("button", { name: "Zoom in" }));
     await user.click(screen.getByRole("button", { name: "Zoom out" }));
     expect(globe.zoom).toEqual([1, -1]);
+  });
+
+  it("[R5] beside the globe the credits line names the map pictures: 'Map pictures: NASA EOSDIS GIBS'", async () => {
+    fakeGlobe();
+    mount(inputFixture.field);
+    await screen.findByRole("button", { name: "Zoom in" });
+    expect(screen.getByText(/^Map pictures:\s*NASA EOSDIS GIBS$/)).toBeTruthy();
+    expect(screen.getByText("The map pictures come from NASA, so NASA can see which area you are looking at.")).toBeTruthy();
+  });
+
+  it("[R14][R15] when the globe stops working, focus on 'Zoom in' moves to the corner list's heading; focus in the search box stays there", async () => {
+    const globe = fakeGlobe();
+    const user = userEvent.setup();
+    mount(inputFixture.field);
+    (await screen.findByRole("button", { name: "Zoom in" })).focus();
+    globe.send?.({ kind: "surface", surface: { kind: "plan", why: "lost" } });
+    await drawing();
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Type the corners of your field" })));
+    cleanup();
+
+    const again = fakeGlobe();
+    mount(inputFixture.field);
+    await screen.findByRole("button", { name: "Zoom in" });
+    await user.click(screen.getByRole("button", { name: "Search again" }));
+    const search = screen.getByRole("searchbox");
+    expect(document.activeElement).toBe(search);
+    again.send?.({ kind: "surface", surface: { kind: "plan", why: "lost" } });
+    await drawing();
+    expect(document.activeElement).toBe(search);
   });
 
   it("[R7] a corner dropped across the opposite side goes back: 'Two sides would cross, so the corner went back.' shows as an alert and onChange is not called", async () => {

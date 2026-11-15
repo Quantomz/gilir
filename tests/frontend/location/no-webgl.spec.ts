@@ -11,7 +11,8 @@ import { inputFixture } from "@/fixtures/input";
 import { routeProviders } from "./support/providers";
 import { good } from "./support/shapes";
 import {
-  cornerList, expectFieldOnPage, firstPicker, layoutProblems, lookupOf, openPageOne, retype, shoot, tabTo, typeCornersByKeyboard,
+  betweenBars, cornerList, expectFieldOnPage, firstPicker, layoutProblems, lookupOf, mapArea, openPageOne, retype, shoot, tabTo,
+  typeCornersByKeyboard,
 } from "./support/slot";
 
 test.use({
@@ -35,9 +36,15 @@ async function cornerNumbers(root: Locator): Promise<string[]> {
   return (await drawingOf(root).locator("text").allTextContents()).map(text => text.trim()).filter(text => /^\d+$/.test(text)).sort((a, b) => Number(a) - Number(b));
 }
 
-test("[R14][R16] the slot reports data-surface='plan', shows 'This phone can’t show the moving globe. …' and a drawing of the fixture with 4 numbered corners", async ({ page }, testInfo) => {
-  const root = await openLab(page);
+test("[R14][R16][R5] the slot reports data-surface='plan', shows 'This phone can’t show the moving globe. …' and a drawing of the fixture with 4 numbered corners, with no map picture credit and no picture request", async ({ page }, testInfo) => {
+  const routes = await routeProviders(page);
+  await page.goto("/dev/fixtures");
+  const root = firstPicker(page);
+  await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
   await expect(root.getByText(/^This phone can’t show the moving globe\./)).toBeVisible();
+  await expect(root.locator(".fp-credits")).toHaveCount(0);
+  await expect(root.getByText(/NASA EOSDIS GIBS|Map pictures/)).toHaveCount(0);
+  expect(routes.requests).toEqual([]);
   await expect(drawingOf(root)).toBeVisible();
   expect(await cornerNumbers(root)).toEqual(["1", "2", "3", "4"]);
   await expect(root.locator("canvas.maplibregl-canvas")).toHaveCount(0);
@@ -114,4 +121,22 @@ test("[R22] at 360 px on F1's page 1, the drawing, the list and every control fi
   await expect(cornerList(root)).toBeVisible();
   expect(await layoutProblems(page, root)).toEqual([]);
   await shoot(page, testInfo, "no-webgl-largest-text-360", drawingOf(root));
+});
+
+test.describe("at 1280x800", () => {
+  test.use({ viewport: { width: 1280, height: 800 } });
+
+  test("[R22] in two columns the drawing stays in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
+    await routeProviders(page);
+    const root = (await openPageOne(page, inputFixture)).first();
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+    const latitude = cornerList(root).getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+    await latitude.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type("1");
+    await expect(latitude).toBeFocused();
+    await expect.poll(() => betweenBars(page, mapArea(root))).toBe(true);
+    await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+    await shoot(page, testInfo, "no-webgl-typing-1280");
+  });
 });

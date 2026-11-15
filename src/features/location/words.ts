@@ -31,7 +31,7 @@ export const searchBox: Record<Provider["kind"], { readonly form: string; readon
   missing: {
     form: "Find your farm by its position",
     label: "Position of your farm",
-    placeholder: "For example: -6.326, 108.32",
+    placeholder: "-6.326, 108.32",
     hint: "Type a position, like -6.326, 108.32, then press Search or Enter.",
   },
 };
@@ -45,7 +45,11 @@ export const search = {
   none: "No place found. Try the nearest town, or tap the globe.",
   nonePlan: "No place found. Try the nearest town, or type a position.",
   short: "Type at least 2 letters, then Search.",
-  unclearPosition: "We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search.",
+  /** With no key, a town's name cannot be searched, so it is not offered. */
+  unclearPosition: {
+    ready: "We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search.",
+    missing: "We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, then press Search.",
+  },
   list: "Places",
 } as const;
 
@@ -94,7 +98,7 @@ const locateBlocked: Record<Exclude<LocateFailure, "timeout" | "unavailable">, L
     title: "Your location is turned off",
     body: "We can’t see where you are, so we can’t find your farm this way.",
     steps: [
-      "Tap the small lock beside the web address at the top of the screen.",
+      "Tap the small icon beside the web address at the top of the screen.",
       "Tap Location, then Allow.",
       "Come back here and tap Try again.",
     ],
@@ -260,15 +264,19 @@ export const weatherGrid = "Weather comes from NASA records on a grid much large
 /** A credit link's name: it opens a new tab, so the slot stays where it was. */
 export const newTab = (name: string) => `${name} (opens in a new tab)`;
 
-/** Keyed by the provider, so what it says about who sees what is true for each. */
-export const credits: Record<Provider["kind"], { readonly lead: string; readonly privacy: string }> = {
-  missing: {
+/** Keyed by what is in use, so what it says about who sees what is true for each. The drawing shows no pictures. */
+export const credits: Record<"pictures" | "pictures_and_search" | "search", { readonly lead: string; readonly privacy: string }> = {
+  pictures: {
     lead: "Map pictures:",
     privacy: "The map pictures come from NASA, so NASA can see which area you are looking at.",
   },
-  ready: {
+  pictures_and_search: {
     lead: "Map pictures and place search:",
     privacy: "The map pictures and the place search come from NASA and MapTiler, so they can see which area you are looking at and the names you search for.",
+  },
+  search: {
+    lead: "Place search:",
+    privacy: "The place search comes from MapTiler, so MapTiler can see the names you search for.",
   },
 };
 

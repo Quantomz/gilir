@@ -18,9 +18,9 @@ import { routeProviders } from "./support/providers";
 import type { ProviderPlan } from "./support/providers";
 import { good, strictlyInside } from "./support/shapes";
 import {
-  centreOf, centresOf, cornersOnPage, distance, drag, dragHandle, expectFieldOnPage, firstPicker, focusableUnderDock,
-  handBack, handles, handlesInMap, isConcave, layoutProblems, lookupOf, mapArea, openPageOne, pixelsAt, retype,
-  settledCentre, shoot, tabTo, typeCorners,
+  betweenBars, centreOf, centresOf, cornersOnPage, distance, drag, dragHandle, expectFieldOnPage, firstPicker,
+  focusableUnderDock, handBack, handles, handlesInMap, isConcave, layoutProblems, lookupOf, mapArea, openPageOne, pixelsAt,
+  retype, settledCentre, shoot, swipe, tabTo, typeCorners,
 } from "./support/slot";
 
 test.use({ launchOptions: { executablePath: process.env.PW_CHROMIUM ?? "/opt/pw-browsers/chromium" } });
@@ -33,6 +33,21 @@ async function openLab(page: Page, plan: Partial<ProviderPlan> = {}): Promise<Lo
   const root = firstPicker(page);
   await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
   return root;
+}
+
+/** Loses the first picker's WebGL context, as a phone's browser does under memory pressure, and gives it back after `restoreMs`. */
+async function loseContext(page: Page, restoreMs: number | null): Promise<void> {
+  await page.evaluate(restore => {
+    const canvas = document.querySelector<HTMLCanvasElement>(".fp canvas.maplibregl-canvas");
+    const lose = canvas?.getContext("webgl2")?.getExtension("WEBGL_lose_context");
+    if (!lose) throw new Error("no WebGL2 context to lose");
+    lose.loseContext();
+    if (restore !== null) setTimeout(() => lose.restoreContext(), restore);
+  }, restoreMs);
+}
+
+async function setTextSize(page: Page, textSize: "normal" | "large" | "largest"): Promise<void> {
+  await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
 }
 
 async function searchPosition(root: Locator, text: string): Promise<void> {
@@ -183,10 +198,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await routeProviders(page);
       const root = await openPageOne(page);
       await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
-      const inView = async (locator: Locator) => {
-        const [box, bar, dock] = await Promise.all([locator.boundingBox(), page.locator(".topbar").boundingBox(), page.locator(".dock").first().boundingBox()]);
-        return Boolean(box && bar && dock) && box!.y >= bar!.y + bar!.height - 1 && box!.y + box!.height <= dock!.y + 1;
-      };
+      const inView = (locator: Locator) => betweenBars(page, locator);
       await mapArea(root).scrollIntoViewIfNeeded();
       const map = (await mapArea(root).boundingBox())!;
       await page.mouse.click(map.x + map.width / 2 + 20, map.y + map.height / 2);
@@ -410,7 +422,7 @@ for (const { textSize, width, height } of textSizes) {
 
     test("[R22] on F1's page 1 with a field, the map is at least 480 px wide and no zoom button covers a corner handle", async ({ page }) => {
       await routeProviders(page);
-      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      await setTextSize(page, textSize);
       const root = (await openPageOne(page, inputFixture)).first();
       await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
       await mapArea(root).scrollIntoViewIfNeeded();
@@ -423,6 +435,135 @@ for (const { textSize, width, height } of textSizes) {
       }));
       expect(covered).toEqual([]);
       expect(await layoutProblems(page, root)).toEqual([]);
+    });
+  });
+}
+
+test.describe("the globe on a 360x740 phone", () => {
+  test.use({ viewport: { width: 360, height: 740 } });
+
+  test("[R14] when the page comes back to the foreground MapLibre restarts its busy workers, and a lost WebGL context comes back: the globe stays, keeps the field and still draws", async ({ page }) => {
+    const root = await openLab(page);
+    await expect(handles(root)).toHaveCount(4);
+    for (const worker of page.workers()) {
+      void worker.evaluate(() => {
+        const end = Date.now() + 2000;
+        while (Date.now() < end);
+      }).catch(() => undefined);
+    }
+    await page.waitForTimeout(100);
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await page.waitForTimeout(5000);
+    await expect(root).toHaveAttribute("data-surface", "globe");
+
+    await loseContext(page, 500);
+    await page.waitForTimeout(5000);
+    await expect(root).toHaveAttribute("data-surface", "globe");
+    await expect(handles(root)).toHaveCount(4);
+    expect(await lookupOf(root)).toEqual(inputFixture.field.lookup);
+    await mapArea(root).scrollIntoViewIfNeeded();
+    await expect.poll(async () => {
+      const box = (await mapArea(root).boundingBox())!;
+      const [corner, centre] = await pixelsAt(page, [{ x: box.x + 4, y: box.y + box.height - 4 }, { x: box.x + box.width / 2, y: box.y + box.height / 2 }]);
+      return corner.join() !== centre.join();
+    }, { timeout: 10_000 }).toBe(true);
+  });
+
+  test("[R14][R15] a lost WebGL context that does not come back becomes the drawing after a short wait, and focus on 'Zoom in' moves to the corner list's heading", async ({ page }) => {
+    const root = await openLab(page);
+    await root.getByRole("button", { name: "Zoom in" }).focus();
+    await loseContext(page, null);
+    await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 10_000 });
+    await expect(root.getByText(/^The globe stopped working on this phone\./)).toBeVisible();
+    await expect(root.getByRole("heading", { name: "Type the corners of your field" })).toBeFocused();
+    expect(await lookupOf(root)).toEqual(inputFixture.field.lookup);
+  });
+
+  for (const textSize of ["large", "largest"] as const) {
+    test(`[R20][R22] ${textSize} text: the no-key search box shows the whole of a typed position, which is also its example`, async ({ page }) => {
+      await routeProviders(page);
+      await setTextSize(page, textSize);
+      const root = (await openPageOne(page)).first();
+      const box = root.getByRole("searchbox", { name: "Position of your farm" });
+      await expect(box).toHaveAttribute("placeholder", "-6.326, 108.32");
+      await box.fill("-6.326, 108.32");
+      expect(await box.evaluate((input: HTMLInputElement) => input.scrollWidth <= input.clientWidth), "the typed position fits in the box").toBe(true);
+    });
+  }
+
+  for (const textSize of ["normal", "largest"] as const) {
+    test(`[R16][R22] ${textSize} text: on F1's page 1 the answer to Search comes into view above F1's dock, for a name with no key and for a position out of range`, async ({ page }, testInfo) => {
+      await routeProviders(page);
+      await setTextSize(page, textSize);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      const box = root.getByRole("searchbox", { name: "Position of your farm" });
+      const answers = [
+        { typed: "Indramayu", answer: "Searching by name isn’t set up on this site. Type a position, like -6.326, 108.32, or your field’s corners." },
+        { typed: "-6.326, 200", answer: "Longitude goes from -180 to 180." },
+      ];
+      for (const { typed, answer } of answers) {
+        await box.fill(typed);
+        await box.press("Enter");
+        const line = root.getByText(answer);
+        await expect(line).toBeVisible();
+        await expect.poll(() => betweenBars(page, line), { message: `"${answer}" is between F1's bar and dock` }).toBe(true);
+      }
+      await shoot(page, testInfo, `page-one-search-answer-${textSize}-360`);
+    });
+  }
+});
+
+const phones = [{ width: 360, height: 740 }, { width: 320, height: 568 }, { width: 740, height: 360 }] as const;
+
+for (const viewport of phones) {
+  for (const textSize of ["normal", "large", "largest"] as const) {
+    test.describe(`${textSize} text on a ${viewport.width}x${viewport.height} touch phone`, () => {
+      test.use({ viewport, hasTouch: true });
+
+      test("[R22] with a field marked and the map at the top, a strip at least 48 px tall stays between the map and F1's dock, and a swipe there scrolls the page", async ({ page }, testInfo) => {
+        await routeProviders(page);
+        await setTextSize(page, textSize);
+        const root = (await openPageOne(page)).first();
+        await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+        const box = root.getByRole("searchbox", { name: "Position of your farm" });
+        await box.fill("-6.326, 108.32");
+        await box.press("Enter");
+        await root.getByRole("button", { name: "Mark my field" }).click();
+        await expect(handles(root)).toHaveCount(4);
+        await mapArea(root).evaluate(element => element.scrollIntoView({ block: "start" }));
+        await settledCentre(handles(root).first());
+        const [map, dock] = await Promise.all([mapArea(root).boundingBox(), page.locator(".dock").first().boundingBox()]);
+        const strip = dock!.y - (map!.y + map!.height);
+        expect(strip, `the strip between the map and F1's dock at ${textSize} text`).toBeGreaterThanOrEqual(48);
+        if (textSize === "largest" && viewport.width === 360) await shoot(page, testInfo, "page-one-largest-marked-360");
+        const before = await page.evaluate(() => window.scrollY);
+        const from = { x: 180, y: map!.y + map!.height + strip / 2 };
+        await swipe(page, from, { x: from.x, y: from.y - 150 });
+        await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 30);
+      });
+    });
+  }
+}
+
+for (const height of [800, 600]) {
+  test.describe(`the globe at 1280x${height}`, () => {
+    test.use({ viewport: { width: 1280, height } });
+
+    test("[R22][R5] in two columns the map, its credits and the privacy line stay in view beside the corner list while the farmer types corner 3", async ({ page }, testInfo) => {
+      await routeProviders(page);
+      const root = (await openPageOne(page, inputFixture)).first();
+      await expect(root).toHaveAttribute("data-surface", "globe", { timeout: 60_000 });
+      await root.getByRole("button", { name: "Type the corners" }).click();
+      const latitude = root.getByRole("group", { name: "Corner 3" }).getByRole("textbox", { name: /latitude/i });
+      await latitude.click();
+      await page.keyboard.press("End");
+      await page.keyboard.type("1");
+      await expect(latitude).toBeFocused();
+      await expect(root.locator(".fp-credits")).toBeVisible();
+      await expect.poll(() => betweenBars(page, root.locator(".fp-map-wrap")), { message: "the map and its credits are between F1's bar and dock" }).toBe(true);
+      await expect.poll(() => betweenBars(page, latitude)).toBe(true);
+      if (height === 800) await shoot(page, testInfo, "page-one-typing-1280");
     });
   });
 }
