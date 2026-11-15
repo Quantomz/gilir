@@ -325,6 +325,35 @@ const picturesNotice = (root: Locator) => root.getByText(/^The map pictures didn
 const apart = (a: { x: number; y: number; width: number; height: number }, b: typeof a) =>
   a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y;
 
+for (const textSize of ["large", "largest"] as const) {
+  test.describe(`${textSize} text on a phone on its side, 740x360, with WebGL off`, () => {
+    test.use({ viewport: { width: 740, height: 360 } });
+
+    test("[R14][R5] the drawing shows the marked box the right way up inside it, with a scale in metres", async ({ page }) => {
+      await page.addInitScript(() => {
+        const original = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (this: HTMLCanvasElement, kind: string, ...rest: unknown[]) {
+          return kind === "webgl2" ? null : (original as (...args: unknown[]) => unknown).call(this, kind, ...rest);
+        } as typeof original;
+      });
+      await routeProviders(page, allAnswer);
+      await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
+      const root = (await openPageOne(page)).first();
+      await expect(root).toHaveAttribute("data-surface", "plan", { timeout: 60_000 });
+      await searchBox(root).fill("-6.326, 108.32");
+      await searchBox(root).press("Enter");
+      await root.getByRole("button", { name: "Mark my field" }).click();
+      const drawing = root.getByRole("img", { name: "Drawing of your field, north at the top. It is a drawing, not a photo." });
+      await expect(drawing.locator(".fp-plan-scale text")).toHaveText(/^\d+ m$/);
+      const [frame, box] = [(await drawing.boundingBox())!, (await drawing.locator(".fp-plan-edge").boundingBox())!];
+      expect(Math.min(box.width, box.height), "the box is drawn larger than a dot").toBeGreaterThan(40);
+      expect(box.y >= frame.y && box.y + box.height <= frame.y + frame.height, "the box is inside the drawing").toBe(true);
+      const ys = await drawing.locator(".fp-plan-corner").evaluateAll(corners => corners.map(corner => Number(corner.getAttribute("y"))));
+      expect(ys[0], "corner 1, the south-west one, is below corner 4, the north-west one").toBeGreaterThan(ys[3]);
+    });
+  });
+}
+
 const logoViews = [
   { width: 360, height: 740, textSize: "normal" },
   { width: 320, height: 568, textSize: "large" },
