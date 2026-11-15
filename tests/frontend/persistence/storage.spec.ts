@@ -4,7 +4,7 @@ import type { LocalState } from "@/client/storage";
 import { completedSnapshotSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 import { inputFixture } from "@/fixtures/input";
-import { completedSnapshotsByState } from "@/fixtures/results";
+import { completedSnapshotsByState, completedSnapshotV2Fixture } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { openHarness, sandboxedHarness, test, withUserDataFolder } from "./support/harness";
 
@@ -16,7 +16,7 @@ const words = {
 };
 
 const plan = completedSnapshotsByState.plan;
-const job = { jobId: "synthetic-job", token: "synthetic-capability" };
+const job = { jobId: "00000000-0000-4000-8000-000000000001", token: "synthetic-capability" };
 const partialDraft = { field: inputFixture.field, cropPurposeIds: inputFixture.cropPurposeIds };
 const saved: LocalState = { draft: partialDraft, step: 3, activeJob: job, snapshot: plan };
 const other: LocalState = { draft: null, step: 4, activeJob: null, snapshot: completedSnapshotsByState.plan_with_warnings };
@@ -58,6 +58,22 @@ test.describe("a saved result stays readable", () => {
       expect(loaded?.snapshot?.result.details.provenance).toEqual(plan.result.details.provenance);
     });
   });
+
+  for (const snapshot of [plan, completedSnapshotV2Fixture]) {
+    test(`raw snapshot version ${snapshot.schemaVersion} restores after reload without changing stored data`, async ({ page, harness }) => {
+      await openHarness(page, `${harness.origin}/`);
+      const state = { ...saved, draft: inputFixture, snapshot };
+      const record = { format: "gilir.local-state", version: 1, state };
+      await page.evaluate(record => window.gilirF4.raw.write("gilir", 1, { state: record }), record);
+      const before = await page.evaluate(() => window.gilirF4.raw.read("gilir"));
+      await page.reload();
+      await page.waitForFunction(() => window.gilirF4 !== undefined);
+      expect(await load(page)).toEqual(state);
+      expect(await notice(page)).toBeNull();
+      expect(await page.evaluate(() => window.gilirF4.raw.read("gilir"))).toEqual(before);
+      expect((await load(page))?.snapshot?.schemaVersion).toBe(snapshot.schemaVersion);
+    });
+  }
 
   for (const expiry of ["answers 404 not_found", "fails"] as const) {
     test(`server expiry: with every /api request that ${expiry}, a reload still loads the snapshot, and load sent nothing to /api`, async ({ page, context, harness }) => {
@@ -196,6 +212,38 @@ test.describe("newer data and other tabs", () => {
     expect(await problemOf(page, "clear")).toEqual(newer);
     expect(await page.evaluate(() => window.gilirF4.raw.read("gilir"))).toEqual({ version: 2, records: { state: newerRecord } });
   });
+
+  for (const [name, parts] of [
+    ["draft version 2", { draft: { ...inputFixture, schemaVersion: 2 }, snapshot: completedSnapshotV2Fixture }],
+    ["snapshot version 3", { draft: inputFixture, snapshot: { ...completedSnapshotV2Fixture, schemaVersion: 3 } }],
+  ] as const) {
+    test(`${name} independently refuses load, save, clear and pending notice dismissal without mutation`, async ({ page, harness }) => {
+      await openHarness(page, `${harness.origin}/`);
+      const setAside = { format: "gilir.set-aside", version: 1, finds: [{ parts: ["activeJob"], answersKept: true, raw: "previous unreadable job" }] };
+      await page.evaluate(({ state, setAside }) => window.gilirF4.raw.write("gilir", 1, { state, "set-aside": setAside }), {
+        state: { format: "gilir.local-state", version: 1, state: saved }, setAside,
+      });
+      const newer = { format: "gilir.local-state", version: 1, state: { ...saved, ...parts } };
+      const outcomes = await page.evaluate(async ({ newer, saved }) => {
+        const { localPlans, readStorageNotice, storageProblem, raw } = window.gilirF4;
+        const pendingNotice = await readStorageNotice();
+        if (pendingNotice === null) throw new Error("Expected pending notice.");
+        await raw.write("gilir", 1, { state: newer });
+        const before = await raw.read("gilir");
+        const rejected = [];
+        for (const call of [() => localPlans.load(), () => localPlans.save(saved), () => localPlans.clear()]) {
+          try { await call(); rejected.push("resolved"); }
+          catch (error) { rejected.push(storageProblem(error).reason); }
+        }
+        await pendingNotice.dismiss();
+        return { rejected, before, after: await raw.read("gilir"), notice: await readStorageNotice() };
+      }, { newer, saved });
+      expect(outcomes.rejected).toEqual(["newer", "newer", "newer"]);
+      expect(outcomes.notice).toBeNull();
+      expect(outcomes.after).toEqual(outcomes.before);
+      expect(outcomes.after).toEqual({ version: 1, records: { state: newer, "set-aside": setAside } });
+    });
+  }
 
   test("a second page upgrading to version 2: the first page's connection closes on blocking, the upgrade resolves at once, and the first page's next load rejects newer", async ({ page, context, harness }) => {
     await save(await openHarness(page, `${harness.origin}/`), saved);

@@ -1,7 +1,7 @@
-import type { ClimateSnapshot, FrozenRun, JobCapability, JobClaim, JobState, JobStore, LeaseIdentity, PlanResult, ServiceFailure } from "@/contracts";
-import { parseIsoDate } from "@/contracts";
+import type { ClimateSnapshot, FrozenRun, JobCapability, JobClaim, JobState, JobStore, LeaseIdentity, PlanResult, ServiceFailure, SnapshotCompletion } from "@/contracts";
+import { parseCompletedSnapshot, parseIsoDate, releasedRegistrySchema } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
-import { readRegistryRelease } from "@/registry";
+import { syntheticRegistryFixture } from "@/fixtures/science";
 import type { RuntimeDependencies } from "@/server/runtime";
 import { resultFixtures } from "@/fixtures/results";
 
@@ -34,10 +34,17 @@ export function resultForRun(run: FrozenRun, result: PlanResult = resultFixtures
   };
 }
 
+export const controlledRegistry = releasedRegistrySchema.parse({
+  kind: "released",
+  identity: { catalogueVersion: "worker-controlled-v1", ruleVersion: "worker-controlled-rules" },
+  catalogue: { ...syntheticRegistryFixture.catalogue, version: "worker-controlled-v1" },
+  sources: [], profiles: [], rules: [],
+});
+
 export class MemoryJobs implements JobStore {
-  readonly capability = { jobId: "test-job", token: "test-capability" };
+  readonly capability = { jobId: "00000000-0000-4000-8000-000000000003", token: "test-capability" };
   readonly input = inputFixture;
-  readonly registry = readRegistryRelease().identity;
+  readonly registry = controlledRegistry.identity;
   readonly cutoff = snapshot.cutoff;
   state: JobState = { state: "queued" };
   frozenRun: FrozenRun | null = null;
@@ -75,10 +82,10 @@ export class MemoryJobs implements JobStore {
     if (this.crashAfterFreeze) { this.rejectRenewal = true; throw new Error("Simulated process crash after durable freeze."); }
     return true;
   }
-  async complete(lease: LeaseIdentity, result: PlanResult, now: string) {
+  async complete(lease: LeaseIdentity, completion: SnapshotCompletion, now: string) {
     if (!this.owns(lease, now)) return false;
     this.completions += 1;
-    this.state = { state: "completed", snapshot: { schemaVersion: 1, id: lease.jobId, completedAt: now, input: this.input, result } };
+    this.state = { state: "completed", snapshot: parseCompletedSnapshot({ schemaVersion: 2, id: lease.jobId, completedAt: now, input: this.input, ...completion }) };
     return true;
   }
   async fail(lease: LeaseIdentity, failure: ServiceFailure, now: string) {
@@ -93,7 +100,10 @@ export function dependencies(jobs = new MemoryJobs()): RuntimeDependencies {
     jobs,
     climateCache: { async read() { return null; }, async put() {} },
     prepareClimate: async () => ({ kind: "ready", snapshots: [snapshot] }),
-    readRegistryRelease,
+    readRegistryRelease: (version = controlledRegistry.identity.catalogueVersion) => {
+      if (version !== controlledRegistry.identity.catalogueVersion) throw new RangeError("Unknown controlled worker release.");
+      return controlledRegistry;
+    },
     calculate: run => resultForRun(run),
     settings: { version: "test-v1", targetSeasons: 25, minimumUsableSeasons: 15, structuralExpansionLimit: 10, gridExpansionLimit: 10, scoredCandidateLimit: 10, searchGridStepDays: 7, mismatchWindowDays: 7, dryDayThresholdMm: 1, rankingDecimalPlaces: 6, adverseQuantile: 0.9 },
     workerId: "test-worker",

@@ -9,7 +9,7 @@ const catalogueEntry = z.strictObject({
   label: labels,
   purpose: z.enum(["food", "cover"]),
 });
-const catalogueSchema = z.strictObject({ version: labels, entries: z.array(catalogueEntry).readonly() }).readonly();
+export const catalogueSchema = z.strictObject({ version: labels, entries: z.array(catalogueEntry).readonly() }).readonly();
 export type Catalogue = z.infer<typeof catalogueSchema>;
 
 const bounds = z.strictObject({

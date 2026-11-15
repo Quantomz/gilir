@@ -19,7 +19,7 @@ function injectedControls(result: CompletedSnapshot["result"]): AcceptanceContro
   const evidence = { manifest: run.manifest, digest: "controlled-frozen-digest", providerSnapshots: 3, syntheticSnapshots: 0, firstDate: "2000-06-30", lastDate: "2026-06-30", snapshots: [], settings: defaultEngineSettings, requiredSourcePeriod: historicalPeriod(input.planningStart, run.manifest.dataCutoff, run.settings) };
   return {
     input, expectedState: result.state,
-    client: { catalogue: async () => ({ version: "controlled-only", entries: [] }), submit: async () => ({ kind: "accepted", capability: { jobId: snapshot.id, token: "controlled-token" } }), read: async () => ({ state: "completed", snapshot }), remove: vi.fn(async () => {}) },
+    client: { catalogue: async () => ({ version: "controlled-only", entries: [] }), submit: async () => ({ kind: "accepted", capability: { jobId: "00000000-0000-4000-8000-000000000002", token: "controlled-token" } }), read: async () => ({ state: "completed", snapshot }), remove: vi.fn(async () => {}) },
     rejectUnauthorized: async () => {}, freezeAndCrash: async () => evidence, finishAfterRestart: async () => snapshot, readFrozen: async () => evidence, restartWeb: async () => {}, assertPrivateLogs: async () => {},
   };
 }

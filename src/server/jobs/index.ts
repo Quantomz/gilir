@@ -5,7 +5,7 @@ import type { FarmInput } from "@/contracts/input";
 import { farmInputSchema } from "@/contracts/input";
 import type { FrozenRun } from "@/contracts/engine";
 import type { JobClaim, JobState, JobStore, LeaseIdentity } from "@/contracts/jobs";
-import { parseCompletedSnapshot, serviceFailureSchema } from "@/contracts/result";
+import { parseCompletedSnapshot, serviceFailureSchema, snapshotCompletionSchema } from "@/contracts/result";
 
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
@@ -104,14 +104,24 @@ export function createPgJobStore(pool: Pool): JobStore {
         run.manifest.catalogueVersion, run.manifest.ruleVersion, run.manifest.dataCutoff]);
       return result.rowCount === 1;
     },
-    async complete(lease, result, now) {
+    async complete(lease, completion, now) {
+      const parsed = snapshotCompletionSchema.safeParse(completion);
+      if (!parsed.success) return false;
       const written = await pool.query(`
         UPDATE jobs SET state = 'completed', terminal_at = $4::timestamptz,
-          snapshot = jsonb_build_object('schemaVersion', 1, 'id', id::text, 'completedAt', $6::text, 'input', input, 'result', $5::jsonb),
+          snapshot = jsonb_build_object('schemaVersion', 2, 'id', id::text, 'completedAt', $6::text, 'input', input, 'result', $5::jsonb->'result', 'catalogue', $5::jsonb->'catalogue'),
           lease_owner = NULL, lease_id = NULL, lease_expires_at = NULL
         WHERE ${activeLease} AND frozen_run IS NOT NULL AND state = 'calculating'
-          AND ($5::jsonb #> '{details,provenance,manifest}') = jsonb_build_object('kind', 'available', 'value', frozen_run->'manifest')`,
-      [...leaseArgs(lease, now), JSON.stringify(result), new Date(now).toISOString()]);
+          AND ($5::jsonb #> '{result,details,provenance,manifest}') = jsonb_build_object('kind', 'available', 'value', frozen_run->'manifest')
+          AND ($5::jsonb #>> '{catalogue,version}') = (frozen_run #>> '{manifest,catalogueVersion}')
+          AND NOT EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(input->'cropPurposeIds') selected(id)
+            WHERE NOT EXISTS (
+              SELECT 1 FROM jsonb_array_elements($5::jsonb #> '{catalogue,entries}') entry
+              WHERE entry->>'id' = selected.id
+            )
+          )`,
+      [...leaseArgs(lease, now), JSON.stringify(parsed.data), new Date(now).toISOString()]);
       return written.rowCount === 1;
     },
     async fail(lease, failure, now) {

@@ -11,7 +11,7 @@ afterEach(() => {
   vi.doUnmock("idb");
 });
 
-const capability = { jobId: "synthetic-job", token: "synthetic-local-fixture-token" };
+const capability = { jobId: "00000000-0000-4000-8000-000000000001", token: "synthetic-local-fixture-token" };
 const state: LocalState = { draft: inputFixture, step: 2, activeJob: capability, snapshot: completedSnapshotFixture };
 
 function rejection(call: Promise<unknown>): Promise<Error> {

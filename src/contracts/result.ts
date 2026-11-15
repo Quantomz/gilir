@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { count, cropPurposeIdSchema, evidence, fraction, isoDateSchema, labels, positiveDays, sourceReferenceSchema } from "./common";
 import { farmInputSchema } from "./input";
+import { catalogueSchema } from "./registry";
 
 const dateInterval = z.strictObject({ start: isoDateSchema, endExclusive: isoDateSchema }).refine(
   interval => interval.start < interval.endExclusive, "Start must come before the exclusive end.",
@@ -221,13 +222,54 @@ export const planResultSchema = z.discriminatedUnion("state", [
 ]).readonly();
 export type PlanResult = z.infer<typeof planResultSchema>;
 
-export const completedSnapshotSchema = z.strictObject({
+export const completedSnapshotV1Schema = z.strictObject({
   schemaVersion: z.literal(1),
   id: labels,
   completedAt: z.iso.datetime(),
   input: farmInputSchema,
   result: planResultSchema,
 }).readonly();
+export type CompletedSnapshotV1 = z.infer<typeof completedSnapshotV1Schema>;
+
+export const completedSnapshotSchemaVersion = 2 as const;
+const completionFields = { result: planResultSchema, catalogue: catalogueSchema };
+const completionSchema = z.strictObject(completionFields);
+
+function validateCompletion(completion: z.infer<typeof completionSchema>, context: z.RefinementCtx): void {
+  const manifest = completion.result.details.provenance.manifest;
+  if (manifest.kind !== "available") {
+    context.addIssue({ code: "custom", path: ["result", "details", "provenance", "manifest"], message: "Completion requires an available run manifest." });
+  } else if (completion.catalogue.version !== manifest.value.catalogueVersion) {
+    context.addIssue({ code: "custom", path: ["catalogue", "version"], message: "Catalogue must match the result's run manifest." });
+  }
+  const ids = new Set<string>();
+  completion.catalogue.entries.forEach((entry, index) => {
+    if (ids.has(entry.id)) context.addIssue({ code: "custom", path: ["catalogue", "entries", index, "id"], message: "Catalogue entry IDs must be unique." });
+    ids.add(entry.id);
+  });
+}
+
+export const snapshotCompletionSchema = completionSchema.superRefine(validateCompletion).readonly();
+export type SnapshotCompletion = z.infer<typeof snapshotCompletionSchema>;
+
+export const completedSnapshotV2Schema = z.strictObject({
+  schemaVersion: z.literal(completedSnapshotSchemaVersion),
+  id: labels,
+  completedAt: z.iso.datetime(),
+  input: farmInputSchema,
+  ...completionFields,
+}).superRefine((snapshot, context) => {
+  validateCompletion(snapshot, context);
+  const ids = new Set(snapshot.catalogue.entries.map(entry => entry.id));
+  snapshot.input.cropPurposeIds.forEach((id, index) => {
+    if (!ids.has(id)) context.addIssue({ code: "custom", path: ["input", "cropPurposeIds", index], message: "Selected crop must have a saved catalogue entry." });
+  });
+}).readonly();
+export type CompletedSnapshotV2 = z.infer<typeof completedSnapshotV2Schema>;
+
+export const completedSnapshotSchema = z.discriminatedUnion("schemaVersion", [
+  completedSnapshotV1Schema.unwrap(), completedSnapshotV2Schema.unwrap(),
+]).readonly();
 export type CompletedSnapshot = z.infer<typeof completedSnapshotSchema>;
 
 export const parsePlanResult = (raw: unknown): PlanResult => planResultSchema.parse(raw);

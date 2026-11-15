@@ -103,12 +103,12 @@ describe.skipIf(!process.env.I1_TEST_DATABASE_URL)("I1 real adapters with contro
     const failure = { code: "processing_failed", message: "Controlled stale worker failure.", retryable: false } as const;
     expect(await jobs.renew(first.lease, nextTime, 60)).toBe(false);
     expect(await jobs.freeze(first.lease, run, nextTime)).toBe(false);
-    expect(await jobs.complete(first.lease, calculate(run), nextTime)).toBe(false);
+    expect(await jobs.complete(first.lease, { result: calculate(run), catalogue: controlledRegistry.catalogue }, nextTime)).toBe(false);
     expect(await jobs.fail(first.lease, failure, nextTime)).toBe(false);
     expect(await jobs.freeze(second.lease, run, nextTime)).toBe(true);
     expect(await jobs.freeze(second.lease, { ...run, settings: { ...run.settings, targetSeasons: 24 } }, nextTime)).toBe(false);
     await expect(db.pool.query("UPDATE jobs SET frozen_run = frozen_run || '{\"settings\":{}}'::jsonb WHERE id = $1", [capability.jobId])).rejects.toThrow("Frozen run is immutable");
-    expect(await jobs.complete(second.lease, calculate(run), nextTime)).toBe(true);
+    expect(await jobs.complete(second.lease, { result: calculate(run), catalogue: controlledRegistry.catalogue }, nextTime)).toBe(true);
     const recent = await jobs.create({ input, registry: controlledRegistry.identity, cutoff, createdAt: "2026-11-14T00:00:00Z" });
     expect(await jobs.purgeExpired("2026-11-11T00:00:02.000Z")).toBe(0);
     expect(await jobs.purgeExpired("2026-11-11T00:00:02.001Z")).toBe(1);

@@ -1,14 +1,16 @@
+import { z } from "zod";
 import type { FarmInput } from "./input";
 import type { ClimateSnapshot } from "./climate";
 import type { FrozenRun } from "./engine";
 import type { Catalogue, RegistryIdentity } from "./registry";
 import type { IsoDate } from "./common";
-import type { CompletedSnapshot, PlanResult, ServiceFailure } from "./result";
+import type { CompletedSnapshot, SnapshotCompletion, ServiceFailure } from "./result";
 
-export interface JobCapability {
-  readonly jobId: string;
-  readonly token: string;
-}
+export const jobCapabilitySchema = z.strictObject({
+  jobId: z.string().uuid(),
+  token: z.string().min(1).max(512),
+}).readonly();
+export type JobCapability = z.infer<typeof jobCapabilitySchema>;
 
 export type JobState =
   | { readonly state: "queued" | "fetching" | "calculating" }
@@ -64,7 +66,7 @@ export interface JobStore {
   }): Promise<JobClaim | null>;
   renew(lease: LeaseIdentity, now: string, leaseSeconds: number): Promise<boolean>;
   freeze(lease: LeaseIdentity, run: FrozenRun, now: string): Promise<boolean>;
-  complete(lease: LeaseIdentity, result: PlanResult, now: string): Promise<boolean>;
+  complete(lease: LeaseIdentity, completion: SnapshotCompletion, now: string): Promise<boolean>;
   fail(lease: LeaseIdentity, failure: ServiceFailure, now: string): Promise<boolean>;
 }
 
