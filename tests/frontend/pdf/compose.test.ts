@@ -663,6 +663,20 @@ describe("real registry and engine text", () => {
     expect(text.filter(line => line.includes("brussels sprouts"))).toEqual([]);
   });
 
+  it("a crop profile note is headed by words true of any note, such as one about which FAO-56 row was read", () => {
+    const note = registry.profiles.flatMap(profile => profile.warnings).find(warning => !/water|rain/i.test(warning));
+    if (note === undefined) throw new Error("the release has no profile note about anything but water");
+    const crop = parseCropPurposeId("synthetic-crop");
+    const doc = (cropPurposeIds: readonly CropPurposeId[]) => textOf(compose(withDetails(completedSnapshotsByState.plan, {
+      warnings: [{ code: "profile_limitation", message: note, cropPurposeIds, ruleIds: [], metricIds: [] }],
+    }), britishReader));
+    const named = doc([crop]);
+    expect(named[named.indexOf(note) - 1]).toBe("About the growing details for synthetic crop");
+    const unnamed = doc([]);
+    expect(unnamed[unnamed.indexOf(note) - 1]).toBe("About the growing details we used");
+    expect([...named, ...unnamed].join(" ")).not.toContain("water check");
+  });
+
   describe("a no-fit report’s advice follows its proof", () => {
     const rice = parseCropPurposeId("rice-paddy");
     const soybean = parseCropPurposeId("soybean-grain");

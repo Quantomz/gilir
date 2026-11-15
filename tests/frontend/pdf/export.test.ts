@@ -212,7 +212,7 @@ describe("what each state prints", () => {
 
   it("notes (profile_limitation, search_limit, water_context, approximate_history) print under Good to know in every state", async () => {
     const notes = [
-      ["profile_limitation", "What the checks leave out"],
+      ["profile_limitation", "About the growing details we used"],
       ["search_limit", "The search stopped at its limit"],
       ["water_context", "Your backup water isn’t counted"],
       ["approximate_history", "Your dates for last year are estimates"],

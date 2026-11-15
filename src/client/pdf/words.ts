@@ -96,7 +96,7 @@ export const warningHeads: Record<WarningCode, (who: string | null, many: boolea
   temperature_exposure: who => `Temperatures went outside the limits for ${who ?? "a crop"}`,
   environmental_rule: who => `A published rule about this place flagged ${who ?? "the plan"}`,
   rotation_rule: who => `A rule about which crop may follow which flagged ${who ?? "the plan"}`,
-  profile_limitation: who => (who === null ? "What the checks leave out" : `What the water check leaves out for ${who}`),
+  profile_limitation: who => (who === null ? "About the growing details we used" : `About the growing details for ${who}`),
   search_limit: () => "The search stopped at its limit",
   water_context: (_who, _many, water) => (water === "rain_plus_backup" ? "Your backup water isn’t counted" : "Only rain is counted"),
   approximate_history: () => "Your dates for last year are estimates",
