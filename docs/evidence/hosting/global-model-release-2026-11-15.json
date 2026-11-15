@@ -1,0 +1,88 @@
+{
+  "origin": "https://gilir.up.railway.app",
+  "checkedAt": "2026-11-15T16:02:49.209Z",
+  "claim": "Fresh hosted browser submission through deployed web, PostgreSQL and worker, with NASA-backed result and offline PDF export.",
+  "catalogueVersion": "fao56-global-32-2026-11-15",
+  "entries": 32,
+  "resultTitle": "Your plan, with warnings",
+  "state": "plan_with_warnings",
+  "snapshotVersion": 3,
+  "manifestVersion": 2,
+  "engineVersion": "thermal-model-v1",
+  "modelReleaseHash": "71386782c0b1a6ef76c8479b5482539003cc6bde5c760b621f09bd06a75b6246",
+  "snapshotSha256": "a41a5270333b1a56d12071b108b2f0db7d41117552da3a577f1ddd5bafd251c7",
+  "pollStates": [
+    "queued",
+    "fetching",
+    "calculating",
+    "completed"
+  ],
+  "providers": [],
+  "pageErrors": [],
+  "hosting": {
+    "workspace": "Nefalos",
+    "projectId": "a110cf19-bdbc-45eb-9769-e4c98ffeee82",
+    "environmentId": "05626386-ac59-4759-9f42-2118d6941513",
+    "origin": "https://gilir.up.railway.app",
+    "workerAttempt": {
+      "id": "29ac7dde-5628-42a7-b01b-812e7f31e594",
+      "status": "FAILED before deployment",
+      "cause": "Docker excludes docs imported by development model generator; confirmed TS2307 in local container reproduction"
+    },
+    "liveVerification": "PASS; fresh public browser submission, matching worker completion, saved reload, offline PDF, 360/1280 px screenshots, 17 PDF pages visually inspected",
+    "workerRelease": {
+      "id": "4155056a-ab26-458e-add2-6790d54ac46d",
+      "commit": "8494a7e571abae32164814bb0b4aaf69d2eeaa0f",
+      "status": "SUCCESS",
+      "readyAt": "2026-11-15T15:58:39.497403864Z",
+      "oldWorkerRemovedAt": "2026-11-15T15:59:42.813Z"
+    },
+    "webRelease": {
+      "id": "24607b1e-d2ec-4102-8bb5-83816fd1f421",
+      "commit": "8494a7e571abae32164814bb0b4aaf69d2eeaa0f",
+      "status": "SUCCESS",
+      "readyAt": "2026-11-15T16:01:46.890Z",
+      "imageDigest": "sha256:cdcc0195be04fee5e4b2b7c9fb4f1814124b20ba614dc5bf482450b1652feac4"
+    },
+    "cleanup": "Unchanged; scheduled run succeeded at 2026-11-15T16:02:59.081Z",
+    "publicFixtureStatus": 404
+  },
+  "mergedFeature": "2bfa72f1e12d2b107fc02d951f0d0b2eed6a49f6",
+  "mergedPackaging": "8494a7e571abae32164814bb0b4aaf69d2eeaa0f",
+  "productionWorkerCompletionMatchedSnapshot": true,
+  "dataCutoff": "2026-11-14",
+  "retainedSeasons": 25,
+  "climateProducts": 3,
+  "pdf": {
+    "name": "plan",
+    "sha256": "52a523a501b626761691e6d6a71a8422dd1716f11a865961a52195d263fda222",
+    "pages": 17,
+    "active": {
+      "Annots": 0,
+      "URI": 0,
+      "JavaScript": 0,
+      "Launch": 0,
+      "EmbeddedFile": 0
+    },
+    "fonts": [
+      "/Helvetica",
+      "/Helvetica-Bold"
+    ],
+    "textCharacters": 29674,
+    "passed": true
+  },
+  "visualInspection": {
+    "phoneWidth": 360,
+    "desktopWidth": 1280,
+    "pdfPages": 17,
+    "method": "Native PDFKit full-size first two pages and contact sheets for all 17 pages",
+    "notes": "Report is long because model assumptions and per-season domain diagnostics are included."
+  },
+  "map": {
+    "origin": "gilir.up.railway.app",
+    "tileJsonStatus": 200,
+    "checkedAt": "2026-11-15T15:48:20.366Z",
+    "scope": "Separate provider-origin HTTP check, not a rendered-map assertion; the fresh plan browser run recorded no map-provider responses."
+  },
+  "scientificLimit": "AI technical source and implementation review only. No agronomist approval or local suitability validation. Weather gaps or model no-fit remain valid outcomes."
+}
