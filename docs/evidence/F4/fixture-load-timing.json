@@ -1,0 +1,147 @@
+{
+  "what": "Fixture evidence. Time of localPlans.load() in Chromium under CDP Emulation.setCPUThrottlingRate 6, on the F4 harness. The big state holds a synthetic, contract-valid snapshot built from the plan_with_warnings fixture to the size mix of real engine snapshots (25 season metric sets, 85 insights, 19 assumptions). The small state holds the plan fixture.",
+  "command": "PATH=/opt/node24/bin:$PATH env -u CLAUDECODE -u AI_AGENT PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test -c tests/frontend/persistence/playwright.config.ts storage.spec -g \"phone-speed\" --repeat-each 5 --reporter=json",
+  "snapshotJsonBytes": 306322,
+  "machine": {
+    "cpus": 4,
+    "loadAverageBefore": "6.17 7.02 7.65",
+    "loadAverageAfter": "7.89 7.33 7.73",
+    "note": "Shared machine: other jobs were running Next.js servers and Chromium at the same time.",
+    "chromium": "Google Chrome for Testing 153.0.8010.12, headless"
+  },
+  "summary": {
+    "runs": 5,
+    "allPassed": true,
+    "coldFirstLoadMs": {
+      "median": 149,
+      "min": 134.1,
+      "max": 316.2
+    },
+    "warmBigLoadMs": {
+      "samples": 35,
+      "median": 64.6,
+      "min": 22.7,
+      "max": 367.8
+    },
+    "warmSmallLoadMs": {
+      "samples": 35,
+      "median": 13.4,
+      "min": 8.1,
+      "max": 39.7
+    },
+    "limitMs": 5000
+  },
+  "runsDetail": [
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 149,
+      "warmBigMs": [
+        69.8,
+        41.8,
+        53.3,
+        74.7,
+        58.5,
+        145,
+        49.7
+      ],
+      "warmSmallMs": [
+        14.4,
+        39.7,
+        12.9,
+        10.8,
+        14.1,
+        15.1,
+        10.5
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 134.1,
+      "warmBigMs": [
+        70.2,
+        112,
+        69.3,
+        59.7,
+        46.7,
+        44.1,
+        56
+      ],
+      "warmSmallMs": [
+        18.2,
+        26,
+        12.2,
+        14.2,
+        8.7,
+        13.4,
+        16
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 316.2,
+      "warmBigMs": [
+        64.6,
+        43.8,
+        59.9,
+        115.8,
+        32.2,
+        112.2,
+        49.8
+      ],
+      "warmSmallMs": [
+        17.7,
+        12.1,
+        11.3,
+        9.8,
+        32.1,
+        18.8,
+        18.3
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 284.7,
+      "warmBigMs": [
+        121.6,
+        105.9,
+        82.6,
+        30.5,
+        61.2,
+        32.2,
+        238.9
+      ],
+      "warmSmallMs": [
+        30.7,
+        10.9,
+        10.6,
+        8.1,
+        14,
+        23,
+        10.8
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 137.5,
+      "warmBigMs": [
+        75.6,
+        22.7,
+        157,
+        367.8,
+        65.2,
+        47,
+        205.6
+      ],
+      "warmSmallMs": [
+        16.2,
+        33.3,
+        8.6,
+        12.3,
+        11.1,
+        11.1,
+        11.4
+      ]
+    }
+  ],
+  "limiter": "One separate profiled run (not timed here): the sampled JavaScript time in load was mostly zod parsing the snapshot and the IndexedDB read handing back the stored value, both on the page's main thread. The throttle slows only that thread. IndexedDB disk work runs in the browser process and is not throttled, so a real phone's slower storage is not modelled. Unthrottled, the same load took a median of 7 to 8.5 ms in that run, so the throttle multiplied it by about 4.5, not 6."
+}
