@@ -118,6 +118,11 @@ describe.skipIf(!connectionString)("PostgreSQL durable jobs", () => {
     const result = calculate(frozen, registry, { buildCohort: () => cohort });
     expect(result.state).toBe("plan");
     expect(await store.complete(lease.lease, { result: { ...result, details: { ...result.details, modeling: undefined } }, catalogue: registry.catalogue }, now)).toBe(false);
+    if (!("plan" in result)) throw new Error("Expected modeled plan.");
+    const inconsistent = { ...result, plan: { ...result.plan, occurrences: result.plan.occurrences.map(occurrence => ({
+      ...occurrence, modeledTiming: occurrence.modeledTiming ? { ...occurrence.modeledTiming, earliestHarvest: occurrence.planted } : undefined,
+    })) } };
+    expect(await store.complete(lease.lease, { result: inconsistent, catalogue: registry.catalogue }, now)).toBe(false);
     expect(await store.complete(lease.lease, { result, catalogue: registry.catalogue }, now)).toBe(true);
     const saved = await store.get(capability);
     expect(saved).toMatchObject({ state: "completed", snapshot: { schemaVersion: 3, result } });

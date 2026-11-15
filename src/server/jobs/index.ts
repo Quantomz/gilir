@@ -5,7 +5,7 @@ import type { FarmInput } from "@/contracts/input";
 import { farmInputSchema } from "@/contracts/input";
 import type { FrozenRun } from "@/contracts/engine";
 import type { JobClaim, JobState, JobStore, LeaseIdentity } from "@/contracts/jobs";
-import { completedSnapshotVersionFor, parseCompletedSnapshot, serviceFailureSchema, snapshotCompletionSchema } from "@/contracts/result";
+import { completedSnapshotV3Schema, completedSnapshotVersionFor, parseCompletedSnapshot, serviceFailureSchema, snapshotCompletionSchema } from "@/contracts/result";
 
 function canonicalJson(value: unknown): string {
   if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
@@ -107,6 +107,13 @@ export function createPgJobStore(pool: Pool): JobStore {
     async complete(lease, completion, now) {
       const parsed = snapshotCompletionSchema.safeParse(completion);
       if (!parsed.success) return false;
+      const schemaVersion = completedSnapshotVersionFor(parsed.data.result);
+      if (schemaVersion === 3) {
+        const current = await pool.query<{ input: unknown }>(`SELECT input FROM jobs WHERE ${activeLease} AND frozen_run IS NOT NULL AND state = 'calculating'`, leaseArgs(lease, now));
+        if (!current.rows[0] || !completedSnapshotV3Schema.safeParse({
+          schemaVersion, id: lease.jobId, completedAt: new Date(now).toISOString(), input: current.rows[0].input, ...parsed.data,
+        }).success) return false;
+      }
       const written = await pool.query(`
         UPDATE jobs SET state = 'completed', terminal_at = $4::timestamptz,
           snapshot = jsonb_build_object('schemaVersion', $7::int, 'id', id::text, 'completedAt', $6::text, 'input', input, 'result', $5::jsonb->'result', 'catalogue', $5::jsonb->'catalogue'),
@@ -121,7 +128,7 @@ export function createPgJobStore(pool: Pool): JobStore {
               WHERE entry->>'id' = selected.id
             )
           )`,
-      [...leaseArgs(lease, now), JSON.stringify(parsed.data), new Date(now).toISOString(), completedSnapshotVersionFor(parsed.data.result)]);
+      [...leaseArgs(lease, now), JSON.stringify(parsed.data), new Date(now).toISOString(), schemaVersion]);
       return written.rowCount === 1;
     },
     async fail(lease, failure, now) {
