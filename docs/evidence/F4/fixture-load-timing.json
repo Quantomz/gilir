@@ -1,147 +1,261 @@
 {
-  "what": "Fixture evidence. Time of localPlans.load() in Chromium under CDP Emulation.setCPUThrottlingRate 6, on the F4 harness. The big state holds a synthetic, contract-valid snapshot built from the plan_with_warnings fixture to the size mix of real engine snapshots (25 season metric sets, 85 insights, 19 assumptions). The small state holds the plan fixture.",
+  "what": "Fixture evidence. Time of localPlans.load(), and of F1's write (a load, then a save of the whole state with a new step), in Chromium under CDP Emulation.setCPUThrottlingRate 6, on the F4 harness. The big state holds a synthetic, contract-valid snapshot built from the plan_with_warnings fixture to the size mix of real engine snapshots (25 season metric sets, 85 insights, 19 assumptions). The small state holds the plan fixture.",
   "command": "PATH=/opt/node24/bin:$PATH env -u CLAUDECODE -u AI_AGENT PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test -c tests/frontend/persistence/playwright.config.ts storage.spec -g \"phone-speed\" --repeat-each 5 --reporter=json",
   "snapshotJsonBytes": 306322,
   "machine": {
     "cpus": 4,
-    "loadAverageBefore": "6.17 7.02 7.65",
-    "loadAverageAfter": "7.89 7.33 7.73",
-    "note": "Shared machine: other jobs were running Next.js servers and Chromium at the same time.",
+    "loadAverageBefore": "16.91 10.99 7.34",
+    "loadAverageAfter": "10.87 10.09 7.15",
+    "note": "Shared machine: other jobs' sessions were active on it.",
     "chromium": "Google Chrome for Testing 153.0.8010.12, headless"
   },
   "summary": {
     "runs": 5,
     "allPassed": true,
     "coldFirstLoadMs": {
-      "median": 149,
-      "min": 134.1,
-      "max": 316.2
+      "median": 84.5,
+      "min": 58.1,
+      "max": 90.2
     },
     "warmBigLoadMs": {
       "samples": 35,
-      "median": 64.6,
-      "min": 22.7,
-      "max": 367.8
+      "median": 45.9,
+      "min": 29.5,
+      "max": 68.7
     },
     "warmSmallLoadMs": {
       "samples": 35,
-      "median": 13.4,
-      "min": 8.1,
-      "max": 39.7
+      "median": 11.4,
+      "min": 6.1,
+      "max": 22.6
+    },
+    "writeLoadMs": {
+      "samples": 35,
+      "median": 36.1,
+      "min": 24.4,
+      "max": 65.3
+    },
+    "writeSaveMs": {
+      "samples": 35,
+      "median": 53.4,
+      "min": 34.9,
+      "max": 79.8
+    },
+    "writeTotalMs": {
+      "samples": 35,
+      "median": 94.5,
+      "min": 59.3,
+      "max": 125.1
     },
     "limitMs": 5000
   },
   "runsDetail": [
     {
       "status": "passed",
-      "coldFirstLoadMs": 149,
+      "coldFirstLoadMs": 86.2,
       "warmBigMs": [
-        69.8,
-        41.8,
-        53.3,
-        74.7,
-        58.5,
-        145,
-        49.7
+        49.8,
+        37.4,
+        60.6,
+        57.2,
+        47.8,
+        39.5,
+        43.4
       ],
       "warmSmallMs": [
-        14.4,
-        39.7,
-        12.9,
-        10.8,
-        14.1,
-        15.1,
-        10.5
-      ]
-    },
-    {
-      "status": "passed",
-      "coldFirstLoadMs": 134.1,
-      "warmBigMs": [
-        70.2,
-        112,
-        69.3,
-        59.7,
-        46.7,
-        44.1,
-        56
-      ],
-      "warmSmallMs": [
-        18.2,
-        26,
-        12.2,
-        14.2,
-        8.7,
-        13.4,
-        16
-      ]
-    },
-    {
-      "status": "passed",
-      "coldFirstLoadMs": 316.2,
-      "warmBigMs": [
-        64.6,
-        43.8,
-        59.9,
-        115.8,
-        32.2,
-        112.2,
-        49.8
-      ],
-      "warmSmallMs": [
-        17.7,
-        12.1,
+        22.6,
+        15.7,
+        13.9,
+        11.5,
         11.3,
+        20,
+        18.7
+      ],
+      "writeStatus": "passed",
+      "writeLoadMs": [
+        39.9,
+        29.3,
+        47.1,
+        35,
+        24.4,
+        25.8,
+        50.9
+      ],
+      "writeSaveMs": [
+        50,
+        50.7,
+        44.4,
+        56.8,
+        34.9,
+        44.8,
+        44.9
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 90.2,
+      "warmBigMs": [
+        29.5,
+        33.4,
+        52.5,
+        42.3,
+        59.3,
+        48.2,
+        51.3
+      ],
+      "warmSmallMs": [
+        14.6,
+        11.4,
+        8.4,
         9.8,
-        32.1,
-        18.8,
-        18.3
+        9.9,
+        9.7,
+        16.7
+      ],
+      "writeStatus": "passed",
+      "writeLoadMs": [
+        47.4,
+        33.5,
+        58.7,
+        36.3,
+        41.6,
+        49,
+        30.1
+      ],
+      "writeSaveMs": [
+        60.1,
+        57.3,
+        53.8,
+        79.8,
+        44.1,
+        46.2,
+        61.5
       ]
     },
     {
       "status": "passed",
-      "coldFirstLoadMs": 284.7,
+      "coldFirstLoadMs": 58.1,
       "warmBigMs": [
-        121.6,
-        105.9,
-        82.6,
-        30.5,
-        61.2,
-        32.2,
-        238.9
+        36.8,
+        45,
+        39.2,
+        47.3,
+        57.9,
+        42.9,
+        48.3
       ],
       "warmSmallMs": [
-        30.7,
-        10.9,
-        10.6,
-        8.1,
-        14,
-        23,
-        10.8
-      ]
-    },
-    {
-      "status": "passed",
-      "coldFirstLoadMs": 137.5,
-      "warmBigMs": [
-        75.6,
-        22.7,
-        157,
-        367.8,
-        65.2,
-        47,
-        205.6
+        19.3,
+        17.3,
+        9.4,
+        9.8,
+        14.7,
+        8.8,
+        12.9
       ],
-      "warmSmallMs": [
-        16.2,
+      "writeStatus": "passed",
+      "writeLoadMs": [
+        38.9,
         33.3,
-        8.6,
-        12.3,
-        11.1,
-        11.1,
-        11.4
+        65.3,
+        32.3,
+        41.4,
+        41.5,
+        29.2
+      ],
+      "writeSaveMs": [
+        56,
+        67.7,
+        59.8,
+        64.3,
+        59.6,
+        53.4,
+        44.1
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 69.1,
+      "warmBigMs": [
+        38.1,
+        43.4,
+        33.7,
+        37.4,
+        51.5,
+        33.4,
+        38.6
+      ],
+      "warmSmallMs": [
+        11.9,
+        9.5,
+        9,
+        7.4,
+        7.5,
+        8.2,
+        9.4
+      ],
+      "writeStatus": "passed",
+      "writeLoadMs": [
+        36.1,
+        32.9,
+        50.7,
+        34,
+        32.7,
+        37.9,
+        33.6
+      ],
+      "writeSaveMs": [
+        55.8,
+        61.6,
+        47.6,
+        65,
+        46.9,
+        41.4,
+        45.1
+      ]
+    },
+    {
+      "status": "passed",
+      "coldFirstLoadMs": 84.5,
+      "warmBigMs": [
+        48.6,
+        45.9,
+        37.7,
+        65.7,
+        51.7,
+        62.5,
+        68.7
+      ],
+      "warmSmallMs": [
+        18.6,
+        10.9,
+        9,
+        12.6,
+        13,
+        12.2,
+        6.1
+      ],
+      "writeStatus": "passed",
+      "writeLoadMs": [
+        41.1,
+        33.2,
+        55.5,
+        37.2,
+        33.8,
+        31.8,
+        29.6
+      ],
+      "writeSaveMs": [
+        61.1,
+        61.3,
+        46.9,
+        60.8,
+        49,
+        47,
+        48.3
       ]
     }
   ],
-  "limiter": "One separate profiled run (not timed here): the sampled JavaScript time in load was mostly zod parsing the snapshot and the IndexedDB read handing back the stored value, both on the page's main thread. The throttle slows only that thread. IndexedDB disk work runs in the browser process and is not throttled, so a real phone's slower storage is not modelled. Unthrottled, the same load took a median of 7 to 8.5 ms in that run, so the throttle multiplied it by about 4.5, not 6."
+  "limiter": "One separate profiled run (not timed here): the sampled JavaScript time in load was mostly zod parsing the snapshot and the IndexedDB read handing back the stored value, both on the page's main thread. The throttle slows only that thread. IndexedDB disk work runs in the browser process and is not throttled, so a real phone's slower storage is not modelled. Unthrottled, the same load took a median of 7 to 8.5 ms in that run, so the throttle multiplied it by about 4.5, not 6.",
+  "saveCost": "save reads the stored record and parses it in full, so an unreadable part is set aside before the state is replaced. A scratch benchmark (not committed) ran F1's write 11 times per run on the same 306,322-byte state at the same throttle, alternating 54a76bc's storage.ts, whose save parsed nothing, with this one, 5 runs each: save median 36.7 ms (runs 30.9 to 40.5) before and 51.4 ms (47.0 to 56.4) now, write median 72.5 ms (70.3 to 83.2) before and 87.4 ms (84.1 to 105.4) now, with no errors and the snapshot intact in every run. That parse is the only work save added between the two sides. readStorageNotice parses the saved state once per call as well."
 }

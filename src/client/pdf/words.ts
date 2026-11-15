@@ -10,7 +10,8 @@ type WarningCode = ResultWarning["code"];
 type GapCode = EvidenceGap["code"];
 type RankingMetricId = (typeof rankingMetricIds)[number];
 type MetricUnit = AssessmentMetric["unit"];
-type Delta = Extract<BaselineComparison, { kind: "assessed" }>["deltas"][number];
+type AssessedBaseline = Extract<BaselineComparison, { kind: "assessed" }>;
+type Delta = AssessedBaseline["deltas"][number];
 
 export const brand = "Gilir · A crop plan from past seasons";
 export const documentTitle = {
@@ -90,14 +91,14 @@ export const warningSections = { flagged: "What we flagged", goodToKnow: "Good t
 export const flagWhy = "We flag a crop if, in any past season, even one week had less rain than it needs, or a temperature outside its limits. The check is strict, so most plans have warnings.";
 export const flagWhyNot = "A warning doesn’t mean the crop fails, and it isn’t a prediction for next season. It shows where past seasons fell short, so you know what to watch.";
 export const flagCodes = ["rainfall_mismatch", "temperature_exposure", "environmental_rule", "rotation_rule"] as const satisfies readonly WarningCode[];
-export const warningHeads: Record<WarningCode, (who: string | null, many: boolean) => string> = {
+export const warningHeads: Record<WarningCode, (who: string | null, many: boolean, water: WaterAnswer) => string> = {
   rainfall_mismatch: (who, many) => `Rain fell short of what ${who === null ? "the crops need" : `${who} ${many ? "need" : "needs"}`} in past seasons`,
   temperature_exposure: who => `Temperatures went outside the limits for ${who ?? "a crop"}`,
   environmental_rule: who => `A published rule about this place flagged ${who ?? "the plan"}`,
   rotation_rule: who => `A rule about which crop may follow which flagged ${who ?? "the plan"}`,
-  profile_limitation: who => (who === null ? "What the checks leave out" : `What the water check leaves out for ${who}`),
+  profile_limitation: who => (who === null ? "About the growing details we used" : `About the growing details for ${who}`),
   search_limit: () => "The search stopped at its limit",
-  water_context: () => "Your backup water isn’t counted",
+  water_context: (_who, _many, water) => (water === "rain_plus_backup" ? "Your backup water isn’t counted" : "Only rain is counted"),
   approximate_history: () => "Your dates for last year are estimates",
 };
 
@@ -185,12 +186,15 @@ export const compare = {
   heading: "Compared with last year",
   skipped: "You skipped last year, so we didn’t compare.",
   notScored: "We couldn’t score last year’s rotation:",
-  reported: "What you told us about last year (not scored)",
+  reported: (scored: boolean) => `What you told us about last year${scored ? "" : " (not scored)"}`,
   kept: "Last year’s rotation ranked first, so we suggest keeping it.",
   changed: "The new plan ranked ahead of last year’s rotation.",
-  noRecommendation: "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
+  notEligible: "Last year’s rotation is shown for comparison only. It can’t be the suggestion, because it doesn’t meet every rule for a plan.",
+  noNewPlan: "Last year’s rotation is shown for comparison only. No new plan was made to compare it with.",
   estimatesAssessed: "Your dates are estimates. You said some of last year’s dates are approximate, so this comparison is approximate too.",
   estimatesNotAssessed: "Your dates are estimates. You said some of last year’s dates are approximate.",
+  estimatesScored: "Your dates are estimates. You said some of last year’s dates are approximate, so these numbers are approximate too.",
+  scored: "Last year’s rotation in past seasons",
   howTheyCompare: "How they compare",
   noNumbers: "No numbers to compare.",
   changesHeading: "Changes from last year",
@@ -207,11 +211,12 @@ export const compare = {
   planted: (aboutPlanted: boolean, planted: string, aboutHarvested: boolean, harvested: string) =>
     `Planted ${aboutPlanted ? "about " : ""}${planted} · Harvested ${aboutHarvested ? "about " : ""}${harvested}`,
 } as const;
-export const recommendations: Record<Extract<BaselineComparison, { kind: "assessed" }>["recommendation"], string> = {
-  kept: compare.kept,
-  changed: compare.changed,
-  no_recommendation: compare.noRecommendation,
-};
+/** The engine writes "changed" for every plan that isn't last year's, so only `eligible` says whether last year was ranked. */
+export function verdict({ recommendation, eligible }: AssessedBaseline): string {
+  if (recommendation === "kept") return compare.kept;
+  if (!eligible) return compare.notEligible;
+  return recommendation === "changed" ? compare.changed : compare.noNewPlan;
+}
 export const deltaNames: Readonly<Record<string, string>> = {
   mean_frequency: "Weeks with less rain than the crops need",
   mean_mismatch: "Average shortfall",
@@ -281,7 +286,14 @@ export const noPlan = {
   fitMinimum: (crop: string, days: string) => `${crop}: at least ${days}`,
   fitStops: "What stops them:",
   fitTried: (ways: string) => `We checked ${ways} of placing them.`,
-  fitNext: "Choose fewer crops, or crops that grow faster, then make the plan again.",
+  fitNext: (one: boolean) => (one
+    ? "Choose a crop that grows faster, then make the plan again."
+    : "Choose fewer crops, or crops that grow faster, then make the plan again."),
+  fitPlanting: (one: boolean, rules: boolean, start: string) =>
+    `${one ? "The time of year when your crop can be planted" : "The times of year when your crops can be planted"}`
+    + `${rules ? ", and the rules about which crop may follow which," : ""} leave${one && !rules ? "s" : ""} no way to fit `
+    + `${one ? "it" : "them all"} into one year from your start date, ${start}. `
+    + `Try ${one ? "another start date or another crop" : "another start date, other crops or fewer crops"}, then make the plan again.`,
   stoppedStructural: (tries: string, limit: string) => `We stopped after ${tries} at fitting your crops into your year (our limit is ${limit}), before we found an order that fits.`,
   stoppedScoring: (plans: string, limit: string) => `We stopped after scoring ${plans} (our limit is ${limit}).`,
   stoppedOther: "The search stopped before it found an order that fits.",
@@ -304,6 +316,7 @@ export const assumptionsHeading = "Assumptions";
 export const sources = {
   heading: "Sources, period and versions",
   cohort: (seasons: string, period: string) => `Checked against ${seasons}, ${period}.`,
+  weatherFrom: (seasons: string, period: string) => `Weather from ${seasons}, ${period}.`,
   cohortNone: "No complete past season could be used.",
   cohortUnavailable: (reason: string) => `Past seasons: ${reason}`,
   seasonsMethod: (version: string) => `Past seasons chosen with method ${version}.`,
@@ -319,7 +332,8 @@ export const sources = {
   versions: (engine: string, settings: string, crops: string, rules: string, cutoff: string) =>
     `Engine ${engine}, settings ${settings}, crop list ${crops}, rules ${rules}, records before ${cutoff}.`,
   weatherRecords: (list: string) => `Weather records: ${list}.`,
-  versionsMissing: (reason: string) => `Method versions: not recorded. ${reason}`,
+  versionsMissing: (reason: string) => `Engine and data versions: not recorded. ${reason}`,
+  methods: (list: string) => `Calculation methods: ${list}.`,
 } as const;
 export const closing = [
   "From past seasons. Not a prediction for next season. Checked with rain alone: backup water is not counted. No fertilizer amounts, costs or soil tests.",
@@ -329,7 +343,8 @@ export const closing = [
 
 export const notAvailable = "Not available";
 
-export const whole = (n: number) => Math.round(n).toLocaleString("en-US");
+/** Math.round(-0.3) is -0, which toLocaleString prints as "-0". */
+export const whole = (n: number) => (Math.round(n) || 0).toLocaleString("en-US");
 export function count(n: number, one: string, many = `${one}s`): string {
   return `${whole(n)} ${Math.round(n) === 1 ? one : many}`;
 }

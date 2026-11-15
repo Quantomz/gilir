@@ -1,9 +1,8 @@
 // CI does not run Playwright. Run it locally:
 //   PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test -c tests/frontend/persistence/playwright.config.ts
+// The harness takes a free port, so runs can overlap. Set F4_PORT to pin one.
 import { defineConfig } from "@playwright/test";
 import { chromiumPath } from "./support/chromium";
-
-process.env.F4_PORT ??= "3300";
 
 export default defineConfig({
   testDir: "..",

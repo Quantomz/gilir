@@ -5,7 +5,7 @@ import { farmInputSchema, farmInputSchemaVersion } from "@/contracts/input";
 import type { FarmInput } from "@/contracts/input";
 import { jobCapabilitySchema } from "@/contracts/jobs";
 import type { JobCapability } from "@/contracts/jobs";
-import { completedSnapshotSchema, completedSnapshotSchemaVersion } from "@/contracts/result";
+import { completedSnapshotSchema, completedSnapshotSchemaVersion, runManifestSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 
 export interface LocalState {
@@ -25,17 +25,25 @@ export interface LocalPlans {
  * farmer's. A rejection means this device can't do it now; null means nothing is saved. Every call settles within
  * CALL_LIMIT_MS, and a rejected call changes nothing.
  *  load:  the readable state, or null when nothing readable is saved. A part this version can't read is moved, exactly
- *         as found, to a set-aside record that readStorageNotice describes. Rejects "unavailable" or "newer", or "full"
- *         when that record did not fit. Unreadable parts are never a reason to reject.
- *  save:  replaces the whole state, so load first. Rejects "unavailable", "full" (the previous state stays) or "newer".
+ *         as found, to a set-aside record that readStorageNotice describes. On a full device that move waits for the
+ *         next save, and load still resolves. Rejects "unavailable" or "newer"; unreadable parts are never a reason.
+ *  save:  replaces the whole state, so load first. A part of the old state this version can't read is set aside
+ *         first. Rejects "unavailable", "full" (the previous state stays) or "newer".
  *  clear: removes the state and everything set aside. Rejects "newer" rather than delete what a later build wrote.
  *         Sends no request: deleting the server job is the caller's job.
  */
 export const localPlans: LocalPlans = {
-  load: () => onShelf(loadTurn),
-  save: state => onShelf(stored => saveTurn(stored, state)),
-  clear: () => onShelf(clearTurn),
+  load: () => started(onShelf(loadTurn)),
+  save: state => started(onShelf(stored => saveTurn(stored, state))),
+  clear: () => started(onShelf(clearTurn)),
 };
+
+let lastCall: Promise<unknown> = Promise.resolve();
+
+function started<T>(call: Promise<T>): Promise<T> {
+  lastCall = call.catch(() => undefined);
+  return call;
+}
 
 /** Why a storage call rejected: the three things a farmer can act on. */
 export type StorageReason = "unavailable" | "full" | "newer";
@@ -53,26 +61,54 @@ export function storageProblem(error: unknown): { readonly reason: StorageReason
 /** Saved data this version left out, in the farmer's words, with the one action that may remove it. */
 export interface StorageNotice {
   readonly text: string;
-  /** Removes the findings this notice showed, and only those. Never rejects; on failure the notice shows again later. */
+  /**
+   * Removes the set-aside findings this notice showed, and only those. Never rejects; on failure the notice shows again
+   * later. A part still in the saved state can't be removed here, so it shows again until a save or load sets it aside.
+   */
   dismiss(): Promise<void>;
 }
 
 /**
- * What was set aside on this shelf and not yet dismissed, or null. Reads only, so React Strict Mode's second effect
- * sees the same notice. Never rejects: a shelf that can't be read has nothing to tell, and `load` already said why.
+ * What was set aside on this shelf and not yet dismissed, and any part of the saved state this version can't read that
+ * a full device kept from being set aside, or null. It first waits for a localPlans call started on this page in the
+ * same tick or earlier, so it names what that load found whichever was called first. Reads only, so React Strict Mode's
+ * second effect sees the same notice. Never rejects: a shelf that can't be read has nothing to tell, and `load` already
+ * said why.
  */
 export async function readStorageNotice(): Promise<StorageNotice | null> {
-  const finds = await onShelf(noticeTurn).catch((): readonly Find[] => []);
+  await null;
+  await lastCall;
+  const { setAside, inState } = await onShelf(noticeTurn).catch((): Noticed => ({ setAside: [], inState: null }));
+  const finds = inState === null ? setAside : [...setAside, inState];
   if (finds.length === 0) return null;
   return {
     text: noticeText(finds),
-    dismiss: () => onShelf(stored => dismissTurn(stored, finds.length)).catch(() => undefined),
+    dismiss: () => onShelf(stored => dismissTurn(stored, setAside.length)).catch(() => undefined),
   };
 }
 
 /** Raising it sends versionchange to every open tab, and an older page then fails to open with VersionError. */
 const DATABASE_VERSION = 1;
 const RECORD_VERSION = 1;
+/**
+ * The contracts kept schemaVersion 1 while they added required fields (docs/contracts.md), so a restored value is
+ * parsed, never trusted by its version. Only a value above these marks data from a newer build. Every record carries
+ * its writer's versions: F1's drafts hold no schemaVersion, and reading a draft drops answer keys it doesn't know.
+ */
+const CONTRACTS = {
+  input: farmInputSchemaVersion,
+  snapshot: completedSnapshotSchemaVersion,
+  manifest: runManifestSchema.unwrap().shape.schemaVersion.value,
+} as const;
+
+type Contract = keyof typeof CONTRACTS;
+
+const versionsInState: { readonly [C in Contract]: readonly (readonly string[])[] } = {
+  input: [["draft", "schemaVersion"], ["snapshot", "input", "schemaVersion"]],
+  snapshot: [["snapshot", "schemaVersion"]],
+  manifest: [["snapshot", "result", "details", "provenance", "manifest", "value", "schemaVersion"]],
+};
+const contractNames = Object.keys(CONTRACTS) as Contract[];
 const CALL_LIMIT_MS = 5_000;
 const STORE = "records";
 const LAST_STEP = 4;
@@ -86,6 +122,7 @@ interface ShelfSchema extends DBSchema {
 interface StateRecord {
   readonly format: "gilir.local-state";
   readonly version: typeof RECORD_VERSION;
+  readonly contracts: typeof CONTRACTS;
   readonly state: LocalState;
 }
 
@@ -102,6 +139,7 @@ interface Find {
 interface SetAsideRecord {
   readonly format: "gilir.set-aside";
   readonly version: typeof RECORD_VERSION;
+  readonly contracts: typeof CONTRACTS;
   readonly finds: readonly Find[];
 }
 
@@ -115,10 +153,17 @@ function readHeader(raw: unknown): "empty" | "ours" | "newer" | "foreign" {
   if (!isObject(raw) || raw.format !== "gilir.local-state") return "foreign";
   if (isAbove(raw.version, RECORD_VERSION)) return "newer";
   if (raw.version !== RECORD_VERSION) return "foreign";
-  const state = isObject(raw.state) ? raw.state : {};
-  const newerDraft = isObject(state.draft) && isAbove(state.draft.schemaVersion, farmInputSchemaVersion);
-  const newerSnapshot = isObject(state.snapshot) && isAbove(state.snapshot.schemaVersion, completedSnapshotSchemaVersion);
-  return newerDraft || newerSnapshot ? "newer" : "ours";
+  const newer = stampedNewer(raw)
+    || contractNames.some(contract => versionsInState[contract].some(path => isAbove(at(raw.state, path), CONTRACTS[contract])));
+  return newer ? "newer" : "ours";
+}
+
+function stampedNewer(record: Record<string, unknown>): boolean {
+  return contractNames.some(contract => isAbove(at(record.contracts, [contract]), CONTRACTS[contract]));
+}
+
+function at(value: unknown, path: readonly string[]): unknown {
+  return path.reduce<unknown>((part, key) => (isObject(part) ? part[key] : undefined), value);
 }
 
 type Reading =
@@ -189,7 +234,7 @@ function hasAnswer(draft: Partial<FarmInput> | null): boolean {
 function readFinds(raw: unknown): readonly Find[] | "newer" {
   if (raw === undefined) return [];
   if (isObject(raw) && raw.format === "gilir.set-aside") {
-    if (isAbove(raw.version, RECORD_VERSION)) return "newer";
+    if (isAbove(raw.version, RECORD_VERSION) || stampedNewer(raw)) return "newer";
     if (raw.version === RECORD_VERSION && Array.isArray(raw.finds) && raw.finds.every(isFind)) return raw.finds;
   }
   return [{ parts: ["record"], answersKept: false, raw }];
@@ -216,6 +261,7 @@ interface Turn<T> {
   readonly outcome: { readonly ok: true; readonly value: T } | { readonly ok: false; readonly reason: StorageReason };
   readonly state: "keep" | "delete" | StateRecord;
   readonly setAside: "keep" | "delete" | SetAsideRecord;
+  readonly writesOptional?: true;
 }
 
 function loadTurn(stored: Stored): Turn<LocalState | null> {
@@ -223,19 +269,27 @@ function loadTurn(stored: Stored): Turn<LocalState | null> {
   const finds = readFinds(stored.setAside);
   if (reading.kind === "newer" || finds === "newer") return refused("newer");
   if (reading.kind === "empty") return settled(null);
-  const [first, ...rest] = reading.leftOut;
-  if (first === undefined) return settled(reading.state);
-  const find: Find = { parts: [first, ...rest], answersKept: hasAnswer(reading.state?.draft ?? null), raw: stored.state };
+  const find = findIn(reading, stored.state, reading.state);
+  if (find === null) return settled(reading.state);
   return {
     outcome: { ok: true, value: reading.state },
     state: reading.state === null ? "delete" : stateRecord(reading.state),
     setAside: setAsideRecord([...finds, find]),
+    writesOptional: true,
   };
 }
 
 function saveTurn(stored: Stored, next: LocalState): Turn<void> {
-  if (holdsNewer(stored)) return refused("newer");
-  return { outcome: { ok: true, value: undefined }, state: stateRecord(next), setAside: "keep" };
+  const reading = readRecord(stored.state);
+  const finds = readFinds(stored.setAside);
+  if (reading.kind === "newer" || finds === "newer") return refused("newer");
+  const find = reading.kind === "read" ? findIn(reading, stored.state, next) : null;
+  return { outcome: { ok: true, value: undefined }, state: stateRecord(next), setAside: find === null ? "keep" : setAsideRecord([...finds, find]) };
+}
+
+function findIn(reading: Extract<Reading, { kind: "read" }>, raw: unknown, resulting: LocalState | null): Find | null {
+  const [first, ...rest] = reading.leftOut;
+  return first === undefined ? null : { parts: [first, ...rest], answersKept: hasAnswer(resulting?.draft ?? null), raw };
 }
 
 function clearTurn(stored: Stored): Turn<void> {
@@ -243,9 +297,16 @@ function clearTurn(stored: Stored): Turn<void> {
   return { outcome: { ok: true, value: undefined }, state: "delete", setAside: "delete" };
 }
 
-function noticeTurn(stored: Stored): Turn<readonly Find[]> {
+interface Noticed {
+  readonly setAside: readonly Find[];
+  readonly inState: Find | null;
+}
+
+function noticeTurn(stored: Stored): Turn<Noticed> {
+  const reading = readRecord(stored.state);
   const finds = readFinds(stored.setAside);
-  return settled(finds === "newer" || readHeader(stored.state) === "newer" ? [] : finds);
+  if (reading.kind === "newer" || finds === "newer") return settled({ setAside: [], inState: null });
+  return settled({ setAside: finds, inState: reading.kind === "read" ? findIn(reading, stored.state, reading.state) : null });
 }
 
 function dismissTurn(stored: Stored, shownCount: number): Turn<void> {
@@ -268,11 +329,11 @@ function refused(reason: StorageReason): Turn<never> {
 }
 
 function stateRecord({ draft, step, activeJob, snapshot }: LocalState): StateRecord {
-  return { format: "gilir.local-state", version: RECORD_VERSION, state: { draft, step, activeJob, snapshot } };
+  return { format: "gilir.local-state", version: RECORD_VERSION, contracts: CONTRACTS, state: { draft, step, activeJob, snapshot } };
 }
 
 function setAsideRecord(finds: readonly Find[]): SetAsideRecord {
-  return { format: "gilir.set-aside", version: RECORD_VERSION, finds };
+  return { format: "gilir.set-aside", version: RECORD_VERSION, contracts: CONTRACTS, finds };
 }
 
 type ShelfName = "gilir" | "gilir-fixture-lab";
@@ -360,7 +421,12 @@ async function onShelf<T>(turn: (stored: Stored) => Turn<T>): Promise<T> {
       const decided = turn({ state, setAside });
       const write = (key: Key, change: "keep" | "delete" | object) =>
         change === "keep" ? undefined : change === "delete" ? store.delete(key) : store.put(change, key);
-      await Promise.all([write("state", decided.state), write("set-aside", decided.setAside), running.done]);
+      try {
+        await Promise.all([write("state", decided.state), write("set-aside", decided.setAside), running.done]);
+      } catch (error) {
+        if (!decided.writesOptional || nameOf(error) !== "QuotaExceededError") throw error;
+        abandon(running);
+      }
       return decided;
     } catch (error) {
       stop();

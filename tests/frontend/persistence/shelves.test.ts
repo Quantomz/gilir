@@ -34,7 +34,7 @@ describe("the fixture lab keeps its own shelf", () => {
     at("/dev/fixtures");
     await localPlans.save(lab);
     expect(stored(memory, "gilir")).toBe(farmerRecord);
-    expect(stored(memory, "gilir-fixture-lab")).toEqual({ format: "gilir.local-state", version: 1, state: lab });
+    expect(stored(memory, "gilir-fixture-lab")).toMatchObject({ format: "gilir.local-state", version: 1, state: lab });
   });
 
   it("a save at / writes gilir and leaves gilir-fixture-lab untouched", async () => {
@@ -44,7 +44,7 @@ describe("the fixture lab keeps its own shelf", () => {
     at("/");
     await localPlans.save(farmer);
     expect(stored(memory, "gilir-fixture-lab")).toBe(labRecord);
-    expect(stored(memory, "gilir")).toEqual({ format: "gilir.local-state", version: 1, state: farmer });
+    expect(stored(memory, "gilir")).toMatchObject({ format: "gilir.local-state", version: 1, state: farmer });
   });
 
   it("the lab loading while a farmer has an active job resolves null: it can neither see nor overwrite the capability", async () => {
@@ -90,7 +90,7 @@ describe("the fixture lab keeps its own shelf", () => {
   it("a path that only starts like the lab (/developer) uses the farmer's shelf", async () => {
     const { localPlans, memory } = await freshStorage(memoryIdb(), "/developer");
     await localPlans.save(farmer);
-    expect(stored(memory, "gilir")).toEqual({ format: "gilir.local-state", version: 1, state: farmer });
+    expect(stored(memory, "gilir")).toMatchObject({ format: "gilir.local-state", version: 1, state: farmer });
     expect(memory.databases.has("gilir-fixture-lab")).toBe(false);
   });
 });

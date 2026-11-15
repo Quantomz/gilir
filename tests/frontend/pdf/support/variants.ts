@@ -1,4 +1,4 @@
-import { completedSnapshotSchema } from "@/contracts/result";
+import { completedSnapshotSchema, completedSnapshotV2Schema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
@@ -17,11 +17,14 @@ export type VariantName =
   | "excludedSeasons"      // a cohort with excluded seasons and their reasons
   | "monthlyInsights"      // insufficient_data with twelve months of the four monthly insight series
   | "manifestUnavailable"  // provenance.manifest unavailable with its reason
-  | "manyUnassessed";      // one crop_profile gap per crop for 12 crops, as the Pretoria probe run had
+  | "manyUnassessed"       // one crop_profile gap per crop for 12 crops, as the Pretoria probe run had
+  | "frozenLabels";        // version 2: three crops named by saved labels unlike their IDs, in warnings, heat, gaps,
+                           // changes and profiles; the removed old crop is not in that saved catalogue
 
 export const variantNames: readonly VariantName[] = [
   "manyCrops", "leapYear", "freeAtYearEnd", "manyWarnings", "manySources", "longLabel", "cyrillicLabel", "thaiUnlistedCrop",
   "structuralProof", "changedBaseline", "excludedSeasons", "monthlyInsights", "manifestUnavailable", "manyUnassessed",
+  "frozenLabels",
 ];
 
 export const britishReader = { locale: "en-GB", timeZone: "UTC" } as const;
@@ -29,6 +32,25 @@ export const britishReader = { locale: "en-GB", timeZone: "UTC" } as const;
 export function variant(name: VariantName): CompletedSnapshot {
   return completedSnapshotSchema.parse(builders[name]());
 }
+
+export function frozen(snapshot: CompletedSnapshot, labels: Readonly<Record<string, string>>): CompletedSnapshot {
+  const manifest = snapshot.result.details.provenance.manifest;
+  if (manifest.kind !== "available") return never("an available run manifest");
+  const entries = Object.entries(labels).map(([id, label]) => ({ id, label, purpose: "food" }));
+  return completedSnapshotV2Schema.parse({ ...snapshot, schemaVersion: 2, catalogue: { version: manifest.value.catalogueVersion, entries } });
+}
+
+export function unfrozen(snapshot: CompletedSnapshot): CompletedSnapshot {
+  if (snapshot.schemaVersion !== 2) return never("a version 2 snapshot");
+  const { catalogue: _catalogue, ...rest } = snapshot;
+  return completedSnapshotSchema.parse({ ...rest, schemaVersion: 1 });
+}
+
+export const savedLabels: Readonly<Record<string, string>> = {
+  "synthetic-crop": "Synthetic bean (dry grain)",
+  "synthetic-second-crop": "Synthetic maize (grain)",
+  "synthetic-third-crop": "Synthetic oats (grain)",
+};
 
 const base = completedSnapshotsByState;
 const planFixture = base.plan.result.state === "plan" ? base.plan.result : never("plan fixture");
@@ -278,6 +300,7 @@ const builders: Record<VariantName, () => unknown> = {
       input: { cropPurposeIds: threeCrops },
       plan,
       details: {
+        explanation: "Synthetic result: the new plan ranks ahead of the existing rotation in this example.",
         metrics: [metric("mean_frequency", 0.5, "fraction"), metric("unplanted_days", 145, "days"), metric("crop_family_count", 3, "count"),
           metric("q90_mismatch", 0.3, "fraction"), metric("legume_crop_count", 1, "count")],
         baseline: {
@@ -346,6 +369,29 @@ const builders: Record<VariantName, () => unknown> = {
       provenance: { ...planFixture.details.provenance, manifest: { kind: "unavailable", reason: "Synthetic example: the run manifest was not recorded." } },
     },
   }),
+
+  frozenLabels: () => {
+    const changed = variant("changedBaseline");
+    if (changed.result.state !== "plan") return never("changedBaseline plan");
+    const { details } = changed.result;
+    const warning = (code: string, crop: string, message: string) => ({ code, message, cropPurposeIds: [crop], ruleIds: [], metricIds: [] });
+    return frozen(completedSnapshotSchema.parse({
+      ...changed, id: "synthetic-variant-frozen-labels",
+      result: {
+        ...changed.result, state: "plan_with_warnings",
+        details: {
+          ...details,
+          warnings: [
+            warning("rainfall_mismatch", threeCrops[0], "Synthetic rainfall warning for the first crop."),
+            warning("temperature_exposure", threeCrops[1], "Synthetic heat warning for the second crop."),
+          ],
+          unassessedChecks: [{ code: "temperature_rule", reason: "No synthetic temperature rule applies to this invented crop.", cropPurposeIds: [threeCrops[2]], sourceIds: [] }],
+          metrics: [...details.metrics, metric("q90_temperature_exposure", 0.2, "fraction")],
+          provenance: { ...details.provenance, profiles: profiles(threeCrops) },
+        },
+      },
+    }), savedLabels);
+  },
 
   manyUnassessed: () => {
     const source = base.insufficient_data;
