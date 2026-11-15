@@ -1,0 +1,24 @@
+[
+  {
+    "width": 360,
+    "counts": {
+      "nasaImagesSuccess": 12,
+      "maptilerImagesSuccess": 63,
+      "maptilerMetadataSuccess": 1,
+      "searchSuccess": 1,
+      "providerHttpErrors": 0
+    },
+    "fieldHandles": 4
+  },
+  {
+    "width": 1280,
+    "counts": {
+      "nasaImagesSuccess": 12,
+      "maptilerImagesSuccess": 92,
+      "maptilerMetadataSuccess": 1,
+      "searchSuccess": 1,
+      "providerHttpErrors": 0
+    },
+    "fieldHandles": 4
+  }
+]

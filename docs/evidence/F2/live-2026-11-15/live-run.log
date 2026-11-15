@@ -1,0 +1,30 @@
+[WebServer] (node:16964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+[WebServer] (node:16967) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+
+Running 17 tests using 1 worker
+
+(node:17012) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+[1/17] tests/frontend/location/live.spec.ts:73:5 › live at 360px › [R19][R3] the globe shows NASA's Blue Marble far out and turns when dragged
+[2/17] tests/frontend/location/live.spec.ts:89:5 › live at 360px › [R19][R6] a submitted search for 'Indramayu' returns real places; choosing one moves the camera there
+[3/17] tests/frontend/location/live.spec.ts:103:5 › live at 360px › [R19][R1] submitted searches for 'Labasa' (Fiji) and 'Ushuaia' each return a place on the right side of the world
+[4/17] tests/frontend/location/live.spec.ts:116:5 › live at 360px › [R19][R3] 'Mark my field', then zoom to where single fields show in MapTiler's satellite pictures
+[5/17] tests/frontend/location/live.spec.ts:126:5 › live at 360px › [R19][R7] drag a corner, add a corner, remove a corner: the size words and data-lookup follow
+[6/17] tests/frontend/location/live.spec.ts:144:5 › live at 360px › [R19][R15] with the globe showing, the corner list still marks a typed field
+[7/17] tests/frontend/location/live.spec.ts:151:5 › live at 360px › [R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's logo rule is checked against its terms
+[8/17] tests/frontend/location/live.spec.ts:162:5 › live at 360px › [R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses
+[9/17] tests/frontend/location/live.spec.ts:73:5 › live at 1280px › [R19][R3] the globe shows NASA's Blue Marble far out and turns when dragged
+[10/17] tests/frontend/location/live.spec.ts:89:5 › live at 1280px › [R19][R6] a submitted search for 'Indramayu' returns real places; choosing one moves the camera there
+[11/17] tests/frontend/location/live.spec.ts:103:5 › live at 1280px › [R19][R1] submitted searches for 'Labasa' (Fiji) and 'Ushuaia' each return a place on the right side of the world
+[12/17] tests/frontend/location/live.spec.ts:116:5 › live at 1280px › [R19][R3] 'Mark my field', then zoom to where single fields show in MapTiler's satellite pictures
+[13/17] tests/frontend/location/live.spec.ts:126:5 › live at 1280px › [R19][R7] drag a corner, add a corner, remove a corner: the size words and data-lookup follow
+[14/17] tests/frontend/location/live.spec.ts:144:5 › live at 1280px › [R19][R15] with the globe showing, the corner list still marks a typed field
+[15/17] tests/frontend/location/live.spec.ts:151:5 › live at 1280px › [R19][R5] the credits line holds every name in each provider's own TileJSON attribution, and MapTiler's logo rule is checked against its terms
+[16/17] tests/frontend/location/live.spec.ts:162:5 › live at 1280px › [R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses
+[17/17] tests/frontend/location/live.spec.ts:187:3 › live, no WebGL2 › [R19][R14] with WebGL off, a real submitted search still names the place, and 'Mark my field' plus the corner list mark a field on the drawing
+  17 passed (1.3m)
