@@ -22,14 +22,15 @@ The recordings show onboarding and editable history.*
 
 ## What works today
 
-The calculator, NASA ingestion, PostgreSQL job service, worker, and four input pages are implemented.
+The calculator, NASA ingestion, PostgreSQL job service, worker, four input pages, results,
+local saving and PDF export are implemented.
 The current catalogue offers **32 food-crop purposes with reviewed reference models**.
 Each offered crop has complete model parameters wherever the farmer places the field. Historical
 temperature determines estimated growth stages; missing weather and modeled noncompletion remain
 explicit outcomes. These estimates have not been validated locally. Eight additional crops are
 withheld until their model evidence is adequate.
 
-Try the [hosted preview](https://gilir-web-production.up.railway.app).
+Try the [hosted preview](https://gilir.up.railway.app).
 The [deployment evidence](docs/evidence/hosting/current-release.md) identifies the verified hosted
 image separately from repository changes. The [model evidence](docs/evidence/global-models/README.md)
 records source review, numerical checks, captured NASA cases, and saved-result compatibility.
@@ -122,8 +123,8 @@ Runtime, science, and hosted evidence cover different paths. A local model or br
 Use Node.js 24 and Docker Compose. Run commands from the repository root.
 
 ```sh
-git clone https://github.com/Quantomz/nefalos_nasa_hackathon.git
-cd nefalos_nasa_hackathon
+git clone https://github.com/Quantomz/gilir.git
+cd gilir
 npm ci
 cp .env.example .env
 ```
@@ -174,7 +175,7 @@ flowchart LR
     Jobs --> Worker[Node worker]
     NASA[NASA POWER] --> Cache[Validated climate snapshots]
     Cache --> Worker
-    Profiles[Versioned crop profiles] --> Engine[Deterministic engine]
+    Models[Versioned crop models and archived profiles] --> Engine[Deterministic engine]
     Worker --> Engine
     Engine --> Result[Plan or explicit no-plan result]
 ```
@@ -182,10 +183,7 @@ flowchart LR
 React and Tailwind power the interface. Durable jobs outlive HTTP requests.
 Frozen inputs and source identities keep retries reproducible.
 
-The next delivery work is the [field picker](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/2),
-[results screen](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/3),
-[local save and PDF](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/4), and
-[complete browser acceptance](https://github.com/Quantomz/nefalos_nasa_hackathon/issues/13).
+The next data work is to resolve the eight deferred crop models and obtain local field validation.
 See the [specification](spec.md), [contracts](docs/contracts.md), [build plan](docs/build-plan.md),
 and [contributor instructions](AGENTS.md). Planning documents retain some historical status.
 
@@ -193,7 +191,7 @@ and [contributor instructions](AGENTS.md). Planning documents retain some histor
 
 Historical replay is a planning comparison, not a forecast or yield prediction.
 The rainfall screen excludes soil-water storage, runoff, irrigation volumes, and paddy losses.
-Temperature contributes to `ET0`, but the current release has no operational heat, frost, or
+Temperature contributes to `ET0` and modeled development, but the current release has no operational heat, frost, or
 rotation rules. Heat and frost suitability remain unassessed. Source review does not establish worldwide
 agronomic coverage or field validation.
 

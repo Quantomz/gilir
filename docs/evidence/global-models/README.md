@@ -34,4 +34,4 @@ The implementation tests cover hand-calculated development, calendar Kc, missing
 
 The local PostgreSQL 18 checks exercised snapshot-3 storage and the actual worker with the recorded NASA Bangkok archive. Existing snapshot-2 completion and frozen retry checks passed in the same isolated database. Runtime tests rejected modified settings, modified model parameters with copied version/hash labels, and modified normalized climate with the original response hash unchanged.
 
-These are local component and recorded-climate results. They do not establish deployment, CI status, or local agricultural validation. The coordinator owns the independent code review and final application evidence.
+These are local component and recorded-climate results. They do not establish deployment or local agricultural validation. The [release verification record](verification.md) contains the independent code review, application checks and browser evidence with their exact code identities.
