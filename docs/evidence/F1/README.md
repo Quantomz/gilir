@@ -8,7 +8,7 @@ The runs used two surfaces.
 
 - **`/dev/fixtures`.** This is the development lab. It renders `<Onboarding client={fixtureClient} initialInput={inputFixture} />`. No network is involved. `lab.spec.ts` runs here.
 - **`/`.** This is the real page with the real HTTP client from `src/client/planner.ts`. `journey.spec.ts` and `evidence.spec.ts` run here.
-  - A development-only seed opens it with a fixture input, because the field picker slot cannot mark a field yet. `src/app/page.tsx` reads that seed only in development, and the production build drops it.
+  - A development-only seed opens it with a fixture input, which marks the field without driving F2's map. `src/app/page.tsx` reads that seed only in development, and the production build drops it.
   - The routes below are answered with `page.route`. Each answer is parsed with the contract schema before it is sent: `releasedRegistrySchema` for the catalogue, `completedSnapshotSchema` and `serviceFailureSchema` for jobs and failures. Each POST body is parsed with `farmInputSchema`.
 
 | Route | Answered with |
@@ -96,17 +96,18 @@ A second independent review of 75146ad, and two skeptics on its fix round, led t
 
 ## F4's storage words
 
-Card F4 asked F1 to show its storage words through `services/saved.ts`, F1's only storage door (F4 design, decisions D1 and D2). F1 now shows two kinds of line. Each is a quiet line with Got it that never blocks input.
+Card F4 asked F1 to show its storage words through `services/saved.ts`, F1's only storage door (F4 design, decisions D1 and D2). F1 shows them in one quiet storage line with one Got it. It never blocks input. The line is one store per page load in `saved.ts`, so it shows above the input pages, Making, and Results, because `AppFrame` shows it too.
 
-- **Saved data set aside.** F4 moves saved data this version can't read to one side, and `readStorageNotice()` describes it. `saved.ts` reads it once per page load, after the first open that read storage, because that load is what sets data aside. The line shows above the input pages and Making, and above Results too, because `AppFrame` shows it. Got it calls the notice's own `dismiss`, which removes that data for good. A reload without Got it shows the line again. An open that could not read storage reads no notice.
-- **Why storage failed.** A failed load or save shows `storageProblem(error).text`, then "Your answers stay while this page is open." A write skipped because the open could not read storage repeats the open's reason. The first failure's words stay until Got it, as the generic line did before.
+- **Saved data set aside.** F4 moves saved data this version can't read to one side, and `readStorageNotice()` describes it. `saved.ts` reads it through the injected port once per page load, after the first open that read storage, because that load is what sets data aside. The open finishes only after that read, so the page paints once with its line. Got it calls the notice's own `dismiss`, which removes that data for good. A reload without Got it shows the line again. An open that could not read storage reads no notice.
+- **Why storage failed.** A failed load or save shows `storageProblem(error).text`, then words that fit the reason and the screen. On the input pages a blocked browser or a full device adds "Your answers stay while this page is open." A newer Gilir adds nothing, because its words say to close the page. On Results each reason adds "Download the PDF to keep a copy." ("first" for a newer Gilir). A write skipped because the open could not read storage repeats the open's reason. The line shows the latest failure's reason. A save that goes through clears it, and a load alone does not, because a full device still loads. Got it quiets the reason it showed for the rest of the visit, and a later failure for another reason shows again.
+- **On a phone.** Got it follows the last word, and the icon is left out below 560 px. At 360 x 740 one set-aside line went from 209 to 153 px (Largest 365 to 246 px), and set-aside plus no room from two bars of 388 px to one of 243 px. The text keeps its size, weight and colours, and Got it is 101 x 48 px (136 x 65 at Largest).
 
 | Case | Surface | What it shows |
 | --- | --- | --- |
-| `ui/storage-words.test.tsx`, 8 cases | jsdom, `src/app/page.tsx` with mocked storage and F4's own `storageProblem` | Each visit is a fresh module graph, as a reload is. The set-aside line shows once and stays across pages. Got it removes it for this visit and the next, and focus goes to the title. A reload without Got it reads and shows it again. On Results it sits outside the Results region, is read once, and stays gone after Change inputs and a new plan. A normal visit shows no line. A failed open reads no notice. Blocked, full and newer storage each show their own words, and a full device keeps every answer on screen and saves nothing. |
-| `services/saved.test.ts` `[F4-D1]`, 2 cases | Vitest | Each reason reports F4's words. A write skipped after a failed open repeats the open's reason and writes nothing. |
+| `ui/storage-words.test.tsx`, 13 cases | jsdom, `src/app/page.tsx` with mocked storage and F4's own `storageProblem` | Each visit is a fresh module graph, as a reload is. The set-aside line shows once and stays across pages, is on screen when the page first paints, and is read once under Strict Mode. Got it removes it for this visit and the next, and focus goes to the title, or to `#main` on Results. A reload without Got it reads and shows it again. On Results it sits outside the Results region and stays gone after Change inputs. A normal visit shows no line. A failed open reads no notice. Blocked, full and newer storage each show their own words. A plan made on a full device shows the "no room" line above Results with the PDF words, and no plan is saved. Got it on one reason leaves a later, different reason free to show. |
+| `services/saved.test.ts` `[F4-D1]`, 7 cases | Vitest | Each reason shows F4's words. A load before a write that fails after a good open shows its own reason. A write skipped after a failed open repeats the open's reason and writes nothing. A save that goes through clears the line, and a load does not. Got it quiets one reason. The notice is read once through the port, and an open waits for it. |
 | `conventions.test.ts` `[F4-D1]` | Vitest | Only `saved.ts` names `localPlans`, `readStorageNotice` or `storageProblem`, and no F1 file restates F4's storage words. |
-| `journey.spec.ts` `[F4-D1]`, 6 cases | Chromium, `/` with F4's real IndexedDB | A normal visit saves the step and shows no line. A state record whose plan is from an older Gilir is written raw into the `gilir` database. After a reload the line shows once, stays across pages, and Got it removes the set-aside record, read back raw. A second reload shows nothing. A saved plan whose job can't be followed opens Results with the line above it, a reload shows it again, and Got it puts focus on `#main`. A record from a newer Gilir says to close the page and open Gilir again. A blocked browser and a full device are simulated, as the next paragraph says. |
+| `journey.spec.ts` `[F4-D1]`, 9 cases | Chromium, `/` with F4's real IndexedDB | A normal visit saves the step and shows no line. A plan made on a full device shows the "no room" line above Results with the PDF words, and the raw state holds no plan. At 360 x 740 the page title is fully on screen with both lines at Normal, and its first line is on screen with one line at Largest. The set-aside line is on screen when the title first appears. A state record whose plan is from an older Gilir is written raw into the `gilir` database. After a reload the line shows once, stays across pages, and Got it removes the set-aside record, read back raw. A second reload shows nothing. A saved plan whose job can't be followed opens Results with the line above it, a reload shows it again, and Got it puts focus on `#main`. A record from a newer Gilir says to close the page and open Gilir again. A blocked browser and a full device are simulated, as the next paragraph says. |
 | `evidence.spec.ts` `[F4-D1]` at 360 and 1280 | Chromium, `/` | The two screenshots in the file table, written at 360. |
 
 The blocked browser is an init script that makes `indexedDB.open` throw `SecurityError`, as Chromium does when site data is blocked. The full device is an init script that makes every IndexedDB `put` throw `QuotaExceededError` once the test says the device is full. Everything after the refusal is F4's real storage code and F1's real screens.
@@ -131,11 +132,24 @@ mkdir -p "$HOME/pw-browsers/ffmpeg-1013" && ln -sf /usr/bin/ffmpeg "$HOME/pw-bro
 
 CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes its files to `test-results/` only. With it, the spec stages them under `test-results/f1-evidence/` and copies them here after the last test, only when all 22 passed. A file written into the repository during the run makes `next dev` rebuild, and two earlier runs that wrote here directly got a 500 on `/` during that rebuild.
 
+## Fix round after the third review (f746505 to this head)
+
+| Command | Observed |
+| --- | --- |
+| `npx vitest run tests/frontend/onboarding` | 16 files, 375 tests passed. |
+| `npm run check` | Exit 0. 82 files passed and 5 skipped. 1456 tests passed and 33 skipped. "Module boundaries passed." |
+| `npm run build`, with `next dev` stopped | Exit 0. `/` static. |
+| journey `-g "F4-D1\|D4"`, 1 worker, warmed `next dev` | 10 passed (49.3 s). The five new cases had failed on f746505's source. |
+| evidence `[F4-D1]` with `F1_EVIDENCE=1`, 1 worker | 2 passed. It rewrote `360-set-aside-results.png` and `360-no-room-page2.png`, the only committed screens with a storage line. |
+
+NOT RUN this round: `lab.spec.ts`, the other journey cases, and the rest of `evidence.spec.ts`. The videos, the other screenshots and the focus-order files are from f746505. No storage line is on them, so the compact line does not change them. The focus-order walks still hold no storage line.
+
 ## Not verified
 
 - **A field marked by hand.** Every run on `/` takes its field from the development seed.
 - **Storage on a phone.** Storage ran on Chromium for desktop Linux only. A blocked browser and a full device were simulated, by making the browser's IndexedDB calls throw the errors Chromium raises. No real quota was reached, and Safari's and Firefox's storage were not tried.
 - **A live job.** It needs `DATABASE_URL` and the worker, and the plan routes here are stubs.
+- **The storage line beside F3's Results.** F3's real Results also shows its own saved line, such as "This plan isn't saved on this device." with Save on this device. F1's line in the frame names only F4's reason and the PDF, so it does not contradict that. One known overlap: if F3's Save then goes through, F3 says "Saved on this device." while F1's line still shows its reason until Got it, because F1 does not see F3's writes. On this base the Results slot is a stub with no PDF button, so "Download the PDF" was seen only above the stub.
 - **The real Results.** The Results slot is still a stub that prints its prop names. The lab's Results slot cannot show which snapshot it got. So Change inputs, and every fix above that starts from it, has jsdom evidence through `src/app/page.tsx` only.
 - **Assistive technology and other browsers.** No screen reader was run. What Listen hands to speech was captured from a stub in Chromium and in jsdom, but no voice was heard. Drag was driven with a mouse, not a touch screen. Only Chromium was used, not Safari or Firefox.
 - **A production server.** Every browser run used `next dev`, because the seed exists only there. The build was checked separately.
