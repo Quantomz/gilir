@@ -365,6 +365,18 @@ describe("page 2", () => {
     expect(screen.getByText("Marked: Synthetic example field")).toBeTruthy();
   });
 
+  it("[E2] Try again by keyboard keeps focus on the page title, and the status line says when the list is loaded", async () => {
+    const client = scriptedClient({ catalogue });
+    vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);
+    open({ client });
+    await toCrops();
+    within(await screen.findByRole("alert")).getByRole("button", { name: "Try again" }).focus();
+    await userEvent.keyboard("{Enter}");
+    await screen.findByRole("checkbox", { name: "Synthetic crop" });
+    expect(document.activeElement).toBe(screen.getByRole("heading", { level: 1, name: "Which crops do you want to grow?" }));
+    expect(screen.getByRole("status").textContent).toBe("The crop list is loaded.");
+  });
+
   it("[E3] an empty catalogue shows No crops are available yet, no count, and no Next", async () => {
     open({ client: scriptedClient({ catalogue: { version: "v1-empty", entries: [] } }) });
     await toCrops();

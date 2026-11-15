@@ -191,6 +191,16 @@ describe("Results and Change inputs", () => {
     expect(screen.queryByRole("region", { name: "Results" })).toBeNull();
   });
 
+  it("[B5][L3] after Change inputs, focus is on the title of the page that opens, never on the page body", async () => {
+    setUp(memoryPlans(saved({ snapshot: completedSnapshotFixture, step: 4 })));
+    render(<Page />);
+    const change = await screen.findByRole("button", { name: "Change inputs" });
+    change.focus();
+    await userEvent.keyboard("{Enter}");
+    const heading = await title("Where is your farm?");
+    await waitFor(() => expect(document.activeElement).toBe(heading));
+  });
+
   it("[C6] after Change inputs, a newer different saved draft is kept at its page instead of the snapshot's input", async () => {
     setUp(memoryPlans(saved({ draft: { ...answers, water: "unsure" }, step: 3, snapshot: completedSnapshotFixture })));
     render(<Page />);

@@ -163,7 +163,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
   useEffect(() => {
     let live = true;
     void saved.open().then(stored => {
-      if (live) dispatch({ kind: "opened", saved: stored, initialInput });
+      if (live) dispatch({ kind: "opened", saved: stored, initialInput, focusTitle: document.activeElement?.id === domIdOf({ kind: "title" }) });
     });
     return () => {
       live = false;
@@ -208,20 +208,20 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     };
   }, [saved]);
 
-  function loadCatalogue(): void {
+  function loadCatalogue(retried: boolean): void {
     if (loadingCatalogue.current) return;
     loadingCatalogue.current = true;
-    dispatch({ kind: "catalogue", state: { status: "loading" } });
+    dispatch({ kind: "catalogue", state: { status: "loading" }, retried });
     withTimeout(() => client.catalogue(), policy.timeoutMs.catalogue)
       .then(
-        catalogue => dispatch({ kind: "catalogue", state: { status: "ready", catalogue } }),
-        () => dispatch({ kind: "catalogue", state: { status: "failed" } }),
+        catalogue => dispatch({ kind: "catalogue", state: { status: "ready", catalogue }, retried }),
+        () => dispatch({ kind: "catalogue", state: { status: "failed" }, retried }),
       )
       .finally(() => {
         loadingCatalogue.current = false;
       });
   }
-  const startCatalogue = useEffectEvent(loadCatalogue);
+  const startCatalogue = useEffectEvent(() => loadCatalogue(false));
   const needsCatalogue = flow.catalogue.status === "idle" && outbox.handOff === null
     && flow.mode.kind === "editing" && (flow.mode.step === 2 || flow.mode.step === 4);
   useEffect(() => {
@@ -318,7 +318,7 @@ export function useOnboardingController(props: OnboardingProps): Controller {
     openEarlierPlan() {
       if (flow.earlierPlan !== null) props.onCompleted(flow.earlierPlan);
     },
-    retryCatalogue: loadCatalogue,
+    retryCatalogue: () => loadCatalogue(true),
     undo: () => dispatch({ kind: "undo" }),
     dismissToast: () => dispatch({ kind: "toastGone" }),
     dismissNotice: notice => dispatch({ kind: "dismiss", notice }),

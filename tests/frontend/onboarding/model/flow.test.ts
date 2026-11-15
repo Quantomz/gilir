@@ -133,15 +133,15 @@ describe("openFlow: the entry rule", () => {
 
 describe("update", () => {
   it("opened outside the opening mode returns the same flow (Strict Mode runs the open effect twice)", () => {
-    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture });
-    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null });
+    const first = update(openingFlow, { kind: "opened", saved: null, initialInput: inputFixture, focusTitle: false });
+    const second = update(first.flow, { kind: "opened", saved: saved({ snapshot: completedSnapshotFixture }), initialInput: null, focusTitle: false });
     expect(second.flow).toBe(first.flow);
     expect(second.handOff).toBeNull();
   });
 
   it("opened keeps a storage failure and a crop list that arrived while opening", () => {
-    const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" } });
-    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null });
+    const early = run(openingFlow, { kind: "storage", health: "failing" }, { kind: "catalogue", state: { status: "loading" }, retried: false });
+    const opened = update(early.flow, { kind: "opened", saved: null, initialInput: null, focusTitle: false });
     expect(opened.flow.notices.storageFailing).toBe(true);
     expect(opened.flow.catalogue).toEqual({ status: "loading" });
     expect(opened.focus).toBeNull();
@@ -273,9 +273,9 @@ describe("update", () => {
     const fresh = { ...editingAt(1, {}), catalogue: { status: "idle" } } as const;
     const two = update(fresh, { kind: "go", step: 2, focus: null });
     expect(two.flow.catalogue).toEqual({ status: "idle" });
-    const loading = update(two.flow, { kind: "catalogue", state: { status: "loading" } });
+    const loading = update(two.flow, { kind: "catalogue", state: { status: "loading" }, retried: false });
     expect(loading.flow.catalogue).toEqual({ status: "loading" });
-    const ready = update(loading.flow, { kind: "catalogue", state: { status: "ready", catalogue } });
+    const ready = update(loading.flow, { kind: "catalogue", state: { status: "ready", catalogue }, retried: false });
     expect(ready.flow.catalogue).toEqual({ status: "ready", catalogue });
   });
 

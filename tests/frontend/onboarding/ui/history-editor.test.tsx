@@ -228,6 +228,20 @@ describe("bars by keyboard and date sheets", () => {
     expect(within(lanes()[0]).getByText(`Planted about ${shown("2026-03-01")}, harvested about ${shown("2026-05-29")}`)).toBeTruthy();
   });
 
+  it("[H3] Try again in the Add sheet keeps focus inside the sheet, on its title, and the status line says when the list is loaded", async () => {
+    live.plans = memoryPlans({ draft: dated, step: 4, activeJob: null, snapshot: null });
+    const client = scriptedClient({ catalogue, read: ["hang"] });
+    vi.spyOn(client, "catalogue").mockRejectedValueOnce(new Error("offline")).mockResolvedValue(catalogue);
+    render(<Onboarding client={client} initialInput={null} onCompleted={vi.fn()} />);
+    await title("Your rotation");
+    await click("Add a crop");
+    (await within(dialog()).findByRole("button", { name: "Try again" })).focus();
+    await userEvent.keyboard("{Enter}");
+    await within(dialog()).findByRole("button", { name: "Maize (grain)" });
+    expect(document.activeElement).toBe(within(dialog()).getByRole("heading", { level: 2, name: "Which crop grew here?" }));
+    expect(said()).toBe("The crop list is loaded.");
+  });
+
   it("[H8] A crop not on our list named Cassava is submitted as { kind: \"unsupported\", label: \"Cassava\" }; a blank name says Type the name of the crop.", async () => {
     const { client } = await openAt4(dated);
     await click("Add a crop");

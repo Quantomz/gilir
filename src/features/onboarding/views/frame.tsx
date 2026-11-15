@@ -4,7 +4,7 @@
 // (in src/app/layout.tsx) reach the page's main action. The fixture lab wraps Onboarding in its own <main>, so the lab,
 // and only the lab, shows a nested main.
 // No frame piece moves focus on first paint. After that, the controller focuses #main-title on a page change.
-import { Component, useEffect, useEffectEvent, useId, useRef, useState, useSyncExternalStore } from "react";
+import { Component, useEffect, useEffectEvent, useRef, useState, useSyncExternalStore } from "react";
 import type { KeyboardEvent, ReactElement, ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { useBackCloses, useBackLeaves } from "../back";
@@ -27,6 +27,11 @@ export function AppFrame(props: { readonly children: ReactNode; readonly focusOn
   useEffect(() => {
     if (focusOnMount) main.current?.focus();
   }, [focusOnMount]);
+  // Change inputs removes the button that had focus. The Opening screen that replaces Results takes it instead, and
+  // the controller passes it on to the screen that opens.
+  useEffect(() => () => {
+    if (document.activeElement === document.body) document.getElementById(titleId)?.focus();
+  }, []);
   return (
     <div className="view">
       <TopBar onBack={null} />
@@ -38,6 +43,8 @@ export function AppFrame(props: { readonly children: ReactNode; readonly focusOn
 }
 
 const titleId = domIdOf({ kind: "title" });
+// One sheet at a time: the scrim covers the top bar, and Tab stays inside the open sheet.
+const sheetTitleId = domIdOf({ kind: "sheetTitle" });
 const columnClass = { column: "col", timeline: "col ly-page", wide: "wide" } as const;
 
 /** One input page: the top bar (Back, or the brand on page 1), the step head, the title, the page, then the dock. */
@@ -147,7 +154,7 @@ function Tools(): ReactElement {
         <span>{shell.textSize}</span>
       </button>
       {speech ? (
-        <button className="tool" type="button" aria-pressed={speaking} onClick={listen}>
+        <button className="tool" type="button" data-speaking={speaking ? "" : undefined} onClick={listen}>
           <Icon name={speaking ? "stop" : "speaker"} />
           <span>{speaking ? shell.stop : shell.listen}</span>
         </button>
@@ -393,7 +400,6 @@ export function Sheet(props: {
 }): ReactElement {
   const sheet = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  const titleId = useId();
   const { returnTo } = props;
   useEffect(() => {
     const opener = document.activeElement;
@@ -422,7 +428,8 @@ export function Sheet(props: {
     const first = items[0];
     const last = items[items.length - 1];
     if (!first || !last) return;
-    if (event.shiftKey && document.activeElement === first) {
+    // The title is not in the Tab order, but a sheet can open on it, so it starts the cycle too.
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === heading.current)) {
       event.preventDefault();
       last.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
@@ -434,9 +441,9 @@ export function Sheet(props: {
   const content = (
     <>
       <div className="scrim" onClick={props.onClose} />
-      <section ref={sheet} className="sheet" role="dialog" aria-modal="true" aria-labelledby={titleId} onKeyDown={onKeyDown}>
+      <section ref={sheet} className="sheet" role="dialog" aria-modal="true" aria-labelledby={sheetTitleId} onKeyDown={onKeyDown}>
         <div className="sheet-head">
-          <h2 id={titleId} ref={heading} className="sheet-title" tabIndex={-1}>{props.title}</h2>
+          <h2 id={sheetTitleId} ref={heading} className="sheet-title" tabIndex={-1}>{props.title}</h2>
           <button className="btn btn-small btn-close" type="button" onClick={props.onClose}>
             <Icon name="close" />
             {sheets.close}

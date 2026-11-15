@@ -272,7 +272,7 @@ test.describe("the Text size sheet on a small phone at Largest", () => {
     });
   }
 
-  test("[L2] a Not sure sheet too tall for 320x568 opens on its title, in view; at 360x740 Normal it opens on its main action", async ({ page }) => {
+  test("[L2] a Not sure sheet too tall for 320x568 and 360x640 at Largest opens on its title, in view, and Shift+Tab stays inside; at 360x740 Normal it opens on its main action", async ({ page }) => {
     const openGap = async () => {
       await openLab(page);
       await toRotation(page);
@@ -283,12 +283,16 @@ test.describe("the Text size sheet on a small phone at Largest", () => {
     await page.setViewportSize({ width: 360, height: 740 });
     await expect((await openGap()).getByRole("button", { name: "The field was empty then" })).toBeFocused();
 
-    await page.setViewportSize({ width: 320, height: 568 });
     await page.evaluate(() => localStorage.setItem("gilir.reading", JSON.stringify({ textSize: "largest", highContrast: false })));
-    const sheet = await openGap();
-    const heading = sheet.getByRole("heading", { level: 2 });
-    await expect(heading).toBeFocused();
-    expect(await sheet.evaluate(element => element.scrollTop)).toBe(0);
-    await expect(heading).toBeInViewport({ ratio: 1 });
+    for (const viewport of [{ width: 320, height: 568 }, { width: 360, height: 640 }]) {
+      await page.setViewportSize(viewport);
+      const sheet = await openGap();
+      const heading = sheet.getByRole("heading", { level: 2 });
+      await expect(heading).toBeFocused();
+      expect(await sheet.evaluate(element => element.scrollTop)).toBe(0);
+      await expect(heading).toBeInViewport({ ratio: 1 });
+      await page.keyboard.press("Shift+Tab");
+      await expect(sheet.getByRole("button").last()).toBeFocused();
+    }
   });
 });

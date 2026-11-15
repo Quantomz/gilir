@@ -305,7 +305,7 @@ describe("tools", () => {
     expect(htmlState()).toEqual({ scale: "1", bigText: false, contrast: "high" });
   });
 
-  it("[L6] Listen is absent when speechSynthesis is missing (jsdom) and speaks the [data-say] texts in #main when a stub is present", async () => {
+  it("[L6] Listen is absent when speechSynthesis is missing (jsdom), speaks the [data-say] texts in #main when a stub is present, and is a plain button named Listen or Stop", async () => {
     const user = userEvent.setup();
     const water = () => page(3, "Where does your water come from?", { lead: "We plan with rain alone." });
     render(water());
@@ -315,10 +315,10 @@ describe("tools", () => {
     const { spoken, synth } = stubSpeech();
     const { unmount } = render(water());
     const listen = screen.getByRole("button", { name: "Listen" });
-    expect(listen.getAttribute("aria-pressed")).toBe("false");
+    expect(listen.hasAttribute("aria-pressed")).toBe(false);
     await user.click(listen);
     expect(spoken.map(utterance => utterance.text)).toEqual(["Where does your water come from? We plan with rain alone. Rain only."]);
-    expect(screen.getByRole("button", { name: "Stop" }).getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByRole("button", { name: "Stop" }).hasAttribute("aria-pressed")).toBe(false);
     act(() => spoken[0]!.onend?.());
     expect(screen.getByRole("button", { name: "Listen" })).toBeTruthy();
 

@@ -72,6 +72,7 @@ export type Sheet =
 /** Every control focus can be sent to. One list. Views take their DOM ids from `domIdOf`. */
 export type FocusTarget =
   | { readonly kind: "title" }
+  | { readonly kind: "sheetTitle" }
   | { readonly kind: "summary" }                    // "Fix these first"
   | { readonly kind: "submitPanel" }
   | { readonly kind: "pageIssues"; readonly page: Step }
@@ -102,8 +103,9 @@ export interface Flow {
 }
 
 export type Msg =
-  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null }
-  | { readonly kind: "catalogue"; readonly state: CatalogueState }
+  // focusTitle: the Opening screen's title had focus, so the screen that opens takes it.
+  | { readonly kind: "opened"; readonly saved: LocalState | null; readonly initialInput: FarmInput | null; readonly focusTitle: boolean }
+  | { readonly kind: "catalogue"; readonly state: CatalogueState; readonly retried: boolean } // retried: Try again
   | { readonly kind: "storage"; readonly health: "working" | "failing" }
   | { readonly kind: "dismiss"; readonly notice: keyof Notices }
   | { readonly kind: "edit"; readonly edit: DraftEdit }
@@ -205,11 +207,16 @@ export function update(flow: Flow, msg: Msg): Update {
       if (mode.kind !== "opening") return same;
       const opened = openFlow(msg.saved, msg.initialInput);
       const notices = { ...opened.flow.notices, storageFailing: flow.notices.storageFailing };
-      return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, null, quiet, opened.handOff);
+      return out({ ...opened.flow, catalogue: flow.catalogue, notices, dismissed: flow.dismissed }, msg.focusTitle ? title : null, quiet, opened.handOff);
     }
 
-    case "catalogue":
-      return out({ ...flow, catalogue: msg.state });
+    case "catalogue": {
+      const next = { ...flow, catalogue: msg.state };
+      if (!msg.retried) return out(next);
+      // Try again is replaced by the loading line, so focus goes to a title that stays.
+      if (msg.state.status === "loading") return out(next, flow.sheet?.kind === "add" ? { kind: "sheetTitle" } : title);
+      return out(next, null, { kind: "listRetried", loaded: msg.state.status === "ready" });
+    }
 
     case "storage":
       if (msg.health === "working" || flow.notices.storageFailing || flow.dismissed.includes("storageFailing")) return same;
@@ -372,6 +379,7 @@ export function clampStep(raw: number): Step {
 export function domIdOf(target: FocusTarget): string {
   switch (target.kind) {
     case "title": return "main-title";
+    case "sheetTitle": return "sheet-title";
     case "summary": return "err-sum";
     case "submitPanel": return "submit-fail";
     case "pageIssues": return `issues-p${target.page}`;
