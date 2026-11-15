@@ -154,6 +154,15 @@ describe("with no key and no WebGL", () => {
     expect(fetchCalls).not.toHaveBeenCalled();
   });
 
+  it("[R16][R25] a position that cannot be read, with no key, asks for two numbers and does not offer a town name", async () => {
+    const user = userEvent.setup();
+    mount();
+    await drawing();
+    await typePosition(user, "my farm 6.3, 108.3");
+    expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, then press Search.")).toBeTruthy();
+    expect(fetchCalls).not.toHaveBeenCalled();
+  });
+
   it("[R5] with the drawing and no key there are no map pictures and no place search, so no credit, no MapTiler logo and no claim that NASA sees the area", async () => {
     mount();
     await drawing();
@@ -338,7 +347,7 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       expect(screen.getByText("6.326° S, 108.320° E", { selector: "b" })).toBeTruthy();
     }
     await typePosition(user, "6.326 S 108.32 E 12");
-    expect(screen.getByText("We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search.")).toBeTruthy();
+    expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search.")).toBeTruthy();
     expect(fetchCalls).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalled();
   });
@@ -354,6 +363,9 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
       ["Lat/Long: -6.3, 108.3", "6.300° S, 108.300° E"],
       ["-6.4, lon 108.4", "6.400° S, 108.400° E"],
       ["lat 6 lon 108", "6.000° N, 108.000° E"],
+      ["lintang -6.32 bujur 108.32", "6.320° S, 108.320° E"],
+      ["۳۵.۶۸۹۲, ۵۱.۳۸۹۰", "35.689° N, 51.389° E"],
+      ["6.326 - 108.32", "6.326° N, 108.320° E"],
     ] as const;
     for (const [typed, card] of read) {
       await typePosition(user, typed);
@@ -361,10 +373,11 @@ describe("search with a key (vi.stubEnv, fetch stubbed)", () => {
     }
     for (const typed of [
       "https://maps.google.com/?q=-6.326,108.32", "https://maps.app.goo.gl/AbC123xYz", "geo:-6.326,108.32", "my farm -6.326, 108.32",
-      "my farm -6.3, 108", "45N 9E farm", "farm lat -6.326 lon 108", "6.326 South, 108.32 East", "GPS -6.326 108.32",
+      "my farm -6.3, 108", "45N 9E farm", "farm lat -6.326 lon 108", "GPS -6.326 108.32", "-6.32 lat 108.32 lon", "6.32 dan 108.32",
+      "X4HM+3C Indramayu", "///filled.count.soap", "UTM 49M 213456 9300123", "maps.app.goo.gl/AbCd123",
     ]) {
       await typePosition(user, typed);
-      expect(screen.getByText("We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search."), typed).toBeTruthy();
+      expect(screen.getByText("We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search."), typed).toBeTruthy();
     }
     expect(fetchCalls).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalled();

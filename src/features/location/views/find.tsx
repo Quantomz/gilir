@@ -11,7 +11,7 @@ import { locateOnce } from "../locate";
 import { listShown } from "../picker";
 import type { FoundPlace, LocateFailure } from "../picker";
 import { searchPlaces } from "../provider";
-import type { SearchAnswer } from "../provider";
+import type { Provider, SearchAnswer } from "../provider";
 import { coordError, find, locate, locateFailed, search, searchBox, searchFailed } from "../words";
 import { Icon } from "./parts";
 
@@ -120,7 +120,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
   }
 
   const places = state.kind === "answered" && state.answer.kind === "found" ? state.answer.places : null;
-  const line = lineOf(state, c.picker.surface.kind === "globe");
+  const line = lineOf(state, c.picker.surface.kind === "globe", c.provider.kind);
   const said = state.kind === "sending" ? search.searching : places ? search.found(places.length) : "";
   const box = searchBox[c.provider.kind];
   const failed = (state.kind === "answered" && state.answer.kind === "failed") || state.kind === "no_key" || state.kind === "bad_position" || state.kind === "unclear_position";
@@ -177,7 +177,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
   );
 }
 
-function lineOf(state: SearchState, globe: boolean): string | null {
+function lineOf(state: SearchState, globe: boolean, provider: Provider["kind"]): string | null {
   switch (state.kind) {
     case "idle":
     case "sending":
@@ -187,7 +187,7 @@ function lineOf(state: SearchState, globe: boolean): string | null {
     case "no_key":
       return search.noKeyName;
     case "unclear_position":
-      return search.unclearPosition;
+      return search.unclearPosition[provider];
     case "bad_position":
       return coordError[state.axis][state.error];
     case "answered":

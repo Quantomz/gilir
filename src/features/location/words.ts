@@ -45,7 +45,11 @@ export const search = {
   none: "No place found. Try the nearest town, or tap the globe.",
   nonePlan: "No place found. Try the nearest town, or type a position.",
   short: "Type at least 2 letters, then Search.",
-  unclearPosition: "We couldn’t read this as a position. Type it like -6.326, 108.32, then press Search.",
+  /** With no key, a town's name cannot be searched, so it is not offered. */
+  unclearPosition: {
+    ready: "We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, or type the name of the nearest town. Then press Search.",
+    missing: "We couldn’t read this as a position. Type it as two numbers, like -6.326, 108.32, then press Search.",
+  },
   list: "Places",
 } as const;
 

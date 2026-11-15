@@ -18,21 +18,36 @@ export type CoordResult =
   | { readonly ok: true; readonly value: number }
   | { readonly ok: false; readonly error: CoordError };
 
-/** One spelling for each sign, degree, minute and second mark that phones, GPS units and map apps write. */
+/**
+ * One spelling for each digit, sign, degree, minute and second mark that phones, GPS units and map apps write. The marks
+ * go first: NFKC would turn º into the letter o.
+ */
 function normalise(raw: string): string {
   return raw
     .trim()
-    .replace(/[−–‒]/g, "-")
+    .replace(/[−–‒—‐‑]/g, "-")
     .replace(/[°º˚]/g, "°")
     .replace(/[′’‘´`]/g, "'")
     .replace(/''/g, '"')
     .replace(/[″”“]/g, '"')
+    .normalize("NFKC")
+    .replace(/\p{Nd}/gu, asciiDigit)
+    .replace(/٫/g, ".")
+    .replace(/[،、٬]/g, ",")
     .replace(/\s+/g, " ");
+}
+
+/** Unicode writes every script's digits as runs of ten from 0 to 9, so a digit's value is its place in its run. */
+function asciiDigit(digit: string): string {
+  const code = digit.codePointAt(0) ?? 0;
+  let place = 0;
+  while (/\p{Nd}/u.test(String.fromCodePoint(code - place - 1))) place += 1;
+  return String(place % 10);
 }
 
 const number = String.raw`\d{1,3}(?:[.,]\d+)?`;
 const part = String.raw`\d{1,2}(?:[.,]\d+)?`;
-const amount = String.raw`[+-]?\s*${number}\s*°?(?:\s*${part}\s*')?(?:\s*${part}\s*")?`;
+const amount = String.raw`[+-]?${number}\s*°?(?:\s*${part}\s*')?(?:\s*${part}\s*")?`;
 const coordPattern = new RegExp(String.raw`^([NSEW])?\s*([+-]?)\s*(${number})\s*°?(?:\s*(${part})\s*')?(?:\s*(${part})\s*")?\s*([NSEW])?$`, "i");
 const letters: Record<Axis, string> = { latitude: "NS", longitude: "EW" };
 const ranges: Record<Axis, number> = { latitude: 90, longitude: 180 };
@@ -77,7 +92,7 @@ export type Query =
   | { readonly kind: "unclear_position" };
 
 const labelWord = String.raw`lat(?:itude)?|lng|lon(?:g(?:itude)?)?`;
-const label = String.raw`(?:${labelWord})\.? ?[:=]? ?`;
+const label = String.raw`(?:${labelWord})"?\.? ?[:=]? ?`;
 const leadingLabel = new RegExp(`^${label}`, "i");
 const axisOfLabel = (word: string): Axis => (word.toLowerCase().startsWith("lat") ? "latitude" : "longitude");
 
@@ -87,15 +102,18 @@ const axisOfLabel = (word: string): Axis => (word.toLowerCase().startsWith("lat"
  */
 const tokens = [String.raw`(?:${label})?${amount}\s*[NSEW]?`, String.raw`(?:${label})?[NSEW]\s*${amount}`];
 /**
- * Separators, tried in order: ";", a comma followed by a space, "&", a space, then a bare comma or a slash only when a
- * number has a decimal point or a mark, so "6,326" stays one comma-decimal number. Two bare integers split by a space
- * are a postcode such as "114 55" or "560 001", never a position.
+ * Separators, tried in order: ";", a comma followed by a space, "&", a dash with a space each side, a space, then a
+ * bare comma or a slash only when a number has a decimal point or a mark, so "6,326" stays one comma-decimal number.
+ * Two bare integers split by a space or a dash are a postcode such as "114 55" or an address such as "12 - 50", never a
+ * position.
  */
+const notTwoIntegers = (left: string, right: string) => !/^\d+$/.test(left) || !/^\d+$/.test(right);
 const separators: readonly { readonly between: string; readonly accepts: (left: string, right: string) => boolean }[] = [
   { between: " ?; ?", accepts: () => true },
   { between: " ?, ", accepts: () => true },
   { between: " ?& ?", accepts: () => true },
-  { between: " ", accepts: (left, right) => !/^\d+$/.test(left) || !/^\d+$/.test(right) },
+  { between: " - ", accepts: notTwoIntegers },
+  { between: " ", accepts: notTwoIntegers },
   { between: ",", accepts: (left, right) => /[.°'"]/.test(left + right) },
   { between: " ?/ ?", accepts: (left, right) => /[.°'"]/.test(left + right) },
 ];
@@ -107,17 +125,29 @@ const pairsInside = separators.flatMap(({ between, accepts }) =>
 const heading = new RegExp(String.raw`^(${labelWord})\.? ?[/,&]? ?(${labelWord})\.? ?[:=]? ?`, "i");
 const labelledNumber = new RegExp(String.raw`(?<!\p{L})${label}[+-]?\d`, "giu");
 
+/** Labels in other languages or misspelt, and hemispheres written as a word, as the labels and letters above. */
+const spellings: readonly (readonly [RegExp, string])[] = Object.entries({
+  lat: "lattitude|latitud|latitudine|lati|lintang|breitengrad|breite|широта|vĩ độ|enlem",
+  lon: "longtitude|longitud|longitudine|longi|bujur|längengrad|länge|долгота|kinh độ|boylam",
+  N: "north|utara|norte|nord|lu",
+  S: "south|selatan|sur|sul|sud|süd|ls",
+  E: "east|timur|este|leste|est|ost|bt",
+  W: "west|barat|oeste|ouest|bb",
+}).map(([to, words]) => [new RegExp(String.raw`(?<![\p{L}\p{N}])(?:${words})(?![\p{L}\p{N}])`, "giu"), to]);
+const spelled = (text: string) => spellings.reduce((out, [words, to]) => out.replace(words, to), text);
+
 /**
  * Tells a name from a position. A position is two numbers, latitude first as phone maps copy them ("-6.326, 108.32",
  * "-6.326 108.32", "(-6.326, 108.32)", "6.326 S 108.32 E", "6°19'33.6\"S 108°19'12.0\"E"). With letters either order
  * works ("108.32 E, 6.326 S"), and labels name the axes ("lon: 108.32, lat: -6.326", "Lat/Long: -6.326, 108.32").
- * Text that holds a position with other words around it is never sent to the geocoder, because that would send it the
- * farm's coordinates: see holdsPosition. Otherwise a word of three or more letters makes a name ("Route 66").
+ * Labels and hemispheres may be words ("lintang -6.326 bujur 108.32", "6.326 South, 108.32 East"). Text that may hold a
+ * position among other words is held back, because sending it would send the farm's coordinates: see holdsPosition.
+ * Otherwise a word of three or more letters makes a name ("Route 66").
  */
 export function classifyQuery(raw: string): Query {
   const text = raw.trim();
   if (Array.from(text).length < 2) return { kind: "short" };
-  const typed = normalise(text).replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
+  const typed = spelled(normalise(text)).replace(/^[([{] ?/, "").replace(/ ?[)\]}]$/, "");
   const { axes, rest } = underHeading(typed);
   const pair = pairOf(rest);
   if (pair) return readPair(pair, axes);
@@ -165,29 +195,62 @@ function axesOf(pair: readonly [string, string]): readonly [Axis, Axis] | null {
   return ["latitude", "longitude"];
 }
 
+/** Forms that hold a position, or lead to one, wherever they stand in the text. */
+const positionForms: readonly RegExp[] = [
+  // A link, with or without https://.
+  /:\/\/|^(?:geo:|www\.)/i,
+  /(?:^|\s)(?:[\p{L}\p{N}-]+\.)+\p{L}{2,}\/\S*/u,
+  // A what3words address, which also catches a bare host such as maps.google.com.
+  /(?:^|\s)(?:\/\/\/)?\p{L}{2,}\.\p{L}{2,}\.\p{L}{2,}(?=\s|$)/u,
+  // A plus code, which Google Maps shows for a dropped pin.
+  /(?<![\p{L}\p{N}])[2-9CFGHJMPQRVWX]{4,8}\+[2-9CFGHJMPQRVWX]{2,3}(?![\p{L}\p{N}])/iu,
+  // A grid reference: an easting and a northing of 5 to 7 digits.
+  /(?<!\d)\d{5,7}(?: ?m?[EN])? ?[ ,;/] ?(?:[EN] )?\d{5,7}(?!\d)/i,
+  // Degrees and minutes, with marks or words: 6°19', 6d19m, 6 deg 19.56.
+  /\d ?[°d] ?\d{1,2}(?:[.,]\d+)? ?(?:'|m|min|minutes?)(?!\p{L})|\d ?deg(?:rees?)? ?\d/iu,
+  // Degrees and minutes with spaces and a hemisphere letter: 6 19 33 S, S 06 19.56.
+  /(?<![\p{L}\p{N}])(?:[NSEW] ?\d{1,3} \d{1,2}(?:[.,]\d+| \d{1,2})|\d{1,3} \d{1,2}(?:[.,]\d+| \d{1,2}(?:[.,]\d+)?) ?[NSEW])(?![\p{L}\p{N}])/iu,
+  // A number with its own sign and a decimal point. No place name has one.
+  /(?<![\p{L}\p{N}.,])[+-]\d+[.,]\d/u,
+  // A label beside a number with a decimal point: "lon 108.3", "6.3 lat".
+  new RegExp(String.raw`(?<!\p{L})${label}\d+[.,]\d|\d[.,]\d+°? ?(?:${labelWord})(?!\p{L})`, "iu"),
+];
+
 /**
- * Text that is not two coordinates alone but holds a position. Ordinals ("1º de Mayo") and kilometre marks ("Ruta 3 Km
- * 4.5 a 5.5") stay names.
+ * Text that is not two coordinates alone but may hold a position. It errs toward holding: a pair of numbers that reads
+ * in range is held unless it reads as an address, such as a house number and a floor ("Rúa 1º de Maio 12, 3º") or
+ * kilometre marks ("Ruta 3 Km 4.5 a 5.5").
  */
 function holdsPosition(text: string): boolean {
-  // A link may hold the position, or lead to it.
-  const link = /:\/\/|^(?:geo:|www\.)/i.test(text);
   const labelled = (text.match(labelledNumber) ?? []).length >= 2;
-  const minutes = /\d ?° ?\d{1,2}(?:[.,]\d+)? ?'/.test(text);
-  // A copied position has 3 or more decimals; a name's distances have fewer.
-  const copied = (text.match(/\d[.,]\d/g) ?? []).length >= 2 && /\d[.,]\d{3}/.test(text);
-  const noWords = !/\p{L}{3,}/u.test(text) && /\d\.\d|\d ?["']/.test(text);
-  return link || labelled || minutes || copied || noWords || pairAmongWords(text);
+  const noWords = !/\p{L}[\p{L}\p{M}]{2,}/u.test(text) && /\d\.\d|\d ?["']/.test(text);
+  return positionForms.some(form => form.test(text)) || labelled || noWords || preciseNeighbours(text) || pairAmongWords(text);
 }
 
 /**
- * "my farm -6.3, 108", "45N 9E farm". The pair must read in range and carry a decimal, a mark, a letter or a label, so a
- * house number and floor ("Rúa 1º de Maio 12, 3º") or a grid address ("100 N 200 E Provo") stays a name.
+ * Two numbers next to each other that read in range, both with a decimal point and one with 2 places or more: about a
+ * kilometre. Distances and kilometre marks are written to 1 place.
+ */
+function preciseNeighbours(text: string): boolean {
+  const numbers = [...text.matchAll(/(?<![\d.,])\d+(?:[.,](\d+))?/g)];
+  return numbers.some((match, index) => {
+    const next = numbers.at(index + 1);
+    if (next === undefined || match[1] === undefined || next[1] === undefined) return false;
+    const [a, b] = [decimal(match[0]), decimal(next[0])];
+    const inRange = Math.min(a, b) <= ranges.latitude && Math.max(a, b) <= ranges.longitude;
+    return inRange && Math.max(match[1].length, next[1].length) >= 2;
+  });
+}
+
+/**
+ * "my farm 6.3, 108.3", "45N 9E farm". Each number carries a decimal, a mark, a letter or a label, and the pair reads in
+ * range, so a house number and a floor ("Calle Mayor 12, 3º E") or a grid address out of range ("100 N 200 E Provo")
+ * stays a name.
  */
 function pairAmongWords(text: string): boolean {
   return pairsInside.some(({ pattern, accepts }) => [...text.matchAll(pattern)].some(match => {
     const pair = [match[1].trim(), match[2].trim()] as const;
-    const marked = /\d[.,]\d|['"]|\p{L}/u.test(pair.join(" ")) || pair.every(typed => typed.includes("°"));
+    const marked = pair.every(typed => /\d[.,]\d|['"°]|\p{L}/u.test(typed));
     return accepts(...pair) && marked && readPair(pair, null).kind === "position";
   }));
 }
