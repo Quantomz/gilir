@@ -96,12 +96,9 @@ export function RotationPage(props: { readonly c: Controller }): ReactElement {
             onChange={event => {
               const raw = event.target.value;
               const date = isoDate(raw);
-              // Text that is not a date yet stays in the input, as in the date sheet, so one stray digit never clears it.
-              if (date === null && (raw !== "" || event.target.validity.badInput)) {
-                setTyped(raw);
-                return;
-              }
-              setTyped(null);
+              // Text that is not a date yet stays in the input, as in the date sheet, so one stray digit never clears
+              // it. The answer clears, so the plan never uses a date the input does not show.
+              setTyped(date === null && (raw !== "" || event.target.validity.badInput) ? raw : null);
               c.edit({ kind: "planningStart", date });
             }}
           />

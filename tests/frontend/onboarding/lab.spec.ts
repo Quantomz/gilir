@@ -152,6 +152,21 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
       await expect(app(page).getByText("This date has passed. Is the year right?")).toBeVisible();
     });
 
+    test("[G2] a half-typed year leaves no field-ready date, so Make my plan sends nothing and asks for the date", async ({ page }) => {
+      await openLab(page);
+      await toRotation(page);
+      const input = app(page).getByRole("textbox", { name: "When is your field ready to plant?" });
+      await input.focus();
+      await page.keyboard.press("ArrowRight");
+      await page.keyboard.press("ArrowRight");
+      await page.keyboard.press("Backspace");
+      expect(await input.evaluate(element => (element as HTMLInputElement).validity.badInput)).toBe(true);
+      await expect(app(page).locator(".ly-window")).toHaveCount(0);
+      await button(page, "Make my plan").click();
+      await expect(title(page, "Your rotation")).toBeVisible();
+      await expect(app(page).getByRole("region", { name: "When is your field ready to plant?" }).getByText("Choose the date your field is ready.")).toBeVisible();
+    });
+
     test("[H3] drags the bar body to move it; the lane dates change and keep the length", async ({ page }) => {
       await openLab(page);
       await toRotation(page);
