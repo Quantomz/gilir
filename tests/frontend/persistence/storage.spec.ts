@@ -301,7 +301,9 @@ function phoneSizedSnapshot(): CompletedSnapshot {
   });
 }
 
-test.describe("a phone-speed load", () => {
+test.describe("a phone-speed load and write", () => {
+  const median = (values: number[]) => values.toSorted((a, b) => a - b)[Math.floor(values.length / 2)];
+
   test("load of a 300 KB synthetic snapshot under Chromium's 6x CPU throttle settles inside the 5 s limit with the whole snapshot (timings attached)", async ({ page, context, harness }, testInfo) => {
     const big = phoneSizedSnapshot();
     const bytes = JSON.stringify(big).length;
@@ -330,7 +332,6 @@ test.describe("a phone-speed load", () => {
       expect(smallRun.id).toBe("synthetic-plan");
       runs.push({ big: bigRun.ms, small: smallRun.ms });
     }
-    const median = (values: number[]) => values.toSorted((a, b) => a - b)[Math.floor(values.length / 2)];
     const timings = {
       snapshotBytes: bytes, cpuThrottle: 6, coldFirstLoadMs: cold.ms,
       warmBigMedianMs: median(runs.map(run => run.big)), warmSmallMedianMs: median(runs.map(run => run.small)), runs,
@@ -340,5 +341,41 @@ test.describe("a phone-speed load", () => {
     expect(cold).toMatchObject({ id: "synthetic-phone-sized", bytes });
     expect(cold.ms).toBeLessThan(5_000);
     expect(Math.max(...runs.map(run => run.big))).toBeLessThan(5_000);
+  });
+
+  test("F1's write of that state, a load and then a save, under the 6x throttle settles inside the 5 s limit and keeps the snapshot (timings attached)", async ({ page, context, harness }, testInfo) => {
+    const big = phoneSizedSnapshot();
+    const bytes = JSON.stringify(big).length;
+    const farm = await openHarness(page, `${harness.origin}/`);
+    await save(farm, { draft: partialDraft, step: 4, activeJob: null, snapshot: big });
+    await farm.reload();
+    await farm.waitForFunction(() => window.gilirF4 !== undefined);
+    await (await context.newCDPSession(farm)).send("Emulation.setCPUThrottlingRate", { rate: 6 });
+
+    const runs = await farm.evaluate(async () => {
+      const { localPlans } = window.gilirF4;
+      await localPlans.load();
+      const writes: { load: number; save: number }[] = [];
+      for (let run = 0; run < 7; run += 1) {
+        const started = performance.now();
+        const current = await localPlans.load();
+        const loaded = performance.now();
+        if (current === null) throw new Error("The saved state did not load.");
+        await localPlans.save({ ...current, step: 1 + (run % 4) });
+        writes.push({ load: loaded - started, save: performance.now() - loaded });
+      }
+      return writes;
+    });
+    const timings = {
+      snapshotBytes: bytes, cpuThrottle: 6,
+      loadMedianMs: median(runs.map(run => run.load)), saveMedianMs: median(runs.map(run => run.save)),
+      writeMedianMs: median(runs.map(run => run.load + run.save)), runs,
+    };
+    await testInfo.attach("write-timings.json", { body: JSON.stringify(timings, null, 2), contentType: "application/json" });
+
+    const after = await load(farm);
+    expect(after?.step).toBe(3);
+    expect(JSON.stringify(after?.snapshot).length).toBe(bytes);
+    expect(Math.max(...runs.map(run => run.load + run.save))).toBeLessThan(5_000);
   });
 });
