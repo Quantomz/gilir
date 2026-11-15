@@ -284,8 +284,9 @@ for (const size of sizes) {
       await expect(title(page, "Your rotation")).toBeVisible();
 
       await tabTo(page, "textbox", "When is your field ready to plant?");
-      await page.keyboard.type("05062027");
-      await expect(page.getByRole("textbox", { name: "When is your field ready to plant?" })).toHaveValue(skippingLastYear.ready);
+      // Matching month and day keep native date-field typing independent of OS date order.
+      await page.keyboard.type("06062027");
+      await expect(page.getByRole("textbox", { name: "When is your field ready to plant?" })).toHaveValue("2027-06-06");
       await tabTo(page, "button", /^I don’t remember/);
       await page.keyboard.press("Enter");
       await tabTo(page, "button", "Make my plan");
