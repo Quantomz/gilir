@@ -200,7 +200,7 @@ export function Credits(props: { readonly c: Controller }): ReactElement | null 
           </Fragment>
         ))}
       </p>
-      <p className="muted">{words.privacy}</p>
+      <p className="muted" data-say="">{words.privacy}</p>
     </div>
   );
 }

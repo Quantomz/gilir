@@ -22,7 +22,6 @@ const head: Head = {
   eyebrow: "Field near Indramayu · Made 15 Nov 2026",
   title: "Your plan, with warnings",
   status: { tone: "warn", icon: "alert", label: "With warnings.", text: "In past seasons, rain fell short of what the crops need in about 5 in 10 weeks." },
-  lead: null,
   facts: ["Your year: 1 Jul 2026 to 30 Jun 2027", "Maize grain and rice", "Rain only"],
   synthetic: "Synthetic test data only. Values are invented and are not farm advice.",
 };
@@ -135,15 +134,6 @@ describe("typeset", () => {
     expect(Array.from(container.querySelectorAll(".rs-for > span"), span => span.textContent)).toEqual(head.facts);
     expect(screen.getByText(head.synthetic ?? "").tagName).toBe("B");
     expect(container.querySelector(".rs-intro")).toBeNull();
-  });
-
-  it("HeadView draws a no-plan result's lead after the head, read by Listen", () => {
-    const lead = "Synthetic result: this example crop needs more days than the planning window allows.";
-    const { container } = render(<HeadView head={{ ...head, lead, synthetic: null }} titleRef={createRef()} />);
-    const paragraph = screen.getByText(lead);
-    expect(paragraph.hasAttribute("data-say")).toBe(true);
-    expect(container.querySelector(".rs-head")?.lastElementChild).toBe(paragraph);
-    expect(container.querySelector(".rs-synthetic")).toBeNull();
   });
 
   it("[R33] the status box has an aria-hidden icon and a bold label in words; its tone is a class, never the only signal", () => {

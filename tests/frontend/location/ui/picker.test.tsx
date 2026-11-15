@@ -113,6 +113,31 @@ describe("with no key and no WebGL", () => {
     expect(fetchCalls).not.toHaveBeenCalled();
   });
 
+  it("Listen has words to read on page 1: the picker marks its instructions, notices, the chosen place and the marked field with data-say, while finding and while marking", async () => {
+    const user = userEvent.setup();
+    mount();
+    await drawing();
+    const said = () => Array.from(document.querySelectorAll("[data-say]"), element => (element.textContent ?? "").trim());
+    const finding = said();
+    expect(finding).toContain("Position of your farm");
+    expect(finding).toContain("Type a position, like -6.326, 108.32, then press Search or Enter.");
+    expect(finding.some(text => text.startsWith("This phone can’t show the moving globe."))).toBe(true);
+    expect(finding.some(text => text.startsWith("Search by name and close-up pictures aren’t set up on this site."))).toBe(true);
+    expect(finding).toContain("Type the corners of your field");
+
+    await typePosition(user);
+    expect(said().some(text => text.startsWith("6.326° S, 108.320° E"))).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Mark my field" }));
+    const marking = said();
+    expect(marking).toContain("Field at 6.33° S, 108.32° E");
+    expect(marking).toContain("Your field is marked: about 1 hectare, 4 corners.");
+    expect(marking).toContain("The dot inside your field is the point we use to look up the weather records.");
+    expect(marking.length).toBeGreaterThanOrEqual(6);
+    for (const element of Array.from(document.querySelectorAll("[data-say]"))) {
+      expect(element.closest("button"), element.textContent ?? "").toBeNull();
+    }
+  });
+
   it("[R15][R8] keyboard only: Tab to Corner 1 latitude, type 3 corners, press Use these corners: onChange once with a field that passes fieldIssues; the drawing shows 3 numbered corners", async () => {
     const user = userEvent.setup();
     const { onChange } = mount();

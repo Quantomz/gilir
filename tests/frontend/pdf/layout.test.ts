@@ -9,7 +9,7 @@ import { syntheticLabel } from "@/fixtures/science";
 import { helvetica } from "./support/metrics";
 import { readPdf } from "./support/read-pdf";
 import type { ReadPage, ReadPdf, TextRun } from "./support/read-pdf";
-import { britishReader, variant, variantNames } from "./support/variants";
+import { britishReader, printsItsMessage, variant, variantNames } from "./support/variants";
 
 describe("wrap", () => {
   it("breaks at spaces and never returns a line wider than its width", async () => {
@@ -209,13 +209,15 @@ describe("page breaks", () => {
     expect(pages).toBeGreaterThan(250);
   }, 30_000);
 
-  it("manyWarnings and manySources take several pages; each warning's head and the start of its message share a page", async () => {
+  it("manyWarnings and manySources take several pages; each printed message's head and its start share a page", async () => {
     const files = everyFile;
     for (const name of ["manyWarnings", "manySources"]) {
       for (const { pdf } of files.filter(file => file.name.startsWith(`${name} `))) expect(pdf.pages.length, name).toBeGreaterThanOrEqual(4);
     }
+    const codes = variant("manyWarnings").result.details.warnings.map(warning => warning.code);
     for (const { name, pdf } of files.filter(file => file.name.startsWith("manyWarnings "))) {
       for (let n = 1; n <= 30; n++) {
+        if (!printsItsMessage(codes[n - 1]!)) continue;
         const page = pdf.pages.find(item => item.runs.some(run => run.text.startsWith(`Synthetic warning ${n}:`)));
         expect(page, `${name} warning ${n}`).toBeDefined();
         const index = page!.runs.findIndex(run => run.text.startsWith(`Synthetic warning ${n}:`));

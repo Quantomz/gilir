@@ -136,6 +136,10 @@ Each case below runs at 360 and 1280 px, except the last, which runs at 360 px. 
 8. [R19] the satellite TileJSON path in provider.ts answers 200, and its tile size and zoom range are what the map uses
 9. [R19][R14] with WebGL off, a real submitted search still names the place, and 'Mark my field' plus the corner list mark a field on the drawing
 
+## Listen on page 1
+
+The read-aloud button in F1's top bar reads every `data-say` block in the page. The picker had none, so on page 1 it read only "Where is your farm?" (19 characters; found by the audit of 15 November 2026). The picker's instructions, notices, the chosen place, the marked-field line and the weather notes now carry `data-say`. A jsdom case in `ui/picker.test.tsx` checks them while finding and while marking and fails on the code before. In Chromium on the production build, with `speechSynthesis.speak` recorded, Listen read 319 characters while finding and 909 while marking. No voice was listened to.
+
 ## Limits
 
 - The runs here use Chromium only, under `next dev`. None used `next start`, another browser or a real phone. The live verification used installed Google Chrome, also under `next dev`.

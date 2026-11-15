@@ -21,7 +21,7 @@ export function FindPanel(props: { readonly c: Controller }): ReactElement {
     <div className="stack-s">
       <SearchBox c={c} />
       <LocatePanel c={c} />
-      {c.picker.surface.kind === "globe" ? <p className="muted fp-small">{find.tapHint}</p> : null}
+      {c.picker.surface.kind === "globe" ? <p className="muted fp-small" data-say="">{find.tapHint}</p> : null}
       {listShown(c.picker) ? null : (
         <button className="btn btn-quiet fp-self-start" type="button" ref={c.focusRef("list_opener")} onClick={() => c.send({ kind: "list", open: true })}>
           <Icon name="edit" />
@@ -126,7 +126,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
   const failed = (state.kind === "answered" && state.answer.kind === "failed") || state.kind === "no_key" || state.kind === "bad_position" || state.kind === "unclear_position";
   return (
     <form className="fp-search stack-xs" role="search" aria-label={box.form} noValidate onSubmit={submit}>
-      <label className="label" htmlFor={c.idOf("search")}>{box.label}</label>
+      <label className="label" htmlFor={c.idOf("search")} data-say="">{box.label}</label>
       <div className="search-row">
         <div className="input-wrap">
           <Icon name="search" />
@@ -153,7 +153,7 @@ function SearchBox(props: { readonly c: Controller }): ReactElement {
           {search.go}
         </button>
       </div>
-      <p id={c.idOf("search-hint")} className="muted fp-small">{box.hint}</p>
+      <p id={c.idOf("search-hint")} className="muted fp-small" data-say="">{box.hint}</p>
       {places ? (
         <ul id={c.idOf("results")} ref={results} className="fp-results" aria-label={search.list}>
           {places.map((place, index) => (
@@ -329,7 +329,7 @@ export function PlaceCard(props: { readonly c: Controller }): ReactElement | nul
     <div className="stack-s">
       <div className="fp-place">
         <span className="fp-pinic"><Icon name="pin" /></span>
-        <p className="fp-place-tx">
+        <p className="fp-place-tx" data-say="">
           <b>{name}</b>
           {where ? <>{" "}<span className="muted">{where}</span></> : null}
         </p>

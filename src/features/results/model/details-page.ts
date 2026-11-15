@@ -269,6 +269,11 @@ function coverage({ result }: CompletedSnapshot, format: Format): Section<"cover
       ] : []),
     ]),
     ...(planned && search.ranking === "limit_reached" ? [bestFoundNote(search)] : []),
+    subhead(said.calculationSaid),
+    text("body", words.engineText(result.details.explanation, format)),
+    ...(result.state === "no_calendar_fit" && result.proof.kind === "structural_exhaustion"
+      ? [items(result.proof.constraints.map(constraint => item(words.engineText(constraint, format), [])))]
+      : []),
   ]);
 }
 

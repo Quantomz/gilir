@@ -36,6 +36,8 @@ export const farm = {
 
 export const crops = {
   lead: "Every plan includes every crop you pick. Many fields fit 1 to 3 crops in a year, depending on how long they grow.",
+  /** The catalogue is one list for the whole world, and the crop profiles behind it are regional. */
+  coverage: "We have growing details for only some crops in some places. If a crop you pick has none for your field, we’ll tell you, and no plan is made.",
   purpose: { food: "Grown for food", cover: "Cover crop" },
   picked: "Picked",
   count: (n: number) => `${n} picked`,

@@ -26,7 +26,7 @@ const title = (page: Page, name: string) => page.getByRole("heading", { level: 1
 const plantingDay = (page: Page) => page.getByRole("slider", { name: "Synthetic crop: planting day" });
 const harvestDay = (page: Page) => page.getByRole("slider", { name: "Synthetic crop: harvest day, the last day in the field" });
 const readyDate = (page: Page) => page.getByRole("textbox", { name: "When is your field ready to plant?" });
-const resultsSlot = (page: Page) => page.getByRole("region", { name: "Results implementation slot" });
+const resultsSlot = (page: Page) => page.getByRole("region", { name: "What you can do" });
 
 async function open(page: Page, script: ApiScript, seeded = true) {
   if (seeded) await seedInput(page, inputFixture);

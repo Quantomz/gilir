@@ -80,6 +80,12 @@ export function CropsPage(props: { readonly c: Controller }): ReactElement {
           </div>
         ))}
       </IssueList>
+      {offered ? (
+        <p className="note" data-say="">
+          <Icon name="info" />
+          <span>{crops.coverage}</span>
+        </p>
+      ) : null}
       {state.status === "failed" ? (
         <div className="note note-warn cat-state" role="alert">
           <Icon name="alert" />

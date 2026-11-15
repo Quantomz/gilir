@@ -44,7 +44,7 @@ export function resultPage(snapshot: CompletedSnapshot, format: Format): ResultP
       return { kind: "no_plan", head: headSaying(words.status.insufficient_data), ...noPlanBody(lead, result.details, reading, result.missing) };
     }
     case "no_calendar_fit":
-      return { kind: "no_plan", head: headSaying(proofSentence(result.proof, format)), ...noPlanBody(noFit(result.proof, reading), result.details, reading) };
+      return { kind: "no_plan", head: headSaying(proofSentence(result.proof, format)), ...noPlanBody(noFit(result, reading), result.details, reading) };
     case "search_incomplete":
       return { kind: "no_plan", head: headSaying(words.status.search_incomplete), ...noPlanBody(stopped(result.details.search, reading), result.details, reading) };
     case "service_error":
@@ -107,8 +107,6 @@ function headOf(snapshot: CompletedSnapshot, { format, names }: Reading, statusT
     eyebrow: words.eyebrowOf(snapshot, format),
     title: words.titleOf(snapshot),
     status: { ...statusLooks[result.state], label: words.statusLabels[result.state], text: statusText },
-    // A service_error's explanation is the service's own message, which only View details shows.
-    lead: plan === null && result.state !== "service_error" ? words.engineText(result.details.explanation, format) : null,
     facts: [
       plan === null ? words.head.fieldReady(format.day(input.planningStart)) : words.head.year(yearRange(plan.horizon, format)),
       words.sentenceCase(names.list(input.cropPurposeIds)),
@@ -166,12 +164,17 @@ function notes(warnings: ResultDetails["warnings"], reading: Reading): Section<"
   return { id: "notes", title: words.sections.goodToKnow, look: "card", blocks: [warningItems(warnings, "plain", reading)] };
 }
 
-function warningItems(warnings: ResultDetails["warnings"], look: "plain" | "flag", { format, names }: Reading): Block {
-  return items(warnings.map(warning => item(
-    words.warningHeads[warning.code](names.list(warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1),
-    [words.engineText(warning.message, format)],
-    words.warningIcons[warning.code],
-  )), look);
+function warningItems(warnings: ResultDetails["warnings"], look: "plain" | "flag", { format, input, names }: Reading): Block {
+  return items(warnings.map(warning => {
+    const crops = names.list(warning.cropPurposeIds);
+    const several = unique(warning.cropPurposeIds).length > 1;
+    const ownLine = words.warningLines[warning.code];
+    return item(
+      words.warningHeads[warning.code](crops, several, input.water),
+      [ownLine === undefined ? words.engineText(warning.message, format) : ownLine(crops, several, input.water)],
+      words.warningIcons[warning.code],
+    );
+  }), look);
 }
 
 function timeline(plan: Plan, reading: Reading): Section<"timeline"> {
@@ -197,7 +200,6 @@ function ranking(plan: Plan, details: ResultDetails, { format, keeps, names }: R
     title: keeps ? words.sections.rankingKept : words.sections.ranking,
     look: "card",
     blocks: [
-      text("body", words.engineText(details.explanation, format)),
       note("neutral", "info", null, words.ranking.fixedOrder),
       { kind: "ranks", numbered: true, ranks: plan.rankingTuple.components.map(component => tupleRank(component, yearDays, format)) },
       ...(notRanked.length === 0 ? [] : [subhead(words.ranking.notRanked), { kind: "ranks", numbered: false, ranks: notRanked } satisfies Block]),
@@ -434,8 +436,9 @@ function missing(gaps: Branch<"insufficient_data">["missing"], search: ResultDet
   };
 }
 
-/** No hint about which crops would fit: the proof does not show that. */
-function noFit(proof: Branch<"no_calendar_fit">["proof"], { format, names }: Reading): Section<"no_fit"> {
+/** No hint about which crops or dates would fit: the proof does not show that. */
+function noFit({ proof, details }: Branch<"no_calendar_fit">, { format, input, names }: Reading): Section<"no_fit"> {
+  const one = unique(input.cropPurposeIds).length === 1;
   const why: readonly Block[] = proof.kind === "duration_lower_bound"
     ? [
         {
@@ -449,11 +452,13 @@ function noFit(proof: Branch<"no_calendar_fit">["proof"], { format, names }: Rea
         items(proof.minimumByCrop.map(crop => item(words.noPlan.perCrop(names.name(crop.cropPurposeId), words.dayCount(crop.minimumDays)), []))),
       ]
     : [
-        text("body", words.noPlan.whatStops),
-        items(proof.constraints.map(constraint => item(words.engineText(constraint, format), [], "info"))),
-        ...(proof.expandedStates > 0 ? [text("muted", words.noPlan.checkedWays(format.count(proof.expandedStates, "way", "ways")))] : []),
+        // The engine tries this proof only after the crops' days fit in the year, so the planting times, or the follow
+        // rules when the run had any, are what stop them. Its own constraint sentences are in View details.
+        text("body", words.noPlan.noFitPlanting(one, details.provenance.rules.length > 0, format.day(input.planningStart))),
+        ...(proof.expandedStates > 0 ? [text("muted", words.noPlan.checkedWays(format.count(proof.expandedStates, "way", "ways"), one))] : []),
       ];
-  return { id: "no_fit", title: words.sections.no_fit, look: "card", blocks: [...why, note("neutral", "edit", null, words.noPlan.noFitNext)] };
+  const next = proof.kind === "duration_lower_bound" ? words.noPlan.noFitNext(one) : words.noPlan.noFitPlantingNext(one);
+  return { id: "no_fit", title: words.sections.no_fit, look: "card", blocks: [...why, note("neutral", "edit", null, next)] };
 }
 
 function stopped(search: ResultDetails["search"], { format }: Reading): Section<"stopped"> {

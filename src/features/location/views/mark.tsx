@@ -19,11 +19,11 @@ export function MarkHead(props: { readonly c: Controller }): ReactElement | null
   return (
     <div className="stack-s">
       <div className="stack-xs">
-        <h2 className="section-t" id={c.idOf("heading")} tabIndex={-1} ref={c.focusRef("heading")}>{heading[phase]}</h2>
-        <p className="muted">{picker.surface.kind === "plan" ? lead.plan : lead[phase]}</p>
+        <h2 className="section-t" id={c.idOf("heading")} tabIndex={-1} ref={c.focusRef("heading")} data-say="">{heading[phase]}</h2>
+        <p className="muted" data-say="">{picker.surface.kind === "plan" ? lead.plan : lead[phase]}</p>
       </div>
       <div className="fp-place-line">
-        <p>
+        <p data-say="">
           <Icon name="pin" />
           <span>{picker.outline.label}</span>
         </p>
@@ -55,7 +55,7 @@ export function MarkTools(props: { readonly c: Controller }): ReactElement | nul
   const sideM = made.kind === "box" ? Math.sqrt(made.hectares * 10_000) : 0;
   return (
     <div className="stack-s">
-      <p className="fp-status">
+      <p className="fp-status" data-say="">
         <Icon name="check" />
         <span>{mark.status(marked.areaM2, marked.corners.length)}</span>
       </p>
@@ -80,7 +80,7 @@ export function MarkTools(props: { readonly c: Controller }): ReactElement | nul
             <Icon name="plus" />
             {mark.addCorner}
           </button>
-          {selected === null ? <p className="muted fp-choose">{mark.chooseCorner}</p> : (
+          {selected === null ? <p className="muted fp-choose" data-say="">{mark.chooseCorner}</p> : (
             <button
               className="btn btn-sub"
               type="button"
@@ -108,9 +108,9 @@ export function Precision(props: { readonly c: Controller }): ReactElement | nul
     <div className="note fp-notice">
       <Icon name="info" />
       <div className="stack-xs">
-        <p>{precisionWords(picker.outline)}</p>
-        <p>{weatherDot}</p>
-        <p>{weatherGrid}</p>
+        <p data-say="">{precisionWords(picker.outline)}</p>
+        <p data-say="">{weatherDot}</p>
+        <p data-say="">{weatherGrid}</p>
       </div>
     </div>
   );
@@ -200,7 +200,7 @@ export function CornerList(props: { readonly c: Controller }): ReactElement {
   return (
     <section className="fp-list" aria-labelledby={c.idOf("list")}>
       <div className="sheet-head">
-        <h3 className="sheet-title" id={c.idOf("list")} tabIndex={-1} ref={c.focusRef("list")}>{list.title}</h3>
+        <h3 className="sheet-title" id={c.idOf("list")} tabIndex={-1} ref={c.focusRef("list")} data-say="">{list.title}</h3>
         {plan ? null : (
           <button className="btn btn-small btn-close" type="button" onClick={() => c.send({ kind: "list", open: false })}>
             <Icon name="close" />
@@ -208,7 +208,7 @@ export function CornerList(props: { readonly c: Controller }): ReactElement {
           </button>
         )}
       </div>
-      <p className="muted" id={c.idOf("list-hint")}>{list.hint}</p>
+      <p className="muted" id={c.idOf("list-hint")} data-say="">{list.hint}</p>
       <form className="stack-s" noValidate onSubmit={submit}>
         {rows.map((row, index) => (
           <fieldset className="fp-corner" key={index}>

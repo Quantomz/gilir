@@ -209,9 +209,9 @@ for (const viewport of viewports) {
       if (timeline === null) throw new Error("No timeline heading.");
       for (const words of [
         "Rain fell short of what synthetic crop needs in past seasons",
-        "Example rainfall warning.",
+        "In some past seasons, at least one week had less rain than it needs.",
         "The search stopped at its limit",
-        "Example search stopped at its scoring budget.",
+        "We stopped at our search limit before everything was compared.",
       ]) {
         const box = await page.getByText(words, { exact: true }).boundingBox();
         expect(box, words).not.toBeNull();
@@ -453,7 +453,7 @@ for (const viewport of viewports) {
       const bytes = readFileSync(file);
       expect(bytes.subarray(0, 5).toString("latin1")).toBe("%PDF-");
       expect(bytes.length).toBeGreaterThan(1_000);
-      await expect(page.getByRole("status")).toHaveText(pdfMade);
+      await expect(page.locator("#main").getByRole("status")).toHaveText(pdfMade);
       await expect(actions(page).getByRole("alert")).toHaveText("");
       await context.setOffline(false);
       noErrors(walk);
@@ -464,13 +464,13 @@ for (const viewport of viewports) {
       const walk = await openResult(page, shared("plan_with_warnings"));
       const card = actions(page);
       await expect(card.getByText(notSaving, { exact: true })).toBeVisible();
-      await expect(page.getByRole("status")).toHaveText(notSaving);
+      await expect(page.locator("#main").getByRole("status")).toHaveText(notSaving);
       expect(await actionNames(page)).toEqual(["Download PDF", "View details", "Change my answers"]);
       await card.screenshot({ path: evidencePath(info, `shots/plan_with_warnings-${width}-not-saving.png`, true) });
 
       const [download] = await Promise.all([page.waitForEvent("download"), card.getByRole("button", { name: "Download PDF" }).click()]);
       expect(await download.failure()).toBeNull();
-      await expect(page.getByRole("status")).toHaveText(pdfMade);
+      await expect(page.locator("#main").getByRole("status")).toHaveText(pdfMade);
       noErrors(walk);
     });
 
@@ -478,7 +478,7 @@ for (const viewport of viewports) {
       const walk = await openResult(page, shared("plan_with_warnings"), undefined, storeNewerState);
       const card = actions(page);
       await expect(card.getByText(newerLine, { exact: true })).toBeVisible();
-      await expect(page.getByRole("status")).toHaveText(newerLine);
+      await expect(page.locator("#main").getByRole("status")).toHaveText(newerLine);
       expect(await actionNames(page)).toEqual(["Download PDF", "View details", "Change my answers"]);
       expect(await storedVersion(page), "the newer record is untouched").toBe(2);
       await card.screenshot({ path: evidencePath(info, `shots/plan_with_warnings-${width}-newer.png`, width === 360) });

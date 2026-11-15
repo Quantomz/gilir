@@ -102,7 +102,7 @@ Every screenshot and all seven PDF pages (rendered with `pdftoppm`) were opened 
 
 ## Seen during the run, for the owners
 
-These did not stop the journey. They are recorded so they are not lost.
+These did not stop the journey. They are recorded so they are not lost. The first two were fixed afterwards on the branch `fix/frontend-audit-findings`: the page and the PDF now share one head and one plain line per warning, and the engine's ranking and no-plan sentences are in View details only. The screenshots and PDFs here are from before that change.
 
 - **Results and the PDF head the same notes differently.** The page says "A limit of the growing details for Rice (paddy)" above each crop profile note, and the PDF says "About the growing details for Rice (paddy)". Two of the three real notes are not limits (they explain how a source table was read), which is why the PDF's head was changed. (F3)
 - **Engine and registry text reaches the farmer as written.** "In some replay seasons, rainfall fell below estimated crop demand in at least one rolling window.", "This was the sole assessed eligible calendar; no advantage over another calendar was established.", "The reported historical duration has no unambiguous released stage allocation." and "The FAO-56 cell 'Dec; May' with region 'Tropics; Mediterranean' is read as December planting for the tropics." are accurate and hard to read. (E1, E3)
