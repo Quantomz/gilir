@@ -25,6 +25,12 @@ export function readProvider(): Provider {
   return key ? { kind: "ready", key: key as BrowserKey } : { kind: "missing" };
 }
 
+export const maptilerLogo = {
+  href: "https://www.maptiler.com",
+  src: "/maptiler-logo.svg",
+  alt: "MapTiler logo",
+} as const;
+
 export const providerPolicy = {
   searchLimit: 6,
   /** Long enough for a slow phone line. */
