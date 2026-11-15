@@ -174,7 +174,6 @@ export function creditsFor(provider: Provider, pictures: boolean): readonly Cred
   ];
 }
 
-/** MapTiler's logo and where it links. */
 export interface Logo {
   readonly src: string;
   readonly href: string;

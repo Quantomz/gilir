@@ -276,7 +276,7 @@ export const credits: Record<"pictures" | "pictures_and_search" | "search", { re
   },
 };
 
-/** MapTiler's logo on the map. The picture's words show if the picture does not load. */
+/** `picture` shows in place of MapTiler's logo if it does not load. */
 export const logo = { link: newTab("MapTiler logo"), picture: "MapTiler" } as const;
 
 export function areaText(areaM2: number): string {
