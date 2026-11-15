@@ -1,6 +1,7 @@
 import { isoDateSchema } from "@/contracts/common";
 import type { CropPurposeId, IsoDate } from "@/contracts/common";
 import type { LngLat } from "@/contracts/input";
+import type { CompletedSnapshot } from "@/contracts/result";
 
 declare const printable: unique symbol;
 /**
@@ -153,10 +154,15 @@ export function sayFor(reader: Reader): Say {
   };
 }
 
-/** The snapshot holds crop IDs, not labels, and src/client may not import the registry. */
-export function cropName(id: CropPurposeId): PdfText {
+/**
+ * src/client may not import the registry, so a crop the snapshot's frozen catalogue doesn't name (every crop of a
+ * version 1 snapshot) is named from its ID. So is a label with a letter the fonts can't draw: an ID always prints.
+ */
+export function cropName(snapshot: CompletedSnapshot, id: CropPurposeId): PdfText {
   const words = id.replace(/[-_:]+/g, " ");
-  return pdfText(words.charAt(0).toUpperCase() + words.slice(1));
+  const fromId = words.charAt(0).toUpperCase() + words.slice(1);
+  const label = snapshot.schemaVersion === 2 ? snapshot.catalogue.entries.find(entry => entry.id === id)?.label : undefined;
+  return label === undefined ? pdfText(fromId) : ownName(label, fromId).text;
 }
 
 export function coordinates([longitude, latitude]: LngLat): PdfText {

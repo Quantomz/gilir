@@ -10,7 +10,7 @@ import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { readPdf } from "./support/read-pdf";
 import type { ReadPage, ReadPdf } from "./support/read-pdf";
-import { britishReader, variant, variantNames } from "./support/variants";
+import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 const states = ["plan", "plan_with_warnings", "insufficient_data", "no_calendar_fit", "search_incomplete", "service_error"] as const;
 type State = (typeof states)[number];
@@ -509,6 +509,52 @@ describe("values are read, never invented", () => {
     expect(cyrillic.pages.map(page => page.text).join(" ")).not.toContain("?");
     const thai = prose(await read(variant("thaiUnlistedCrop")));
     expect(thai).toContain("A crop not on our list Planted about 1 Jul 2025 · Harvested about 4 Jul 2025 A crop name uses letters this file can’t show.");
+  });
+});
+
+describe("crop names in the file", () => {
+  const idNames = /synthetic (second |third )?crop\b/i;
+
+  it("version 2: the saved labels name the crops in the head, flags, calendar, heat, changes, gaps and profiles, and no crop by its ID", async () => {
+    const text = prose(await read(variant("frozenLabels")));
+    for (const part of [
+      "Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats (grain) · Water: Rain only",
+      "temperatures went outside the limits for synthetic maize (grain) on about 20% of checked days",
+      "Rain fell short of what synthetic bean (dry grain) needs in past seasons Synthetic rainfall warning for the first crop.",
+      "1. Synthetic bean (dry grain) Plant 1 Jul 2026 · Harvest 28 Sept 2026",
+      "3. Synthetic maize (grain) Plant 16 Oct 2026 · Harvest 24 Dec 2026",
+      "5. Synthetic oats (grain) Plant 6 Jan 2027 · Harvest 6 Mar 2027",
+      "Outside the limits in past seasons: synthetic maize (grain). No checked day outside the limits for synthetic bean (dry grain). Not assessed for synthetic oats (grain).",
+      "Added: synthetic oats (grain), 6 Jan to 6 Mar 2027.",
+      "Synthetic maize (grain) moves from first to second in the order.",
+      "Heat and cold limits for synthetic oats (grain) No synthetic temperature rule applies to this invented crop.",
+      "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain)",
+    ]) expect(text).toContain(part);
+    expect(text).not.toMatch(idNames);
+  });
+
+  it("version 2 status report: the duration proof and last year’s crop print the saved label", async () => {
+    const text = prose(await read(frozen(completedSnapshotsByState.no_calendar_fit, { "synthetic-crop": savedLabels["synthetic-crop"] })));
+    expect(text).toContain("Each crop needs at least: • Synthetic bean (dry grain): at least 366 days");
+    expect(text).toContain("What you told us about last year (not scored) Synthetic bean (dry grain) Planted about 1 Jul 2025");
+    expect(text).not.toMatch(idNames);
+  });
+
+  it("version 1: the same plan saved without a catalogue prints names made from the IDs", async () => {
+    const text = prose(await read(unfrozen(variant("frozenLabels"))));
+    expect(text).toContain("1. Synthetic crop Plant 1 Jul 2026 · Harvest 28 Sept 2026");
+    expect(text).toContain("Synthetic second crop moves from first to second in the order.");
+    expect(text).not.toMatch(/\((dry )?grain\)/);
+  });
+
+  it("an ID the saved catalogue doesn’t hold prints a name made from the ID", async () => {
+    expect(prose(await read(variant("frozenLabels")))).toContain("Not in the new plan: synthetic old crop, 1 Mar to 9 Apr 2027 in last year’s rotation.");
+  });
+
+  it("a saved label the fonts can’t draw prints the name made from the ID, and the export doesn’t fail", async () => {
+    const text = prose(await read(frozen(completedSnapshotsByState.plan, { "synthetic-crop": "ถั่ว synthetic" })));
+    expect(text).toContain("Crops: Synthetic crop · Water: Rain only");
+    expect(text).not.toMatch(/\?{2}|\? synthetic/);
   });
 });
 

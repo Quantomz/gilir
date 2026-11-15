@@ -3,6 +3,8 @@ import type { PDFFont } from "pdf-lib";
 import { beforeAll, describe, expect, it } from "vitest";
 import { parseCropPurposeId, parseIsoDate } from "@/contracts/common";
 import { coordinates, cropName, engineText, ownName, pdfText, sayFor } from "@/client/pdf/text";
+import { completedSnapshotsByState } from "@/fixtures/results";
+import { frozen } from "./support/variants";
 
 let fonts: readonly PDFFont[] = [];
 beforeAll(async () => {
@@ -169,10 +171,21 @@ describe("sayFor", () => {
 });
 
 describe("names, places and engine text", () => {
-  it("cropName('maize-grain') is Maize grain and cropName('synthetic-crop') is Synthetic crop", () => {
-    expect(cropName(parseCropPurposeId("maize-grain"))).toBe("Maize grain");
-    expect(cropName(parseCropPurposeId("synthetic-crop"))).toBe("Synthetic crop");
-    expect(cropName(parseCropPurposeId("rice_paddy:wet-season"))).toBe("Rice paddy wet season");
+  it("cropName: a version 1 snapshot names maize-grain Maize grain, from the ID", () => {
+    const version1 = completedSnapshotsByState.plan;
+    expect(cropName(version1, parseCropPurposeId("maize-grain"))).toBe("Maize grain");
+    expect(cropName(version1, parseCropPurposeId("synthetic-crop"))).toBe("Synthetic crop");
+    expect(cropName(version1, parseCropPurposeId("rice_paddy:wet-season"))).toBe("Rice paddy wet season");
+  });
+
+  it("cropName: a version 2 snapshot uses its saved label made printable, and an ID that catalogue lacks is named from the ID", () => {
+    const version2 = frozen(completedSnapshotsByState.plan, {
+      "synthetic-crop": "Synthetic bean (dry grain)", "maize-grain": "Maïs ≥ 90 days (Łódź)", "sorghum-grain": "ข้าวฟ่าง (grain)",
+    });
+    expect(cropName(version2, parseCropPurposeId("synthetic-crop"))).toBe("Synthetic bean (dry grain)");
+    expect(cropName(version2, parseCropPurposeId("maize-grain"))).toBe("Maïs >= 90 days (Lódz)");
+    expect(cropName(version2, parseCropPurposeId("rice_paddy:wet-season"))).toBe("Rice paddy wet season");
+    expect(cropName(version2, parseCropPurposeId("sorghum-grain"))).toBe("Sorghum grain");
   });
 
   it("coordinates([100.005, 15.005]) is 15.005° N, 100.005° E; negative values say S and W", () => {

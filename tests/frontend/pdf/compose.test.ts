@@ -5,7 +5,7 @@ import type { Item, PdfDocument, PlanDocument, StatusDocument, Timeline, Timelin
 import { pdfText } from "@/client/pdf/text";
 import { completedSnapshotsByState } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
-import { britishReader, variant, variantNames } from "./support/variants";
+import { britishReader, frozen, savedLabels, unfrozen, variant, variantNames } from "./support/variants";
 
 function calendarOf(doc: PdfDocument): { readonly timeline: Timeline; readonly rows: readonly Item[] } {
   if (doc.kind !== "plan") throw new Error("a status report has no calendar");
@@ -228,7 +228,7 @@ describe("the variants: what the fixtures can't show", () => {
   const readers = [britishReader, { locale: "th-TH", timeZone: "Asia/Bangkok" }, { locale: "en-US", timeZone: "America/Chicago" }];
 
   it("each variant parses with completedSnapshotSchema and stays labelled synthetic with the fixture label", () => {
-    expect(variantNames).toHaveLength(14);
+    expect(variantNames).toHaveLength(15);
     for (const name of variantNames) {
       const snapshot = variant(name);
       expect(completedSnapshotSchema.safeParse(snapshot).success, name).toBe(true);
@@ -462,5 +462,86 @@ describe("each sentence is true of the result it prints", () => {
     });
     expect(sourcesOf(compose(report, britishReader))).toContain("Calculation methods: synthetic-v1; climate-insight-v2.");
     expect(sourcesOf(compose(completedSnapshotsByState.plan, britishReader))).toContain("Calculation methods: synthetic-v1.");
+  });
+});
+
+describe("a crop's name", () => {
+  const saved = variant("frozenLabels");
+  const insufficient = completedSnapshotsByState.insufficient_data;
+  const history = insufficient.input.history.kind === "recorded" ? insufficient.input.history : null;
+  const gaps = insufficient.result.state === "insufficient_data" ? insufficient.result.missing : [];
+  const savedStatus = frozen(completedSnapshotSchema.parse({
+    ...insufficient,
+    input: {
+      ...insufficient.input,
+      history: history && { ...history, entries: [...history.entries, {
+        kind: "crop", id: "synthetic-retired", crop: { kind: "catalogue", cropPurposeId: "synthetic-retired-crop" },
+        planted: "2025-08-01", harvested: "2025-09-30", plantedPrecision: "exact", harvestedPrecision: "exact",
+      }] },
+    },
+    result: {
+      ...insufficient.result,
+      missing: [...gaps, { code: "crop_profile", reason: "No synthetic profile applies here.", cropPurposeIds: ["synthetic-crop"], sourceIds: [] }],
+    },
+  }), { "synthetic-crop": savedLabels["synthetic-crop"] });
+  const idNames = /synthetic (second |third )?crop\b/i;
+
+  it("version 2: the label saved with the snapshot names each crop in the answers, status, flags, calendar, heat, changes, gaps and profiles", () => {
+    const doc = compose(saved, britishReader);
+    const text = textOf(doc);
+    expect(doc.head.lines).toContain("Crops: Synthetic bean (dry grain), synthetic maize (grain) and synthetic oats (grain) · Water: Rain only · Last year: 1 crop");
+    expect(doc.head.status.text).toContain("temperatures went outside the limits for synthetic maize (grain) on about 20% of checked days");
+    expect(calendarOf(doc).rows.map(row => row.head)).toEqual([
+      "Synthetic bean (dry grain)", "No planned crop", "Synthetic maize (grain)", "No planned crop", "Synthetic oats (grain)", "No planned crop",
+    ]);
+    expect(text).toEqual(expect.arrayContaining([
+      "Rain fell short of what synthetic bean (dry grain) needs in past seasons",
+      "Temperatures went outside the limits for synthetic maize (grain)",
+      "The first 7 days are the time after the synthetic oats (grain) harvest, before the field is free.",
+      "Outside the limits in past seasons: synthetic maize (grain).",
+      "No checked day outside the limits for synthetic bean (dry grain).",
+      "Not assessed for synthetic oats (grain).",
+      "Added: synthetic oats (grain), 6 Jan to 6 Mar 2027.",
+      "Plant synthetic bean (dry grain) 7 days later: 1 Jul 2026 instead of 24 Jun 2026.",
+      "Plant synthetic maize (grain) on the same day, 16 Oct 2026; harvest 24 Dec 2026 instead of 19 Dec 2026.",
+      "Synthetic maize (grain) moves from first to second in the order.",
+      "Heat and cold limits for synthetic oats (grain)",
+      "Crop profiles: Synthetic bean (dry grain) synthetic-synthetic-crop-profile synthetic-v1; Synthetic maize (grain) synthetic-synthetic-second-crop-profile synthetic-v1; Synthetic oats (grain) synthetic-synthetic-third-crop-profile synthetic-v1.",
+    ]));
+    expect(text.filter(line => idNames.test(line))).toEqual([]);
+  });
+
+  it("version 2 status reports: the duration proof, What’s missing and last year’s rows name the crop by its saved label", () => {
+    const tooLong = textOf(compose(frozen(completedSnapshotsByState.no_calendar_fit, { "synthetic-crop": savedLabels["synthetic-crop"] }), britishReader));
+    expect(tooLong).toContain("Synthetic bean (dry grain): at least 366 days");
+    const missing = textOf(compose(savedStatus, britishReader));
+    expect(missing).toContain("Growing details for synthetic bean (dry grain) in this place");
+    const lastYear = missing.slice(missing.indexOf("What you told us about last year (not scored)"));
+    expect(lastYear.slice(1, 3)).toEqual(["Synthetic bean (dry grain)", "Planted about 1 Jul 2025 · Harvested about 4 Jul 2025"]);
+    expect([...tooLong, ...missing].filter(line => idNames.test(line))).toEqual([]);
+  });
+
+  it("version 1: a snapshot saved without a catalogue names the same crops from their IDs", () => {
+    const doc = compose(unfrozen(saved), britishReader);
+    const text = textOf(doc);
+    expect(doc.head.lines).toContain("Crops: Synthetic crop, synthetic second crop and synthetic third crop · Water: Rain only · Last year: 1 crop");
+    expect(calendarOf(doc).rows.map(row => row.head).filter(head => head !== "No planned crop")).toEqual(["Synthetic crop", "Synthetic second crop", "Synthetic third crop"]);
+    expect(text).toContain("Synthetic second crop moves from first to second in the order.");
+    expect(text.filter(line => /\((dry )?grain\)/.test(line))).toEqual([]);
+  });
+
+  it("an ID the saved catalogue doesn’t hold is named from its ID: the removed old crop, and a crop from last year", () => {
+    expect(textOf(compose(saved, britishReader))).toContain("Not in the new plan: synthetic old crop, 1 Mar to 9 Apr 2027 in last year’s rotation.");
+    const missing = textOf(compose(savedStatus, britishReader));
+    const lastYear = missing.slice(missing.indexOf("What you told us about last year (not scored)"));
+    expect(lastYear).toContain("Synthetic retired crop");
+    expect(lastYear[lastYear.indexOf("Synthetic retired crop") + 1]).toBe("Planted 1 Aug 2025 · Harvested 30 Sept 2025");
+  });
+
+  it("a saved label with a letter the fonts can’t draw is replaced whole by the name made from the ID, never printed as ?", () => {
+    const doc = compose(frozen(completedSnapshotsByState.plan, { "synthetic-crop": "ถั่ว synthetic" }), britishReader);
+    expect(calendarOf(doc).rows[0]?.head).toBe("Synthetic crop");
+    expect(doc.head.lines).toContain("Crops: Synthetic crop · Water: Rain only · Last year: 1 crop");
+    expect(textOf(doc).filter(line => /\?{2}|\? synthetic/.test(line))).toEqual([]);
   });
 });

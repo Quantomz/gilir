@@ -91,7 +91,7 @@ const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>
   no_calendar_fit: (ctx, { proof }) => proof.kind === "duration_lower_bound"
     ? [
       paragraph(t(words.noPlan.fitEach)),
-      list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(cropName(crop.cropPurposeId), words.days(crop.minimumDays)))] }))),
+      list("bullet", proof.minimumByCrop.map(crop => ({ head: null, lines: [t(words.noPlan.fitMinimum(cropName(ctx.snapshot, crop.cropPurposeId), words.days(crop.minimumDays)))] }))),
       paragraph(t(words.noPlan.fitNext)),
     ]
     : [
@@ -139,7 +139,7 @@ function head(ctx: Context): Head {
     lines: [
       t(words.place.weatherPoint(coordinates(input.field.lookup))),
       t(words.madeLine(ctx.made, period(ctx, horizon.start, addDays(horizon.endExclusive, -1)))),
-      t(words.answersLine(words.cap(cropList(input.cropPurposeIds) ?? ""), words.waterLabels[input.water], historyWords(input.history))),
+      t(words.answersLine(words.cap(cropList(ctx, input.cropPurposeIds) ?? ""), words.waterLabels[input.water], historyWords(input.history))),
       ...(place.shown === "replaced" ? [t(words.place.note)] : []),
     ],
     synthetic: synthetic(ctx),
@@ -151,7 +151,7 @@ function statusSentence(ctx: Context): PdfText {
   const result = ctx.snapshot.result;
   switch (result.state) {
     case "plan": return t(words.status.plan.text);
-    case "plan_with_warnings": return t(flagged(result));
+    case "plan_with_warnings": return t(flagged(ctx, result));
     case "insufficient_data": return t(words.status.insufficient_data.text);
     case "no_calendar_fit": return t(result.proof.kind === "duration_lower_bound"
       ? words.proofLine.duration(words.days(result.proof.mandatoryMinimumDays), words.whole(result.proof.horizonDays))
@@ -161,10 +161,10 @@ function statusSentence(ctx: Context): PdfText {
   }
 }
 
-function flagged(result: ResultOf<"plan_with_warnings">): string {
+function flagged(ctx: Context, result: ResultOf<"plan_with_warnings">): string {
   const { details, plan } = result;
   const of = (code: ResultWarning["code"]) => details.warnings.filter(warning => warning.code === code);
-  const cropsOf = (list: readonly ResultWarning[]) => cropList(list.flatMap(warning => warning.cropPurposeIds));
+  const cropsOf = (list: readonly ResultWarning[]) => cropList(ctx, list.flatMap(warning => warning.cropPurposeIds));
   const parts: string[] = [];
   if (of("rainfall_mismatch").length) {
     const frequency = plan.rankingTuple.components[0].value;
@@ -215,7 +215,7 @@ function warnings(all: readonly ResultWarning[], flagsAllowed: boolean, ctx: Con
   const flagCodes = new Set<string>(words.flagCodes);
   const isFlag = (warning: ResultWarning) => flagsAllowed && flagCodes.has(warning.code);
   const item = (warning: ResultWarning): Item => ({
-    head: t(words.warningHeads[warning.code](cropList(warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1, ctx.snapshot.input.water)),
+    head: t(words.warningHeads[warning.code](cropList(ctx, warning.cropPurposeIds), unique(warning.cropPurposeIds).length > 1, ctx.snapshot.input.water)),
     lines: [engineText(warning.message, ctx.say)],
   });
   const flags = all.filter(isFlag);
@@ -278,7 +278,7 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
     if (stretch.look === "crop") {
       const { occurrence } = stretch;
       rows.push({
-        head: cropName(occurrence.cropPurposeId),
+        head: cropName(ctx.snapshot, occurrence.cropPurposeId),
         lines: [
           t(words.calendar.crop(say.day(occurrence.planted), say.day(occurrence.lastOccupied))),
           t(words.calendar.cropDays(words.days(stretch.to - stretch.from), say.day(occurrence.fieldAvailable))),
@@ -287,14 +287,14 @@ function timeline(plan: Plan, ctx: Context): { readonly timeline: Timeline; read
     } else if (stretch.look === "after_harvest") {
       rows.push({
         head: t(words.calendar.afterHarvest),
-        lines: [t(span(stretch.from, stretch.to)), t(words.calendar.afterHarvestOf(words.low(cropName(stretch.occurrence.cropPurposeId))))],
+        lines: [t(span(stretch.from, stretch.to)), t(words.calendar.afterHarvestOf(words.low(cropName(ctx.snapshot, stretch.occurrence.cropPurposeId))))],
       });
     } else if (previous?.look === "after_harvest") {
       rows.push({
         head: t(words.calendar.noCrop),
         lines: [
           t(span(previous.from, stretch.to)),
-          t(words.calendar.firstDaysAfterHarvest(previous.to - previous.from, words.low(cropName(previous.occurrence.cropPurposeId)))),
+          t(words.calendar.firstDaysAfterHarvest(previous.to - previous.from, words.low(cropName(ctx.snapshot, previous.occurrence.cropPurposeId)))),
         ],
       });
     } else {
@@ -378,7 +378,7 @@ function heatAndCold(plan: Plan, details: ResultDetails, ctx: Context): Item {
   const inside = crops.filter(id => !unassessed.includes(id) && !outside.includes(id));
   const metric = metricIn(details.metrics, "q90_temperature_exposure");
   const value = available(metric);
-  const who = (ids: readonly CropPurposeId[]) => cropList(ids) ?? "";
+  const who = (ids: readonly CropPurposeId[]) => cropList(ctx, ids) ?? "";
   const parts = [
     ...(outside.length ? [words.heat.outside(who(outside))] : []),
     ...(inside.length && value !== null ? [words.heat.inside(who(inside))] : []),
@@ -464,7 +464,7 @@ function compared(ctx: Context): Section<Block> | null {
 
 function changeWords(change: Extract<BaselineComparison, { kind: "assessed" }>["changes"][number], ctx: Context): string {
   const { say } = ctx;
-  const crop = (id: CropPurposeId) => words.low(cropName(id));
+  const crop = (id: CropPurposeId) => words.low(cropName(ctx.snapshot, id));
   switch (change.kind) {
     case "added": return words.changes.added(crop(change.occurrence.cropPurposeId), period(ctx, change.occurrence.planted, change.occurrence.lastOccupied));
     case "removed": return words.changes.removed(crop(change.occurrence.cropPurposeId), period(ctx, change.occurrence.planted, change.occurrence.lastOccupied));
@@ -476,7 +476,7 @@ function changeWords(change: Extract<BaselineComparison, { kind: "assessed" }>["
         : words.changes.shifted(who, words.days(Math.abs(shift)), shift < 0, say.day(change.after.planted), say.day(change.before.planted));
     }
     case "order_change":
-      return words.changes.order(cropName(change.cropPurposeId), words.ordinal(change.beforeIndex + 1), words.ordinal(change.afterIndex + 1));
+      return words.changes.order(cropName(ctx.snapshot, change.cropPurposeId), words.ordinal(change.beforeIndex + 1), words.ordinal(change.afterIndex + 1));
   }
 }
 
@@ -502,7 +502,7 @@ function reported(ctx: Context): Block[] {
       const dates = t(words.compare.planted(entry.plantedPrecision === "approximate", say.day(entry.planted),
         entry.harvestedPrecision === "approximate", say.day(entry.harvested)));
       if (entry.crop.kind === "catalogue") {
-        items.push({ head: cropName(entry.crop.cropPurposeId), lines: [dates] });
+        items.push({ head: cropName(ctx.snapshot, entry.crop.cropPurposeId), lines: [dates] });
       } else {
         const name = ownName(entry.crop.label, words.unlisted.fallback);
         items.push(name.shown === "replaced"
@@ -546,7 +546,7 @@ function gapList(gaps: ResultDetails["unassessedChecks"], ctx: Context): Block {
     else if (!item.reasons.includes(gap.reason)) item.reasons.push(gap.reason);
   }
   return list("bullet", [...items.values()].map(({ gap, reasons }) => ({
-    head: t(words.gapHeads[gap.code](cropList(gap.cropPurposeIds), unique(gap.cropPurposeIds).length > 1)),
+    head: t(words.gapHeads[gap.code](cropList(ctx, gap.cropPurposeIds), unique(gap.cropPurposeIds).length > 1)),
     lines: reasons.map(reason => engineText(reason, ctx.say)),
   })));
 }
@@ -626,7 +626,7 @@ function sources(details: ResultDetails, ctx: Context, printedMetrics: readonly 
       words.sources.grid(product.gridDegrees[0], product.gridDegrees[1]), version, product.sourceUrl));
   }
   if (provenance.profiles.length) {
-    lines.push(words.sources.profiles(provenance.profiles.map(profile => `${cropName(profile.cropPurposeId)} ${profile.id} ${profile.version}`).join("; ")));
+    lines.push(words.sources.profiles(provenance.profiles.map(profile => `${cropName(ctx.snapshot, profile.cropPurposeId)} ${profile.id} ${profile.version}`).join("; ")));
   }
   if (provenance.rules.length) lines.push(words.sources.rules(provenance.rules.map(rule => `${rule.id} ${rule.version}`).join("; ")));
   if (provenance.manifest.kind === "available") {
@@ -655,8 +655,8 @@ function unique<T>(list: readonly T[]): T[] {
   return [...new Set(list)];
 }
 
-function cropList(ids: readonly CropPurposeId[]): string | null {
-  const names = unique(ids).map(id => words.low(cropName(id)));
+function cropList(ctx: Context, ids: readonly CropPurposeId[]): string | null {
+  const names = unique(ids).map(id => words.low(cropName(ctx.snapshot, id)));
   return names.length ? words.listWords(names) : null;
 }
 
