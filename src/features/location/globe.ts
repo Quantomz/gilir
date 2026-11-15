@@ -48,6 +48,8 @@ export interface GlobeOptions {
   /** Aborted on unmount. The globe removes itself. */
   readonly signal: AbortSignal;
   send(action: SurfaceAction): void;
+  /** Pixels at the bottom of the map under its logo and messages. A place or a field is framed above them, in at least half the map. */
+  coveredBelow(): number;
 }
 
 export interface Globe {
@@ -157,7 +159,7 @@ export async function startGlobe(options: GlobeOptions): Promise<GlobeStart> {
   const fieldSource = () => (loaded && lost === null ? map.getSource<GeoJSONSource>("field") : undefined);
 
   const moveCamera = (scene: Scene, first: boolean) => {
-    const target = cameraFor(scene, map, container);
+    const target = cameraFor(scene, map, container, options.coveredBelow());
     if (target === null) return;
     if (first || options.reducedMotion) map.jumpTo(target);
     else map.flyTo(target);
@@ -345,18 +347,23 @@ function worldZoom(shortSidePx: number, latitude: number): number {
   return Math.min(3, Math.max(0, zoom));
 }
 
-function cameraFor(scene: Scene, map: MapLibreMap, container: HTMLElement): { center?: [number, number]; zoom: number } | null {
+type Camera = { center?: [number, number]; zoom: number; padding: { top: number; right: number; bottom: number; left: number } };
+
+function cameraFor(scene: Scene, map: MapLibreMap, container: HTMLElement, covered: number): Camera | null {
+  const below = Math.min(covered, container.clientHeight / 2);
+  const padding = { top: 0, right: 0, bottom: below, left: 0 };
   switch (scene.look.at) {
     case "world":
-      return { zoom: worldZoom(shortSideOf(container), map.getCenter().lat) };
+      return { zoom: worldZoom(shortSideOf(container), map.getCenter().lat), padding: { ...padding, bottom: 0 } };
     case "place":
-      return scene.pin ? { center: [...scene.pin], zoom: Math.max(map.getZoom(), placeZoom) } : null;
+      return scene.pin ? { center: [...scene.pin], zoom: Math.max(map.getZoom(), placeZoom), padding } : null;
     case "field": {
       if (!scene.outline) return null;
       const lngs = scene.outline.corners.map(([lng]) => lng);
       const lats = scene.outline.corners.map(([, lat]) => lat);
       const middle: [number, number] = [wrapLng((Math.min(...lngs) + Math.max(...lngs)) / 2), (Math.min(...lats) + Math.max(...lats)) / 2];
-      return { center: middle, zoom: zoomToFit(scene.outline.spanM, middle[1], shortSideOf(container)) };
+      const shortSide = Math.min(container.clientWidth, container.clientHeight - below);
+      return { center: middle, zoom: zoomToFit(scene.outline.spanM, middle[1], shortSide), padding };
     }
   }
 }

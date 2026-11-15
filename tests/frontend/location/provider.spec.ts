@@ -327,14 +327,16 @@ const apart = (a: { x: number; y: number; width: number; height: number }, b: ty
 
 const logoViews = [
   { width: 360, height: 740, textSize: "normal" },
+  { width: 320, height: 568, textSize: "large" },
   { width: 320, height: 568, textSize: "largest" },
+  { width: 1280, height: 600, textSize: "large" },
 ] as const;
 
 for (const { width, height, textSize } of logoViews) {
   test.describe(`${textSize} text at ${width}x${height}`, () => {
     test.use({ viewport: { width, height } });
 
-    test("[R5][R22] on F1's page 1 MapTiler's linked logo sits in the map's bottom left; once a field is marked no corner handle or zoom button is under it", async ({ page }, testInfo) => {
+    test("[R5][R22] on F1's page 1 MapTiler's linked logo sits in the map's bottom left; once a field is marked every corner handle can be pressed, and no zoom button or logo touches one", async ({ page }, testInfo) => {
       await routeProviders(page, allAnswer);
       await page.addInitScript(([key, size]) => localStorage.setItem(key, JSON.stringify({ textSize: size })), [readingKey, textSize] as const);
       const root = (await openPageOne(page)).first();
@@ -350,8 +352,19 @@ for (const { width, height, textSize } of logoViews) {
       const [map, logo] = [(await mapArea(root).boundingBox())!, (await link.boundingBox())!];
       expect(logo.x - map.x).toBeLessThanOrEqual(16);
       expect(map.y + map.height - (logo.y + logo.height)).toBeLessThanOrEqual(16);
-      for (const name of ["Zoom in", "Zoom out"]) expect(apart(logo, (await root.getByRole("button", { name }).boundingBox())!), `${name} is clear of the logo`).toBe(true);
-      for (const [index, handle] of (await handles(root).all()).entries()) expect(apart(logo, (await handle.boundingBox())!), `corner ${index + 1} is clear of the logo`).toBe(true);
+      const zoom = await Promise.all(["Zoom in", "Zoom out"].map(async name => ({ name, box: (await root.getByRole("button", { name }).boundingBox())! })));
+      for (const { name, box } of zoom) expect(apart(logo, box), `${name} is clear of the logo`).toBe(true);
+      for (const [index, handle] of (await handles(root).all()).entries()) {
+        const box = (await handle.boundingBox())!;
+        expect(apart(logo, box), `corner ${index + 1} is clear of the logo`).toBe(true);
+        for (const button of zoom) expect(apart(button.box, box), `corner ${index + 1} is clear of ${button.name}`).toBe(true);
+      }
+      const covered = await root.evaluate((element: HTMLElement) => [...element.querySelectorAll(".fp-handle")].flatMap((handle, index) => {
+        const box = handle.getBoundingClientRect();
+        const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+        return hit && handle.contains(hit) ? [] : [`corner ${index + 1}`];
+      }));
+      expect(covered, "a press on each corner's centre reaches its handle").toEqual([]);
       expect(await layoutProblems(page, root)).toEqual([]);
       await shoot(page, testInfo, `provider-logo-${textSize}-${width}`, mapArea(root));
     });

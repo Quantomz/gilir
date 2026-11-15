@@ -18,6 +18,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
   const { c } = props;
   const { picker, provider, send } = c;
   const container = useRef<HTMLDivElement>(null);
+  const foot = useRef<HTMLDivElement>(null);
   const [globe, setGlobe] = useState<Globe | null>(null);
   const surface = picker.surface.kind;
 
@@ -26,7 +27,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
     if (!element) return;
     const stop = new AbortController();
     let started: Globe | null = null;
-    void startGlobe({ container: element, pictures: picturesFor(provider), reducedMotion: prefersReducedMotion(), signal: stop.signal, send }).then(start => {
+    void startGlobe({ container: element, pictures: picturesFor(provider), reducedMotion: prefersReducedMotion(), signal: stop.signal, send, coveredBelow: () => coveredBelow(element, foot.current) }).then(start => {
       if (stop.signal.aborted) {
         if (start.kind === "globe") start.globe.destroy();
         return;
@@ -61,7 +62,7 @@ export function MapArea(props: { readonly c: Controller }): ReactElement {
             <MapButton icon="minus" label={map.zoomOut} onClick={() => globe.zoomBy(-1)} />
           </div>
         ) : null}
-        <div className="fp-map-foot">
+        <div className="fp-map-foot" ref={foot}>
           <Notices c={c} where="on" />
           {surface === "plan" ? <p className="fp-tag">{map.planTag}</p> : null}
           {surface === "starting" ? <p className="fp-loading"><span className="spinner" aria-hidden="true" />{map.loading}</p> : null}
@@ -84,6 +85,10 @@ function MapButton(props: { readonly icon: "plus" | "minus"; readonly label: str
       <span className="fp-map-btn-t">{props.label}</span>
     </button>
   );
+}
+
+function coveredBelow(map: HTMLElement, foot: HTMLElement | null): number {
+  return foot === null || foot.offsetHeight === 0 ? 0 : Math.max(0, map.getBoundingClientRect().bottom - foot.getBoundingClientRect().top);
 }
 
 function prefersReducedMotion(): boolean {
