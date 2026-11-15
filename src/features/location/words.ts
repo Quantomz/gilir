@@ -94,7 +94,7 @@ const locateBlocked: Record<Exclude<LocateFailure, "timeout" | "unavailable">, L
     title: "Your location is turned off",
     body: "We can’t see where you are, so we can’t find your farm this way.",
     steps: [
-      "Tap the small lock beside the web address at the top of the screen.",
+      "Tap the small icon beside the web address at the top of the screen.",
       "Tap Location, then Allow.",
       "Come back here and tap Try again.",
     ],

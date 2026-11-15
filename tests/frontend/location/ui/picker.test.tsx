@@ -565,7 +565,7 @@ describe("use my location (navigator.geolocation stubbed)", () => {
     const title = screen.getByRole("heading", { level: 3, name: "Your location is turned off" });
     expect(document.activeElement).toBe(title);
     expect(screen.getAllByRole("listitem").map(step => step.textContent)).toEqual([
-      "Tap the small lock beside the web address at the top of the screen.",
+      "Tap the small icon beside the web address at the top of the screen.",
       "Tap Location, then Allow.",
       "Come back here and tap Try again.",
     ]);

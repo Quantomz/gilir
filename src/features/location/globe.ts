@@ -354,9 +354,12 @@ function graticule(): GeoJSON.Feature {
   return { type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: [...meridians, ...parallels] } };
 }
 
+/** The map pin, 48 by 62 with its tip at the bottom middle, on the globe and on the drawing. */
+export const pinPath = "M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z";
+
 function pinElement(): HTMLElement {
   const element = document.createElement("div");
-  element.innerHTML = '<svg class="fp-pin" viewBox="0 0 48 62" aria-hidden="true" style="display: block"><path d="M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z" fill="currentColor" stroke-width="3" style="stroke: var(--mint-pill)"/><circle cx="24" cy="22" r="7.5" style="fill: var(--mint-pill)"/></svg>';
+  element.innerHTML = `<svg class="fp-pin" viewBox="0 0 48 62" aria-hidden="true" style="display: block"><path d="${pinPath}" fill="currentColor" stroke-width="3" style="stroke: var(--mint-pill)"/><circle cx="24" cy="22" r="7.5" style="fill: var(--mint-pill)"/></svg>`;
   return element;
 }
 

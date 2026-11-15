@@ -211,7 +211,7 @@ export function stepSize(size: BoxSize, step: -1 | 1): BoxSize | null {
 }
 
 /** The flat plan's drawing: north up, equal scale both ways, fitted inside width × height with room for the corner marks. */
-export interface Plan {
+export interface FlatDrawing {
   /** SVG path "M x y L … Z". */
   readonly path: string;
   readonly corners: readonly { readonly x: number; readonly y: number }[];
@@ -223,7 +223,7 @@ export interface Plan {
 
 const planMarginPx = 40;
 
-export function planOf(marked: Marked, width: number, height: number): Plan {
+export function planOf(marked: Marked, width: number, height: number): FlatDrawing {
   const xs = marked.corners.map(([x]) => x);
   const ys = marked.corners.map(([, y]) => y);
   const [west, east, south, north] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];

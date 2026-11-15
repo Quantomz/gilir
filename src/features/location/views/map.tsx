@@ -5,7 +5,7 @@ import { Fragment, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement, RefObject } from "react";
 import { coordsText } from "../coordinates";
 import type { Controller } from "../controller";
-import { startGlobe } from "../globe";
+import { pinPath, startGlobe } from "../globe";
 import type { Globe } from "../globe";
 import { planOf } from "../outline";
 import { sceneOf } from "../picker";
@@ -157,7 +157,7 @@ function FlatPlan(props: { readonly scene: Scene; readonly describedBy: string }
           </>
         ) : scene.pin ? (
           <>
-            <path className="fp-plan-pin" transform={`translate(${width / 2 - 24} ${height / 2 - 62})`} d="M24 60S4 39 4 22a20 20 0 0 1 40 0c0 17-20 38-20 38z" />
+            <path className="fp-plan-pin" transform={`translate(${width / 2 - 24} ${height / 2 - 62})`} d={pinPath} />
             <text x={width / 2} y={height / 2 + 24} textAnchor="middle">{coordsText(scene.pin, 3)}</text>
           </>
         ) : null}
