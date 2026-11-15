@@ -1,0 +1,231 @@
+/* F3's result components, imported by index.tsx. They sit in Tailwind's components layer, like F1's terrace.css, so a
+   utility on the same element still wins. F1's classes (card, btn, btn-primary, btn-block, btn-quiet, btn-small, btn-sub,
+   note, note-warn, section-t, screen-title, lead, stack, muted, wide, sr, i) are used as they are and never redefined
+   here; where an rs- class changes one of their values, it pairs with the F1 class so the order of the two stylesheets
+   in the bundle cannot decide the result.
+
+   Colours come only from F1's tokens, so light, dark and high contrast follow the phone and the Text size sheet. There
+   are no crop colours: every crop bar is --leaf and carries its order number. Sizes are rem on F1's 125% root, so they
+   grow with Text size. Container queries are rem, so the page and its pictures switch to their narrow form sooner at
+   Large and Largest text. The .big-text and [data-contrast="high"] selectors on <html> are F1's. */
+
+@layer components {
+  /* ---------- the page: one column, and a sticky actions card beside it once the page is 46rem wide ---------- */
+  .rs-screen { padding-bottom: var(--s4); container: rs-screen / inline-size; }
+  .rs-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s5); }
+  .rs-grid > * { min-width: 0; }
+  @container rs-screen (min-width: 46rem) {
+    .rs-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(17rem, 21rem);
+      grid-template-areas: "lead actions" "more actions";
+      column-gap: var(--s6);
+      align-items: start;
+    }
+    .rs-lead { grid-area: lead; }
+    .rs-more { grid-area: more; }
+    /* The document order stays lead, actions, more, so reading and Tab order match the phone. A card taller than the
+       window scrolls inside itself. Its height leaves room for F1's main padding (--s5) above it before it sticks. */
+    .rs-actions {
+      grid-area: actions; position: sticky; top: calc(var(--bar-top, 72px) + 16px);
+      max-height: calc(100dvh - var(--bar-top, 72px) - var(--s5) - 16px); overflow-y: auto;
+    }
+  }
+  .rs-details { width: 100%; max-width: 52rem; margin-inline: auto; }
+  .rs-back { display: flex; }
+
+  /* ---------- cards ---------- */
+  .rs-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s4); align-content: start; }
+  .rs-card > * { min-width: 0; }
+  .section-t.rs-h2 { font-size: 1.3rem; }
+  .rs-h3 { font-family: var(--f-display); font-weight: 600; font-size: 1.1rem; line-height: 1.25; margin-top: var(--s2); }
+  .rs-big { font-family: var(--f-display); font-weight: 600; font-size: 1.45rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .card.rs-flagged { box-shadow: var(--shadow), inset 0 0 0 2px color-mix(in srgb, var(--warn) 45%, transparent); }
+  [data-contrast="high"] .card.rs-flagged { box-shadow: inset 0 0 0 3px var(--ink); }
+
+  /* ---------- the head: place and day, the one h1, the status in words, what was asked ---------- */
+  .rs-head { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s3); }
+  .rs-eyebrow { font-size: var(--fs-s); font-weight: 700; color: var(--leaf-text); line-height: 1.35; overflow-wrap: anywhere; }
+  @media (min-width: 600px) {
+    .screen-title.rs-title { font-size: var(--fs-xxl); font-stretch: 85%; letter-spacing: -.015em; line-height: 1.04; }
+  }
+  .rs-head .rs-intro { max-width: 46ch; }
+  .rs-status { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: start; padding: var(--s3) var(--s4); border-radius: var(--r-m); line-height: 1.4; color: var(--ink); }
+  .rs-status .i svg { width: 1.6rem; height: 1.6rem; margin-top: .05rem; }
+  .rs-tone-ok { background: var(--ok-soft); }
+  .rs-tone-ok .i { color: var(--ok); }
+  .rs-tone-warn { background: var(--warn-soft); }
+  .rs-tone-warn .i { color: var(--warn); }
+  .rs-tone-info { background: var(--water-soft); }
+  .rs-tone-info .i { color: var(--water); }
+  .rs-tone-neutral { background: var(--sunk); }
+  [data-contrast="high"] .rs-status { box-shadow: inset 0 0 0 2px var(--ink); }
+  .rs-for { display: grid; gap: .1rem; color: var(--ink-2); font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+  @media (min-width: 600px) {
+    .rs-for { display: flex; flex-wrap: wrap; gap: .2rem 0; }
+    .rs-for span:not(:last-child)::after { content: "\00b7" / ""; margin: 0 .55rem; }
+  }
+  .rs-synthetic { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem; align-items: start; padding: .5rem .9rem; border-radius: var(--r-s); background: var(--sunk); box-shadow: inset 0 0 0 2px var(--line); color: var(--ink); font-size: var(--fs-s); line-height: 1.4; }
+  .rs-synthetic .i { color: var(--ink-2); }
+  .rs-synthetic .i svg { width: 1.25rem; height: 1.25rem; margin-top: .1rem; }
+  .rs-synthetic-big { padding: var(--s3) var(--s4); font-size: var(--fs-m); }
+  .rs-synthetic-big .i svg { width: 1.5rem; height: 1.5rem; }
+  [data-contrast="high"] .rs-synthetic { box-shadow: inset 0 0 0 2px var(--ink); }
+
+  /* ---------- notes: the tone picks the colours, the icon and the words carry the meaning ---------- */
+  .note.rs-note { line-height: 1.4; }
+  .rs-note-bold { font-weight: 700; }
+  .note.rs-note-ok { background: var(--ok-soft); }
+  .rs-note-ok .i { color: var(--ok); }
+  .note.rs-note-warn { background: var(--warn-soft); }
+  .rs-note-warn .i { color: var(--warn); }
+  .note.rs-note-info { background: var(--water-soft); }
+  .rs-note-info .i { color: var(--water); }
+  .note.rs-note-neutral { background: var(--mint); }
+  [data-contrast="high"] .rs-note { box-shadow: inset 0 0 0 2px var(--ink); }
+
+  /* ---------- items: warnings, gaps, reasons, changes, sources ---------- */
+  .rs-list { display: grid; gap: var(--s3); }
+  .rs-li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: start; line-height: 1.4; }
+  .rs-li-ic { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--sunk); color: var(--ink); }
+  .rs-li-ic svg { width: 1.3rem; height: 1.3rem; }
+  .rs-list-flag .rs-li-ic { background: var(--warn-soft); color: var(--warn); }
+  [data-contrast="high"] .rs-li-ic { box-shadow: inset 0 0 0 2px var(--ink); }
+  .rs-li-dot { width: .5rem; height: .5rem; margin: .45rem .25rem 0; border-radius: 50%; background: var(--ink-2); }
+  .rs-li-tx { display: grid; gap: .15rem; padding-top: .25rem; overflow-wrap: anywhere; }
+  .rs-li-dot + .rs-li-tx { padding-top: 0; }
+  /* A link head is a 48px target with its words centred, so its bullet moves down to meet them. */
+  .rs-li:has(> .rs-li-tx > a:first-child) > .rs-li-dot { margin-top: calc(var(--tap-min) / 2 - .25rem); }
+  .rs-li-tx > span { color: var(--ink-2); }
+  .rs-li-tx a { display: inline-flex; align-items: center; justify-self: start; min-height: var(--tap-min); font-weight: 700; }
+
+  /* ---------- numbered steps: "Get ready" ---------- */
+  .rs-prep { display: grid; gap: var(--s3); }
+  .rs-prep li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: start; line-height: 1.4; }
+  .rs-prep li > span:last-child { padding-top: .25rem; }
+  .rs-prep-n { display: grid; place-items: center; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--mint); font-weight: 700; font-variant-numeric: tabular-nums; }
+  [data-contrast="high"] .rs-prep-n { box-shadow: inset 0 0 0 2px var(--ink); }
+
+  /* ---------- the fixed ranking: a question, its value in large type, one sentence ---------- */
+  .rs-rank { display: grid; }
+  .rs-ri { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: start; padding-block: var(--s3); border-top: 1px solid var(--line); }
+  .rs-rank > .rs-ri:first-child { border-top: 0; padding-top: 0; }
+  .rs-ri-plain { grid-template-columns: minmax(0, 1fr); }
+  .rs-ri-n { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 50%; background: var(--ink); color: var(--bg); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rs-rank-extra .rs-ri-n { background: var(--sunk); color: var(--ink); box-shadow: inset 0 0 0 2px var(--line-strong); }
+  .rs-ri-n .i svg { width: 1.25rem; height: 1.25rem; }
+  .rs-ri-tx { display: grid; gap: .1rem; line-height: 1.35; overflow-wrap: anywhere; }
+  .rs-ri-q { font-weight: 700; }
+  .rs-ri-v { font-family: var(--f-display); font-weight: 600; font-size: 1.55rem; line-height: 1.15; letter-spacing: -.01em; }
+  .rs-ri-d { color: var(--ink-2); }
+
+  /* ---------- two numbers side by side: the days the crops need, the days in the year ---------- */
+  .rs-vs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); gap: var(--s3); }
+  .rs-vs-side { display: grid; gap: .1rem; padding: var(--s3) var(--s4); border-radius: var(--r-m); background: var(--sunk); line-height: 1.3; font-weight: 700; }
+  .rs-vs-warn { background: var(--warn-soft); }
+  [data-contrast="high"] .rs-vs-side { box-shadow: inset 0 0 0 2px var(--ink); }
+  .rs-vs-n { font-family: var(--f-display); font-weight: 600; font-size: var(--fs-xxl); line-height: 1.05; font-variant-numeric: tabular-nums; }
+
+  /* ---------- a year line. View only: nothing in .rs-track takes focus or a pointer ---------- */
+  .rs-year { display: grid; gap: var(--s3); }
+  .rs-track-l { font-weight: 700; color: var(--ink-2); }
+  .rs-track { --rs-mark: 1.45rem; display: grid; gap: .25rem; container: rs-track / inline-size; pointer-events: none; user-select: none; }
+  .rs-axis { position: relative; height: 1.25rem; overflow: hidden; }
+  .rs-tick { position: absolute; top: 0; bottom: 0; padding-left: 3px; border-left: 1px solid var(--line-strong); font-size: var(--fs-s); font-weight: 700; line-height: 1.3; color: var(--ink); white-space: nowrap; overflow: hidden; }
+  .rs-tick-l { display: none; }
+  /* A tick that names its year breaks after the month, so the years read as a second row under the months. */
+  @container rs-track (min-width: 30rem) {
+    .rs-axis { height: 2.4rem; }
+    .rs-tick-n { display: none; }
+    .rs-tick-l { display: block; width: min-content; white-space: normal; }
+  }
+  .rs-lane { position: relative; height: 3.2rem; border-radius: var(--r-s); background: var(--sunk); overflow: hidden; }
+  [data-contrast="high"] .rs-lane { box-shadow: inset 0 0 0 2px var(--ink); }
+  .rs-gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  /* A bar is as wide as its days, so a short crop never hides the gap after it; 3px keeps a few days visible. */
+  .rs-bar { position: absolute; top: .3rem; bottom: .3rem; border-radius: 9px; }
+  .rs-look-crop { min-width: 3px; }
+  /* The crop's order number, dark ink on a light disc over the middle of its bar. It may overhang a short bar's
+     neighbours, and is kept inside the lane at the year's edges. */
+  .rs-mark { position: absolute; top: 50%; z-index: 1; translate: 0 -50%; display: grid; place-items: center; width: var(--rs-mark); height: var(--rs-mark); border-radius: 50%; background: var(--raised); box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink) 30%, transparent); color: var(--ink); font-size: var(--fs-s); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  /* Each look is a fill or a pattern, never a hue alone: crop solid, after harvest hatched, open dashed, not sure
+     dashed and ruled, empty solid grey, a crop not on the list striped. */
+  .rs-look-crop { background: var(--leaf); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 30%, transparent); }
+  .rs-look-after_harvest { background: repeating-linear-gradient(135deg, var(--line-strong) 0 2px, var(--raised) 2px 7px); }
+  .rs-bar.rs-look-after_harvest { border-radius: 0 9px 9px 0; }
+  .rs-look-open { border: 2px dashed var(--line-strong); background: transparent; }
+  .rs-look-not_sure { border: 2px dashed var(--line-strong); background: repeating-linear-gradient(90deg, transparent 0 10px, color-mix(in srgb, var(--line-strong) 22%, transparent) 10px 12px); }
+  .rs-look-empty { background: color-mix(in srgb, var(--ink-2) 22%, var(--raised)); box-shadow: inset 0 0 0 2px var(--line-strong); }
+  .rs-look-unlisted { background: repeating-linear-gradient(45deg, var(--other-a) 0 8px, var(--other-b) 8px 16px); box-shadow: inset 0 0 0 2px var(--ink-2); }
+  [data-contrast="high"] .rs-look-crop { box-shadow: inset 0 0 0 3px var(--ink); }
+  [data-contrast="high"] .rs-look-after_harvest { background: repeating-linear-gradient(135deg, var(--ink) 0 2px, var(--raised) 2px 7px); }
+  [data-contrast="high"] :is(.rs-look-open, .rs-look-not_sure) { border-color: var(--ink); }
+  [data-contrast="high"] .rs-mark { box-shadow: inset 0 0 0 2px var(--ink); }
+  .rs-legend { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin-top: .4rem; font-size: var(--fs-s); font-weight: 700; color: var(--ink); line-height: 1.3; }
+  .rs-legend > span { display: inline-flex; align-items: center; gap: .45rem; }
+  .rs-key { display: inline-block; flex: none; width: 1.6rem; height: 1rem; border-radius: 4px; }
+  /* the same line in words */
+  .rs-steps { display: grid; }
+  .rs-step { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--s3); align-items: center; padding-block: .7rem; border-top: 1px solid var(--line); }
+  .rs-step:first-child { border-top: 0; padding-top: .2rem; }
+  .rs-step-n { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; margin: 3px; border-radius: 50%; background: var(--raised); box-shadow: 0 0 0 3px var(--leaf); color: var(--ink); font-size: 1.1rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rs-step-n .i svg { width: 1.4rem; height: 1.4rem; }
+  .rs-step-gap .rs-step-n { background: var(--sunk); color: var(--ink-2); box-shadow: 0 0 0 2px var(--line-strong); }
+  .rs-step-tx { display: grid; line-height: 1.35; overflow-wrap: anywhere; }
+  .rs-step-t { font-size: 1.1rem; }
+  .rs-step-gap .rs-step-t { color: var(--ink-2); }
+  .rs-step-d { color: var(--ink-2); }
+  .rs-step-t + .rs-step-d { color: var(--ink); font-weight: 700; }
+
+  /* ---------- name and value pairs ---------- */
+  .rs-kv { display: grid; gap: .35rem; margin: 0; }
+  .rs-kv > div { display: grid; grid-template-columns: minmax(0, 11rem) minmax(0, 1fr); gap: .1rem var(--s3); line-height: 1.4; }
+  .rs-kv dt { color: var(--ink-2); font-weight: 700; }
+  .rs-kv dd { margin: 0; overflow-wrap: anywhere; }
+  @media (max-width: 599px) { .rs-kv > div { grid-template-columns: minmax(0, 1fr); } }
+  .big-text .rs-kv > div { grid-template-columns: minmax(0, 1fr); }
+  .rs-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--fs-s); overflow-wrap: anywhere; }
+
+  /* ---------- a table: a grid on wide cards, labelled rows on narrow ones, never sideways scroll ---------- */
+  .rs-tbl-wrap { container: rs-table / inline-size; }
+  .rs-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  .rs-table caption { text-align: left; font-weight: 700; padding-bottom: .5rem; line-height: 1.35; }
+  .rs-table th, .rs-table td { padding: .5rem .55rem; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+  .rs-table th[scope="row"], .rs-table thead th:first-child { text-align: left; }
+  .rs-table thead th { font-size: var(--fs-s); color: var(--ink-2); line-height: 1.25; }
+  /* Each cell carries its column name, so Listen reads "Usual rain: 180". It shows only in the labelled-row layout. */
+  .rs-cell-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @container rs-table (max-width: 40rem) {
+    .rs-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .rs-table tr { display: flex; flex-wrap: wrap; gap: .1rem 1rem; padding-block: .55rem; border-bottom: 1px solid var(--line); }
+    .rs-table th, .rs-table td { display: block; padding: 0; border: 0; text-align: left; }
+    .rs-table th[scope="row"] { flex-basis: 100%; }
+    .rs-cell-l { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; color: var(--ink-2); font-weight: 700; }
+  }
+
+  /* ---------- the actions card ---------- */
+  .rs-actions { gap: var(--s3); }
+  .rs-act-btns { display: grid; gap: var(--s2); }
+  .rs-act-btns .btn { padding-inline: 1rem; }
+  .rs-actions .btn[aria-disabled="true"] { opacity: .6; cursor: not-allowed; }
+  .rs-act-btns .rs-clear { justify-self: center; }
+  .rs-st { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem; align-items: start; border-radius: var(--r-s); font-weight: 700; line-height: 1.4; }
+  .rs-st .i svg { width: 1.3rem; height: 1.3rem; margin-top: .1rem; }
+  .rs-st-ok > .i { color: var(--ok); }
+  .rs-st-info > .i { color: var(--water); }
+  .rs-st-warn > .i { color: var(--warn); }
+  .rs-st-neutral > .i { color: var(--ink-2); }
+  .rs-st .rs-inline { grid-column: 1 / -1; justify-self: start; margin-top: var(--s1); }
+  /* The alert stays in the document so a failure is announced when its words appear; empty, it takes no room. */
+  .rs-alert:empty { position: absolute; }
+  .note.rs-alert { padding: var(--s3) var(--s4); line-height: 1.4; }
+  [data-contrast="high"] .note.rs-alert { box-shadow: inset 0 0 0 2px var(--ink); }
+
+  /* ---------- Large and Largest text on phones: smaller discs and card padding, so the words keep their room ---------- */
+  @media (max-width: 479px) {
+    .big-text .card.rs-card { padding: var(--s4); }
+    .big-text .rs-step-n { width: 1.9rem; height: 1.9rem; margin: 2px; font-size: var(--fs-s); }
+    .big-text .rs-step-n .i svg { width: 1.1rem; height: 1.1rem; }
+    .big-text :is(.rs-ri-n, .rs-li-ic, .rs-prep-n) { width: 1.9rem; height: 1.9rem; }
+    .big-text .rs-vs-n { font-size: var(--fs-xl); }
+  }
+}
