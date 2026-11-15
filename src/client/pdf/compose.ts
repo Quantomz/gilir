@@ -86,7 +86,6 @@ function statusDocument(ctx: Context, result: ResultOf<NoPlanState>): StatusDocu
   return { kind: "status_report", ...frame(ctx, "status_report"), sections };
 }
 
-/** The status box above already holds the proof line or the service's message, so these start after it. */
 const reasons: { readonly [S in NoPlanState]: (ctx: Context, result: ResultOf<S>) => readonly Block[] } = {
   insufficient_data: (ctx, result) => [gapList(result.missing, ctx), paragraph(t(words.noPlan.missingNext))],
   no_calendar_fit: (ctx, { proof }) => proof.kind === "duration_lower_bound"
@@ -604,8 +603,7 @@ function cohortLine(details: ResultDetails, ctx: Context): string {
     monthRange(ctx, usable[0].interval.start, addDays(usable[usable.length - 1].interval.endExclusive, -1)));
 }
 
-/** `metrics` are the ones behind the numbers this document prints. */
-function sources(details: ResultDetails, ctx: Context, metrics: readonly AssessmentMetric[]): Section<Block> {
+function sources(details: ResultDetails, ctx: Context, printedMetrics: readonly AssessmentMetric[]): Section<Block> {
   const { say } = ctx;
   const { provenance, cohort } = details;
   const lines: string[] = [cohortLine(details, ctx)];
@@ -617,7 +615,7 @@ function sources(details: ResultDetails, ctx: Context, metrics: readonly Assessm
       }
     }
   }
-  const methods = unique(metrics.map(metric => metric.methodVersion));
+  const methods = unique(printedMetrics.map(metric => metric.methodVersion));
   if (methods.length) lines.push(words.sources.methods(methods.join("; ")));
   for (const source of provenance.sources) lines.push(words.sources.source(source.title, source.section, source.url));
   for (const product of provenance.climateProducts) {

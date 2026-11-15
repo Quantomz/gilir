@@ -75,7 +75,7 @@ export interface StorageNotice {
  * said why.
  */
 export async function readStorageNotice(): Promise<StorageNotice | null> {
-  await null; // lets a localPlans call made right after this one, in the same tick, start first
+  await null;
   await lastCall;
   const { setAside, inState } = await onShelf(noticeTurn).catch((): Noticed => ({ setAside: [], inState: null }));
   const finds = inState === null ? setAside : [...setAside, inState];
@@ -102,7 +102,6 @@ const CONTRACTS = {
 
 type Contract = keyof typeof CONTRACTS;
 
-/** Where a saved state holds each contract's own schemaVersion. */
 const versionsInState: { readonly [C in Contract]: readonly (readonly string[])[] } = {
   input: [["draft", "schemaVersion"], ["snapshot", "input", "schemaVersion"]],
   snapshot: [["snapshot", "schemaVersion"]],
@@ -270,7 +269,6 @@ interface Turn<T> {
   readonly outcome: { readonly ok: true; readonly value: T } | { readonly ok: false; readonly reason: StorageReason };
   readonly state: "keep" | "delete" | StateRecord;
   readonly setAside: "keep" | "delete" | SetAsideRecord;
-  /** The outcome stands without the writes: they only tidy what was read, so a full device still gets its answer. */
   readonly writesOptional?: true;
 }
 
@@ -289,7 +287,6 @@ function loadTurn(stored: Stored): Turn<LocalState | null> {
   };
 }
 
-/** A load on a full device leaves unreadable parts in place, so the save that replaces them sets them aside. */
 function saveTurn(stored: Stored, next: LocalState): Turn<void> {
   const reading = readRecord(stored.state);
   const finds = readFinds(stored.setAside);
@@ -298,10 +295,9 @@ function saveTurn(stored: Stored, next: LocalState): Turn<void> {
   return { outcome: { ok: true, value: undefined }, state: stateRecord(next), setAside: find === null ? "keep" : setAsideRecord([...finds, find]) };
 }
 
-/** `kept` is what the farmer has once the part is left out: the readable rest on load, the new state on save. */
-function findIn(reading: Extract<Reading, { kind: "read" }>, raw: unknown, kept: LocalState | null): Find | null {
+function findIn(reading: Extract<Reading, { kind: "read" }>, raw: unknown, resulting: LocalState | null): Find | null {
   const [first, ...rest] = reading.leftOut;
-  return first === undefined ? null : { parts: [first, ...rest], answersKept: hasAnswer(kept?.draft ?? null), raw };
+  return first === undefined ? null : { parts: [first, ...rest], answersKept: hasAnswer(resulting?.draft ?? null), raw };
 }
 
 function clearTurn(stored: Stored): Turn<void> {
