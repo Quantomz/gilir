@@ -23,20 +23,25 @@ The recordings show onboarding and editable history.*
 ## What works today
 
 The calculator, NASA ingestion, PostgreSQL job service, worker, and four input pages are implemented.
-The current catalogue contains **75 source-reviewed profiles for 40 food-crop purposes**.
-Gilir enforces the release's planting windows as hard constraints. Profiles without a published window remain windowless.
+The current catalogue offers **32 food-crop purposes with reviewed reference models**.
+Each offered crop has complete model parameters wherever the farmer places the field. Historical
+temperature determines estimated growth stages; missing weather and modeled noncompletion remain
+explicit outcomes. These estimates have not been validated locally. Eight additional crops are
+withheld until their model evidence is adequate.
 
-The [hosted preview](https://gilir-web-production.up.railway.app) serves the current 40-crop catalogue.
-A [live API and worker check](docs/evidence/hosting/current-release.md) completed the Boise bean case
-with a saved plan and rainfall warnings on 15 November 2026.
-Full browser-journey acceptance, map-provider setup, results presentation, and remaining PDF/recovery work
-are separate frontend tasks. The recordings above demonstrate the verified fixture flow.
+Try the [hosted preview](https://gilir-web-production.up.railway.app).
+The [deployment evidence](docs/evidence/hosting/current-release.md) identifies the verified hosted
+image separately from repository changes. The [model evidence](docs/evidence/global-models/README.md)
+records source review, numerical checks, captured NASA cases, and saved-result compatibility.
+The recordings above demonstrate the earlier fixture flow.
 
 ## How a plan is chosen
 
-The engine freezes crop profiles and weather snapshots for the submitted location, crops,
-start date, water answer, and optional history. It searches calendars that respect planting
-windows and avoid overlap, then replays them against the same historical seasons.
+The engine freezes the model release, weather snapshots, calculation settings, and farmer's answers.
+It estimates each crop's growth for each planting date and historical season. One calendar leaves
+time through the latest modeled harvest, followed by seven days to prepare the field. Actual
+rainfall-demand calculations stop at each season's own modeled harvest. Earlier harvests can
+leave extra waiting time. Archived runs retain their original fixed-duration profiles and windows.
 
 The engine first prefers calendars without environmental flags. It then compares candidates
 in one fixed order, with lower values winning.
@@ -68,8 +73,11 @@ Gilir retrieves daily UTC records through the
 
 FAO-56 Penman-Monteith gives daily reference evapotranspiration, `ET0`.
 Released crop coefficients give estimated demand, `ETc = Kc × ET0`.
-Stage lengths, planting periods, and crop coefficients come from
-[FAO-56 Tables 11 and 12](https://www.fao.org/4/x0490e/x0490e0b.htm).
+Growth-stage thermal requirements and temperature thresholds come from the
+[revised FAO-56 publication](https://openknowledge.fao.org/handle/20.500.14283/cd6621en).
+The model retains [1998 FAO-56 Table 12 coefficients](https://www.fao.org/4/x0490e/x0490e0b.htm)
+with their management assumptions. This reviewed combination is a reference estimate, not a
+locally calibrated crop model. It does not establish survival, yield, soil suitability, or paddy water sufficiency.
 Gilir separately assumes seven days to clear and prepare the field after harvest.
 The engine evaluates rolling seven-day rainfall-demand shortfalls across up to 25 historical
 seasons. At least 15 complete seasons are required under the current release policy.
@@ -81,7 +89,8 @@ and the [implemented product definitions](src/server/climate/products.ts).
 
 ## Reproducible results
 
-These direct-engine cases use real recorded NASA observations and release
+The [global-model evidence](docs/evidence/global-models/README.md) covers the new 32-crop release.
+The historical direct-engine cases below use real recorded NASA observations and the archived release
 `fao56-hard-windows-2026-11-15`. All six had 25 usable seasons and identical hashes on repeat calculation.
 The locations are illustrative, not surveyed farms.
 
@@ -99,13 +108,14 @@ that matches Boise's per-season metrics. These checks do not establish harvest s
 
 | Evidence | What it establishes |
 | --- | --- |
-| [Current-release science cases](docs/evidence/I2/README.md) | Six actual-engine cases, repeat hashes, and independent recomputation |
-| [Live runtime acceptance](docs/evidence/I1/README.md) | 28 passing checks with real NASA, HTTP, PostgreSQL, separate workers, restart recovery, and snapshot v2 on the current hard-window release. |
+| [Global reference models](docs/evidence/global-models/README.md) | Reviewed 32-crop data, thermal development, model-scoped outcomes, and snapshot v3 evidence |
+| [Archived science cases](docs/evidence/I2/README.md) | Six actual-engine cases, repeat hashes, and independent recomputation on the fixed-duration release |
+| [Live runtime acceptance](docs/evidence/I1/README.md) | 28 passing checks with real NASA, HTTP, PostgreSQL, separate workers, restart recovery, and snapshot v2 on the archived hard-window release. |
 | [Crop-source review](docs/evidence/E1/README.md) | Published parameters, applicability decisions, withheld rows, and release history |
 | [Climate coverage](docs/evidence/X2/README.md) and [reference calculations](docs/evidence/X3/README.md) | Additional location checks and independent metric examples |
 | [Interface evidence](docs/evidence/F1/README.md) | 51 Chromium fixture cases covering input flows, keyboard controls, and failures |
 
-Runtime and science evidence cover different paths. The [hosted API check](docs/evidence/hosting/current-release.md) adds deployed worker evidence; a complete deployed browser journey remains a separate gate.
+Runtime, science, and hosted evidence cover different paths. A local model or browser check does not establish deployment.
 
 ## Run locally
 

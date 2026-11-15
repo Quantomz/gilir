@@ -161,7 +161,7 @@ export function sayFor(reader: Reader): Say {
  */
 export function cropName(snapshot: CompletedSnapshot, id: CropPurposeId): PdfText {
   const fromId = id.replace(/[-_:]+/g, " ");
-  const label = snapshot.schemaVersion === 2 ? snapshot.catalogue.entries.find(entry => entry.id === id)?.label : undefined;
+  const label = snapshot.schemaVersion !== 1 ? snapshot.catalogue.entries.find(entry => entry.id === id)?.label : undefined;
   return label === undefined ? pdfText(fromId) : ownName(label, fromId).text;
 }
 

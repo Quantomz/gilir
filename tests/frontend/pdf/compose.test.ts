@@ -606,7 +606,7 @@ describe("a no-plan report says only what it shows", () => {
 });
 
 describe("real registry and engine text", () => {
-  const registry = readRegistryRelease();
+  const registry = readRegistryRelease("fao56-hard-windows-2026-11-15");
   const bangkok = {
     lookup: [100.5, 14] as const,
     climate: { meanAnnualTemperatureC: { kind: "available", value: 28 }, meanAnnualPrecipitationMm: { kind: "available", value: 1400 } },

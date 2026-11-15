@@ -4,6 +4,7 @@ import type { LocalState } from "@/client/storage";
 import { completedSnapshotSchema } from "@/contracts/result";
 import type { CompletedSnapshot } from "@/contracts/result";
 import { inputFixture } from "@/fixtures/input";
+import { modeledSnapshotFixture } from "@/fixtures/model-result";
 import { completedSnapshotsByState, completedSnapshotV2Fixture } from "@/fixtures/results";
 import { syntheticLabel } from "@/fixtures/science";
 import { openHarness, sandboxedHarness, test, withUserDataFolder } from "./support/harness";
@@ -44,22 +45,25 @@ function problemOf(page: Page, call: "load" | "save" | "clear", state: LocalStat
 }
 
 test.describe("a saved result stays readable", () => {
-  test("restart: save draft, step, activeJob and the plan snapshot; close the browser; launch again on the same folder; load deep-equals, with id, completedAt and provenance unchanged", async ({ harness }) => {
-    await withUserDataFolder(async launch => {
-      const first = await launch();
-      await save(await openHarness(await first.newPage(), `${harness.origin}/`), saved);
-      await first.close();
+  for (const snapshot of [plan, modeledSnapshotFixture]) {
+    test(`restart with snapshot ${snapshot.schemaVersion}: save draft, step, activeJob and the plan; close the browser; launch again on the same folder; load deep-equals`, async ({ harness }) => {
+      const state = { ...saved, snapshot };
+      await withUserDataFolder(async launch => {
+        const first = await launch();
+        await save(await openHarness(await first.newPage(), `${harness.origin}/`), state);
+        await first.close();
 
-      const second = await launch();
-      const loaded = await load(await openHarness(await second.newPage(), `${harness.origin}/`));
-      expect(loaded).toEqual(saved);
-      expect(loaded?.snapshot?.id).toBe("synthetic-plan");
-      expect(loaded?.snapshot?.completedAt).toBe("2026-07-01T00:00:00Z");
-      expect(loaded?.snapshot?.result.details.provenance).toEqual(plan.result.details.provenance);
+        const second = await launch();
+        const loaded = await load(await openHarness(await second.newPage(), `${harness.origin}/`));
+        expect(loaded).toEqual(state);
+        expect(loaded?.snapshot?.id).toBe(snapshot.id);
+        expect(loaded?.snapshot?.completedAt).toBe(snapshot.completedAt);
+        expect(loaded?.snapshot?.result.details.provenance).toEqual(snapshot.result.details.provenance);
+      });
     });
-  });
+  }
 
-  for (const snapshot of [plan, completedSnapshotV2Fixture]) {
+  for (const snapshot of [plan, completedSnapshotV2Fixture, modeledSnapshotFixture]) {
     test(`raw snapshot version ${snapshot.schemaVersion} restores after reload without changing stored data`, async ({ page, harness }) => {
       await openHarness(page, `${harness.origin}/`);
       const state = { ...saved, draft: inputFixture, snapshot };
@@ -280,7 +284,7 @@ test.describe("newer data and other tabs", () => {
 
   for (const [name, parts] of [
     ["draft version 2", { draft: { ...inputFixture, schemaVersion: 2 }, snapshot: completedSnapshotV2Fixture }],
-    ["snapshot version 3", { draft: inputFixture, snapshot: { ...completedSnapshotV2Fixture, schemaVersion: 3 } }],
+    ["snapshot version 4", { draft: inputFixture, snapshot: { ...completedSnapshotV2Fixture, schemaVersion: 4 } }],
   ] as const) {
     test(`${name} independently refuses load, save, clear and pending notice dismissal without mutation`, async ({ page, harness }) => {
       await openHarness(page, `${harness.origin}/`);

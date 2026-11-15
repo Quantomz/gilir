@@ -1,6 +1,6 @@
 # Gilir MVP specification
 
-Version 1.1. Written 14 November 2026. Revised the same day to remove the farmer-selected priority and the pest and weed rule registry. Every run now uses one fixed ranking.
+Version 1.2. Written 14 November 2026. Revised 15 November for the user-approved 32-crop reference-model release. Every run retains the fixed ranking introduced in version 1.1. The farmer-selected priority and pest and weed registry remain outside scope.
 
 This document records the completed requirements interview and defines the first implementation. It supersedes the earlier posters where they describe an LLM, three suggested plans, a Java-only scope, or a multiyear transition roadmap.
 
@@ -71,7 +71,7 @@ The backend combines three independent kinds of information. Climate records des
 
 Required fields are the location, at least one selected crop, water answer, and planning start date. Historical intervals are optional. There are no mandatory soil, fertilizer, irrigation-volume, price, or cultivar questionnaires.
 
-Without a cultivar question, the backend selects an applicable released crop profile and shows that assumption. If no applicable profile exists, the engine reports missing data instead of guessing a cultivar or silently selecting the shortest duration.
+Without a cultivar question, the backend uses a reviewed, explicitly named reference scenario selected before ranking. The new catalogue offers only crops with complete global model parameters. It does not infer the farmer's cultivar or select the fastest model to improve a score. Archived fixed-duration runs retain their original profile-selection rules.
 
 ### 3.2 Environmental data
 
@@ -118,9 +118,9 @@ FAO-56 provides crop coefficients and growth-stage guidance. Values vary with cl
 
 The initial curation target is rice, maize, wheat, barley, sorghum, soybean, groundnut, mung bean, cowpea, common bean, sunflower, and potato. This is an implementation target, not a claim that twelve complete profiles are ready. Cover-crop uses of cowpea or mung bean require separate purpose-specific profiles and termination timing. They cannot reuse grain-harvest durations without evidence.
 
-Only released crop-purpose entries are selectable. An entry can be available globally in the catalogue while lacking an applicable profile at a particular farm. Geographic reach does not establish universal agronomic coverage. Paddy rice needs an explicit warning that the screening calculation excludes ponding, seepage, and percolation requirements.
+Only released crop-purpose entries are selectable. Release `fao56-global-32-2026-11-15` advertises exactly 32 reviewed reference models. Brussels sprouts, stem celery, millet, mung bean, green onion, dry pea, radish, and watermelon remain withheld pending adequate model evidence. Missing or duplicate model entries block activation. Parameter availability does not establish universal agronomic validity. Paddy rice needs an explicit warning that the screening calculation excludes ponding, seepage, and percolation requirements.
 
-Profile selection follows a stored precedence order. An applicable regional profile outranks an applicable climate-based profile, which outranks an applicable broad published profile. Within a level, the released registry defines precedence explicitly. Profile selection never depends on which profile produces the most attractive plan.
+Archived fixed-duration profile selection follows the stored regional, climate, then broad precedence. New thermal runs use one reviewed model per advertised crop purpose. Source vectors remain intact. Long-season or maximum-length scenarios, fresh-market tomato and peas, and common spring wheat are explicit reference choices. They are not universal maturity or demand bounds. Neither path selects a model by its resulting ranking.
 
 An LLM is not needed to obtain these records. The team can extract them manually from publications into reviewed structured data. An optional offline extraction tool cannot release a profile or substitute its output for the cited source.
 
@@ -258,7 +258,7 @@ Derived ranking metrics use `Number(value.toFixed(rankingDecimalPlaces))` before
 
 The planning window is `[start_date, anniversary_date)`. A February 29 start has a February 28 anniversary in the following non-leap year. This calendar-year rule is an implementation default. The actual length can differ from 365 days.
 
-The UI harvest date is the last day of crop occupancy. The internal crop interval ends at the start of the following day. A released turnaround requirement begins after crop occupancy and reserves field time before the next planting. The final crop's required field-release work must also finish within the planning window.
+Archived runs use a single harvest date as the last crop-occupancy day. Thermal runs show the earliest and latest modeled harvest across all retained weather seasons. Their planned crop interval ends after the latest modeled harvest, followed by the explicit turnaround. Earlier harvests can leave additional waiting time. Schedule indicators measure this planned interval, not continuous live crop cover. The final crop's field-release work must also finish within the planning window.
 
 A candidate is structurally valid only when all the following conditions hold:
 
@@ -275,11 +275,15 @@ Seasonal recommendations and environmental risk rules are assessed separately fr
 
 ### 6.2 Duration and date defaults
 
-The initial model uses the released profile's fixed stage durations for new occurrences. Each selectable profile has one explicit generated-duration setting. A published range alone does not create additional searchable durations. It does not infer a cultivar's duration from an LLM or compress growth stages to make the calendar fit. A future thermal-time model requires a separately released method and parameter set.
+New runs use the separately released `thermal-model-v1` method and 32-crop parameter set. Daily growing degree-days are `max(0, min((Tmin + Tmax) / 2, Tupper) - Tbase)`, following revised FAO-56 Equation 6.23. The four stage values are increments. Prefix sums give thresholds; accumulated heat never resets at a stage boundary. Each stage ends on the first day reaching its threshold. Multiple thresholds on one day can create zero-day stages. Kc interpolates over the resulting calendar stages, including full demand on cold occupied days and the final occupied day. These daily conventions are explicit model assumptions.
+
+Every retained weather season must complete a candidate occurrence within the year. The field reservation uses the latest completion, while rainfall and demand use each season's actual modeled stage dates. Noncompletion does not remove a season. It can produce a model-scoped no-fit result, which is not biological impossibility. The method does not model frost survival, heat injury, photoperiod, vernalization, soil suitability, water-stress delays, or yield. Results and PDFs disclose these limits and the lack of local validation.
+
+Archived `v1` runs retain fixed stage durations and original hard planting windows. Neither path compresses stages or substitutes an LLM estimate to make a calendar fit.
 
 A profile must state turnaround days and their basis. If no biological minimum is established, the registry may declare an explicit scheduling assumption. That assumption is shown in the result and is not described as a published agronomic rule.
 
-Dates available to the ranking search are every seventh day from the planning start, supplemented by baseline planting dates, released planting-window edges, and the earliest next available date after a previous occurrence. This is a search approximation. It does not establish daily optimality.
+Thermal ranking dates are every seventh day from the planning start, the edges of feasible planting intervals, and earliest field availability after a previous occurrence. Archived runs also use their original baseline and planting-window rules. Both grids are approximations, separate from daily structural feasibility search.
 
 ### 6.3 Search procedure
 
@@ -340,6 +344,8 @@ Temperature indicators remain visible even though they do not enter the ranking.
 For example, suppose candidate A has a mean frequency of 0.20 and candidate B has 0.30. Because frequency comes first, A wins even if B has a smaller average mismatch. These invented values illustrate the policy only. They are not computed farm results.
 
 ## 7. Existing rotation and transition explanation
+
+The thermal-model path preserves recorded history but does not infer its stage boundaries from remembered planting and harvest dates. It withholds the numeric comparison and baseline preference with an explicit reason. The following fixed-duration comparison rules continue to apply to archived `v1` runs.
 
 The recorded history remains unchanged. To create a repeat candidate, translate the complete historical sequence by a whole number of calendar years while preserving crop order. Map a February 29 endpoint to February 28 if necessary. Consider translations that could fit the planning window. Select the earliest fully fitting translation when more than one is possible.
 
@@ -463,7 +469,7 @@ Scientific implementation checks include FAO reference calculations, unit conver
 
 The challenge resources provide environmental observations, models, and useful agricultural references. They do not form a ready-made global crop-rotation rules database. The resource list includes geographically limited sources such as United States soil and crop datasets. Those cannot silently fill worldwide coverage. [Official challenge resources](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/?tab=resources)
 
-The current project evidence includes a successful seven-day POWER retrieval at one illustrative location for five meteorological variables and IMERG precipitation. It does not yet include a validated worldwide 25-year ingestion pipeline, a released crop catalogue, or a tested planning engine.
+Versioned evidence under `docs/evidence/` records full-period NASA retrieval, numerical checks, actual worker/database runs, browser journeys, and source releases. The global-model release has its own evidence folder. These checks establish the observed implementation behavior, not worldwide agronomic validation; hosted deployment remains a separate claim.
 
 The team can divide implementation into these deliverables:
 
@@ -483,6 +489,6 @@ The following dependencies remain before release:
 - Measure the search budgets and adjust the versioned defaults when needed. No latency claim is established by this specification.
 - Validate the deployed interface and downloadable PDFs on phones and desktops.
 
-The agreed scope is worldwide access with evidence-aware results. A farmer can select any location. Some crop and location combinations will return available insights without a plan until the required profiles or rules exist. This behavior is part of the MVP contract.
+The agreed scope is worldwide access with evidence-aware results. Every newly advertised crop has a reviewed reference model independent of location. Missing weather, a model that cannot complete within the year, and a bounded search limit remain distinct outcomes. Saved inputs with a removed crop keep that selection visible for correction. Existing saved results and frozen historical releases retain their original interpretation.
 
 The project brief is the [NASA Space Apps challenge details page](https://www.spaceappschallenge.org/2026/challenges/adapting-farms-with-nasa-data/?tab=details). Source-backed parameters, climate history, and deterministic selection are sufficient for this scoped comparison tool. An LLM is not a missing requirement.

@@ -1,5 +1,7 @@
 # Build Gilir in three parallel lanes
 
+The original card plan below is retained as historical scope. On 15 November 2026, the user authorized a follow-up that makes complete reference-model data available for every newly listed crop, selected 32 reviewed crops for the first release, and deferred eight unresolved models. This follow-up spans source review, thermal development, search, frozen runtime identity, and results/PDF compatibility. It does not change the original cards' owners or estimates. Its current evidence and release limits are in [the global-model record](evidence/global-models/README.md).
+
 The initial plan budgeted ten hours for each of three AI-assisted builders. It is not a delivery guarantee. The approved E3 handoff on 14 November moves its three-hour estimate to kyusuku while yslee1106 completes E1 and E2. Each person retains two hours for integration, review, and fixes. There is no planning-only lane.
 
 The shared starter is prepared before the timed build. Every coding card starts from it, uses an explicit fixture or port, and can be implemented without another card merging. The final assembled application necessarily depends on the completed modules. Integration cards name those dependencies instead of hiding them.
