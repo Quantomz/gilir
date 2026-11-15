@@ -1,6 +1,6 @@
 # F1 browser evidence
 
-This folder is **fixture evidence** for card F1, the four input pages and the editable history. Every run here used a synthetic farm input, stubbed network routes and `next dev`. It is not live end-to-end evidence. No real field picker, saved storage, planning job or Results screen took part. I1, I2 and I3 gate the assembled product.
+This folder is **fixture evidence** for card F1, the four input pages and the editable history. Every run here used a synthetic farm input, stubbed network routes and `next dev`. It is not live end-to-end evidence. No live planning job and no real Results screen took part. Storage is F4's real IndexedDB in Chromium. I1, I2 and I3 gate the assembled product.
 
 ## What the browser runs used
 
@@ -8,7 +8,7 @@ The runs used two surfaces.
 
 - **`/dev/fixtures`.** This is the development lab. It renders `<Onboarding client={fixtureClient} initialInput={inputFixture} />`. No network is involved. `lab.spec.ts` runs here.
 - **`/`.** This is the real page with the real HTTP client from `src/client/planner.ts`. `journey.spec.ts` and `evidence.spec.ts` run here.
-  - A development-only seed opens it with a fixture input, because the field picker slot cannot mark a field yet. `src/app/page.tsx` reads that seed only in development, and the production build drops it.
+  - A development-only seed opens it with a fixture input, which marks the field without driving F2's map. `src/app/page.tsx` reads that seed only in development, and the production build drops it.
   - The routes below are answered with `page.route`. Each answer is parsed with the contract schema before it is sent: `releasedRegistrySchema` for the catalogue, `completedSnapshotSchema` and `serviceFailureSchema` for jobs and failures. Each POST body is parsed with `farmInputSchema`.
 
 | Route | Answered with |
@@ -20,7 +20,7 @@ The runs used two surfaces.
 
 `evidence.spec.ts` seeds `inputFixture` with one change. Its synthetic crop is swapped for `maize-grain` from the released list, so page 2 needs no fixing before the flow can go on. The field, the date and the 4-day bar are the fixture's.
 
-The shared storage port still rejects every call, so every screen shows "This browser isn't saving your answers" with Got it. The round "N" button in the corner of the recordings and screenshots is the `next dev` tools button. A production build does not have it.
+Storage is F4's real IndexedDB, and it works in these runs. So no storage line shows, except where a case makes the browser refuse storage (`[L1]` and the F4 storage words cases) or seeds a record F4 sets aside. The round "N" button in the corner of the recordings and screenshots is the `next dev` tools button. A production build does not have it.
 
 ## Files
 
@@ -33,6 +33,8 @@ The shared storage port still rejects every call, so every screen shows "This br
 | `360-rejected-submission.png` | After a 400 on `["cropPurposeIds", 0]`, page 2 opens with the issue beside the list and focus on it. |
 | `360-failed-job.png` | A failed job (`retrieval_failed`) shows no plan and offers Try again and Change my answers. |
 | `360-first-paint-largest-contrast.png` | The first screenshot taken after a load with Largest text and High contrast saved. It is already Largest and high contrast. |
+| `360-set-aside-results.png` | A saved plan whose job can't be followed opens on Results. F4's set-aside notice and its Got it sit above the frame. |
+| `360-no-room-page2.png` | Page 2 after the device filled up. The quiet line gives F4's words for a full device, then says the answers stay while the page is open. |
 
 ## Card F1 "Done when", case by case
 
@@ -47,7 +49,7 @@ The shared storage port still rejects every call, so every screen shows "This br
 | A failed JobState with no completed snapshot | journey `[M1][K5]` and `[K6]`, evidence `[J3][K5]` | Passed. The failure screen shows with no Results, and the job is deleted. Change my answers returns to page 4 with the same answers. A 404 on read ends on "This plan request has expired". |
 | The three water choices | journey `[A4][F2]` | Passed. The same answers were sent with each water answer. The three POST bodies differ only in `water`. |
 | No priority field in the POST body | journey `[A4][F2]` | Passed. Every body has exactly `cropPurposeIds`, `field`, `history`, `planningStart`, `schemaVersion` and `water`, and no "priorit" text. |
-| A recording of the flow and the focus order at phone and desktop widths | evidence `[L5]` and `[L3][L5]` at 360 and 1280 | Passed. On every page the skip link comes first, then the notice, the top bar, the page, and the dock. The dock's last stop is the page's primary button, and no focused element was covered. Tab stays inside the sheet. |
+| A recording of the flow and the focus order at phone and desktop widths | evidence `[L5]` and `[L3][L5]` at 360 and 1280 | Passed. On every page the skip link comes first, then the top bar, the page, and the dock. Storage works in this run, so no notice is in the walk. The dock's last stop is the page's primary button, and no focused element was covered. Tab stays inside the sheet. |
 
 The other browser cases also passed.
 
@@ -92,6 +94,24 @@ A second independent review of 75146ad, and two skeptics on its fix round, led t
 - **Making and the failed screen.** Try again shows the busy button while it sends. Three failed reads of any kind show "We can't reach the planning service right now". The note goes when Making reopens on the same job.
 - **The field-ready date.** Text that is not a date stays in the input and clears the answer, so the plan never uses a date the input does not show. The input is bounded to four-digit years.
 
+## F4's storage words
+
+Card F4 asked F1 to show its storage words through `services/saved.ts`, F1's only storage door (F4 design, decisions D1 and D2). F1 shows them in one quiet storage line with one Got it. It never blocks input. The line is one store per page load in `saved.ts`, so it shows above the input pages, Making, and Results, because `AppFrame` shows it too.
+
+- **Saved data set aside.** F4 moves saved data this version can't read to one side, and `readStorageNotice()` describes it. `saved.ts` reads it through the injected port once per page load, after the first open that read storage, because that load is what sets data aside. The open finishes only after that read, so the page paints once with its line. Got it calls the notice's own `dismiss`, which removes that data for good. A reload without Got it shows the line again. An open that could not read storage reads no notice.
+- **Why storage failed.** A failed load or save shows `storageProblem(error).text`, then words that fit the reason and the screen. On the input pages a blocked browser or a full device adds "Your answers stay while this page is open." A newer Gilir adds nothing, because its words say to close the page. On Results each reason adds "Download the PDF to keep a copy." ("first" for a newer Gilir). A write skipped because the open could not read storage repeats the open's reason. The line shows the latest failure's reason. A save that goes through clears it, and a load alone does not, because a full device still loads. Got it quiets the reason it showed for the rest of the visit, and a later failure for another reason shows again.
+- **On a phone.** Got it follows the last word, and the icon is left out below 560 px. At 360 x 740 one set-aside line went from 209 to 153 px (Largest 365 to 246 px), and set-aside plus no room from two bars of 388 px to one of 243 px. The text keeps its size, weight and colours, and Got it is 101 x 48 px (136 x 65 at Largest).
+
+| Case | Surface | What it shows |
+| --- | --- | --- |
+| `ui/storage-words.test.tsx`, 13 cases | jsdom, `src/app/page.tsx` with mocked storage and F4's own `storageProblem` | Each visit is a fresh module graph, as a reload is. The set-aside line shows once and stays across pages, is on screen when the page first paints, and is read once under Strict Mode. Got it removes it for this visit and the next, and focus goes to the title, or to `#main` on Results. A reload without Got it reads and shows it again. On Results it sits outside the Results region and stays gone after Change inputs. A normal visit shows no line. A failed open reads no notice. Blocked, full and newer storage each show their own words. A plan made on a full device shows the "no room" line above Results with the PDF words, and no plan is saved. Got it on one reason leaves a later, different reason free to show. |
+| `services/saved.test.ts` `[F4-D1]`, 7 cases | Vitest | Each reason shows F4's words. A load before a write that fails after a good open shows its own reason. A write skipped after a failed open repeats the open's reason and writes nothing. A save that goes through clears the line, and a load does not. Got it quiets one reason. The notice is read once through the port, and an open waits for it. |
+| `conventions.test.ts` `[F4-D1]` | Vitest | Only `saved.ts` names `localPlans`, `readStorageNotice` or `storageProblem`, and no F1 file restates F4's storage words. |
+| `journey.spec.ts` `[F4-D1]`, 9 cases | Chromium, `/` with F4's real IndexedDB | A normal visit saves the step and shows no line. A plan made on a full device shows the "no room" line above Results with the PDF words, and the raw state holds no plan. At 360 x 740 the page title is fully on screen with both lines at Normal, and its first line is on screen with one line at Largest. The set-aside line is on screen when the title first appears. A state record whose plan is from an older Gilir is written raw into the `gilir` database. After a reload the line shows once, stays across pages, and Got it removes the set-aside record, read back raw. A second reload shows nothing. A saved plan whose job can't be followed opens Results with the line above it, a reload shows it again, and Got it puts focus on `#main`. A record from a newer Gilir says to close the page and open Gilir again. A blocked browser and a full device are simulated, as the next paragraph says. |
+| `evidence.spec.ts` `[F4-D1]` at 360 and 1280 | Chromium, `/` | The two screenshots in the file table, written at 360. |
+
+The blocked browser is an init script that makes `indexedDB.open` throw `SecurityError`, as Chromium does when site data is blocked. The full device is an init script that makes every IndexedDB `put` throw `QuotaExceededError` once the test says the device is full. Everything after the refusal is F4's real storage code and F1's real screens.
+
 ## Commands and observed results
 
 Run from the repository root with Node 24. Playwright 1.65.1 cannot find its own Chromium on this machine, so the commands below set `PW_CHROMIUM`. Each spec uses it as the browser only when it is set, and Playwright's own Chromium otherwise. Its video recorder also needs an ffmpeg that can write VP9, which is missing from the browsers folder here. So the evidence run points `PLAYWRIGHT_BROWSERS_PATH` at a folder whose `ffmpeg-1013/ffmpeg-linux` links to the system `/usr/bin/ffmpeg`. Writing the evidence also needs `ffmpeg` on `PATH`. Playwright's `webServer` starts `next dev` on 127.0.0.1:3000, or reuses one already running there.
@@ -102,21 +122,34 @@ One way to make that folder:
 mkdir -p "$HOME/pw-browsers/ffmpeg-1013" && ln -sf /usr/bin/ffmpeg "$HOME/pw-browsers/ffmpeg-1013/ffmpeg-linux"
 ```
 
-| Command | Observed (15 November 2026, at the head that adds this table) |
+| Command | Observed (15 November 2026, at the head that adds this table, on a machine whose load average was 14 to 27 on 4 cores) |
 | --- | --- |
-| `PW_CHROMIUM=/opt/pw-browsers/chromium PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/lab.spec.ts tests/frontend/onboarding/journey.spec.ts tests/frontend/onboarding/evidence.spec.ts` | 57 passed (3.8 min): lab 26, journey 11, evidence 20. Without `F1_EVIDENCE` it wrote nothing here. Its focus-order files equal the ones here, and its screenshots are byte-identical except the first-paint one, which differs only in the loading shimmer's phase. |
-| `PW_CHROMIUM=/opt/pw-browsers/chromium F1_EVIDENCE=1 PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/evidence.spec.ts` | Last run at 75146ad: 20 passed (4.9 min). It wrote every file in this folder except this README. It was not rerun after the second review, because the run above showed no screen these files show had changed. |
-| `npx vitest run tests/frontend/onboarding` | 15 files passed, 354 tests passed |
-| `npm run check` | Exit 0. 60 files passed and 5 skipped. 900 tests passed and 29 skipped. "Module boundaries passed." |
+| `PW_CHROMIUM=/opt/pw-browsers/chromium PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/lab.spec.ts tests/frontend/onboarding/journey.spec.ts` on a warmed `next dev` | 43 tests: lab 26, journey 17. The first run on 2 workers passed 39. Four stopped at the 30 s test limit or a 5 s wait: lab `[E1]` and `[H3]` at 1280, and the two set-aside cases of journey `[F4-D1]`. The page snapshot of the Results case shows the expected notice on screen when the limit hit. The same four rerun with `--last-failed --workers=1` passed (48.7 s). |
+| `PW_CHROMIUM=/opt/pw-browsers/chromium F1_EVIDENCE=1 PLAYWRIGHT_BROWSERS_PATH=$HOME/pw-browsers npx playwright test tests/frontend/onboarding/evidence.spec.ts --workers=1` | 22 passed (8.8 min). It rewrote every file in this folder except this README. Page 1 in the recordings and focus-order files now shows F2's field picker, and no screen shows a storage line unless its case asks for one. |
+| `npx vitest run tests/frontend/onboarding` | 16 files passed, 365 tests passed. |
+| `npm run check` | Exit 0 with only this README uncommitted. 82 files passed and 5 skipped. 1446 tests passed and 33 skipped. "Module boundaries passed." Two earlier runs failed outside F1's files. A backend climate test hit its 5 s limit at a load average of 14, and it passes alone (19 of 19). `tests/integration/runtime/report.test.ts` stopped at its `code_identity` stage while the re-recorded evidence was uncommitted, because `git diff --binary HEAD` was then 4.5 MB, more than the 1 MiB `execFileSync` buffers by default. |
 | `npm run build` | Exit 0, with `next dev` stopped, because both use `.next`. `/` is static, the prerendered `index.html` holds "Opening Gilir…", and `__gilirDevInput` is in no file under `.next/static`. |
 
-CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes its files to `test-results/` only. With it, the spec stages them under `test-results/f1-evidence/` and copies them here after the last test, only when all 20 passed. A file written into the repository during the run makes `next dev` rebuild, and two earlier runs that wrote here directly got a 500 on `/` during that rebuild.
+CI does not run Playwright. Without `F1_EVIDENCE=1`, `evidence.spec.ts` writes its files to `test-results/` only. With it, the spec stages them under `test-results/f1-evidence/` and copies them here after the last test, only when all 22 passed. A file written into the repository during the run makes `next dev` rebuild, and two earlier runs that wrote here directly got a 500 on `/` during that rebuild.
+
+## Fix round after the third review (f746505 to this head)
+
+| Command | Observed |
+| --- | --- |
+| `npx vitest run tests/frontend/onboarding` | 16 files, 375 tests passed. |
+| `npm run check` | Exit 0. 82 files passed and 5 skipped. 1456 tests passed and 33 skipped. "Module boundaries passed." |
+| `npm run build`, with `next dev` stopped | Exit 0. `/` static. |
+| journey `-g "F4-D1\|D4"`, 1 worker, warmed `next dev` | 10 passed (49.3 s). The five new cases had failed on f746505's source. |
+| evidence `[F4-D1]` with `F1_EVIDENCE=1`, 1 worker | 2 passed. It rewrote `360-set-aside-results.png` and `360-no-room-page2.png`, the only committed screens with a storage line. |
+
+NOT RUN this round: `lab.spec.ts`, the other journey cases, and the rest of `evidence.spec.ts`. The videos, the other screenshots and the focus-order files are from f746505. No storage line is on them, so the compact line does not change them. The focus-order walks still hold no storage line.
 
 ## Not verified
 
-- **A real field.** Page 1 shows the field picker stub, and the field comes from the seed.
-- **Real storage.** Every storage call rejects, so a reload loses the answers.
+- **A field marked by hand.** Every run on `/` takes its field from the development seed.
+- **Storage on a phone.** Storage ran on Chromium for desktop Linux only. A blocked browser and a full device were simulated, by making the browser's IndexedDB calls throw the errors Chromium raises. No real quota was reached, and Safari's and Firefox's storage were not tried.
 - **A live job.** It needs `DATABASE_URL` and the worker, and the plan routes here are stubs.
+- **The storage line beside F3's Results.** F3's real Results also shows its own saved line, such as "This plan isn't saved on this device." with Save on this device. F1's line in the frame names only F4's reason and the PDF, so it does not contradict that. One known overlap: if F3's Save then goes through, F3 says "Saved on this device." while F1's line still shows its reason until Got it, because F1 does not see F3's writes. On this base the Results slot is a stub with no PDF button, so "Download the PDF" was seen only above the stub.
 - **The real Results.** The Results slot is still a stub that prints its prop names. The lab's Results slot cannot show which snapshot it got. So Change inputs, and every fix above that starts from it, has jsdom evidence through `src/app/page.tsx` only.
 - **Assistive technology and other browsers.** No screen reader was run. What Listen hands to speech was captured from a stub in Chromium and in jsdom, but no voice was heard. Drag was driven with a mouse, not a touch screen. Only Chromium was used, not Safari or Firefox.
 - **A production server.** Every browser run used `next dev`, because the seed exists only there. The build was checked separately.

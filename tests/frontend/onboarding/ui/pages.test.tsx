@@ -143,7 +143,7 @@ describe("the four pages, in order", () => {
     expect(checked("checkbox", "Synthetic crop")).toBe(true);
   });
 
-  it("[B2] with the real, unmocked storage (every call rejects) the whole flow completes and submits", async () => {
+  it("[B2] with the real, unmocked storage (jsdom has no IndexedDB, so every call rejects) the whole flow completes and submits", async () => {
     const real = await vi.importActual<typeof import("@/client/storage")>("@/client/storage");
     const { client } = open({ plans: real.localPlans });
     await title("Where is your farm?");
@@ -151,7 +151,7 @@ describe("the four pages, in order", () => {
     await click("Make my plan");
     await title("Making your plan");
     expect(client.submitted).toHaveLength(1);
-    expect(screen.getByText("This browser isn’t saving your answers. They stay while this page is open.")).toBeTruthy();
+    expect(screen.getByText("This browser isn’t letting Gilir open or save your answers on this device. Your answers stay while this page is open.")).toBeTruthy();
   });
 
   it("[L3] Next and Back focus the h1 of the new page; the first paint moves no focus", async () => {

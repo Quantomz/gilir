@@ -9,7 +9,7 @@ import { act, fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { vi } from "vitest";
-import type { LocalPlans, LocalState } from "@/client/storage";
+import type { LocalPlans, LocalState, StorageNotice } from "@/client/storage";
 import { parseCropPurposeId } from "@/contracts";
 import type { Catalogue, FarmInput, JobCapability, JobState, PlannerClient, ServiceFailure, Submission } from "@/contracts";
 import type { FieldPickerProps, ResultsProps } from "@/features/ports";
@@ -85,40 +85,66 @@ export function serviceError(failure: ServiceFailure): Error {
 }
 
 /**
- * An in-memory LocalPlans that records every save. Mode "ok" works; "throws" rejects every call like
- * src/client/storage.ts today; "loadThrows" rejects load only; "saveThrows" rejects save only (quota); "hangs" never
- * settles load. `external(state)` simulates F3 writing between two F1 writes.
+ * An in-memory LocalPlans that records every save. Mode "ok" works; "throws" rejects every call like a browser that
+ * blocks storage; "loadThrows" rejects load only; "saveThrows" rejects save only; "full" rejects save with the
+ * browser's QuotaExceededError; "newer" rejects every call with VersionError, as when a newer Gilir upgraded the
+ * database; "hangs" never settles load. `external(state)` simulates F3 writing between two F1 writes.
+ * `setAside` is the text readStorageNotice gives until a dismiss removes it.
  */
 export interface MemoryPlans extends LocalPlans {
   readonly saves: readonly LocalState[];
   latest(): LocalState | null;
   external(state: LocalState | null): void;
+  readNotice(): Promise<StorageNotice | null>;
+  readonly noticeReads: number;
+  readonly setAside: string | null;
 }
 export function memoryPlans(
   initial: LocalState | null,
-  mode: "ok" | "throws" | "loadThrows" | "saveThrows" | "hangs" = "ok",
+  mode: "ok" | "throws" | "loadThrows" | "saveThrows" | "full" | "newer" | "hangs" = "ok",
+  setAside: string | null = null,
 ): MemoryPlans {
   let stored = initial;
+  let notice = setAside;
+  let noticeReads = 0;
   const saves: LocalState[] = [];
-  const refuse = () => Promise.reject(new Error("Local storage is not available."));
+  const refuse = () => Promise.reject(mode === "newer" ? new DOMException("", "VersionError") : new Error("Local storage is not available."));
   return {
     saves,
     latest: () => stored,
     external(state) {
       stored = state;
     },
+    get noticeReads() {
+      return noticeReads;
+    },
+    get setAside() {
+      return notice;
+    },
+    readNotice() {
+      noticeReads += 1;
+      const text = notice;
+      if (text === null) return Promise.resolve(null);
+      return Promise.resolve({
+        text,
+        async dismiss() {
+          if (notice === text) notice = null;
+        },
+      });
+    },
     load() {
       if (mode === "hangs") return new Promise<LocalState | null>(() => undefined);
-      return mode === "throws" || mode === "loadThrows" ? refuse() : Promise.resolve(stored);
+      return mode === "throws" || mode === "loadThrows" || mode === "newer" ? refuse() : Promise.resolve(stored);
     },
     save(state) {
-      if (mode === "throws" || mode === "saveThrows") return refuse();
+      if (mode === "full") return Promise.reject(new DOMException("", "QuotaExceededError"));
+      if (mode === "throws" || mode === "saveThrows" || mode === "newer") return refuse();
       saves.push(state);
       stored = state;
       return Promise.resolve();
     },
     clear() {
-      if (mode === "throws") return refuse();
+      if (mode === "throws" || mode === "newer") return refuse();
       stored = null;
       return Promise.resolve();
     },
@@ -127,11 +153,20 @@ export function memoryPlans(
 
 /**
  * vi.mock factory for "@/client/storage". It forwards to whatever `current()` returns at call time, so one mock
- * serves every test in a file: set the plans in each test.
+ * serves every test in a file: set the plans in each test. readStorageNotice reads a MemoryPlans' set-aside text, and
+ * storageProblem is F4's own, so a test sees the words a farmer would.
  */
-export function storageMock(current: () => LocalPlans | undefined): { readonly localPlans: LocalPlans } {
+export async function storageMock(current: () => LocalPlans | undefined): Promise<Pick<typeof import("@/client/storage"), "localPlans" | "readStorageNotice" | "storageProblem">> {
+  const { storageProblem } = await vi.importActual<typeof import("@/client/storage")>("@/client/storage");
   const plans = () => current() ?? missing("plans");
-  return { localPlans: { load: () => plans().load(), save: state => plans().save(state), clear: () => plans().clear() } };
+  return {
+    localPlans: { load: () => plans().load(), save: state => plans().save(state), clear: () => plans().clear() },
+    readStorageNotice: () => {
+      const memory: Partial<MemoryPlans> = plans();
+      return memory.readNotice?.() ?? Promise.resolve(null);
+    },
+    storageProblem,
+  };
 }
 
 /** vi.mock factory for "@/client/planner", forwarding like storageMock. */

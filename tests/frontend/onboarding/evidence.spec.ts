@@ -9,10 +9,11 @@ import { expect, test } from "@playwright/test";
 import type { Browser, Locator, Page, TestInfo } from "@playwright/test";
 import { parseFarmInput } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
-import { jobFixtures } from "@/fixtures/results";
+import { completedSnapshotFixture, jobFixtures } from "@/fixtures/results";
 import { readCatalogue } from "@/registry";
 import { focusAreas, focusOrder, scrollsSideways, seedInput, smallestTarget, stubApi } from "./support/api";
 import type { ApiScript, FocusStop } from "./support/api";
+import { blockStorage, canFillDevice, fillDevice, readRaw, writeRaw } from "./support/idb";
 import { launchOptions } from "./support/launch";
 
 test.use({ launchOptions });
@@ -232,7 +233,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
         "tools button, which a production build does not have. \"Fully visible\" means the centre of the focused element",
         "was not covered by another element once the browser scrolled it into view.",
         "",
-        "\"Got it\" closes the storage notice. The shared storage port still rejects every call, so F1 says it is not saving.",
+        "Storage is the browser's real IndexedDB and works in this run, so no storage notice and no \"Got it\" is on screen.",
         "",
       ];
       const tables = [
@@ -298,6 +299,7 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
     }
 
     test("[L1] the note under the top bar never covers the storage notice, and an open sheet covers the note", async ({ page }) => {
+      await blockStorage(page);
       await open(page, completes);
       await next(page, 0);
       await next(page, 1);
@@ -372,6 +374,31 @@ for (const viewport of [{ width: 360, height: 740 }, { width: 1280, height: 800 
         }
         await context.close();
       }
+    });
+
+    test("[F4-D1] screenshots of F4's storage words: saved data set aside, above Results, and a full device on page 2", async ({ page }, info) => {
+      const shot = (name: string) => (w === 360 ? evidencePath(info, `${w}-${name}`) : info.outputPath(`${w}-${name}`));
+      await stubApi(page, completes);
+      await canFillDevice(page);
+      await page.goto("/");
+      await expect(title(page, pageTitles[0])).toBeVisible();
+      const { schemaVersion: _version, ...answers } = seed;
+      const job = { jobId: "not-a-job", token: "" };
+      await writeRaw(page, "state", { format: "gilir.local-state", version: 1, state: { draft: answers, step: 4, activeJob: job, snapshot: completedSnapshotFixture } });
+      await page.reload();
+      await expect(page.getByRole("region", { name: "Results implementation slot" })).toBeVisible();
+      await expect(page.locator(".notice-bar")).toContainText("The plan that was being made can’t be followed any more.");
+      await page.screenshot({ path: shot("set-aside-results.png"), animations: "disabled" });
+
+      await page.locator(".notice-bar").getByRole("button", { name: "Got it" }).click();
+      await writeRaw(page, "state", { format: "gilir.local-state", version: 1, state: { draft: answers, step: 1, activeJob: null, snapshot: null } });
+      await page.reload();
+      await expect(title(page, pageTitles[0])).toBeVisible();
+      await expect.poll(() => readRaw(page, "set-aside")).toBeUndefined();
+      await fillDevice(page);
+      await next(page, 0);
+      await expect(page.locator(".notice-bar")).toContainText("This device has no room left to save Gilir.");
+      await page.screenshot({ path: shot("no-room-page2.png"), animations: "disabled" });
     });
 
     test("the saved text size and contrast apply before first paint: the first screenshot is already Largest", async ({ browser }, info) => {

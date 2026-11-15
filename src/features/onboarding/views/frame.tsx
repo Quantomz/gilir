@@ -14,11 +14,12 @@ import { policy } from "../model/policy";
 import { appName, notices as noticeWords, sheets, shell, stepCount, stepNames, titles } from "../model/words";
 import { applyReading, canSpeak, readReading, speak, stopSpeaking, textSizes } from "../services/reading";
 import type { ReadingPrefs, TextSize } from "../services/reading";
+import { nothingToSay, storageLine } from "../services/saved";
 import { Icon, Mark } from "./icons";
 
 /**
- * Public. The frame page.tsx wraps F3's Results in. No Back: Results offers Change inputs itself, and the phone's Back
- * leaves.
+ * Public. The frame page.tsx wraps F3's Results in, with the storage line above it. No Back: Results offers Change
+ * inputs itself, and the phone's Back leaves.
  */
 export function AppFrame(props: { readonly children: ReactNode; readonly focusOnMount?: boolean }): ReactElement {
   const main = useRef<HTMLElement>(null);
@@ -33,12 +34,15 @@ export function AppFrame(props: { readonly children: ReactNode; readonly focusOn
     if (document.activeElement === document.body) document.getElementById(titleId)?.focus();
   }, []);
   return (
-    <div className="view">
-      <TopBar onBack={null} />
-      <main id="main" ref={main} className="page step-main" tabIndex={-1}>
-        {props.children}
-      </main>
-    </div>
+    <>
+      <StorageBar on="results" />
+      <div className="view">
+        <TopBar onBack={null} />
+        <main id="main" ref={main} className="page step-main" tabIndex={-1}>
+          {props.children}
+        </main>
+      </div>
+    </>
   );
 }
 
@@ -319,15 +323,11 @@ export function ToastBar(props: { readonly text: string; readonly onUndo: (() =>
 }
 
 /**
- * The quiet lines above the top bar. Storage not saving and kept newer answers each have Got it. The offline line
+ * The quiet lines above the top bar. The storage line and kept newer answers each have Got it. The offline line
  * follows the browser's online and offline events and goes away by itself. None of them blocks input.
  */
 export function StatusBars(props: { readonly notices: Notices; readonly onDismiss: (notice: keyof Notices) => void }): ReactElement {
   const offline = useSyncExternalStore(subscribeToConnection, () => !navigator.onLine, () => false);
-  function gotIt(notice: keyof Notices): void {
-    props.onDismiss(notice);
-    (document.getElementById(titleId) ?? document.getElementById("main"))?.focus();
-  }
   return (
     <>
       {offline ? (
@@ -336,21 +336,63 @@ export function StatusBars(props: { readonly notices: Notices; readonly onDismis
           {noticeWords.offline}
         </div>
       ) : null}
-      {props.notices.storageFailing ? <NoticeBar text={noticeWords.notSaving} onGotIt={() => gotIt("storageFailing")} /> : null}
-      {props.notices.keptNewer ? <NoticeBar text={noticeWords.keptNewer} onGotIt={() => gotIt("keptNewer")} /> : null}
+      <StorageBar on="inputs" />
+      {props.notices.keptNewer ? (
+        <NoticeBar
+          texts={[noticeWords.keptNewer]}
+          onGotIt={() => {
+            props.onDismiss("keptNewer");
+            focusTitle();
+          }}
+        />
+      ) : null}
     </>
   );
 }
 
-function NoticeBar(props: { readonly text: string; readonly onGotIt: () => void }): ReactElement {
+/**
+ * F4's words for saved data this version set aside, and for why storage failed, in one line with one Got it. Shown
+ * above every screen, Results too, because a plan made while storage fails is not on this device.
+ */
+function StorageBar(props: { readonly on: "inputs" | "results" }): ReactElement | null {
+  const line = useSyncExternalStore(storageLine.subscribe, storageLine.current, () => nothingToSay);
+  const texts = [line.setAside?.text, line.problem ? noticeWords.notSaving(line.problem, props.on) : undefined].filter(text => text !== undefined);
+  if (texts.length === 0) return null;
+  return (
+    <NoticeBar
+      texts={texts}
+      onGotIt={() => {
+        storageLine.dismiss();
+        focusTitle();
+      }}
+    />
+  );
+}
+
+/** Got it removes its own line, so focus goes to the screen's title, or to main where a screen has none. */
+function focusTitle(): void {
+  (document.getElementById(titleId) ?? document.getElementById("main"))?.focus();
+}
+
+/** Got it follows the last word, on its line when it fits, so a phone gives the line as few rows as it can. */
+function NoticeBar(props: { readonly texts: readonly string[]; readonly onGotIt: () => void }): ReactElement {
+  const last = props.texts.length - 1;
   return (
     <div className="notice-bar" role="status">
       <div className="notice-in">
         <Icon name="info" />
-        <p>{props.text}</p>
-        <button className="btn btn-small" type="button" onClick={props.onGotIt}>
-          {noticeWords.gotIt}
-        </button>
+        <div className="notice-words">
+          {props.texts.map((text, i) => (
+            <p key={text}>
+              {text}
+              {i === last ? (
+                <button className="btn btn-small" type="button" onClick={props.onGotIt}>
+                  {noticeWords.gotIt}
+                </button>
+              ) : null}
+            </p>
+          ))}
+        </div>
       </div>
     </div>
   );

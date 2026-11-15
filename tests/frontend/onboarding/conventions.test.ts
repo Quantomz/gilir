@@ -5,6 +5,7 @@ import { dirname, extname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { storageProblem } from "@/client/storage";
 
 const repo = fileURLToPath(new URL("../../../", import.meta.url));
 const feature = "src/features/onboarding";
@@ -154,6 +155,15 @@ describe("public surface", () => {
   it("only services/saved.ts imports @/client/storage at runtime; only src/app/page.tsx imports @/client/planner", () => {
     expect(importers(f1Code, "src/client/storage", true)).toEqual([`${feature}/services/saved.ts`]);
     expect(importers(f1Code, "src/client/planner", true)).toEqual(["src/app/page.tsx"]);
+  });
+
+  it("[F4-D1] only services/saved.ts names localPlans, readStorageNotice or storageProblem, and no F1 file restates F4's storage words", () => {
+    const portNames = new Set(["localPlans", "readStorageNotice", "storageProblem"]);
+    expect(f1Code.filter(path => identifiersOf(parse(path)).some(name => portNames.has(name)))).toEqual([`${feature}/services/saved.ts`]);
+    const f4Words = [new Error("blocked"), new DOMException("", "QuotaExceededError"), new DOMException("", "VersionError")].map(error => storageProblem(error).text);
+    expect(new Set(f4Words).size).toBe(3);
+    const restated = f1Code.flatMap(path => literalTexts(parse(path)).filter(text => f4Words.some(words => text.includes(words))).map(text => `${path}: ${text}`));
+    expect(restated).toEqual([]);
   });
 
   it("model/ imports no react, no services/ and no views/; services/ imports no react and no views/", () => {

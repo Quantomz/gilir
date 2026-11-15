@@ -8,100 +8,102 @@ Each page table is one Tab walk from the top of the page until focus wraps. The 
 tools button, which a production build does not have. "Fully visible" means the centre of the focused element
 was not covered by another element once the browser scrolled it into view.
 
-"Got it" closes the storage notice. The shared storage port still rejects every call, so F1 says it is not saving.
+Storage is the browser's real IndexedDB and works in this run, so no storage notice and no "Got it" is on screen.
 
 ## Page 1: Where is your farm?
 
 | # | Area | Role | Name | Size (CSS px) | Fully visible |
 | --- | --- | --- | --- | --- | --- |
 | 1 | skip link | link | Skip to the main content | 267 x 54 | yes |
-| 2 | notice | button | Got it | 101 x 48 | yes |
-| 3 | top bar | button | Text size | 50 x 75 | yes |
-| 4 | top bar | button | Listen | 51 x 75 | yes |
-| 5 | dock | button | Next: crops | 328 x 64 | yes |
+| 2 | top bar | button | Text size | 50 x 75 | yes |
+| 3 | top bar | button | Listen | 51 x 75 | yes |
+| 4 | page | button | Search again | 169 x 48 | yes |
+| 5 | page | button | Type the corners | 205 x 48 | yes |
+| 6 | page | region | Map of your field. Drag a corner to move it. To use the keyboard, choose Type the corners. | 326 x 405 | yes |
+| 7 | page | button | Zoom in | 91 x 76 | yes |
+| 8 | page | button | Zoom out | 102 x 76 | yes |
+| 9 | page | button | Add a corner | 328 x 56 | yes |
+| 10 | dock | button | Next: crops | 328 x 64 | yes |
 
 ## Page 2: Which crops do you want to grow?
 
 | # | Area | Role | Name | Size (CSS px) | Fully visible |
 | --- | --- | --- | --- | --- | --- |
 | 1 | skip link | link | Skip to the main content | 267 x 54 | yes |
-| 2 | notice | button | Got it | 101 x 48 | yes |
-| 3 | top bar | button | Back | 79 x 52 | yes |
-| 4 | top bar | button | Text size | 50 x 75 | yes |
-| 5 | top bar | button | Listen | 51 x 75 | yes |
-| 6 | page | searchbox | Find a crop | 242 x 56 | yes |
-| 7 | page | checkbox | Barley (grain) | 157 x 186 | yes |
-| 8 | page | checkbox | Beet (table) | 157 x 186 | yes |
-| 9 | page | checkbox | Broccoli | 157 x 186 | yes |
-| 10 | page | checkbox | Brussels sprouts | 157 x 186 | yes |
-| 11 | page | checkbox | Cabbage | 157 x 160 | yes |
-| 12 | page | checkbox | Cantaloupe | 157 x 160 | yes |
-| 13 | page | checkbox | Carrot | 157 x 160 | yes |
-| 14 | page | checkbox | Cauliflower | 157 x 160 | yes |
-| 15 | page | checkbox | Celery | 157 x 213 | yes |
-| 16 | page | checkbox | Common bean (dry grain) | 157 x 213 | yes |
-| 17 | page | checkbox | Cowpea (dry grain) | 157 x 186 | yes |
-| 18 | page | checkbox | Eggplant | 157 x 186 | yes |
-| 19 | page | checkbox | Green bean (fresh pods) | 157 x 186 | yes |
-| 20 | page | checkbox | Groundnut (peanut) | 157 x 186 | yes |
-| 21 | page | checkbox | Lentil (dry grain) | 157 x 186 | yes |
-| 22 | page | checkbox | Lettuce | 157 x 186 | yes |
-| 23 | page | checkbox | Maize (grain) | 157 x 215 | yes |
-| 24 | page | checkbox | Millet (grain) | 157 x 215 | yes |
-| 25 | page | checkbox | Mung bean (dry grain) | 157 x 186 | yes |
-| 26 | page | checkbox | Oats (grain) | 157 x 186 | yes |
-| 27 | page | checkbox | Onion (dry bulb) | 157 x 186 | yes |
-| 28 | page | checkbox | Onion (green) | 157 x 186 | yes |
-| 29 | page | checkbox | Pea (dry seed) | 157 x 186 | yes |
-| 30 | page | checkbox | Pea (fresh) | 157 x 186 | yes |
-| 31 | page | checkbox | Potato | 157 x 213 | yes |
-| 32 | page | checkbox | Pumpkin and winter squash | 157 x 213 | yes |
-| 33 | page | checkbox | Radish | 157 x 160 | yes |
-| 34 | page | checkbox | Rice (paddy) | 157 x 160 | yes |
-| 35 | page | checkbox | Safflower (seed) | 157 x 186 | yes |
-| 36 | page | checkbox | Sorghum (grain) | 157 x 186 | yes |
-| 37 | page | checkbox | Soybean (grain) | 157 x 186 | yes |
-| 38 | page | checkbox | Spinach | 157 x 186 | yes |
-| 39 | page | checkbox | Squash and zucchini | 157 x 186 | yes |
-| 40 | page | checkbox | Sunflower (seed) | 157 x 186 | yes |
-| 41 | page | checkbox | Sweet maize (sweet corn) | 157 x 186 | yes |
-| 42 | page | checkbox | Sweet melon | 157 x 186 | yes |
-| 43 | page | checkbox | Sweet potato | 157 x 186 | yes |
-| 44 | page | checkbox | Tomato | 157 x 186 | yes |
-| 45 | page | checkbox | Watermelon | 157 x 186 | yes |
-| 46 | page | checkbox | Wheat (grain) | 157 x 186 | yes |
-| 47 | dock | button | Next: water | 328 x 64 | yes |
+| 2 | top bar | button | Back | 79 x 52 | yes |
+| 3 | top bar | button | Text size | 50 x 75 | yes |
+| 4 | top bar | button | Listen | 51 x 75 | yes |
+| 5 | page | searchbox | Find a crop | 242 x 56 | yes |
+| 6 | page | checkbox | Barley (grain) | 157 x 186 | yes |
+| 7 | page | checkbox | Beet (table) | 157 x 186 | yes |
+| 8 | page | checkbox | Broccoli | 157 x 186 | yes |
+| 9 | page | checkbox | Brussels sprouts | 157 x 186 | yes |
+| 10 | page | checkbox | Cabbage | 157 x 160 | yes |
+| 11 | page | checkbox | Cantaloupe | 157 x 160 | yes |
+| 12 | page | checkbox | Carrot | 157 x 160 | yes |
+| 13 | page | checkbox | Cauliflower | 157 x 160 | yes |
+| 14 | page | checkbox | Celery | 157 x 213 | yes |
+| 15 | page | checkbox | Common bean (dry grain) | 157 x 213 | yes |
+| 16 | page | checkbox | Cowpea (dry grain) | 157 x 186 | yes |
+| 17 | page | checkbox | Eggplant | 157 x 186 | yes |
+| 18 | page | checkbox | Green bean (fresh pods) | 157 x 186 | yes |
+| 19 | page | checkbox | Groundnut (peanut) | 157 x 186 | yes |
+| 20 | page | checkbox | Lentil (dry grain) | 157 x 186 | yes |
+| 21 | page | checkbox | Lettuce | 157 x 186 | yes |
+| 22 | page | checkbox | Maize (grain) | 157 x 215 | yes |
+| 23 | page | checkbox | Millet (grain) | 157 x 215 | yes |
+| 24 | page | checkbox | Mung bean (dry grain) | 157 x 186 | yes |
+| 25 | page | checkbox | Oats (grain) | 157 x 186 | yes |
+| 26 | page | checkbox | Onion (dry bulb) | 157 x 186 | yes |
+| 27 | page | checkbox | Onion (green) | 157 x 186 | yes |
+| 28 | page | checkbox | Pea (dry seed) | 157 x 186 | yes |
+| 29 | page | checkbox | Pea (fresh) | 157 x 186 | yes |
+| 30 | page | checkbox | Potato | 157 x 213 | yes |
+| 31 | page | checkbox | Pumpkin and winter squash | 157 x 213 | yes |
+| 32 | page | checkbox | Radish | 157 x 160 | yes |
+| 33 | page | checkbox | Rice (paddy) | 157 x 160 | yes |
+| 34 | page | checkbox | Safflower (seed) | 157 x 186 | yes |
+| 35 | page | checkbox | Sorghum (grain) | 157 x 186 | yes |
+| 36 | page | checkbox | Soybean (grain) | 157 x 186 | yes |
+| 37 | page | checkbox | Spinach | 157 x 186 | yes |
+| 38 | page | checkbox | Squash and zucchini | 157 x 186 | yes |
+| 39 | page | checkbox | Sunflower (seed) | 157 x 186 | yes |
+| 40 | page | checkbox | Sweet maize (sweet corn) | 157 x 186 | yes |
+| 41 | page | checkbox | Sweet melon | 157 x 186 | yes |
+| 42 | page | checkbox | Sweet potato | 157 x 186 | yes |
+| 43 | page | checkbox | Tomato | 157 x 186 | yes |
+| 44 | page | checkbox | Watermelon | 157 x 186 | yes |
+| 45 | page | checkbox | Wheat (grain) | 157 x 186 | yes |
+| 46 | dock | button | Next: water | 328 x 64 | yes |
 
 ## Page 3: Where does your water come from?
 
 | # | Area | Role | Name | Size (CSS px) | Fully visible |
 | --- | --- | --- | --- | --- | --- |
 | 1 | skip link | link | Skip to the main content | 267 x 54 | yes |
-| 2 | notice | button | Got it | 101 x 48 | yes |
-| 3 | top bar | button | Back | 79 x 52 | yes |
-| 4 | top bar | button | Text size | 50 x 75 | yes |
-| 5 | top bar | button | Listen | 51 x 75 | yes |
-| 6 | page | radio | Rain only | 328 x 127 | yes |
-| 7 | dock | button | Next: your rotation | 328 x 64 | yes |
+| 2 | top bar | button | Back | 79 x 52 | yes |
+| 3 | top bar | button | Text size | 50 x 75 | yes |
+| 4 | top bar | button | Listen | 51 x 75 | yes |
+| 5 | page | radio | Rain only | 328 x 127 | yes |
+| 6 | dock | button | Next: your rotation | 328 x 64 | yes |
 
 ## Page 4: Your rotation
 
 | # | Area | Role | Name | Size (CSS px) | Fully visible |
 | --- | --- | --- | --- | --- | --- |
 | 1 | skip link | link | Skip to the main content | 267 x 54 | yes |
-| 2 | notice | button | Got it | 101 x 48 | yes |
-| 3 | top bar | button | Back | 79 x 52 | yes |
-| 4 | top bar | button | Text size | 50 x 75 | yes |
-| 5 | top bar | button | Listen | 51 x 75 | yes |
-| 6 | page | textbox | When is your field ready to plant? | 264 x 60 | yes |
-| 7 | page | slider | Maize (grain): planting day | 48 x 68 | yes |
-| 8 | page | slider | Maize (grain): harvest day, the last day in the field | 48 x 68 | yes |
-| 9 | page | button | Change dates for maize (grain) | 212 x 48 | yes |
-| 10 | page | button | Add a crop | 288 x 64 | yes |
-| 11 | page | button | The field was empty then : Jul 5, 2025 to Jun 30, 2026 | 258 x 64 | yes |
-| 12 | page | button | My field was empty all year Nothing grew there in those 12 months. | 328 x 169 | yes |
-| 13 | page | button | I don’t remember We plan without last year. | 328 x 142 | yes |
-| 14 | dock | button | Make my plan | 328 x 64 | yes |
+| 2 | top bar | button | Back | 79 x 52 | yes |
+| 3 | top bar | button | Text size | 50 x 75 | yes |
+| 4 | top bar | button | Listen | 51 x 75 | yes |
+| 5 | page | textbox | When is your field ready to plant? | 264 x 60 | yes |
+| 6 | page | slider | Maize (grain): planting day | 48 x 68 | yes |
+| 7 | page | slider | Maize (grain): harvest day, the last day in the field | 48 x 68 | yes |
+| 8 | page | button | Change dates for maize (grain) | 212 x 48 | yes |
+| 9 | page | button | Add a crop | 288 x 64 | yes |
+| 10 | page | button | The field was empty then : Jul 5, 2025 to Jun 30, 2026 | 258 x 64 | yes |
+| 11 | page | button | My field was empty all year Nothing grew there in those 12 months. | 328 x 169 | yes |
+| 12 | page | button | I don’t remember We plan without last year. | 328 x 142 | yes |
+| 13 | dock | button | Make my plan | 328 x 64 | yes |
 
 ## Page 4, Change dates sheet, from its first control until Tab wraps inside it
 

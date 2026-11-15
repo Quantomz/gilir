@@ -1,18 +1,19 @@
 // Playwright, Chromium. Surface: "/" with the REAL HTTP client (src/client/planner.ts) on a stubbed network
-// (support/api.ts stubApi) and the development-only seed (support/api.ts seedInput), because the field picker slot
-// cannot emit a field yet and every storage call rejects. It is the only surface that can show a rejected
-// submission, a failed job, polling that moves, and a 404 on read.
+// (support/api.ts stubApi) and the development-only seed (support/api.ts seedInput), which marks the field without
+// driving F2's map. It is the only surface that can show a rejected submission, a failed job, polling that
+// moves, and a 404 on read. Storage is F4's real IndexedDB, so the last block shows F4's storage words in Chromium.
 // Fixture evidence of F1 alone: the catalogue and the plan routes are stubs. Not live end-to-end evidence.
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 import { farmInputSchema } from "@/contracts";
 import type { ServiceFailure } from "@/contracts";
 import { inputFixture } from "@/fixtures/input";
-import { jobFixtures } from "@/fixtures/results";
+import { completedSnapshotFixture, jobFixtures } from "@/fixtures/results";
 import { syntheticRegistryFixture } from "@/fixtures/science";
 import { readCatalogue } from "@/registry";
 import { recordTitles, seedInput, stubApi, stubCapability, titlesSeen } from "./support/api";
 import type { ApiScript } from "./support/api";
+import { blockStorage, canFillDevice, fillDevice, readRaw, writeRaw } from "./support/idb";
 import { launchOptions } from "./support/launch";
 
 test.use({ launchOptions });
@@ -71,7 +72,7 @@ test.describe("journeys on / with stubbed /api routes", () => {
     }
   });
 
-  test("[D4] with the seed, page 1 holds the marked field and Next goes to page 2; without it, page 1 waits because the F2 stub cannot emit a field", async ({ page, browser }) => {
+  test("[D4] with the seed, page 1 holds the marked field and Next goes to page 2; without it, page 1 waits for a field to be marked", async ({ page, browser }) => {
     const errors: string[] = [];
     page.on("console", message => {
       if (message.type() === "error") errors.push(message.text());
@@ -261,5 +262,167 @@ test.describe("journeys on / with stubbed /api routes", () => {
     await expect(page.getByRole("checkbox")).toHaveCount(0);
     await page.getByRole("button", { name: "Back" }).click();
     await expect(title(page, "Where is your farm?")).toBeVisible();
+  });
+});
+
+test.describe("[F4-D1] F4's storage words on / with the real IndexedDB", () => {
+  const quiet: ApiScript = { catalogue, submit: [{ kind: "accepted" }], reads: [jobFixtures.queued] };
+  const notices = (page: Page) => page.locator(".notice-bar");
+  const stay = "Your answers stay while this page is open.";
+  const ours = (state: object) => ({ format: "gilir.local-state", version: 1, state });
+  const { schemaVersion: _version, ...answers } = fixtureBody;
+  const snapshot = JSON.parse(JSON.stringify(completedSnapshotFixture));
+  const olderPlan = { ...snapshot, schemaVersion: 1, result: "from an older Gilir" };
+  const setAsideWords = "Your saved plan can’t be opened by this version of Gilir. Make the plan again to see it. Your answers are kept.";
+  const savedStep = async (page: Page) => ((await readRaw(page, "state")) as { state?: { step?: number } } | undefined)?.state?.step;
+
+  /** From the next load, notes whether the storage line was already on screen when the page title first appeared. */
+  async function watchFirstPaint(page: Page, name: string) {
+    await page.addInitScript(name => {
+      new MutationObserver((_, observer) => {
+        if (document.getElementById("main-title")?.textContent !== name) return;
+        Reflect.set(window, "__lineAtFirstPaint", document.querySelector(".notice-bar") !== null);
+        observer.disconnect();
+      }).observe(document, { subtree: true, childList: true, characterData: true });
+    }, name);
+  }
+
+  test("a normal visit shows no notice line, and the answers are saved", async ({ page }) => {
+    await open(page, quiet);
+    await expect(notices(page)).toHaveCount(0);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect.poll(() => savedStep(page)).toBe(2);
+    await expect(notices(page)).toHaveCount(0);
+    expect(await readRaw(page, "set-aside")).toBeUndefined();
+  });
+
+  test("an old saved plan is set aside: the notice is there when the page first paints, stays across pages, and Got it removes it for good", async ({ page }) => {
+    await open(page, quiet, false);
+    await writeRaw(page, "state", ours({ draft: { water: "unsure" }, step: 3, activeJob: null, snapshot: olderPlan }));
+    await watchFirstPaint(page, "Where does your water come from?");
+    await page.reload();
+    await expect(title(page, "Where does your water come from?")).toBeVisible();
+    expect(await page.evaluate(() => Reflect.get(window, "__lineAtFirstPaint"))).toBe(true);
+    await expect(notices(page)).toHaveCount(1);
+    await expect(notices(page)).toHaveText(`${setAsideWords}Got it`);
+    await expect(page.getByRole("radio", { name: "I’m not sure" })).toBeChecked();
+    await page.getByRole("button", { name: "Back" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect(notices(page)).toHaveCount(1);
+
+    await notices(page).getByRole("button", { name: "Got it" }).click();
+    await expect(notices(page)).toHaveCount(0);
+    await expect(title(page, "Which crops do you want to grow?")).toBeFocused();
+    await expect.poll(() => readRaw(page, "set-aside")).toBeUndefined();
+
+    await page.reload();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect(notices(page)).toHaveCount(0);
+  });
+
+  test("a saved plan whose job can't be followed opens Results with the notice above it; a reload without Got it shows it again", async ({ page }) => {
+    const words = "The plan that was being made can’t be followed any more. Make the plan again. Your answers are kept.";
+    await open(page, quiet, false);
+    await writeRaw(page, "state", ours({ draft: answers, step: 4, activeJob: { jobId: "not-a-job", token: "" }, snapshot }));
+    await page.reload();
+    await expect(resultsSlot(page)).toBeVisible();
+    await expect(notices(page)).toHaveText(`${words}Got it`);
+    await page.reload();
+    await expect(resultsSlot(page)).toBeVisible();
+    await expect(notices(page)).toHaveText(`${words}Got it`);
+    await notices(page).getByRole("button", { name: "Got it" }).click();
+    await expect(notices(page)).toHaveCount(0);
+    await expect(page.locator("#main")).toBeFocused();
+    await expect.poll(() => readRaw(page, "set-aside")).toBeUndefined();
+  });
+
+  test("blocked storage says this browser is not letting Gilir save, and the flow still works", async ({ page }) => {
+    await blockStorage(page);
+    await open(page, quiet);
+    await expect(notices(page)).toHaveText(`This browser isn’t letting Gilir open or save your answers on this device. ${stay}Got it`);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+  });
+
+  test("a full device says there is no room left, and the answers stay on screen", async ({ page }) => {
+    await canFillDevice(page);
+    await open(page, quiet);
+    await expect.poll(() => savedStep(page)).toBe(1);
+    await fillDevice(page);
+    await expect(notices(page)).toHaveCount(0);
+    await page.getByRole("button", { name: "Next: crops" }).click();
+    await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+    await expect(notices(page)).toHaveText(`This device has no room left to save Gilir. ${stay}Got it`);
+    expect(await savedStep(page)).toBe(1);
+    await expect(page.getByRole("checkbox", { name: "Synthetic crop" })).toBeChecked();
+  });
+
+  test("a plan made on a full device shows why above Results and says to download the PDF; no plan is saved", async ({ page }) => {
+    await canFillDevice(page);
+    await open(page, { catalogue, submit: [{ kind: "accepted" }], reads: [jobFixtures.completed] });
+    await toRotation(page);
+    await expect.poll(() => savedStep(page)).toBe(4);
+    await fillDevice(page);
+    await page.getByRole("button", { name: "Make my plan" }).click();
+    await expect(resultsSlot(page)).toBeVisible({ timeout: 15_000 });
+    await expect(notices(page)).toHaveText("This device has no room left to save Gilir. Download the PDF to keep a copy.Got it");
+    expect(((await readRaw(page, "state")) as { state?: { snapshot?: unknown } } | undefined)?.state?.snapshot ?? null).toBeNull();
+  });
+
+  test("data from a newer Gilir says to close this page and open Gilir again, and nothing that says to stay", async ({ page }) => {
+    await open(page, quiet, false);
+    await writeRaw(page, "state", { format: "gilir.local-state", version: 2, state: {} });
+    await page.reload();
+    await expect(title(page, "Where is your farm?")).toBeVisible();
+    await expect(notices(page)).toHaveText("Gilir has a newer version. Close this page and open Gilir again to see what you saved.Got it");
+  });
+
+  test.describe("on a 360 x 740 phone", () => {
+    test.use({ viewport: { width: 360, height: 740 } });
+
+    /** The title's top and its first line's bottom, the dock's top, and every Got it's size. */
+    const layout = (page: Page) => page.evaluate(() => {
+      const heading = document.getElementById("main-title")!;
+      const box = heading.getBoundingClientRect();
+      return {
+        titleTop: box.top,
+        titleBottom: box.bottom,
+        firstLineBottom: box.top + parseFloat(getComputedStyle(heading).lineHeight),
+        dockTop: document.querySelector(".dock")!.getBoundingClientRect().top,
+        gotIt: [...document.querySelectorAll(".notice-bar button")].map(button => button.getBoundingClientRect()).map(({ width, height }) => ({ width, height })),
+      };
+    });
+
+    test("set-aside data and a full device together leave the whole page title on screen at Normal text", async ({ page }) => {
+      await canFillDevice(page);
+      await open(page, quiet);
+      await writeRaw(page, "state", ours({ draft: answers, step: 1, activeJob: null, snapshot: olderPlan }));
+      await page.reload();
+      await expect(notices(page)).toHaveCount(1);
+      await fillDevice(page);
+      await page.getByRole("button", { name: "Next: crops" }).click();
+      await expect(title(page, "Which crops do you want to grow?")).toBeVisible();
+      await expect(page.locator(".notice-bar", { hasText: "no room left" })).toHaveCount(1);
+      const seen = await layout(page);
+      expect(seen.titleTop).toBeGreaterThan(0);
+      expect(seen.titleBottom).toBeLessThanOrEqual(seen.dockTop);
+      expect(seen.gotIt.length).toBeGreaterThan(0);
+      for (const size of seen.gotIt) expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(48);
+    });
+
+    test("one set-aside line leaves the page title's first line on screen at Largest text", async ({ page }) => {
+      await page.addInitScript(() => localStorage.setItem("gilir.reading", JSON.stringify({ textSize: "largest", highContrast: false })));
+      await open(page, quiet, false);
+      await writeRaw(page, "state", ours({ draft: { water: "unsure" }, step: 3, activeJob: null, snapshot: olderPlan }));
+      await page.reload();
+      await expect(title(page, "Where does your water come from?")).toBeVisible();
+      await expect(notices(page)).toHaveCount(1);
+      const seen = await layout(page);
+      expect(seen.titleTop).toBeGreaterThan(0);
+      expect(seen.firstLineBottom).toBeLessThanOrEqual(seen.dockTop);
+      expect(seen.gotIt).toHaveLength(1);
+      for (const size of seen.gotIt) expect(Math.min(size.width, size.height)).toBeGreaterThanOrEqual(48);
+    });
   });
 });
