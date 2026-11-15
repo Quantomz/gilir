@@ -175,6 +175,30 @@ test("[R5] the credits line reads NASA EOSDIS GIBS, © MapTiler and © OpenStree
   await shoot(page, testInfo, "provider-credits-360", credits);
 });
 
+for (const width of [360, 1280]) {
+  for (const colorScheme of ["light", "dark"] as const) {
+    test(`[R5] the linked provider logo is visible and usable at ${width}px in ${colorScheme} mode`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.emulateMedia({ colorScheme });
+      const { root } = await openLab(page);
+      const logo = root.getByRole("link", { name: "MapTiler logo (opens in a new tab)" });
+      await expect(logo).toBeVisible();
+      await expect(logo).toHaveAttribute("href", "https://www.maptiler.com");
+      const image = logo.getByRole("img", { name: "MapTiler logo" });
+      await expect(image).toHaveAttribute("src", "/maptiler-logo.svg");
+      await expect.poll(() => image.evaluate(element => element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0)).toBe(true);
+      const box = (await logo.boundingBox())!;
+      expect(box.width).toBeGreaterThanOrEqual(44);
+      expect(box.height).toBeGreaterThanOrEqual(44);
+      await expect(logo).toHaveCSS("background-color", colorScheme === "dark" ? "rgb(10, 18, 12)" : "rgb(20, 33, 22)");
+      await logo.click({ trial: true });
+      await root.getByRole("button", { name: "Zoom out" }).focus();
+      await page.keyboard.press("Tab");
+      await expect(logo).toBeFocused();
+    });
+  }
+}
+
 test("[R16] a 403 to the search shows its explanation; a 429 says the search is busy; 403 to tiles shows 'The map pictures didn’t load. …' and the globe still turns", async ({ page }) => {
   const { root, routes } = await openLab(page, { search: "refused" });
   await search(root, "Indramayu");
