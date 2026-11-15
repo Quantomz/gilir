@@ -1,3 +1,251 @@
+/* Gilir's Terrace tokens, shared by every feature. The tokens stay on :root because the dark and high-contrast
+   blocks override them at runtime. `@theme inline` hands them to utilities as var() references, so
+   every utility follows the mode (plain `@theme` would bake in the light values).
+   Unlayered CSS beats every Tailwind utility, so nothing here is unlayered except custom properties.
+   Theme keys never redefine a Tailwind default, so F2's and F3's utilities keep their usual meaning. */
 @import "tailwindcss";
-body { margin: 0; font-family: system-ui, sans-serif; background: #f5f7f5; color: #102319; }
-button, input, select { font: inherit; }
+@import "../features/onboarding/terrace.css";
+
+/* Test files name classes on purpose, and none of them belongs in the shipped stylesheet. */
+@source not "../../tests";
+
+@custom-variant hc (&:where([data-contrast="high"], [data-contrast="high"] *));
+@custom-variant big-text (&:where(.big-text, .big-text *));
+
+:root {
+  /* surfaces */
+  --bg: #F3F6F0;            /* Mist */
+  --raised: #FFFFFF;
+  --sunk: #E8EDE4;
+  --tile: #E1E8DC;
+  --art-bg: #EDF2E8;
+  /* lines */
+  --line: #D3DBCD;
+  --line-strong: #6B7866;   /* control edges */
+  /* ink */
+  --ink: #233421;           /* Deep Pine */
+  --ink-2: #475645;
+  /* action */
+  --brand: #233421;
+  --on-brand: #F4FFEC;
+  --mint-pill: #F4FFEC;
+  --on-mint-pill: #233421;
+  /* greens */
+  --leaf: #769558;          /* Moss: fills only */
+  --leaf-text: #46682C;
+  --sprout: #7EDE56;        /* Light Green: on dark surfaces only */
+  --night-accent: #7EDE56;
+  --on-sprout: #233421;
+  --mint: #E5F2DB;
+  /* night */
+  --night: #142116;
+  --night-2: #1E2E20;
+  --on-night: #F4FFEC;
+  --on-night-2: #C3D3BE;
+  --panel: #233421;
+  --label-bg: rgba(20, 33, 22, .86);
+  /* accent and semantic */
+  --accent: #E8B84A;        /* Harvest gold: badge fill only */
+  --on-accent: #233421;
+  --water: #1D6A88;
+  --water-soft: #DCEEF3;
+  --warn: #9E4316;
+  --warn-soft: #FBE9DC;
+  --ok: #2E6A1E;
+  --ok-soft: #E4F3DA;
+  --pin: #D2501A;
+  --ring: #233421;          /* progress ring */
+  /* a crop that is not on the list: a grey stripe pair */
+  --other-a: #8E9583;
+  --other-b: #7D8471;
+  /* focus */
+  --focus: #1D6A88;
+  --focus-night: #7EDE56;
+  /* depth. --shadow sits in comma lists beside --card-edge, so it must never be `none`. */
+  --shadow: 0 1px 2px rgba(35, 52, 33, .06), 0 12px 32px rgba(35, 52, 33, .10);
+  --shadow-pop: 0 2px 8px rgba(35, 52, 33, .14), 0 24px 56px rgba(35, 52, 33, .20);
+  --card-edge: 0 0 0 1px rgba(35, 52, 33, 0);
+  --map-mode: day;
+  /* paper: the printable plan is dark ink on white in every mode, so the mode blocks leave it alone */
+  --paper: #FFFFFF;
+  --paper-ink: #111A12;
+  --paper-ink-2: #3D4A3B;
+  --paper-line: #B7C2B2;
+  --paper-sunk: #F1F4EE;
+  --paper-green: #2F5A1A;
+  --paper-warn: #8A3A12;
+  /* type. layout.tsx defines the next/font variables; each var() keeps a fallback because an undefined
+     variable would void the whole font-family. */
+  --f-display: var(--font-instrument, "Instrument Sans"), var(--font-atkinson, "Atkinson Hyperlegible Next"), system-ui, sans-serif;
+  --f-body: var(--font-atkinson, "Atkinson Hyperlegible Next"), "Atkinson Hyperlegible", Verdana, system-ui, "Noto Sans", sans-serif;
+  --fs-s: .9rem;            /* 18px at Normal: the smallest text anywhere */
+  --fs-m: 1rem;             /* 20px body */
+  --fs-l: 1.2rem;           /* 24px */
+  --fs-xl: 1.6rem;          /* 32px screen titles */
+  --fs-xxl: 2.1rem;         /* 42px */
+  /* space, shape and targets. rem on the 125% root, so they grow with Text size. */
+  --s1: .25rem; --s2: .5rem; --s3: .75rem; --s4: 1rem; --s5: 1.5rem; --s6: 2rem; --s7: 3rem; --s8: 4.5rem;
+  --r-s: 12px; --r-m: 20px; --r-l: 28px; --r-xl: 36px; --r-in: 16px;
+  --tap: 3.2rem;            /* 64px main buttons */
+  --tap-s: 2.8rem;          /* 56px secondary */
+  --tap-min: 2.4rem;        /* 48px smallest target */
+  --col: 40rem;
+  --ease: cubic-bezier(.16, 1, .3, 1);
+  --scale: 1;               /* Text size: set by the head script and the Text size sheet */
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Desktop: a comfortable gutter. */
+@media (min-width: 900px) {
+  :root {
+    --gutter-l: max(clamp(16px, 4vw, 56px), env(safe-area-inset-left, 0px));
+    --gutter-r: max(clamp(16px, 4vw, 56px), env(safe-area-inset-right, 0px));
+  }
+}
+
+/* Dark follows the phone. There is no theme switch, so the values are written once. High contrast wins over dark. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-contrast="high"]) {
+    --bg: #0F1811; --raised: #172219; --sunk: #0A120C; --tile: #1E2B20; --art-bg: #DDE6D6;
+    --line: #2A3A2C; --line-strong: #7E907C;
+    --ink: #EDF4E8; --ink-2: #B6C5B1;
+    --brand: #E6F2DD; --on-brand: #172219; --mint-pill: #F4FFEC; --on-mint-pill: #233421;
+    --leaf: #8DB56A; --leaf-text: #A4CF7E; --sprout: #7EDE56; --night-accent: #7EDE56; --on-sprout: #233421; --mint: #1C2E1E;
+    --night: #0A120C; --night-2: #172219; --on-night: #F4FFEC; --on-night-2: #B9CAB4; --panel: #1E2E20; --label-bg: rgba(10, 18, 12, .88);
+    --accent: #E8B84A; --on-accent: #172219;
+    --water: #7CC4E0; --water-soft: #123642; --warn: #F2A36E; --warn-soft: #3B2416; --ok: #9DD26C; --ok-soft: #1C381B;
+    --pin: #FF7A3D; --ring: #7EDE56; --focus: #7EDE56; --focus-night: #7EDE56;
+    --other-a: #8E9583; --other-b: #6B7266;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .35), 0 12px 32px rgba(0, 0, 0, .35);
+    --shadow-pop: 0 2px 8px rgba(0, 0, 0, .45), 0 24px 56px rgba(0, 0, 0, .55);
+    --card-edge: 0 0 0 1px #2A3A2C;
+    --map-mode: dark;
+    color-scheme: dark;
+  }
+}
+
+/* High contrast is a reading choice from the Text size sheet: black on white with thicker edges, in any system mode. */
+:root[data-contrast="high"] {
+  --bg: #FFFFFF; --raised: #FFFFFF; --sunk: #F2F2F2; --tile: #F2F2F2; --art-bg: #FFFFFF;
+  --line: #000000; --line-strong: #000000;
+  --ink: #000000; --ink-2: #1A1A1A;
+  --brand: #000000; --on-brand: #FFFFFF; --mint-pill: #FFFFFF; --on-mint-pill: #000000;
+  /* --sprout and --accent fill marks on night surfaces, so they are white here with black on them. */
+  --leaf: #1F4A0A; --leaf-text: #1F4A0A; --sprout: #FFFFFF; --night-accent: #FFFFFF; --on-sprout: #000000; --mint: #FFFFFF;
+  --night: #000000; --night-2: #000000; --on-night: #FFFFFF; --on-night-2: #FFFFFF; --panel: #000000; --label-bg: #000000;
+  --accent: #FFFFFF; --on-accent: #000000;
+  --water: #00456B; --water-soft: #FFFFFF; --warn: #7A2600; --warn-soft: #FFFFFF; --ok: #134A06; --ok-soft: #FFFFFF;
+  --pin: #B23A00; --ring: #000000; --focus: #0047FF; --focus-night: #FFD400;
+  --other-a: #FFFFFF; --other-b: #000000;
+  --shadow: 0 0 #0000; --shadow-pop: 0 0 0 3px #000000;
+  --card-edge: 0 0 0 2px #000000;
+  --map-mode: day;
+  color-scheme: light;
+}
+
+/* bg-raised, text-ink, border-line-strong, rounded-m, shadow-card, min-h-tap-min, max-w-col, font-display ... */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raised: var(--raised);
+  --color-sunk: var(--sunk);
+  --color-tile: var(--tile);
+  --color-art-bg: var(--art-bg);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --color-mint-pill: var(--mint-pill);
+  --color-on-mint-pill: var(--on-mint-pill);
+  --color-leaf: var(--leaf);
+  --color-leaf-text: var(--leaf-text);
+  --color-sprout: var(--sprout);
+  --color-night-accent: var(--night-accent);
+  --color-on-sprout: var(--on-sprout);
+  --color-mint: var(--mint);
+  --color-night: var(--night);
+  --color-night-2: var(--night-2);
+  --color-on-night: var(--on-night);
+  --color-on-night-2: var(--on-night-2);
+  --color-panel: var(--panel);
+  --color-label-bg: var(--label-bg);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-water: var(--water);
+  --color-water-soft: var(--water-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-pin: var(--pin);
+  --color-ring: var(--ring);
+  --color-other-a: var(--other-a);
+  --color-other-b: var(--other-b);
+  --color-focus: var(--focus);
+  --color-focus-night: var(--focus-night);
+
+  --font-body: var(--f-body);
+  --font-display: var(--f-display);
+
+  --text-s: var(--fs-s);
+  --text-m: var(--fs-m);
+  --text-l: var(--fs-l);
+  --text-title: var(--fs-xl);
+  --text-display: var(--fs-xxl);
+
+  --radius-s: var(--r-s);
+  --radius-m: var(--r-m);
+  --radius-l: var(--r-l);
+  --radius-sheet: var(--r-xl);
+  --radius-in: var(--r-in);
+
+  /* A theme key named --shadow-pop would collide with the token of that name, so the keys get their own names. */
+  --shadow-card: var(--shadow), var(--card-edge);
+  --shadow-lift: var(--shadow-pop), var(--card-edge);
+
+  --spacing-tap: var(--tap);
+  --spacing-tap-s: var(--tap-s);
+  --spacing-tap-min: var(--tap-min);
+  --container-col: var(--col);
+
+  --ease-terrace: var(--ease);
+}
+
+@layer base {
+  /* 1rem is 20px at Normal, so Tailwind's .25rem spacing step equals --s1 and every rem utility grows
+     with Text size. Media queries read rem at 16px whatever the root, so breakpoints never move. */
+  html {
+    font-size: calc(125% * var(--scale));
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(max(var(--bar-top, 72px), var(--bar-toast, 0px)) + 12px);
+    scroll-padding-bottom: calc(var(--bar-bottom, 0px) + 12px);
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--f-body);
+    font-size: var(--fs-m);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 60; background: var(--bg); }
+  main :is(a, button, input, select, summary, [tabindex]) { scroll-margin-block: 12px; }
+  fieldset { min-width: 0; }
+  button { cursor: pointer; }
+  a { color: var(--ink); text-decoration-line: underline; text-underline-offset: .2em; text-decoration-thickness: 2px; }
+  strong, b { font-weight: 700; }
+  svg { flex: none; }
+  :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; border-radius: 8px; }
+  [data-contrast="high"] :focus-visible { outline-width: 5px; }
+  .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .skip { position: absolute; left: 16px; top: 0; transform: translateY(-120%); z-index: 100; padding: 12px 18px; background: var(--brand); color: var(--on-brand); border-radius: 999px; font-weight: 700; text-decoration: none; }
+  .skip:focus { transform: translateY(calc(12px + env(safe-area-inset-top, 0px))); }
+  .app-root { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  }
+}
